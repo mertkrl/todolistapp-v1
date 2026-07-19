@@ -574,7 +574,7 @@ function _pickNewOwner(members, groupName) {
         // social-online-friends.js ayrı dosyaya taşındı — bkz. yukarıdaki not (typeof korumalı)
         if (typeof window.subscribeOnlineFriends === 'function') window.subscribeOnlineFriends();
         renderHomeSummary();
-        scheduleFocusReminders();
+        window.scheduleFocusReminders();
         listenForCWInvites();
         listenForCWDeclines();
         // social-buddy-habits.js ayrı dosyaya taşındı (dinamik import ile SONRA
@@ -607,71 +607,9 @@ function _pickNewOwner(members, groupName) {
         window.currentUser = u;
     }
 
-    // ─── AMACA HİZMET EDEN BİLDİRİMLER ──────────────────────────
-    // Sohbete değil çalışmaya çağıran hatırlatmalar: bugünkü grup seansları
-    // (15 dk kala + başlangıçta) ve akşam seri-riski uyarısı.
-    let _focusRemindersScheduled = false;
-    async function scheduleFocusReminders() {
-        if (_focusRemindersScheduled || !window.FocusSupabase || !currentUser?.id) return;
-        _focusRemindersScheduled = true;
-
-        // İzin iste (kullanıcı reddetmişse sessizce ekran içi toast'a düşülür)
-        try { if (typeof Notification !== 'undefined' && Notification.permission === 'default') Notification.requestPermission().catch(() => {}); } catch {}
-
-        const notify = (title, body) => {
-            playNotificationSound('alert');
-            maybeShowDesktopNotification(title, body);
-            showGenericNotifToast({ icon: 'fa-bolt', accent: '#D4900E', title, body: _escapeHtml(body) });
-        };
-
-        // 1. Bugünkü grup seansları
-        try {
-            const { data: memberRows } = await window.FocusSupabase
-                .from('group_members').select('group_id, groups(name)').eq('user_id', currentUser.id);
-            const groupIds = (memberRows || []).map(r => r.group_id);
-            if (groupIds.length) {
-                const todayIso = new Date().toISOString().slice(0, 10);
-                const { data: sessions } = await window.FocusSupabase
-                    .from('group_sessions')
-                    .select('id, title, session_date, session_time, group_id')
-                    .in('group_id', groupIds)
-                    .eq('session_date', todayIso);
-                const nameByGroup = {};
-                (memberRows || []).forEach(r => { nameByGroup[r.group_id] = r.groups?.name || 'Grubun'; });
-                (sessions || []).forEach(sess => {
-                    if (!sess.session_time) return;
-                    const start = new Date(`${sess.session_date}T${sess.session_time}`);
-                    const msTo = start.getTime() - Date.now();
-                    const gName = nameByGroup[sess.group_id] || 'Grubun';
-                    if (msTo > 15 * 60 * 1000) {
-                        setTimeout(() => notify('Seans yaklaşıyor ⏳', `"${sess.title}" 15 dk sonra başlıyor (${gName}).`), msTo - 15 * 60 * 1000);
-                    }
-                    if (msTo > 0) {
-                        setTimeout(() => notify('Seans başlıyor! ⚡', `"${sess.title}" şimdi başlıyor — ${gName} seni bekliyor.`), msTo);
-                    }
-                });
-            }
-        } catch (e) { console.warn('[Bildirim] seans hatırlatmaları kurulamadı', e); }
-
-        // 2. Seri riski: 20:30'da bugün hiç odak yoksa ve seri varsa uyar
-        try {
-            const target = new Date(); target.setHours(20, 30, 0, 0);
-            const msTo = target.getTime() - Date.now();
-            if (msTo > 0) {
-                setTimeout(() => {
-                    try {
-                        const fh = typeof FocusStorage !== 'undefined' ? (FocusStorage.get('focus_history', {}) || {}) : {};
-                        const today = _dhsDateKey(new Date());
-                        const y = new Date(); y.setDate(y.getDate() - 1);
-                        const hadStreak = Number(fh[_dhsDateKey(y)]) > 0;
-                        if (hadStreak && !(Number(fh[today]) > 0)) {
-                            notify('Serin risk altında 🔥', 'Bugün henüz odaklanmadın — kısa bir seans zinciri kurtarır.');
-                        }
-                    } catch {}
-                }, msTo);
-            }
-        } catch {}
-    }
+    // ─── AMACA HİZMET EDEN BİLDİRİMLER — social-focus-reminders.js
+    // dosyasına taşındı (Faz 2, 2026-07-19).
+    // window.scheduleFocusReminders() üzerinden erişiliyor.
 
     // ─── "KİŞİLER" POPOVER (2026-07-03) → social-online-people-popover.js dosyasına taşındı ──────
 
