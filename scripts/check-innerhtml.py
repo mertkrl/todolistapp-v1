@@ -288,6 +288,9 @@ def main():
         'inline-module-loader.js', 'inline-dock-topbar-init.js', 'inline-sw-register.js',
         'inline-button-failsafe.js', 'inline-goal-modal-globals.js', 'inline-a11y-patch.js',
         'inline-onclick-migration.js',
+        'social-emoji-picker.js', 'social-group-focus-render.js',
+        'social-focus-quote-rotation.js', 'social-group-focus-idle.js',
+        'social-message-pins.js',
     ]
     base = Path.cwd()
     total = 0

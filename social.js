@@ -17133,6 +17133,7 @@ document.addEventListener("DOMContentLoaded", () => {
             customAvatar: p.customAvatar || null
         };
     }
+    window._normalizeSupabaseDmMessage = _normalizeSupabaseDmMessage;
 
     // Supabase `messages` satırını (scope_type='group') renderDcMessage'ın
     // beklediği eski (Firebase) mesaj şekline çevirir. DM'in aksine gönderen
@@ -17204,9 +17205,26 @@ document.addEventListener("DOMContentLoaded", () => {
     let _dcSupabaseMsgChannel  = null;  // `messages` tablosu realtime kanalı
     let _dcReadChannel             = null;  // `message_reads` tablosu realtime kanalı (DM)
     let _dcGroupReadSupaChannel    = null;  // M5c: group_read_receipts Realtime kanalı (Supabase grup)
-    let _dcPinnedChannel           = null;  // `message_pins` tablosu realtime kanalı (DM/grup)
-    let _dcPinnedConversationId    = null;  // Sabitleme kanalının bağlı olduğu conversation id (DM)
-    let _dcPinnedScope             = null;  // Sabitleme kanalının bağlı olduğu { type, id } (grup/kanal)
+    // _dcPinnedChannel/_dcPinnedConversationId/_dcPinnedScope/_dcPinnedRef/
+    // _dcPinnedPath/_dcPinnedMsgs/_dcPinnedIndex → social-message-pins.js
+    // dosyasına taşındı (Faz 2, 2026-07-19).
+
+    // ─── SALT-OKUNUR SOHBET BAĞLAMI KÖPRÜSÜ ─────────────────
+    // Ayrılan modüllerin (örn. social-message-pins.js) bu değişkenleri
+    // window.*'a taşımadan (yüzlerce iç kullanım noktasını değiştirmeye
+    // gerek kalmadan) okuyabilmesi için. Fonksiyon her çağrıldığında GÜNCEL
+    // değerleri döner (closure) — bunlar hiçbir zaman ayrılan modüller
+    // tarafından yazılmıyor, sadece social.js içinde mutasyona uğruyor.
+    window._dcGetChatContext = function () {
+        return {
+            currentUser,
+            dmConversation: _dcCurrentConversation,
+            groupScope: _dcCurrentGroupScope,
+            msgPath: _dcCurrentMsgPath,
+            otherProfile: _dcCurrentOtherProfile,
+            role: _dcCurrentRole
+        };
+    };
     let _dcReactionsChannel        = null;  // `message_reactions` tablosu realtime kanalı
 
     // Açık DM'e ait tüm Supabase realtime kanallarını/oturum durumunu kapatır —
@@ -17218,8 +17236,8 @@ document.addEventListener("DOMContentLoaded", () => {
         teardownDmTypingSupabase();
         teardownDcGroupTypingSupabase();
         teardownDcGroupReadReceiptSupabase();
-        teardownDmPinnedSupabase();
-        teardownGroupPinnedSupabase();
+        window.teardownDmPinnedSupabase();
+        window.teardownGroupPinnedSupabase();
         _dcCurrentConversation = null;
         _dcCurrentOtherProfile = null;
         _dcCurrentGroupId = null;
@@ -17285,17 +17303,16 @@ document.addEventListener("DOMContentLoaded", () => {
     let _dcOpenLastRead = 0;  // Sohbet açılırken yakalanan "son okuma" zamanı (ayıracı konumlandırmak için)
 
     // ─── SABİTLENMİŞ MESAJLAR ───────────────────────────────
-    let _dcPinnedRef   = null;  // Sabitlenmiş mesajlar dinleyicisi
-    let _dcPinnedPath  = null;  // Sabitlenmiş mesajlar Firebase yolu
-    let _dcPinnedMsgs  = {};    // key -> { text, displayName, username, timestamp, pinnedBy }
-    let _dcPinnedIndex = 0;     // Banner'da gösterilen sabitlenmiş mesaj indexi
+    // _dcPinnedRef/_dcPinnedPath/_dcPinnedMsgs/_dcPinnedIndex → social-message-pins.js
 
     // Firebase kaldırıldı — her zaman null döner; tüm `if (!database)` guard'ları bu sayede sağlıklı çalışır
     function getDB() { return null; }
+    window.getDB = getDB;
 
     function getUser() {
         try { return JSON.parse(localStorage.getItem('focusai_social_user')); } catch { return null; }
     }
+    window.getUser = getUser;
 
     // ─── YARDIMCI: avatar URL ───────────────────────────
     function dcAvatar(name, color) {
@@ -19145,7 +19162,7 @@ function renderFlatChannelItem(container, groupCode, roomId, roomName) {
         };
 
         fetchAndRenderGroup();
-        setupGroupPinnedSupabase(scope);
+        window.setupGroupPinnedSupabase(scope);
         setupDcGroupTypingSupabase(scope);
         setupDcGroupReadReceiptSupabase(scope);
 
@@ -19665,12 +19682,12 @@ function renderFlatChannelItem(container, groupCode, roomId, roomName) {
         if (window.FocusSupabase && currentUser?.id) {
             // Sabitlenmiş mesajlar/okundu/yazıyor durumu artık Supabase üzerinden
             // (conversation çözüldükten sonra) kurulacak — eski Firebase dinleyicilerini temizle
-            teardownDcPinned();
+            window.teardownDcPinned();
             teardownDcReadReceipt();
             teardownDcTyping();
         } else {
             // Supabase oturumu yok — eski Firebase tabanlı yol
-            setupDcPinned(dmPath);
+            window.setupDcPinned(dmPath);
             setupDcTyping(`focusai_community/typing_status/${dmId}`, user.username);
             setupDcReadReceipt(dmId, user.username, targetUsername);
         }
@@ -19759,7 +19776,7 @@ function renderFlatChannelItem(container, groupCode, roomId, roomName) {
                 fetchAndRenderDm(conversation.id);
                 setupDmReadReceiptSupabase(conversation, _dcCurrentOtherProfile);
                 setupDmTypingSupabase(conversation);
-                setupDmPinnedSupabase(conversation);
+                window.setupDmPinnedSupabase(conversation);
 
                 _dcSupabaseMsgChannel = window.FocusSupabase
                     .channel(`dm-messages-${conversation.id}`)
@@ -20130,257 +20147,14 @@ function renderFlatChannelItem(container, groupCode, roomId, roomName) {
     // ─── "YENİ MESAJLAR" AYIRACI + OKUNMAMIŞA HIZLI ATLAMA BUTONU (2026-07-18) → social-unread-divider.js dosyasına taşındı ──────
 
     // ─── SABİTLENMİŞ MESAJLAR ───────────────────────────────
-    function dcPinnedPathFor(chatPath) {
-        if (/\/messages$/.test(chatPath)) {
-            // Grup/kanal mesaj yolu: ".../messages" -> ".../pinned"
-            return chatPath.replace(/\/messages$/, '/pinned');
-        }
-        // DM mesajları doğrudan dmPath altında saklanır — sabitlenenleri ayrı bir meta yoluna koy
-        const dmId = chatPath.split('/').pop();
-        return `focusai_community/dm_meta/${dmId}/pinned`;
-    }
-
-    function teardownDcPinned() {
-        if (_dcPinnedRef) { _dcPinnedRef.off(); _dcPinnedRef = null; }
-        _dcPinnedPath  = null;
-        _dcPinnedMsgs  = {};
-        _dcPinnedIndex = 0;
-        renderDcPinnedBanner();
-    }
-
-    function setupDcPinned(chatPath) {
-        const database = getDB();
-        if (!database) return;
-        teardownDcPinned();
-        _dcPinnedPath = dcPinnedPathFor(chatPath);
-        _dcPinnedRef  = database.ref(_dcPinnedPath);
-        _dcPinnedRef.on('value', snap => {
-            _dcPinnedMsgs  = snap.val() || {};
-            _dcPinnedIndex = 0;
-            renderDcPinnedBanner();
-            // Açık mesajların sabitlenme rozetini güncelle
-            document.querySelectorAll('#sidebar-chat-messages-stream [data-action="pin"]').forEach(btn => {
-                const row = btn.closest('[data-msg-key]');
-                const key = row && row.dataset.msgKey;
-                const isPinned = !!key && !!_dcPinnedMsgs[key];
-                btn.classList.toggle('is-selected', isPinned);
-                btn.title = isPinned ? 'Sabitlemeyi kaldır' : 'Sabitle';
-            });
-        });
-    }
-
-    // ─── SABİTLENMİŞ MESAJLAR (DM — Supabase `message_pins`) ───────────
-    function teardownDmPinnedSupabase() {
-        if (_dcPinnedChannel) {
-            window.FocusSupabase.removeChannel(_dcPinnedChannel);
-            _dcPinnedChannel = null;
-        }
-        _dcPinnedConversationId = null;
-    }
-
-    function refreshDmPinned() {
-        if (!_dcPinnedConversationId || !window.FocusSupabase) return;
-        window.FocusSupabase
-            .from('message_pins')
-            .select('message_id, pinned_by, messages(*)')
-            .eq('conversation_id', _dcPinnedConversationId)
-            .order('created_at', { ascending: true })
-            .then(async ({ data, error }) => {
-                if (error) { console.error('[DM] sabitlenmiş mesajlar okunamadı', error); return; }
-                _dcPinnedMsgs = {};
-                await Promise.all((data || []).map(async row => {
-                    if (!row.messages) return;
-                    const m = _normalizeSupabaseDmMessage(row.messages, _dcCurrentOtherProfile);
-                    let text = m.text || '';
-                    if (m.enc) {
-                        const otherUsername = m.username === currentUser.username
-                            ? _dcCurrentOtherProfile?.username
-                            : m.username;
-                        const plain = otherUsername ? await window.decryptDmText(otherUsername, m.enc) : null;
-                        if (plain !== null) text = plain;
-                    }
-                    _dcPinnedMsgs[row.message_id] = {
-                        text,
-                        displayName: m.displayName,
-                        username: m.username,
-                        timestamp: m.timestamp,
-                        pinnedBy: row.pinned_by
-                    };
-                }));
-                _dcPinnedIndex = 0;
-                renderDcPinnedBanner();
-                document.querySelectorAll('#sidebar-chat-messages-stream [data-action="pin"]').forEach(btn => {
-                    const row = btn.closest('[data-msg-key]');
-                    const key = row && row.dataset.msgKey;
-                    const isPinned = !!key && !!_dcPinnedMsgs[key];
-                    btn.classList.toggle('is-selected', isPinned);
-                    btn.title = isPinned ? 'Sabitlemeyi kaldır' : 'Sabitle';
-                });
-            });
-    }
-
-    function setupDmPinnedSupabase(conversation) {
-        teardownDcPinned();
-        teardownDmPinnedSupabase();
-        teardownGroupPinnedSupabase();
-        _dcPinnedConversationId = conversation.id;
-        refreshDmPinned();
-        _dcPinnedChannel = window.FocusSupabase
-            .channel(`dm-pins-${conversation.id}`)
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'message_pins', filter: `conversation_id=eq.${conversation.id}` }, () => refreshDmPinned())
-            .subscribe();
-    }
-
-    // ─── SABİTLENMİŞ MESAJLAR (Grup/Kanal — Supabase `message_pins`) ───
-    function teardownGroupPinnedSupabase() {
-        if (_dcPinnedChannel) {
-            window.FocusSupabase.removeChannel(_dcPinnedChannel);
-            _dcPinnedChannel = null;
-        }
-        _dcPinnedScope = null;
-    }
-
-    function refreshGroupPinned() {
-        if (!_dcPinnedScope || !window.FocusSupabase) return;
-        const scope = _dcPinnedScope;
-        window.FocusSupabase
-            .from('message_pins')
-            .select('message_id, pinned_by, messages(*)')
-            .eq('scope_type', scope.type)
-            .eq('scope_id', scope.id)
-            .order('created_at', { ascending: true })
-            .then(async ({ data, error }) => {
-                if (error) { console.error('[Grup] sabitlenmiş mesajlar okunamadı', error); return; }
-                if (_dcPinnedScope !== scope) return;
-                _dcPinnedMsgs = {};
-                await Promise.all((data || []).map(async row => {
-                    if (!row.messages) return;
-                    const m = await _normalizeSupabaseGroupMessage(row.messages);
-                    _dcPinnedMsgs[row.message_id] = {
-                        text: m.text || (m.enc ? (m.decryptedText || '') : ''),
-                        displayName: m.displayName,
-                        username: m.username,
-                        timestamp: m.timestamp,
-                        pinnedBy: row.pinned_by
-                    };
-                }));
-                if (_dcPinnedScope !== scope) return;
-                _dcPinnedIndex = 0;
-                renderDcPinnedBanner();
-                document.querySelectorAll('#sidebar-chat-messages-stream [data-action="pin"]').forEach(btn => {
-                    const row = btn.closest('[data-msg-key]');
-                    const key = row && row.dataset.msgKey;
-                    const isPinned = !!key && !!_dcPinnedMsgs[key];
-                    btn.classList.toggle('is-selected', isPinned);
-                    btn.title = isPinned ? 'Sabitlemeyi kaldır' : 'Sabitle';
-                });
-            });
-    }
-
-    function setupGroupPinnedSupabase(scope) {
-        teardownDcPinned();
-        teardownDmPinnedSupabase();
-        teardownGroupPinnedSupabase();
-        _dcPinnedScope = scope;
-        refreshGroupPinned();
-        _dcPinnedChannel = window.FocusSupabase
-            .channel(`group-pins-${scope.type}-${scope.id}`)
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'message_pins', filter: `scope_id=eq.${scope.id}` }, () => refreshGroupPinned())
-            .subscribe();
-    }
-
-    function toggleDcPinMessage(msgKey, m) {
-        const user = getUser();
-        if (!user || !msgKey) return;
-
-        if (_dcCurrentConversation && window.FocusSupabase && currentUser?.id) {
-            if (_dcPinnedMsgs[msgKey]) {
-                window.FocusSupabase.from('message_pins').delete().eq('message_id', msgKey)
-                    .then(({ error }) => { if (error) console.error('[DM] sabit kaldırma hatası', error); });
-            } else {
-                window.FocusSupabase.from('message_pins').insert({
-                    message_id: msgKey,
-                    conversation_id: _dcCurrentConversation.id,
-                    pinned_by: currentUser.id
-                }).then(({ error }) => { if (error) console.error('[DM] sabitleme hatası', error); });
-            }
-            return;
-        }
-
-        if (_dcCurrentGroupScope && window.FocusSupabase && currentUser?.id) {
-            const scope = _dcCurrentGroupScope;
-            if (_dcPinnedMsgs[msgKey]) {
-                window.FocusSupabase.from('message_pins').delete().eq('message_id', msgKey)
-                    .then(({ error }) => { if (error) console.error('[Grup] sabit kaldırma hatası', error); });
-            } else {
-                window.FocusSupabase.from('message_pins').insert({
-                    message_id: msgKey,
-                    scope_type: scope.type,
-                    scope_id: scope.id,
-                    pinned_by: currentUser.id
-                }).then(({ error }) => { if (error) console.error('[Grup] sabitleme hatası', error); });
-            }
-            return;
-        }
-
-        const database = getDB();
-        if (!database || !_dcCurrentMsgPath) return;
-        const ref = database.ref(`${dcPinnedPathFor(_dcCurrentMsgPath)}/${msgKey}`);
-        if (_dcPinnedMsgs[msgKey]) {
-            ref.remove();
-        } else {
-            ref.set({
-                text: m.text || '',
-                displayName: m.displayName || m.username,
-                username: m.username,
-                timestamp: m.timestamp || Date.now(),
-                pinnedBy: user.username
-            });
-        }
-    }
-
-    function renderDcPinnedBanner() {
-        const banner = document.getElementById('dc-pinned-banner');
-        if (!banner) return;
-        const keys = Object.keys(_dcPinnedMsgs);
-        if (!keys.length) {
-            banner.style.display = 'none';
-            banner.innerHTML = '';
-            return;
-        }
-        if (_dcPinnedIndex >= keys.length) _dcPinnedIndex = 0;
-        const key = keys[_dcPinnedIndex];
-        const m = _dcPinnedMsgs[key];
-        const user = getUser();
-        const isDm = window._activeChatTarget && window._activeChatTarget.type === 'dm';
-        const isAdminOrMod = !isDm && (_dcCurrentRole === 'admin' || _dcCurrentRole === 'moderator');
-        const canUnpin = !!user && (isDm || isAdminOrMod || m.pinnedBy === user.username);
-        const text = m.text || '';
-
-        banner.style.display = 'flex';
-        banner.innerHTML = `
-            <i class="fa-solid fa-thumbtack dc-pinned-icon"></i>
-            <div class="dc-pinned-content" data-action="goto-pin">
-                <span class="dc-pinned-label">${keys.length > 1 ? `Sabitlenmiş mesaj (${_dcPinnedIndex + 1}/${keys.length})` : 'Sabitlenmiş mesaj'}</span>
-                <span class="dc-pinned-text">${_escapeHtml(m.displayName || m.username || '')}: ${_escapeHtml(text.length > 80 ? text.slice(0, 80) + '…' : text)}</span>
-            </div>
-            ${keys.length > 1 ? `<button class="dc-pinned-nav-btn" data-action="next-pin" title="Sonraki sabitlenmiş mesaj"><i class="fa-solid fa-chevron-down"></i></button>` : ''}
-            ${canUnpin ? `<button class="dc-pinned-unpin-btn" data-action="unpin" title="Sabitlemeyi kaldır"><i class="fa-solid fa-xmark"></i></button>` : ''}
-        `;
-
-        banner.querySelector('[data-action="goto-pin"]').addEventListener('click', () => jumpToDcMsg(key));
-        const nextBtn = banner.querySelector('[data-action="next-pin"]');
-        if (nextBtn) nextBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            _dcPinnedIndex = (_dcPinnedIndex + 1) % keys.length;
-            renderDcPinnedBanner();
-        });
-        const unpinBtn = banner.querySelector('[data-action="unpin"]');
-        if (unpinBtn) unpinBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            toggleDcPinMessage(key, m);
-        });
-    }
+    // ─── SABİTLENMİŞ MESAJLAR ───────────────────────────────
+    // dcPinnedPathFor / teardownDcPinned / setupDcPinned /
+    // teardownDmPinnedSupabase / refreshDmPinned / setupDmPinnedSupabase /
+    // teardownGroupPinnedSupabase / refreshGroupPinned /
+    // setupGroupPinnedSupabase / toggleDcPinMessage / renderDcPinnedBanner
+    // → social-message-pins.js dosyasına taşındı (Faz 2, 2026-07-19).
+    // window._dcGetChatContext() üzerinden salt-okunur sohbet bağlamı
+    // okuyor, window.* üzerinden çağrılıyor.
 
     // ─── MESAJ RENDER ────────────────────────────────────
     // Sunucuya yeni katılan üye için özel görünümlü karşılama kartı — renderDcMessage'tan ayrıldı
@@ -20639,7 +20413,7 @@ function renderFlatChannelItem(container, groupCode, roomId, roomName) {
             const pinBtn = actions.querySelector('[data-action="pin"]');
             if (pinBtn) pinBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                toggleDcPinMessage(msgKey, m);
+                window.toggleDcPinMessage(msgKey, m);
             });
             const editBtn = actions.querySelector('[data-action="edit"]');
             if (editBtn) editBtn.addEventListener('click', (e) => {
@@ -22115,6 +21889,7 @@ function renderFlatChannelItem(container, groupCode, roomId, roomName) {
         target.classList.add('dc-msg-jump-highlight');
         setTimeout(() => target.classList.remove('dc-msg-jump-highlight'), 1600);
     }
+    window.jumpToDcMsg = jumpToDcMsg;
 
     // ─── MESAJ SEÇİMİ: kopyala / ilet ────────────────────────
     function toggleDcMsgSelection(key, rowEl) {
@@ -22407,7 +22182,7 @@ function renderFlatChannelItem(container, groupCode, roomId, roomName) {
         teardownDcTyping();
         teardownDcReadReceipt();
         teardownDcGroupReadReceipt();
-        teardownDcPinned();
+        window.teardownDcPinned();
         // Sohbet panel tamamen kapatılırken açık kalan Supabase realtime kanallarını
         // (mesaj/okundu/reaksiyon/yazıyor) da kapat — önceden sadece başka bir
         // sohbete GEÇİLİRKEN temizleniyordu, panel kapatılıp hiç sohbet açılmayınca
