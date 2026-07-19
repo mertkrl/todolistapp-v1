@@ -3770,19 +3770,8 @@ document.addEventListener('DOMContentLoaded', () => {
      const closeHabitModalBtn = document.getElementById('close-habit-modal-btn');
      const cancelHabitModalBtn = document.getElementById('cancel-habit-modal-btn');
 
-     function _setFlatpickrDate(el, date) {
-         if (!el) return;
-         if (el._flatpickr) { el._flatpickr.setDate(date, false); }
-         else { el.value = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`; }
-     }
-     function _getDateFromFlatpickr(el) {
-         if (!el) return null;
-         if (el._flatpickr && el._flatpickr.selectedDates.length) return el._flatpickr.selectedDates[0];
-         const v = el.value;
-         if (!v) return null;
-         const [y, m, d] = v.split('-').map(Number);
-         return new Date(y, m - 1, d);
-     }
+     // window._setFlatpickrDate/window._getDateFromFlatpickr → script-calendar-date-utils.js
+     // dosyasına taşındı (Faz 2, 2026-07-19).
 
      function openHabitModal() {
          if (!habitCreateModal) return;
@@ -3801,11 +3790,11 @@ document.addEventListener('DOMContentLoaded', () => {
          if (habitEmojiBtn) habitEmojiBtn.textContent = '🔁';
          if (habitEmojiPicker) habitEmojiPicker.classList.add('hidden');
          const today = new Date();
-         _setFlatpickrDate(habitStartDateInput, today);
+         window._setFlatpickrDate(habitStartDateInput, today);
          const endDate = new Date(today);
          endDate.setDate(today.getDate() + 29); // 30 gün - 1
          setTimeout(() => {
-             _setFlatpickrDate(habitEndDateInput, endDate);
+             window._setFlatpickrDate(habitEndDateInput, endDate);
              const hint = document.getElementById('hm-sync-hint');
              if (hint) hint.textContent = '';
              habitInput && habitInput.focus();
@@ -3862,17 +3851,17 @@ document.addEventListener('DOMContentLoaded', () => {
          return `${y}-${m}-${d}`;
      }
      function _syncEndDateFromTarget() {
-         const start = _getDateFromFlatpickr(habitStartDateInput);
+         const start = window._getDateFromFlatpickr(habitStartDateInput);
          const days = parseInt(habitTargetInput.value) || 30;
          if (!start) return;
          const end = new Date(start);
          end.setDate(end.getDate() + days - 1);
-         _setFlatpickrDate(habitEndDateInput, end);
+         window._setFlatpickrDate(habitEndDateInput, end);
          if (hmSyncHint) hmSyncHint.textContent = '';
      }
      function _syncTargetFromEndDate() {
-         const start = _getDateFromFlatpickr(habitStartDateInput);
-         const end = _getDateFromFlatpickr(habitEndDateInput);
+         const start = window._getDateFromFlatpickr(habitStartDateInput);
+         const end = window._getDateFromFlatpickr(habitEndDateInput);
          if (!start || !end) return;
          const days = Math.round((end - start) / 86400000) + 1;
          if (days < 1) {
@@ -8058,14 +8047,7 @@ document.addEventListener('DOMContentLoaded', () => {
      const CAL_HOUR_END = 23;
      const DAY_NAMES_LOCAL = ['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'];
  
-     function getWeekStart(date) {
-         const d = new Date(date);
-         const day = d.getDay();
-         const diff = day === 0 ? -6 : 1 - day;
-         d.setDate(d.getDate() + diff);
-         d.setHours(0,0,0,0);
-         return d;
-     }
+     // window.getWeekStart → script-calendar-date-utils.js dosyasına taşındı.
  
      function updateCalUnifiedTitle() {
          const el = document.getElementById('cal-unified-title');
@@ -8080,7 +8062,7 @@ document.addEventListener('DOMContentLoaded', () => {
          if (currentCalView === 'monthly') {
              el.textContent = `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
          } else if (currentCalView === 'weekly') {
-             const ws = getWeekStart(selectedDate);
+             const ws = window.getWeekStart(selectedDate);
              const we = new Date(ws); we.setDate(we.getDate() + 6);
              el.textContent = `${ws.getDate()} ${monthNamesShort[ws.getMonth()]} – ${we.getDate()} ${monthNamesShort[we.getMonth()]} ${we.getFullYear()}`;
          } else {
@@ -8780,7 +8762,7 @@ document.addEventListener('DOMContentLoaded', () => {
          }
          const grid = document.getElementById('weekly-grid-inner');
          if (!grid) return;
-         const weekStart = getWeekStart(selectedDate);
+         const weekStart = window.getWeekStart(selectedDate);
          const days = Array.from({ length: 7 }, (_, i) => { const d = new Date(weekStart); d.setDate(weekStart.getDate() + i); return d; });
          const todayStr = window.formatDateToString(new Date());
          let html = '';
@@ -9154,7 +9136,7 @@ document.addEventListener('DOMContentLoaded', () => {
      // ── Drag-and-Drop: global durum & yardımcılar ──
      let _calDragId = null;
 
-     function snap15(mins) { return Math.min(45, Math.max(0, Math.round(mins / 15) * 15)); }
+     // window.snap15 → script-calendar-date-utils.js dosyasına taşındı.
 
      // Hücre üzerinde sürüklerken 15dk-snap önizlemesi
      window.calDragOver = function(e, cellEl, h, hourPx) {
@@ -9163,7 +9145,7 @@ document.addEventListener('DOMContentLoaded', () => {
          cellEl.classList.add('drag-over');
          if (!_calDragId) return;
 
-         const snapMins = snap15((e.offsetY / hourPx) * 60);
+         const snapMins = window.snap15((e.offsetY / hourPx) * 60);
          const task = tasks.find(t => String(t.id) === String(_calDragId));
          if (!task) return;
 
@@ -9228,7 +9210,7 @@ document.addEventListener('DOMContentLoaded', () => {
          const srcDate = e.dataTransfer.getData('sourceDate');
          calDragEnd();
          if (id) {
-             const snapMins = snap15((e.offsetY / 60) * 60);
+             const snapMins = window.snap15((e.offsetY / 60) * 60);
              premiumMoveTask(id, srcDate, targetDate, targetHour, snapMins);
          }
      };
@@ -9391,7 +9373,7 @@ document.addEventListener('DOMContentLoaded', () => {
          const srcDate = e.dataTransfer.getData('sourceDate');
          calDragEnd();
          if (id) {
-             const snapMins = snap15((e.offsetY / 64) * 60);
+             const snapMins = window.snap15((e.offsetY / 64) * 60);
              premiumMoveTask(id, srcDate, targetDate, targetHour, snapMins);
          }
      };

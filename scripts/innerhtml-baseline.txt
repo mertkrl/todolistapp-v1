@@ -47,153 +47,153 @@ script.js:3179  ${catDisplay}
 script.js:3181  ${buddyBadge}
 script.js:3182  ${goalBadgesHTML}
 script.js:3183  ${autoBadge}
-script.js:3956  ${currentHabitFilter === 'all' ? 'active' : ''}
-script.js:3958  ${currentHabitFilter === cat.id ? 'active' : ''}
-script.js:3958  ${cat.id}
-script.js:4111  ${MAX_ACTIVE_HABITS}
-script.js:4159  ${buddyBadge}
-script.js:4160  ${linkedGoalBadges}
-script.js:4164  ${targetDays}
-script.js:4165  ${dateRangeText}
-script.js:4168  ${progressPercentage}
-script.js:4169  ${progressPercentage}
-script.js:4169  ${completedDays}
-script.js:4169  ${targetDays}
-script.js:4171  ${trackerHTML}
-script.js:4174  ${habit.history[todayStr] ? 'done' : ''}
-script.js:4174  ${todayStr}
-script.js:4175  ${habit.history[todayStr] ? 'fa-check' : 'fa-bolt'}
-script.js:4175  ${habit.history[todayStr] ? 'Tamamlandı' : 'Bugünü Tamamla'}
-script.js:4178  ${habit.id}
-script.js:4588  ${timeStr}
-script.js:5201  ${curLoop}
-script.js:5201  ${timerSettings.targetCycles}
-script.js:5256  ${p.focus}
-script.js:5257  ${p.shortBreak}
-script.js:5258  ${p.longBreak}
-script.js:6271  ${res.icon}
-script.js:6273  ${shortDate}
-script.js:6274  ${res.time || 'Tüm Gün'}
-script.js:6275  ${res.type}
-script.js:6596  ${c}
-script.js:6596  ${t}
-script.js:6675  ${parseInt(d)}
-script.js:6675  ${activeFullMonths[parseInt(m)-1]}
-script.js:6675  ${y}
-script.js:6880  ${W}
-script.js:6880  ${H}
-script.js:6891  ${gridAndYLabels}
-script.js:6892  ${areaFor(linePath2, points2)}
-script.js:6893  ${areaFor(linePath, points)}
-script.js:6894  ${linePath2}
-script.js:6895  ${linePath}
-script.js:6896  ${dotsFor(points2, 'trend-line-dot trend-series-focus-dot')}
-script.js:6897  ${dotsFor(points, 'trend-line-dot trend-series-tasks-dot')}
-script.js:6898  ${xLabels}
-script.js:6899  ${padT}
-script.js:6899  ${padT + innerH}
-script.js:6902  ${padL}
-script.js:6902  ${innerW}
-script.js:6902  ${H}
-script.js:6927  ${p.value}
-script.js:6928  ${p.value2}
-script.js:7183  ${dayName}
-script.js:7183  ${shortDate}
-script.js:7402  ${t.start}
-script.js:7402  ${t.end}
-script.js:7403  ${badgeHTML}
-script.js:7405  ${t.id}
-script.js:7433  ${t.id}
-script.js:7434  ${t.id}
-script.js:7437  ${shortDate}
-script.js:7437  ${t.start}
-script.js:7437  ${t.end}
-script.js:7964  ${group.members}
-script.js:7968  ${Math.round((group.weeklyGoalCurrent / group.weeklyGoalMax) * 100)}
-script.js:8010  ${encodeURIComponent(member.name)}
-script.js:8010  ${member.color.replace('#','')}
-script.js:8010  ${borderStyle}
-script.js:8013  ${member.status}
-script.js:8040  ${rankIcon}
-script.js:8041  ${encodeURIComponent(user.name)}
-script.js:8044  ${user.score}
-script.js:8197  ${emptyMsg}
-script.js:9146  ${timeStr}
-script.js:10058  ${wonGoals.length + expiredGoals.length > 0 ? Math.round((wonGoals.length / (wonGoals.length + expi...}
-script.js:10072  ${wonCount > 0 ? ` <span style="background:rgba(254,202,87,0.2);color:#feca57;padding:1px 7px;borde...}
-script.js:10073  ${expiredCount > 0 ? ` <span style="background:rgba(255,71,87,0.2);color:#ff4757;padding:1px 7px;bo...}
-script.js:10074  ${activeCount > 0 ? ` <span style="background:rgba(108,92,231,0.2);color:#a29bfe;padding:1px 7px;bo...}
-script.js:10079  ${MAX_ACTIVE_GOALS}
-script.js:10182  ${emoji}
-script.js:10184  ${accentColor}
-script.js:10184  ${emoji}
-script.js:10187  ${accentBg}
-script.js:10187  ${accentColor}
-script.js:10187  ${accentColor}
-script.js:10188  ${statusIcon}
-script.js:10188  ${statusLabel}
-script.js:10190  ${categoryLabel ? `<span style="background: rgba(108,92,231,0.12); color: #a29bfe; padding: 3px 10p...}
-script.js:10196  ${accentColor}
-script.js:10197  ${endDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
-script.js:10200  ${accentColor}
-script.js:10201  ${durationText}
-script.js:10203  ${linkedTaskCount > 0 ? `<div style="display: flex; align-items: center; gap: 6px; font-size: 12px;...}
-script.js:10207  ${accentColor}
-script.js:10207  ${accentBg}
-script.js:10207  ${accentColor}
-script.js:10208  ${goal._progress}
-script.js:10213  ${!isWon ? `<button class="control-btn" data-action="extend-goal-deadline" data-id="${goal.id}" tit...}
-script.js:10216  ${goal.id}
-script.js:10314  ${gcStartDisplay}
-script.js:10314  ${gcEndDisplay}
-script.js:10319  ${urgencyClass}
-script.js:10319  ${urgencyText}
-script.js:10320  ${goal.id}
-script.js:10334  ${goal._progress}
-script.js:10334  ${progressColor}
-script.js:10337  ${goal._completedSteps}
-script.js:10337  ${goal._totalSteps}
-script.js:10338  ${goal._progress}
-script.js:10343  ${goal.status !== 'completed' ? `<button class="gc-complete-btn" data-action="quick-complete-goal" ...}
-script.js:10344  ${goal.id}
-script.js:10389  ${nearestGoalHTML}
-script.js:11032  ${_todayStrAP}
-script.js:11032  ${goalId}
-script.js:11033  ${t.completed ? '<i class="fa-solid fa-check" style="font-size:11px; color:white;"></i>' : ''}
+script.js:3945  ${currentHabitFilter === 'all' ? 'active' : ''}
+script.js:3947  ${currentHabitFilter === cat.id ? 'active' : ''}
+script.js:3947  ${cat.id}
+script.js:4100  ${MAX_ACTIVE_HABITS}
+script.js:4148  ${buddyBadge}
+script.js:4149  ${linkedGoalBadges}
+script.js:4153  ${targetDays}
+script.js:4154  ${dateRangeText}
+script.js:4157  ${progressPercentage}
+script.js:4158  ${progressPercentage}
+script.js:4158  ${completedDays}
+script.js:4158  ${targetDays}
+script.js:4160  ${trackerHTML}
+script.js:4163  ${habit.history[todayStr] ? 'done' : ''}
+script.js:4163  ${todayStr}
+script.js:4164  ${habit.history[todayStr] ? 'fa-check' : 'fa-bolt'}
+script.js:4164  ${habit.history[todayStr] ? 'Tamamlandı' : 'Bugünü Tamamla'}
+script.js:4167  ${habit.id}
+script.js:4577  ${timeStr}
+script.js:5190  ${curLoop}
+script.js:5190  ${timerSettings.targetCycles}
+script.js:5245  ${p.focus}
+script.js:5246  ${p.shortBreak}
+script.js:5247  ${p.longBreak}
+script.js:6260  ${res.icon}
+script.js:6262  ${shortDate}
+script.js:6263  ${res.time || 'Tüm Gün'}
+script.js:6264  ${res.type}
+script.js:6585  ${c}
+script.js:6585  ${t}
+script.js:6664  ${parseInt(d)}
+script.js:6664  ${activeFullMonths[parseInt(m)-1]}
+script.js:6664  ${y}
+script.js:6869  ${W}
+script.js:6869  ${H}
+script.js:6880  ${gridAndYLabels}
+script.js:6881  ${areaFor(linePath2, points2)}
+script.js:6882  ${areaFor(linePath, points)}
+script.js:6883  ${linePath2}
+script.js:6884  ${linePath}
+script.js:6885  ${dotsFor(points2, 'trend-line-dot trend-series-focus-dot')}
+script.js:6886  ${dotsFor(points, 'trend-line-dot trend-series-tasks-dot')}
+script.js:6887  ${xLabels}
+script.js:6888  ${padT}
+script.js:6888  ${padT + innerH}
+script.js:6891  ${padL}
+script.js:6891  ${innerW}
+script.js:6891  ${H}
+script.js:6916  ${p.value}
+script.js:6917  ${p.value2}
+script.js:7172  ${dayName}
+script.js:7172  ${shortDate}
+script.js:7391  ${t.start}
+script.js:7391  ${t.end}
+script.js:7392  ${badgeHTML}
+script.js:7394  ${t.id}
+script.js:7422  ${t.id}
+script.js:7423  ${t.id}
+script.js:7426  ${shortDate}
+script.js:7426  ${t.start}
+script.js:7426  ${t.end}
+script.js:7953  ${group.members}
+script.js:7957  ${Math.round((group.weeklyGoalCurrent / group.weeklyGoalMax) * 100)}
+script.js:7999  ${encodeURIComponent(member.name)}
+script.js:7999  ${member.color.replace('#','')}
+script.js:7999  ${borderStyle}
+script.js:8002  ${member.status}
+script.js:8029  ${rankIcon}
+script.js:8030  ${encodeURIComponent(user.name)}
+script.js:8033  ${user.score}
+script.js:8179  ${emptyMsg}
+script.js:9128  ${timeStr}
+script.js:10040  ${wonGoals.length + expiredGoals.length > 0 ? Math.round((wonGoals.length / (wonGoals.length + expi...}
+script.js:10054  ${wonCount > 0 ? ` <span style="background:rgba(254,202,87,0.2);color:#feca57;padding:1px 7px;borde...}
+script.js:10055  ${expiredCount > 0 ? ` <span style="background:rgba(255,71,87,0.2);color:#ff4757;padding:1px 7px;bo...}
+script.js:10056  ${activeCount > 0 ? ` <span style="background:rgba(108,92,231,0.2);color:#a29bfe;padding:1px 7px;bo...}
+script.js:10061  ${MAX_ACTIVE_GOALS}
+script.js:10164  ${emoji}
+script.js:10166  ${accentColor}
+script.js:10166  ${emoji}
+script.js:10169  ${accentBg}
+script.js:10169  ${accentColor}
+script.js:10169  ${accentColor}
+script.js:10170  ${statusIcon}
+script.js:10170  ${statusLabel}
+script.js:10172  ${categoryLabel ? `<span style="background: rgba(108,92,231,0.12); color: #a29bfe; padding: 3px 10p...}
+script.js:10178  ${accentColor}
+script.js:10179  ${endDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
+script.js:10182  ${accentColor}
+script.js:10183  ${durationText}
+script.js:10185  ${linkedTaskCount > 0 ? `<div style="display: flex; align-items: center; gap: 6px; font-size: 12px;...}
+script.js:10189  ${accentColor}
+script.js:10189  ${accentBg}
+script.js:10189  ${accentColor}
+script.js:10190  ${goal._progress}
+script.js:10195  ${!isWon ? `<button class="control-btn" data-action="extend-goal-deadline" data-id="${goal.id}" tit...}
+script.js:10198  ${goal.id}
+script.js:10296  ${gcStartDisplay}
+script.js:10296  ${gcEndDisplay}
+script.js:10301  ${urgencyClass}
+script.js:10301  ${urgencyText}
+script.js:10302  ${goal.id}
+script.js:10316  ${goal._progress}
+script.js:10316  ${progressColor}
+script.js:10319  ${goal._completedSteps}
+script.js:10319  ${goal._totalSteps}
+script.js:10320  ${goal._progress}
+script.js:10325  ${goal.status !== 'completed' ? `<button class="gc-complete-btn" data-action="quick-complete-goal" ...}
+script.js:10326  ${goal.id}
+script.js:10371  ${nearestGoalHTML}
+script.js:11014  ${_todayStrAP}
+script.js:11014  ${goalId}
+script.js:11015  ${t.completed ? '<i class="fa-solid fa-check" style="font-size:11px; color:white;"></i>' : ''}
+script.js:11021  ${t.date}
+script.js:11027  ${pClass}
+script.js:11028  ${t.id}
+script.js:11028  ${goalId}
+script.js:11029  ${t.completed ? '<i class="fa-solid fa-check" style="font-size:11px; color:white;"></i>' : ''}
+script.js:11034  ${t.timeStart || '09:00'}
+script.js:11035  ${t.priority==='high' ? 'color:#ff4757; background:rgba(255,71,87,0.1); border:1px solid rgba(255,7...}
+script.js:11035  ${pLabel}
+script.js:11036  ${t.date ? `<span style="font-size:10px; background:rgba(255,255,255,0.05); padding:2px 8px; border...}
+script.js:11039  ${t.id}
 script.js:11039  ${t.date}
-script.js:11045  ${pClass}
-script.js:11046  ${t.id}
-script.js:11046  ${goalId}
-script.js:11047  ${t.completed ? '<i class="fa-solid fa-check" style="font-size:11px; color:white;"></i>' : ''}
-script.js:11052  ${t.timeStart || '09:00'}
-script.js:11053  ${t.priority==='high' ? 'color:#ff4757; background:rgba(255,71,87,0.1); border:1px solid rgba(255,7...}
-script.js:11053  ${pLabel}
-script.js:11054  ${t.date ? `<span style="font-size:10px; background:rgba(255,255,255,0.05); padding:2px 8px; border...}
-script.js:11057  ${t.id}
-script.js:11057  ${t.date}
-script.js:11057  ${goalId}
-script.js:11086  ${groupKey}
-script.js:11090  ${msDateRange}
-script.js:11091  ${msCompleted}
-script.js:11091  ${msTotal}
-script.js:11096  ${groupKey}
-script.js:11148  ${h.icon || 'fa-leaf'}
-script.js:11154  ${h.id}
-script.js:11154  ${todayStr}
-script.js:11154  ${goalId}
-script.js:11162  ${hCompleted}
-script.js:11162  ${hTarget}
-script.js:11163  ${hProgress}
-script.js:11166  ${hProgress}
-script.js:11234  ${m.completed ? 'Tamamlandı' : `Adım ${index + 1}`}
-script.js:11235  ${m.completed ? '<i class="fa-solid fa-check" style="font-size:10px; color:#fff;"></i>' : `<span cl...}
-script.js:11243  ${m.completed ? '<i class="fa-solid fa-circle-check" style="font-size:10px;"></i> Tamamlandı' : `<i...}
-script.js:11247  ${dateBadge}
-script.js:11248  ${taskBadge}
-script.js:11252  ${goal.id}
-script.js:11252  ${m.id}
-script.js:11253  ${goal.id}
-script.js:11253  ${m.id}
+script.js:11039  ${goalId}
+script.js:11068  ${groupKey}
+script.js:11072  ${msDateRange}
+script.js:11073  ${msCompleted}
+script.js:11073  ${msTotal}
+script.js:11078  ${groupKey}
+script.js:11130  ${h.icon || 'fa-leaf'}
+script.js:11136  ${h.id}
+script.js:11136  ${todayStr}
+script.js:11136  ${goalId}
+script.js:11144  ${hCompleted}
+script.js:11144  ${hTarget}
+script.js:11145  ${hProgress}
+script.js:11148  ${hProgress}
+script.js:11216  ${m.completed ? 'Tamamlandı' : `Adım ${index + 1}`}
+script.js:11217  ${m.completed ? '<i class="fa-solid fa-check" style="font-size:10px; color:#fff;"></i>' : `<span cl...}
+script.js:11225  ${m.completed ? '<i class="fa-solid fa-circle-check" style="font-size:10px;"></i> Tamamlandı' : `<i...}
+script.js:11229  ${dateBadge}
+script.js:11230  ${taskBadge}
+script.js:11234  ${goal.id}
+script.js:11234  ${m.id}
+script.js:11235  ${goal.id}
+script.js:11235  ${m.id}
 script-ambient-sounds.js:101  ${icon}
 script-ambient-sounds.js:196  ${type}
 script-ambient-sounds.js:197  ${label.icon}
