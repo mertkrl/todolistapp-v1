@@ -441,360 +441,360 @@ social.js:76  ${desc}
 social.js:78  ${cancelText ? `<button class="focusai-confirm-btn cancel" id="_fc_cancel">${cancelText}</button>` ...}
 social.js:79  ${confirmClass}
 social.js:79  ${confirmText}
-social.js:759  ${greet}
-social.js:761  ${suggestion.sub}
-social.js:762  ${suggestion.cta ? `<button id="dhs-greeting-cta" class="dhs-greeting-cta" type="button">${suggesti...}
-social.js:769  ${rankInfo ? `<div class="dhs-rank-badge dhs-rank-badge--big"><i class="fa-solid fa-trophy"></i> ${...}
-social.js:812  ${myLeague.color}
-social.js:813  ${myLeague.icon}
-social.js:813  ${myLeague.color}
-social.js:813  ${myWeekly}
-social.js:814  ${myLeague.color}
-social.js:814  ${myLeague.name}
-social.js:815  ${leaguePct}
+social.js:762  ${greet}
+social.js:764  ${suggestion.sub}
+social.js:765  ${suggestion.cta ? `<button id="dhs-greeting-cta" class="dhs-greeting-cta" type="button">${suggesti...}
+social.js:772  ${rankInfo ? `<div class="dhs-rank-badge dhs-rank-badge--big"><i class="fa-solid fa-trophy"></i> ${...}
 social.js:815  ${myLeague.color}
-social.js:815  ${myLeague.color}
-social.js:816  ${isFinite(promoteAt) ? `Yükselmek için <b>${Math.max(0, promoteAt - myWeekly)} XP</b> kaldı · <b>$...}
-social.js:819  ${seasonLine}
-social.js:932  ${formatFocusMinutes(g.weekly_goal)}
-social.js:933  ${g.name}
-social.js:941  ${done ? '✓ Tamamlandı' : `%${pct}`}
-social.js:941  ${formatFocusMinutes(total)}
-social.js:941  ${formatFocusMinutes(g.weekly_goal)}
-social.js:941  ${formatFocusMinutes(mine)}
-social.js:3022  ${unreadCount > 9 ? '9+' : unreadCount}
-social.js:3029  ${c.type === 'workroom' ? 'fa-door-open' : 'fa-hashtag'}
-social.js:3030  ${avatarImgHtml(c, 36)}
-social.js:3033  ${avatarHtml}
-social.js:3036  ${pinned ? '<i class="fa-solid fa-thumbtack dc-recent-convo-pin-icon"></i>' : ''}
-social.js:3038  ${muted ? '<i class="fa-solid fa-bell-slash dc-recent-convo-mute-icon"></i>' : ''}
-social.js:3043  ${timeAgo(c.lastTimestamp)}
-social.js:3044  ${pillHtml}
-social.js:3078  ${isGroup ? '' : ` <button data-action="pin"><i class="fa-solid fa-thumbtack"></i> ${pinned ? 'Sabi...}
-social.js:3153  ${accent}
-social.js:3154  ${icon}
-social.js:3154  ${accent}
-social.js:3158  ${accent}
-social.js:3199  ${color}
-social.js:3200  ${icon || 'fa-bell'}
-social.js:3200  ${color}
-social.js:3204  ${body ? `<div class="st-sub">${body}</div>` : ''}
-social.js:3305  ${_notifFilter === 'all' ? 'Henüz bir bildirimin yok.' : 'Bu kategoride bildirim yok.'}
-social.js:3316  ${avatarImgHtml({ displayName: info.fromName, avatarColor: info.fromColor, username: fromUser }, 38)}
-social.js:3336  ${avatarImgHtml({ displayName: info.fromName, avatarColor: info.fromColor, customAvatar: info.fromC...}
-social.js:3355  ${item.key}
-social.js:3357  ${avatarImgHtml({ displayName: info.fromName, avatarColor: info.fromColor, username: info.fromUser ...}
-social.js:3365  ${timeAgo(info.timestamp)}
-social.js:3368  ${item.key}
-social.js:3380  ${accent}
-social.js:3382  ${accent}
-social.js:3383  ${icon}
+social.js:816  ${myLeague.icon}
+social.js:816  ${myLeague.color}
+social.js:816  ${myWeekly}
+social.js:817  ${myLeague.color}
+social.js:817  ${myLeague.name}
+social.js:818  ${leaguePct}
+social.js:818  ${myLeague.color}
+social.js:818  ${myLeague.color}
+social.js:819  ${isFinite(promoteAt) ? `Yükselmek için <b>${Math.max(0, promoteAt - myWeekly)} XP</b> kaldı · <b>$...}
+social.js:822  ${seasonLine}
+social.js:935  ${formatFocusMinutes(g.weekly_goal)}
+social.js:936  ${g.name}
+social.js:944  ${done ? '✓ Tamamlandı' : `%${pct}`}
+social.js:944  ${formatFocusMinutes(total)}
+social.js:944  ${formatFocusMinutes(g.weekly_goal)}
+social.js:944  ${formatFocusMinutes(mine)}
+social.js:3025  ${unreadCount > 9 ? '9+' : unreadCount}
+social.js:3032  ${c.type === 'workroom' ? 'fa-door-open' : 'fa-hashtag'}
+social.js:3033  ${avatarImgHtml(c, 36)}
+social.js:3036  ${avatarHtml}
+social.js:3039  ${pinned ? '<i class="fa-solid fa-thumbtack dc-recent-convo-pin-icon"></i>' : ''}
+social.js:3041  ${muted ? '<i class="fa-solid fa-bell-slash dc-recent-convo-mute-icon"></i>' : ''}
+social.js:3046  ${timeAgo(c.lastTimestamp)}
+social.js:3047  ${pillHtml}
+social.js:3081  ${isGroup ? '' : ` <button data-action="pin"><i class="fa-solid fa-thumbtack"></i> ${pinned ? 'Sabi...}
+social.js:3156  ${accent}
+social.js:3157  ${icon}
+social.js:3157  ${accent}
+social.js:3161  ${accent}
+social.js:3202  ${color}
+social.js:3203  ${icon || 'fa-bell'}
+social.js:3203  ${color}
+social.js:3207  ${body ? `<div class="st-sub">${body}</div>` : ''}
+social.js:3308  ${_notifFilter === 'all' ? 'Henüz bir bildirimin yok.' : 'Bu kategoride bildirim yok.'}
+social.js:3319  ${avatarImgHtml({ displayName: info.fromName, avatarColor: info.fromColor, username: fromUser }, 38)}
+social.js:3339  ${avatarImgHtml({ displayName: info.fromName, avatarColor: info.fromColor, customAvatar: info.fromC...}
+social.js:3358  ${item.key}
+social.js:3360  ${avatarImgHtml({ displayName: info.fromName, avatarColor: info.fromColor, username: info.fromUser ...}
+social.js:3368  ${timeAgo(info.timestamp)}
+social.js:3371  ${item.key}
 social.js:3383  ${accent}
-social.js:3388  ${accent}
-social.js:3389  ${verb}
-social.js:3391  ${timeAgo(info.timestamp)}
-social.js:3394  ${item.key}
-social.js:3412  ${timeAgo(info.timestamp)}
-social.js:3415  ${item.key}
-social.js:3425  ${avatarImgHtml({ displayName: info.fromName, avatarColor: info.fromColor, customAvatar: info.fromC...}
-social.js:3433  ${timeAgo(info.timestamp)}
-social.js:3437  ${item.key}
-social.js:3438  ${item.key}
-social.js:3447  ${TEACHER_NOTIF_ACCENT}
-social.js:3449  ${TEACHER_NOTIF_ACCENT}
+social.js:3385  ${accent}
+social.js:3386  ${icon}
+social.js:3386  ${accent}
+social.js:3391  ${accent}
+social.js:3392  ${verb}
+social.js:3394  ${timeAgo(info.timestamp)}
+social.js:3397  ${item.key}
+social.js:3415  ${timeAgo(info.timestamp)}
+social.js:3418  ${item.key}
+social.js:3428  ${avatarImgHtml({ displayName: info.fromName, avatarColor: info.fromColor, customAvatar: info.fromC...}
+social.js:3436  ${timeAgo(info.timestamp)}
+social.js:3440  ${item.key}
+social.js:3441  ${item.key}
 social.js:3450  ${TEACHER_NOTIF_ACCENT}
-social.js:3459  ${timeAgo(info.timestamp)}
-social.js:3463  ${item.key}
-social.js:3463  ${info.inviteId || ''}
-social.js:3464  ${item.key}
-social.js:3464  ${info.inviteId || ''}
-social.js:3473  ${info.groupCode || ''}
-social.js:3473  ${TEACHER_NOTIF_ACCENT}
-social.js:3475  ${TEACHER_NOTIF_ACCENT}
+social.js:3452  ${TEACHER_NOTIF_ACCENT}
+social.js:3453  ${TEACHER_NOTIF_ACCENT}
+social.js:3462  ${timeAgo(info.timestamp)}
+social.js:3466  ${item.key}
+social.js:3466  ${info.inviteId || ''}
+social.js:3467  ${item.key}
+social.js:3467  ${info.inviteId || ''}
+social.js:3476  ${info.groupCode || ''}
 social.js:3476  ${TEACHER_NOTIF_ACCENT}
-social.js:3483  ${timeAgo(info.timestamp)}
-social.js:3486  ${item.key}
-social.js:3494  ${info.groupCode || ''}
-social.js:3494  ${TEACHER_NOTIF_ACCENT}
-social.js:3496  ${TEACHER_NOTIF_ACCENT}
+social.js:3478  ${TEACHER_NOTIF_ACCENT}
+social.js:3479  ${TEACHER_NOTIF_ACCENT}
+social.js:3486  ${timeAgo(info.timestamp)}
+social.js:3489  ${item.key}
+social.js:3497  ${info.groupCode || ''}
 social.js:3497  ${TEACHER_NOTIF_ACCENT}
-social.js:3506  ${timeAgo(info.timestamp)}
-social.js:3509  ${item.key}
-social.js:3517  ${info.groupCode || ''}
-social.js:3517  ${TEACHER_NOTIF_ACCENT}
-social.js:3519  ${TEACHER_NOTIF_ACCENT}
+social.js:3499  ${TEACHER_NOTIF_ACCENT}
+social.js:3500  ${TEACHER_NOTIF_ACCENT}
+social.js:3509  ${timeAgo(info.timestamp)}
+social.js:3512  ${item.key}
+social.js:3520  ${info.groupCode || ''}
 social.js:3520  ${TEACHER_NOTIF_ACCENT}
-social.js:3527  ${timeAgo(info.timestamp)}
-social.js:3530  ${item.key}
-social.js:3538  ${info.groupCode || ''}
-social.js:3538  ${TEACHER_NOTIF_ACCENT}
-social.js:3540  ${TEACHER_NOTIF_ACCENT}
+social.js:3522  ${TEACHER_NOTIF_ACCENT}
+social.js:3523  ${TEACHER_NOTIF_ACCENT}
+social.js:3530  ${timeAgo(info.timestamp)}
+social.js:3533  ${item.key}
+social.js:3541  ${info.groupCode || ''}
 social.js:3541  ${TEACHER_NOTIF_ACCENT}
-social.js:3549  ${timeAgo(info.timestamp)}
-social.js:3552  ${item.key}
-social.js:3560  ${item.key}
-social.js:3560  ${TEACHER_NOTIF_ACCENT}
-social.js:3562  ${TEACHER_NOTIF_ACCENT}
+social.js:3543  ${TEACHER_NOTIF_ACCENT}
+social.js:3544  ${TEACHER_NOTIF_ACCENT}
+social.js:3552  ${timeAgo(info.timestamp)}
+social.js:3555  ${item.key}
+social.js:3563  ${item.key}
 social.js:3563  ${TEACHER_NOTIF_ACCENT}
-social.js:3571  ${timeAgo(info.timestamp)}
-social.js:3574  ${item.key}
-social.js:3582  ${TEACHER_NOTIF_ACCENT}
-social.js:3584  ${TEACHER_NOTIF_ACCENT}
+social.js:3565  ${TEACHER_NOTIF_ACCENT}
+social.js:3566  ${TEACHER_NOTIF_ACCENT}
+social.js:3574  ${timeAgo(info.timestamp)}
+social.js:3577  ${item.key}
 social.js:3585  ${TEACHER_NOTIF_ACCENT}
-social.js:3594  ${timeAgo(info.timestamp)}
-social.js:3597  ${item.key}
-social.js:3605  ${TEACHER_NOTIF_ACCENT}
-social.js:3607  ${TEACHER_NOTIF_ACCENT}
+social.js:3587  ${TEACHER_NOTIF_ACCENT}
+social.js:3588  ${TEACHER_NOTIF_ACCENT}
+social.js:3597  ${timeAgo(info.timestamp)}
+social.js:3600  ${item.key}
 social.js:3608  ${TEACHER_NOTIF_ACCENT}
-social.js:3616  ${timeAgo(info.timestamp)}
-social.js:3619  ${item.key}
-social.js:3634  ${timeAgo(info.timestamp)}
-social.js:3637  ${item.key}
-social.js:3652  ${timeAgo(info.timestamp)}
-social.js:3655  ${item.key}
-social.js:3670  ${timeAgo(info.timestamp)}
-social.js:3673  ${item.key}
-social.js:3683  ${avatarImgHtml({ displayName: info.fromName, avatarColor: info.fromColor, username: info.fromUser ...}
-social.js:3691  ${timeAgo(info.timestamp)}
-social.js:3694  ${item.key}
-social.js:3712  ${timeAgo(info.timestamp)}
-social.js:3712  ${info.totalMinutes ? ` · ${formatFocusMinutes(info.totalMinutes)}/${formatFocusMinutes(info.weekly...}
-social.js:3715  ${item.key}
-social.js:3724  ${avatarImgHtml({ displayName: info.fromName, avatarColor: info.fromColor, username: info.fromUser ...}
-social.js:3732  ${timeAgo(info.timestamp)}
-social.js:3735  ${item.key}
-social.js:4071  ${avatarImgHtml({ displayName, avatarColor, username }, 40)}
-social.js:4075  ${warningBlock}
-social.js:4404  ${name}
-social.js:4404  ${best._delta}
-social.js:4459  ${gap}
-social.js:4462  ${L.color}
-social.js:4462  ${L.color}
-social.js:4462  ${L.color}
-social.js:4462  ${L.name}
-social.js:4462  ${L.icon}
-social.js:4462  ${L.name}
-social.js:4469  ${zoneClass}
-social.js:4469  ${Math.min(i, 15) * 35}
-social.js:4470  ${i + 1}
-social.js:4471  ${avatarImgHtml(u, 32, 'flex-shrink:0;')}
-social.js:4474  ${rankDeltaChip}
-social.js:4475  ${u.isMe ? '<span class="lb-me-tag"> (Sen)</span>' : ''}
-social.js:4476  ${leagueBadge}
-social.js:4477  ${gapChip}
-social.js:4478  ${u.xp || 0}
-social.js:4478  ${wxp}
-social.js:4480  ${pct}
-social.js:5040  ${rounds}
-social.js:5040  ${dur}
-social.js:5040  ${rounds}
-social.js:5040  ${brk}
-social.js:5040  ${h > 0 ? h + 'sa ' : ''}
-social.js:5040  ${m}
-social.js:6589  ${labels[reqType] || 'yönetmek'}
-social.js:7914  ${avatarImgHtml(user, 44)}
-social.js:7917  ${user.xp || 0}
-social.js:7917  ${user.online ? '<span class="si-green">Çevrimiçi</span>' : 'Çevrimdışı'}
-social.js:9003  ${groupAvatarHtml(groupCode, groupData.name, 30)}
-social.js:9005  ${ownerBadge}
-social.js:9008  ${groupCode}
-social.js:9008  ${activeNowMiniHtml}
-social.js:9172  ${avatarImgHtml(uData, 28)}
-social.js:9604  ${c.id}
-social.js:9632  ${t.id}
-social.js:9684  ${countByTemplate[t.id] || 0}
-social.js:9686  ${t.id}
-social.js:9687  ${t.id}
-social.js:9688  ${t.id}
-social.js:9701  ${c.id}
-social.js:9766  ${dayName}
-social.js:9825  ${badge}
-social.js:9868  ${dayName}
-social.js:10127  ${newSectionId ? `<option value="__unassigned__">— Sınıfsız yap —</option>` : ''}
-social.js:10197  ${info.program.id}
-social.js:10198  ${info.program.id}
-social.js:10206  ${info.draftProgram.id}
-social.js:10207  ${info.draftProgram.id}
-social.js:11812  ${hasStudentPerfTab ? `<button class="cp-subtab-btn${isActive('performansim')}" data-cpsub="perform...}
-social.js:11813  ${hasPerfTab ? `<button class="cp-subtab-btn${isActive('performans')}" data-cpsub="performans"><i c...}
-social.js:11814  ${isActive('odevler')}
-social.js:11814  ${asgLabel}
-social.js:11815  ${isActive('program')}
-social.js:11816  ${isClassAdmin ? `<button class="cp-subtab-btn${isActive('roster')}" data-cpsub="roster"><i class="...}
-social.js:11817  ${isActive('rapor')}
-social.js:11819  ${hasStudentPerfTab ? `<div class="cp-subtab-panel${isActive('performansim')}" data-cpsubpanel="per...}
-social.js:11820  ${hasPerfTab ? `<div class="cp-subtab-panel${isActive('performans')}" data-cpsubpanel="performans">...}
-social.js:11821  ${isActive('odevler')}
-social.js:11821  ${asgHtml}
-social.js:11822  ${isActive('program')}
-social.js:11822  ${scheduleHtml}
-social.js:11823  ${isClassAdmin ? `<div class="cp-subtab-panel${isActive('roster')}" data-cpsubpanel="roster">${rost...}
-social.js:11824  ${isActive('rapor')}
-social.js:11824  ${reportHtml}
-social.js:12421  ${s.userId}
-social.js:12796  ${onboardingHtml}
-social.js:12796  ${weekTodoHtml}
-social.js:12796  ${kpiHtml}
-social.js:12972  ${nextMineHtml}
-social.js:12972  ${myStreakHtml}
-social.js:12972  ${myActiveStatusHtml}
-social.js:12972  ${myCompletionHtml}
-social.js:12972  ${privacyHtml}
-social.js:12996  ${checked ? `<i class="fa-solid fa-eye-slash"></i> Şu an <b>gizli</b>: haftalık odak süren ve aktif...}
-social.js:13044  ${statTilesHtml}
-social.js:13045  ${isClassAdmin ? `<div id="grp-intro-insights" class="cp-skeleton" style="margin-bottom:14px;"><div...}
-social.js:13046  ${isClassAdmin ? `<div id="grp-intro-shortcuts-wrap"></div>` : ` <button type="button" class="contr...}
-social.js:13129  ${ids.map(tileHtml).join('')}
-social.js:13154  ${Object.keys(SHORTCUT_DEFS).map(galleryRowHtml).join('')}
-social.js:13351  ${groupAvatarHtml(code, data.name, 54)}
-social.js:13390  ${_showOverviewTab ? ` <button class="group-detail-tab-btn${_gtabActiveCls('overview')}" data-gtab=...}
-social.js:13392  ${(data.classroomType === 'classroom' || data.classroomType === 'workplace') ? ` <button class="gro...}
-social.js:13394  ${_gtabActiveCls('calendar')}
-social.js:13395  ${(data.classroomType === 'classroom' || data.classroomType === 'workplace') ? '' : ` <button class...}
-social.js:13397  ${_gtabActiveCls('history')}
-social.js:13403  ${_showOverviewTab ? ` <div id="group-gtab-overview" class="group-detail-tab-content${_gtabActiveCl...}
-social.js:13485  ${_gtabActiveCls('leaderboard')}
-social.js:13505  ${_gtabActiveCls('calendar')}
-social.js:13554  ${_gtabActiveCls('history')}
-social.js:13559  ${_gtabActiveCls('classroom')}
-social.js:13961  ${avatarImgHtml({ ...uData, displayName: uData.displayName || memberUsername }, 30)}
-social.js:14101  ${formatFocusMinutes(me.focusMin)}
-social.js:14115  ${rankLabel}
-social.js:14117  ${myIdx + 1}
-social.js:14118  ${subText}
-social.js:14120  ${formatFocusMinutes(me.focusMin)}
-social.js:14166  ${summaryHtml}
-social.js:14190  ${idx + 1}
-social.js:14195  ${idx < 3 ? ' top-rank' : ''}
-social.js:14196  ${rankLabel}
-social.js:14197  ${avatarImgHtml({ ...m.uData, displayName }, 34)}
-social.js:14201  ${m.uData.online ? '<span class="glb-online-dot" title="Çevrimiçi"></span>' : ''}
-social.js:14206  ${formatFocusMinutes(m.focusMin)}
-social.js:14639  ${subTxt}
-social.js:14640  ${listHtml}
-social.js:14642  ${isAuthorized ? '<button id="gsc-waiting-start-btn" class="control-btn primary-btn"><i class="fa-s...}
-social.js:14817  ${GROUP_THEME_COLORS.map(c => ` <button class="grp-theme-swatch${c.hex === current ? ' active' : ''...}
-social.js:14919  ${ev.color}
-social.js:14921  ${ev.text}
-social.js:14922  ${ev.sub ? `<div style="font-size:10px; color:var(--text-muted); margin-top:1px;">${ev.sub}</div>` ...}
-social.js:14924  ${fmtTs(ev.ts)}
-social.js:14959  ${d}
-social.js:14959  ${months[parseInt(m)-1]}
-social.js:14959  ${y}
-social.js:14961  ${s.time}
-social.js:14961  ${gscAddMinutes(s.time, durationMin)}
-social.js:14969  ${shownCount-5}
-social.js:14976  ${dateLabel}
-social.js:14978  ${timeRange}
-social.js:14980  ${durationMin}
-social.js:14981  ${!isTeacherView ? `<span style="color:#74b9ff; margin-left:6px;"><i class="fa-solid fa-circle-chec...}
-social.js:14985  ${shownCount > 0 ? `<div style="display:flex; align-items:center; gap:-4px;">${avatarsHtml}${overfl...}
-social.js:14986  ${isTeacherView ? `<span style="font-size:11px; color:rgba(255,255,255,0.5);">${checkedIn.length}/$...}
-social.js:15156  ${GSC_DAYS_TR[i]}
-social.js:15157  ${day.getDate()}
-social.js:15158  ${dotsHtml}
-social.js:15158  ${dotsOverflow}
-social.js:15211  ${dayLabel}
-social.js:15211  ${daySessions.length > 0 ? ` · ${daySessions.length} seans` : ''}
-social.js:15212  ${gscCanManageSessions ? `<button id="gsc-day-detail-add" class="control-btn secondary" style="padd...}
-social.js:15214  ${daySessions.length > 0 ? `<div class="gsc-day-detail-list">${rowsHtml}</div>` : `<div class="gsc-...}
-social.js:15266  ${today}
-social.js:15266  ${gscDateKey(new Date())}
-social.js:15271  ${startTime}
-social.js:15275  ${endTime}
-social.js:15283  ${isEdit ? (es.recurrenceGroupId ? `<p style="font-size:11px; color:var(--text-muted); margin:0;"><...}
-social.js:15337  ${msg}
-social.js:15477  ${dateLabel}
-social.js:15478  ${s.time ? `${s.time}–${gscAddMinutes(s.time, s.duration || 60)}` : '--:--'}
-social.js:15479  ${s.recurrenceGroupId ? '<span class="gsc-detail-badge"><i class="fa-solid fa-repeat"></i> Her haft...}
-social.js:15480  ${focusingNowCount > 0 ? `<span class="gsc-detail-badge live"><span class="gsc-live-dot"></span> ${...}
-social.js:15481  ${isPast ? '<span class="gsc-detail-badge green"><i class="fa-solid fa-check"></i> Tamamlandı</span...}
-social.js:15487  ${recapHtml}
-social.js:15494  ${attendees.length === 0 ? '<span style="color:var(--text-muted);font-size:12px;">Henüz kimse katıl...}
-social.js:15497  ${canStartNow ? `<button id="gsc-start-now-btn" class="primary-btn" style="width:100%; padding:11px...}
-social.js:15498  ${!isPast && !canManage ? `<button id="gsc-rsvp-btn" class="gsc-rsvp-btn ${isMine ? 'leave' : 'join...}
-social.js:15503  ${canManage && !isPast ? `<button id="gsc-dm-edit" class="control-btn secondary" style="width:100%;...}
-social.js:15504  ${canManage ? `<button id="gsc-dm-delete" class="gsc-delete-btn"><i class="fa-solid fa-trash-can"><...}
-social.js:15505  ${canManage && s.recurrenceGroupId ? `<button id="gsc-dm-delete-series" class="gsc-delete-btn" styl...}
-social.js:16004  ${groupData.weeklyGoal || 0}
-social.js:16007  ${categoryTag ? ` <div class="glass-panel si-flex1-pad"> <div class="si-header-title">${categoryTag...}
-social.js:16090  ${categoryTag ? `<span class="discover-category-tag">${categoryTag}</span>` : ''}
-social.js:16091  ${isNew ? `<span class="discover-new-badge">Yeni</span>` : ''}
-social.js:16092  ${groupData.requireApproval ? `<span style="font-size:11px; padding:2px 8px; border-radius:6px; bac...}
-social.js:16093  ${activeNow > 0 ? `<span style="font-size:11px; padding:2px 8px; border-radius:6px; background:rgba...}
-social.js:16101  ${GROUP_LIMITS.MAX_MEMBERS_PER_GROUP}
-social.js:16105  ${groupData.weeklyGoal || 0}
-social.js:16114  ${memberCount > 0 ? ` <div style="display:flex; align-items:center; margin-bottom:6px; padding-left...}
-social.js:16118  ${createdAgoText ? `<div style="font-size:11px; color:var(--text-muted); margin-bottom:18px;"><i cl...}
-social.js:16120  ${footerBtnHtml}
-social.js:16170  ${groupAvatarHtml(groupCode, groupData.name, 40)}
-social.js:16174  ${categoryTag}
-social.js:16175  ${newBadge}
-social.js:16178  ${GROUP_LIMITS.MAX_MEMBERS_PER_GROUP}
-social.js:16178  ${groupData.weeklyGoal}
-social.js:16178  ${activeNowHtml}
-social.js:16182  ${groupCode}
-social.js:16185  ${isFull ? `<button class="primary-btn" disabled style="padding: 5px 12px; font-size: 11px; backgro...}
-social.js:16396  ${(discoverFilterHasSlot || discoverFilterActiveOnly) ? "Filtrelere uyan grup bulunamadı." : "Katıl...}
-social.js:17507  ${whenTxt}
-social.js:17507  ${next.duration || 60}
-social.js:17510  ${iAmIn ? '<i class="fa-solid fa-check"></i> Varsın' : '<i class="fa-solid fa-hand"></i> Varım'}
-social.js:18184  ${it.cls}
-social.js:18185  ${it.icon}
-social.js:18186  ${it.label}
-social.js:18374  ${isAnnouncement ? '<span class="dc-subchan-announce-badge" title="Duyuru kanalı — sadece yöneticil...}
-social.js:18375  ${isLocked && !isAnnouncement ? '<span class="dc-subchan-locked-badge" title="Bu odaya girmek için ...}
-social.js:18605  ${avatarImgHtml({ ...mData, displayName: mData.displayName || mUsername }, 26, 'flex-shrink:0;')}
-social.js:18611  ${mRole}
-social.js:18613  ${actDetailS}
-social.js:18691  ${avatarImgHtml({ avatarColor: presence.avatarColor, customAvatar: presence.customAvatar, displayNa...}
-social.js:18694  ${isMe ? ' <span class="presence-you-tag">ben</span>' : ''}
-social.js:20218  ${c}
-social.js:20251  ${emoji}
-social.js:20252  ${avatarImgHtml({ displayName: m.displayName, avatarColor: m.avatarColor, customAvatar: m.customAva...}
-social.js:20271  ${m.type === 'system_join' ? '<i class="fa-solid fa-arrow-right-to-bracket" style="color:#2ed573;ma...}
-social.js:20288  ${accent}
-social.js:20288  ${bg}
-social.js:20288  ${accent}
-social.js:20289  ${icon}
-social.js:20390  ${canPin ? ` <button class="dc-msg-action-btn${isPinned ? ' is-selected' : ''}" data-action="pin" t...}
-social.js:20393  ${isMe ? ` <button class="dc-msg-action-btn" data-action="edit" title="Düzenle"><i class="fa-solid ...}
-social.js:20397  ${canModerate ? ` <button class="dc-msg-action-btn dc-msg-action-danger" data-action="mod-delete" t...}
-social.js:20457  ${roleBadgeHtml}
-social.js:20458  ${timeStr}
-social.js:20785  ${label}
-social.js:20936  ${i === 0 ? ' is-active' : ''}
-social.js:21325  ${Object.entries(DC_CHAT_THEMES).map(([key, t]) => ` <button class="dc-theme-swatch" data-theme="${...}
-social.js:21328  ${customColor}
-social.js:21329  ${customColor}
-social.js:21336  ${Object.entries(DC_CHAT_WALLPAPERS).map(([key, w]) => ` <button class="dc-wallpaper-swatch ${wallp...}
-social.js:21344  ${Object.entries(DC_CHAT_BUBBLE_SHAPES).map(([key, s]) => ` <button class="dc-theme-pill" data-shap...}
-social.js:21353  ${Object.entries(DC_CHAT_FONT_SIZES).map(([key, s]) => ` <button class="dc-theme-pill" data-fontsiz...}
-social.js:21361  ${Object.entries(DC_CHAT_FONT_FAMILIES).map(([key, f]) => ` <button class="dc-theme-pill" data-font...}
-social.js:21452  ${rows.map(r => ` <div class="dc-msg-skeleton-row${r.side === 'right' ? ' right' : ''}"> <div class...}
-social.js:22094  ${icon}
-social.js:22145  ${allowEveryone ? `<button class="dc-confirm-btn dc-confirm-ok danger" data-action="everyone" style...}
-social.js:22715  ${savedTheme === 'dark' ? 'active' : ''}
-social.js:22718  ${savedTheme === 'light' ? 'active' : ''}
-social.js:22749  ${savedPrivacy === 'everyone' ? 'selected' : ''}
-social.js:22750  ${savedPrivacy === 'friends' ? 'selected' : ''}
-social.js:22751  ${savedPrivacy === 'nobody' ? 'selected' : ''}
-social.js:22768  ${savedLang === 'tr' ? 'selected' : ''}
-social.js:22769  ${savedLang === 'en' ? 'selected' : ''}
-social.js:22894  ${avatarImgHtml(uData, 30, 'flex-shrink:0;')}
-social.js:22896  ${typeof hasUnreadDm === 'function' && hasUnreadDm(username) ? '<span class="dc-unread-dot"></span>...}
-social.js:23047  ${color}
-social.js:23047  ${color}
-social.js:23051  ${stColor}
-social.js:23051  ${stLabel}
-social.js:23063  ${xp.toLocaleString('tr-TR')}
-social.js:23067  ${focusStr}
-social.js:23071  ${focusStreak}
-social.js:23076  ${groupJoinedAt ? `<div class="mp-info-row"><i class="fa-solid fa-door-open"></i><span>Gruba katıld...}
-social.js:23077  ${joinedAt ? `<div class="mp-info-row"><i class="fa-solid fa-calendar-plus"></i><span>Platforma kat...}
-social.js:23078  ${completedGoals}
-social.js:23081  ${cgId}
-social.js:23082  ${!isMe ? `<div class="mp-actions" style="margin-top:8px;"> <button class="mp-action-btn mp-dm-btn"...}
+social.js:3610  ${TEACHER_NOTIF_ACCENT}
+social.js:3611  ${TEACHER_NOTIF_ACCENT}
+social.js:3619  ${timeAgo(info.timestamp)}
+social.js:3622  ${item.key}
+social.js:3637  ${timeAgo(info.timestamp)}
+social.js:3640  ${item.key}
+social.js:3655  ${timeAgo(info.timestamp)}
+social.js:3658  ${item.key}
+social.js:3673  ${timeAgo(info.timestamp)}
+social.js:3676  ${item.key}
+social.js:3686  ${avatarImgHtml({ displayName: info.fromName, avatarColor: info.fromColor, username: info.fromUser ...}
+social.js:3694  ${timeAgo(info.timestamp)}
+social.js:3697  ${item.key}
+social.js:3715  ${timeAgo(info.timestamp)}
+social.js:3715  ${info.totalMinutes ? ` · ${formatFocusMinutes(info.totalMinutes)}/${formatFocusMinutes(info.weekly...}
+social.js:3718  ${item.key}
+social.js:3727  ${avatarImgHtml({ displayName: info.fromName, avatarColor: info.fromColor, username: info.fromUser ...}
+social.js:3735  ${timeAgo(info.timestamp)}
+social.js:3738  ${item.key}
+social.js:4074  ${avatarImgHtml({ displayName, avatarColor, username }, 40)}
+social.js:4078  ${warningBlock}
+social.js:4407  ${name}
+social.js:4407  ${best._delta}
+social.js:4462  ${gap}
+social.js:4465  ${L.color}
+social.js:4465  ${L.color}
+social.js:4465  ${L.color}
+social.js:4465  ${L.name}
+social.js:4465  ${L.icon}
+social.js:4465  ${L.name}
+social.js:4472  ${zoneClass}
+social.js:4472  ${Math.min(i, 15) * 35}
+social.js:4473  ${i + 1}
+social.js:4474  ${avatarImgHtml(u, 32, 'flex-shrink:0;')}
+social.js:4477  ${rankDeltaChip}
+social.js:4478  ${u.isMe ? '<span class="lb-me-tag"> (Sen)</span>' : ''}
+social.js:4479  ${leagueBadge}
+social.js:4480  ${gapChip}
+social.js:4481  ${u.xp || 0}
+social.js:4481  ${wxp}
+social.js:4483  ${pct}
+social.js:5043  ${rounds}
+social.js:5043  ${dur}
+social.js:5043  ${rounds}
+social.js:5043  ${brk}
+social.js:5043  ${h > 0 ? h + 'sa ' : ''}
+social.js:5043  ${m}
+social.js:6383  ${labels[reqType] || 'yönetmek'}
+social.js:7708  ${avatarImgHtml(user, 44)}
+social.js:7711  ${user.xp || 0}
+social.js:7711  ${user.online ? '<span class="si-green">Çevrimiçi</span>' : 'Çevrimdışı'}
+social.js:8797  ${groupAvatarHtml(groupCode, groupData.name, 30)}
+social.js:8799  ${ownerBadge}
+social.js:8802  ${groupCode}
+social.js:8802  ${activeNowMiniHtml}
+social.js:8966  ${avatarImgHtml(uData, 28)}
+social.js:9398  ${c.id}
+social.js:9426  ${t.id}
+social.js:9478  ${countByTemplate[t.id] || 0}
+social.js:9480  ${t.id}
+social.js:9481  ${t.id}
+social.js:9482  ${t.id}
+social.js:9495  ${c.id}
+social.js:9560  ${dayName}
+social.js:9619  ${badge}
+social.js:9662  ${dayName}
+social.js:9921  ${newSectionId ? `<option value="__unassigned__">— Sınıfsız yap —</option>` : ''}
+social.js:9991  ${info.program.id}
+social.js:9992  ${info.program.id}
+social.js:10000  ${info.draftProgram.id}
+social.js:10001  ${info.draftProgram.id}
+social.js:11606  ${hasStudentPerfTab ? `<button class="cp-subtab-btn${isActive('performansim')}" data-cpsub="perform...}
+social.js:11607  ${hasPerfTab ? `<button class="cp-subtab-btn${isActive('performans')}" data-cpsub="performans"><i c...}
+social.js:11608  ${isActive('odevler')}
+social.js:11608  ${asgLabel}
+social.js:11609  ${isActive('program')}
+social.js:11610  ${isClassAdmin ? `<button class="cp-subtab-btn${isActive('roster')}" data-cpsub="roster"><i class="...}
+social.js:11611  ${isActive('rapor')}
+social.js:11613  ${hasStudentPerfTab ? `<div class="cp-subtab-panel${isActive('performansim')}" data-cpsubpanel="per...}
+social.js:11614  ${hasPerfTab ? `<div class="cp-subtab-panel${isActive('performans')}" data-cpsubpanel="performans">...}
+social.js:11615  ${isActive('odevler')}
+social.js:11615  ${asgHtml}
+social.js:11616  ${isActive('program')}
+social.js:11616  ${scheduleHtml}
+social.js:11617  ${isClassAdmin ? `<div class="cp-subtab-panel${isActive('roster')}" data-cpsubpanel="roster">${rost...}
+social.js:11618  ${isActive('rapor')}
+social.js:11618  ${reportHtml}
+social.js:12215  ${s.userId}
+social.js:12590  ${onboardingHtml}
+social.js:12590  ${weekTodoHtml}
+social.js:12590  ${kpiHtml}
+social.js:12766  ${nextMineHtml}
+social.js:12766  ${myStreakHtml}
+social.js:12766  ${myActiveStatusHtml}
+social.js:12766  ${myCompletionHtml}
+social.js:12766  ${privacyHtml}
+social.js:12790  ${checked ? `<i class="fa-solid fa-eye-slash"></i> Şu an <b>gizli</b>: haftalık odak süren ve aktif...}
+social.js:12838  ${statTilesHtml}
+social.js:12839  ${isClassAdmin ? `<div id="grp-intro-insights" class="cp-skeleton" style="margin-bottom:14px;"><div...}
+social.js:12840  ${isClassAdmin ? `<div id="grp-intro-shortcuts-wrap"></div>` : ` <button type="button" class="contr...}
+social.js:12923  ${ids.map(tileHtml).join('')}
+social.js:12948  ${Object.keys(SHORTCUT_DEFS).map(galleryRowHtml).join('')}
+social.js:13145  ${groupAvatarHtml(code, data.name, 54)}
+social.js:13184  ${_showOverviewTab ? ` <button class="group-detail-tab-btn${_gtabActiveCls('overview')}" data-gtab=...}
+social.js:13186  ${(data.classroomType === 'classroom' || data.classroomType === 'workplace') ? ` <button class="gro...}
+social.js:13188  ${_gtabActiveCls('calendar')}
+social.js:13189  ${(data.classroomType === 'classroom' || data.classroomType === 'workplace') ? '' : ` <button class...}
+social.js:13191  ${_gtabActiveCls('history')}
+social.js:13197  ${_showOverviewTab ? ` <div id="group-gtab-overview" class="group-detail-tab-content${_gtabActiveCl...}
+social.js:13279  ${_gtabActiveCls('leaderboard')}
+social.js:13299  ${_gtabActiveCls('calendar')}
+social.js:13348  ${_gtabActiveCls('history')}
+social.js:13353  ${_gtabActiveCls('classroom')}
+social.js:13755  ${avatarImgHtml({ ...uData, displayName: uData.displayName || memberUsername }, 30)}
+social.js:13895  ${formatFocusMinutes(me.focusMin)}
+social.js:13909  ${rankLabel}
+social.js:13911  ${myIdx + 1}
+social.js:13912  ${subText}
+social.js:13914  ${formatFocusMinutes(me.focusMin)}
+social.js:13960  ${summaryHtml}
+social.js:13984  ${idx + 1}
+social.js:13989  ${idx < 3 ? ' top-rank' : ''}
+social.js:13990  ${rankLabel}
+social.js:13991  ${avatarImgHtml({ ...m.uData, displayName }, 34)}
+social.js:13995  ${m.uData.online ? '<span class="glb-online-dot" title="Çevrimiçi"></span>' : ''}
+social.js:14000  ${formatFocusMinutes(m.focusMin)}
+social.js:14433  ${subTxt}
+social.js:14434  ${listHtml}
+social.js:14436  ${isAuthorized ? '<button id="gsc-waiting-start-btn" class="control-btn primary-btn"><i class="fa-s...}
+social.js:14611  ${GROUP_THEME_COLORS.map(c => ` <button class="grp-theme-swatch${c.hex === current ? ' active' : ''...}
+social.js:14713  ${ev.color}
+social.js:14715  ${ev.text}
+social.js:14716  ${ev.sub ? `<div style="font-size:10px; color:var(--text-muted); margin-top:1px;">${ev.sub}</div>` ...}
+social.js:14718  ${fmtTs(ev.ts)}
+social.js:14753  ${d}
+social.js:14753  ${months[parseInt(m)-1]}
+social.js:14753  ${y}
+social.js:14755  ${s.time}
+social.js:14755  ${gscAddMinutes(s.time, durationMin)}
+social.js:14763  ${shownCount-5}
+social.js:14770  ${dateLabel}
+social.js:14772  ${timeRange}
+social.js:14774  ${durationMin}
+social.js:14775  ${!isTeacherView ? `<span style="color:#74b9ff; margin-left:6px;"><i class="fa-solid fa-circle-chec...}
+social.js:14779  ${shownCount > 0 ? `<div style="display:flex; align-items:center; gap:-4px;">${avatarsHtml}${overfl...}
+social.js:14780  ${isTeacherView ? `<span style="font-size:11px; color:rgba(255,255,255,0.5);">${checkedIn.length}/$...}
+social.js:14950  ${GSC_DAYS_TR[i]}
+social.js:14951  ${day.getDate()}
+social.js:14952  ${dotsHtml}
+social.js:14952  ${dotsOverflow}
+social.js:15005  ${dayLabel}
+social.js:15005  ${daySessions.length > 0 ? ` · ${daySessions.length} seans` : ''}
+social.js:15006  ${gscCanManageSessions ? `<button id="gsc-day-detail-add" class="control-btn secondary" style="padd...}
+social.js:15008  ${daySessions.length > 0 ? `<div class="gsc-day-detail-list">${rowsHtml}</div>` : `<div class="gsc-...}
+social.js:15060  ${today}
+social.js:15060  ${gscDateKey(new Date())}
+social.js:15065  ${startTime}
+social.js:15069  ${endTime}
+social.js:15077  ${isEdit ? (es.recurrenceGroupId ? `<p style="font-size:11px; color:var(--text-muted); margin:0;"><...}
+social.js:15131  ${msg}
+social.js:15271  ${dateLabel}
+social.js:15272  ${s.time ? `${s.time}–${gscAddMinutes(s.time, s.duration || 60)}` : '--:--'}
+social.js:15273  ${s.recurrenceGroupId ? '<span class="gsc-detail-badge"><i class="fa-solid fa-repeat"></i> Her haft...}
+social.js:15274  ${focusingNowCount > 0 ? `<span class="gsc-detail-badge live"><span class="gsc-live-dot"></span> ${...}
+social.js:15275  ${isPast ? '<span class="gsc-detail-badge green"><i class="fa-solid fa-check"></i> Tamamlandı</span...}
+social.js:15281  ${recapHtml}
+social.js:15288  ${attendees.length === 0 ? '<span style="color:var(--text-muted);font-size:12px;">Henüz kimse katıl...}
+social.js:15291  ${canStartNow ? `<button id="gsc-start-now-btn" class="primary-btn" style="width:100%; padding:11px...}
+social.js:15292  ${!isPast && !canManage ? `<button id="gsc-rsvp-btn" class="gsc-rsvp-btn ${isMine ? 'leave' : 'join...}
+social.js:15297  ${canManage && !isPast ? `<button id="gsc-dm-edit" class="control-btn secondary" style="width:100%;...}
+social.js:15298  ${canManage ? `<button id="gsc-dm-delete" class="gsc-delete-btn"><i class="fa-solid fa-trash-can"><...}
+social.js:15299  ${canManage && s.recurrenceGroupId ? `<button id="gsc-dm-delete-series" class="gsc-delete-btn" styl...}
+social.js:15798  ${groupData.weeklyGoal || 0}
+social.js:15801  ${categoryTag ? ` <div class="glass-panel si-flex1-pad"> <div class="si-header-title">${categoryTag...}
+social.js:15884  ${categoryTag ? `<span class="discover-category-tag">${categoryTag}</span>` : ''}
+social.js:15885  ${isNew ? `<span class="discover-new-badge">Yeni</span>` : ''}
+social.js:15886  ${groupData.requireApproval ? `<span style="font-size:11px; padding:2px 8px; border-radius:6px; bac...}
+social.js:15887  ${activeNow > 0 ? `<span style="font-size:11px; padding:2px 8px; border-radius:6px; background:rgba...}
+social.js:15895  ${GROUP_LIMITS.MAX_MEMBERS_PER_GROUP}
+social.js:15899  ${groupData.weeklyGoal || 0}
+social.js:15908  ${memberCount > 0 ? ` <div style="display:flex; align-items:center; margin-bottom:6px; padding-left...}
+social.js:15912  ${createdAgoText ? `<div style="font-size:11px; color:var(--text-muted); margin-bottom:18px;"><i cl...}
+social.js:15914  ${footerBtnHtml}
+social.js:15964  ${groupAvatarHtml(groupCode, groupData.name, 40)}
+social.js:15968  ${categoryTag}
+social.js:15969  ${newBadge}
+social.js:15972  ${GROUP_LIMITS.MAX_MEMBERS_PER_GROUP}
+social.js:15972  ${groupData.weeklyGoal}
+social.js:15972  ${activeNowHtml}
+social.js:15976  ${groupCode}
+social.js:15979  ${isFull ? `<button class="primary-btn" disabled style="padding: 5px 12px; font-size: 11px; backgro...}
+social.js:16190  ${(discoverFilterHasSlot || discoverFilterActiveOnly) ? "Filtrelere uyan grup bulunamadı." : "Katıl...}
+social.js:17301  ${whenTxt}
+social.js:17301  ${next.duration || 60}
+social.js:17304  ${iAmIn ? '<i class="fa-solid fa-check"></i> Varsın' : '<i class="fa-solid fa-hand"></i> Varım'}
+social.js:17978  ${it.cls}
+social.js:17979  ${it.icon}
+social.js:17980  ${it.label}
+social.js:18168  ${isAnnouncement ? '<span class="dc-subchan-announce-badge" title="Duyuru kanalı — sadece yöneticil...}
+social.js:18169  ${isLocked && !isAnnouncement ? '<span class="dc-subchan-locked-badge" title="Bu odaya girmek için ...}
+social.js:18399  ${avatarImgHtml({ ...mData, displayName: mData.displayName || mUsername }, 26, 'flex-shrink:0;')}
+social.js:18405  ${mRole}
+social.js:18407  ${actDetailS}
+social.js:18485  ${avatarImgHtml({ avatarColor: presence.avatarColor, customAvatar: presence.customAvatar, displayNa...}
+social.js:18488  ${isMe ? ' <span class="presence-you-tag">ben</span>' : ''}
+social.js:20012  ${c}
+social.js:20045  ${emoji}
+social.js:20046  ${avatarImgHtml({ displayName: m.displayName, avatarColor: m.avatarColor, customAvatar: m.customAva...}
+social.js:20065  ${m.type === 'system_join' ? '<i class="fa-solid fa-arrow-right-to-bracket" style="color:#2ed573;ma...}
+social.js:20082  ${accent}
+social.js:20082  ${bg}
+social.js:20082  ${accent}
+social.js:20083  ${icon}
+social.js:20184  ${canPin ? ` <button class="dc-msg-action-btn${isPinned ? ' is-selected' : ''}" data-action="pin" t...}
+social.js:20187  ${isMe ? ` <button class="dc-msg-action-btn" data-action="edit" title="Düzenle"><i class="fa-solid ...}
+social.js:20191  ${canModerate ? ` <button class="dc-msg-action-btn dc-msg-action-danger" data-action="mod-delete" t...}
+social.js:20251  ${roleBadgeHtml}
+social.js:20252  ${timeStr}
+social.js:20579  ${label}
+social.js:20730  ${i === 0 ? ' is-active' : ''}
+social.js:21119  ${Object.entries(DC_CHAT_THEMES).map(([key, t]) => ` <button class="dc-theme-swatch" data-theme="${...}
+social.js:21122  ${customColor}
+social.js:21123  ${customColor}
+social.js:21130  ${Object.entries(DC_CHAT_WALLPAPERS).map(([key, w]) => ` <button class="dc-wallpaper-swatch ${wallp...}
+social.js:21138  ${Object.entries(DC_CHAT_BUBBLE_SHAPES).map(([key, s]) => ` <button class="dc-theme-pill" data-shap...}
+social.js:21147  ${Object.entries(DC_CHAT_FONT_SIZES).map(([key, s]) => ` <button class="dc-theme-pill" data-fontsiz...}
+social.js:21155  ${Object.entries(DC_CHAT_FONT_FAMILIES).map(([key, f]) => ` <button class="dc-theme-pill" data-font...}
+social.js:21246  ${rows.map(r => ` <div class="dc-msg-skeleton-row${r.side === 'right' ? ' right' : ''}"> <div class...}
+social.js:21888  ${icon}
+social.js:21939  ${allowEveryone ? `<button class="dc-confirm-btn dc-confirm-ok danger" data-action="everyone" style...}
+social.js:22509  ${savedTheme === 'dark' ? 'active' : ''}
+social.js:22512  ${savedTheme === 'light' ? 'active' : ''}
+social.js:22543  ${savedPrivacy === 'everyone' ? 'selected' : ''}
+social.js:22544  ${savedPrivacy === 'friends' ? 'selected' : ''}
+social.js:22545  ${savedPrivacy === 'nobody' ? 'selected' : ''}
+social.js:22562  ${savedLang === 'tr' ? 'selected' : ''}
+social.js:22563  ${savedLang === 'en' ? 'selected' : ''}
+social.js:22688  ${avatarImgHtml(uData, 30, 'flex-shrink:0;')}
+social.js:22690  ${typeof hasUnreadDm === 'function' && hasUnreadDm(username) ? '<span class="dc-unread-dot"></span>...}
+social.js:22841  ${color}
+social.js:22841  ${color}
+social.js:22845  ${stColor}
+social.js:22845  ${stLabel}
+social.js:22857  ${xp.toLocaleString('tr-TR')}
+social.js:22861  ${focusStr}
+social.js:22865  ${focusStreak}
+social.js:22870  ${groupJoinedAt ? `<div class="mp-info-row"><i class="fa-solid fa-door-open"></i><span>Gruba katıld...}
+social.js:22871  ${joinedAt ? `<div class="mp-info-row"><i class="fa-solid fa-calendar-plus"></i><span>Platforma kat...}
+social.js:22872  ${completedGoals}
+social.js:22875  ${cgId}
+social.js:22876  ${!isMe ? `<div class="mp-actions" style="margin-top:8px;"> <button class="mp-action-btn mp-dm-btn"...}
 collab.js:449  ${a.user_color}
 collab.js:548  ${W}
 collab.js:548  ${SVG_H}

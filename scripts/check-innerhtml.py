@@ -290,7 +290,7 @@ def main():
         'inline-onclick-migration.js',
         'social-emoji-picker.js', 'social-group-focus-render.js',
         'social-focus-quote-rotation.js', 'social-group-focus-idle.js',
-        'social-message-pins.js',
+        'social-message-pins.js', 'social-group-focus-break-chat.js',
     ]
     base = Path.cwd()
     total = 0
