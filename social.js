@@ -1300,7 +1300,7 @@ function _pickNewOwner(members, groupName) {
             if (!allIds.length) {
                 saveJsonList('focusai_blocked_users', []);
                 _blockedByOthers = new Set();
-                refreshBlockSensitiveUI();
+                window.refreshBlockSensitiveUI();
                 return;
             }
 
@@ -1310,7 +1310,7 @@ function _pickNewOwner(members, groupName) {
 
             saveJsonList('focusai_blocked_users', myBlockedIds.map(id => idToUsername[id]).filter(Boolean));
             _blockedByOthers = new Set(blockedByIds.map(id => idToUsername[id]).filter(Boolean));
-            refreshBlockSensitiveUI();
+            window.refreshBlockSensitiveUI();
         };
 
         await _apply();
@@ -1382,6 +1382,7 @@ function _pickNewOwner(members, groupName) {
             }
         } catch (e) { console.warn('[FocusAI] sessiz hata:', e); }
     }
+    window._syncBlockToSupabase = _syncBlockToSupabase;
 
     // ──────────────────────────────────────────────────────
     // SUPABASE: conversations (DM kanalı) bul/oluştur — M2b-1 hazırlığı.
@@ -1511,7 +1512,7 @@ function _pickNewOwner(members, groupName) {
                     (data || []).forEach(row => {
                         const p = row.profiles;
                         if (!p) return;
-                        if (typeof isBlockedEitherWay === 'function' && isBlockedEitherWay(p.username)) return;
+                        if (typeof window.isBlockedEitherWay === 'function' && window.isBlockedEitherWay(p.username)) return;
                         _pendingFriendRequests[p.username] = {
                             fromName: p.display_name || p.username,
                             fromColor: p.avatar_color || '6c5ce7',
@@ -1528,7 +1529,7 @@ function _pickNewOwner(members, groupName) {
                 .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'friendships', filter: `addressee_id=eq.${currentUser.id}` }, async ({ new: row }) => {
                     const { data: p } = await window.FocusSupabase.from('profiles').select('username, display_name, avatar_color').eq('id', row.requester_id).single();
                     if (!p) return;
-                    if (typeof isBlockedEitherWay === 'function' && isBlockedEitherWay(p.username)) return;
+                    if (typeof window.isBlockedEitherWay === 'function' && window.isBlockedEitherWay(p.username)) return;
                     _pendingFriendRequests[p.username] = {
                         fromName: p.display_name || p.username,
                         fromColor: p.avatar_color || '6c5ce7',
@@ -1968,8 +1969,8 @@ function _pickNewOwner(members, groupName) {
 
         if (m.username === currentUser.username) return; // kendi mesajımız
         // Engellenen kullanıcılardan gelen DM'ler için bildirim/ses gösterme
-        if (ctx.type === 'dm' && typeof isBlockedEitherWay === 'function' && isBlockedEitherWay(ctx.username)) return;
-        if (ctx.type === 'group' && typeof isBlockedEitherWay === 'function' && isBlockedEitherWay(m.username)) return;
+        if (ctx.type === 'dm' && typeof window.isBlockedEitherWay === 'function' && window.isBlockedEitherWay(ctx.username)) return;
+        if (ctx.type === 'group' && typeof window.isBlockedEitherWay === 'function' && window.isBlockedEitherWay(m.username)) return;
         const isMentioned = ctx.type === 'group' && Array.isArray(m.mentions) && m.mentions.includes(currentUser.username);
         if (!isMentioned) {
             // Çalışma odalarındaki mesajlar — kullanıcı o odaya girmemişse bildirim gösterme
@@ -2131,147 +2132,18 @@ function _pickNewOwner(members, groupName) {
     // window.isChatPinned/toggleChatPinned/isChatMuted/toggleChatMuted/
     // removeRecentConvo üzerinden erişiliyor.
 
-    // ─── ENGELLE ─────────────────────────────────────────────
-    function isUserBlocked(username) {
-        return loadJsonList('focusai_blocked_users').includes(username);
-    }
-    window.isUserBlocked = isUserBlocked;
+    // ─── ENGELLE — social-block-users.js dosyasına taşındı (Faz 2,
+    // 2026-07-19). window.isUserBlocked/isBlockedEitherWay/
+    // toggleUserBlocked/isBlockedByUser/refreshBlockSensitiveUI/
+    // updateDcBlockedBanner/renderBlockedUsersSettings üzerinden erişiliyor.
 
     // Beni engelleyen kullanıcıların listesi — initSocial() içindeki
-    // `blockedBy` dinleyicisi tarafından canlı tutulur.
+    // `blockedBy` dinleyicisi tarafından canlı tutulur. Bu değişken burada
+    // kalıyor (yukarıdaki dinleyici tarafından yazılıyor); ayrılan modül
+    // sadece window._dcGetBlockedByOthers() ile salt-okunur erişiyor.
     let _blockedByOthers = new Set();
+    window._dcGetBlockedByOthers = () => _blockedByOthers;
 
-    // Ben onu engelledim VEYA o beni engelledi — her iki durumda da
-    // birbirimizin profilini, mesajlarını ve istatistiklerini göremeyiz.
-    function isBlockedEitherWay(username) {
-        return isUserBlocked(username) || _blockedByOthers.has(username);
-    }
-    window.isBlockedEitherWay = isBlockedEitherWay;
-
-    function toggleUserBlocked(username) {
-        let list = loadJsonList('focusai_blocked_users');
-        const nowBlocked = !list.includes(username);
-        if (nowBlocked) list.push(username);
-        else list = list.filter(u => u !== username);
-        saveJsonList('focusai_blocked_users', list);
-        _syncBlockToSupabase(username, nowBlocked);
-
-        if (nowBlocked && typeof removeFriend === 'function') removeFriend(username);
-        if (typeof renderRecentConversations === 'function') renderRecentConversations();
-        if (typeof refreshBlockSensitiveUI === 'function') refreshBlockSensitiveUI();
-        return nowBlocked;
-    }
-    window.toggleUserBlocked = toggleUserBlocked;
-
-    async function isBlockedByUser(username) {
-        return _blockedByOthers.has(username);
-    }
-    window.isBlockedByUser = isBlockedByUser;
-
-    // Engellemeye duyarlı tüm liste/UI parçalarını yeniden çiz —
-    // bir kullanıcı engellendiğinde/engeli kaldırıldığında her yerden
-    // anında kaybolması/geri gelmesi için.
-    function refreshBlockSensitiveUI() {
-        if (typeof renderRecentConversations === 'function') renderRecentConversations();
-        if (typeof syncDcContactList === 'function') syncDcContactList();
-        if (typeof renderLeaderboardFromCache === 'function') renderLeaderboardFromCache();
-        if (typeof renderBlockedUsersSettings === 'function') renderBlockedUsersSettings();
-        document.querySelectorAll('.mini-profile-popup').forEach(el => el.remove());
-    }
-    window.refreshBlockSensitiveUI = refreshBlockSensitiveUI;
-
-    // DM giriş kutusunun üstünde "engellendi" bilgilendirmesini gösterir/günceller
-    function updateDcBlockedBanner(targetUsername) {
-        const inputBar = document.querySelector('.dc-chat-input-bar');
-        const input    = document.getElementById('sidebar-chat-message-input');
-        const sendBtn  = document.getElementById('sidebar-chat-send-msg-btn');
-        if (!inputBar) return;
-
-        const blocked = isBlockedEitherWay(targetUsername);
-
-        // Bu süre zarfında sohbet değişmiş olabilir
-        if (!window._activeChatTarget || window._activeChatTarget.type !== 'dm' || window._activeChatTarget.username !== targetUsername) return;
-
-        let banner = document.getElementById('dc-blocked-banner');
-        if (!blocked) {
-            if (banner) banner.remove();
-            if (input)   input.disabled = false;
-            if (sendBtn) sendBtn.disabled = false;
-            return;
-        }
-
-        if (input)   input.disabled = true;
-        if (sendBtn) sendBtn.disabled = true;
-
-        if (!banner) {
-            banner = document.createElement('div');
-            banner.id = 'dc-blocked-banner';
-            banner.className = 'dc-blocked-banner';
-            inputBar.parentNode.insertBefore(banner, inputBar);
-        }
-        banner.innerHTML = `<i class="fa-solid fa-ban"></i> Bu kullanıcıyla iletişim kuramazsınız.`;
-    }
-    window.updateDcBlockedBanner = updateDcBlockedBanner;
-
-    // Ayarlar > "Engellenen Kullanıcılar" listesini doldurur — engeli
-    // kaldırmanın TEK yolu burasıdır.
-    async function renderBlockedUsersSettings() {
-        const listEl = document.getElementById('settings-blocked-list');
-        if (!listEl) return;
-
-        const blocked = loadJsonList('focusai_blocked_users');
-        if (!blocked.length) {
-            listEl.innerHTML = `<div style="font-size:12px; color:var(--text-muted); padding:6px 0;">Engellediğin kimse yok.</div>`;
-            return;
-        }
-
-        const esc = _escapeHtml;
-        listEl.innerHTML = blocked.map(username => `
-            <div class="settings-blocked-item" data-username="${esc(username)}">
-                <div class="settings-blocked-avatar" id="settings-blocked-avatar-${esc(username)}">${esc(username.charAt(0).toUpperCase())}</div>
-                <div class="settings-blocked-name" id="settings-blocked-name-${esc(username)}">@${esc(username)}</div>
-                <button class="control-btn secondary settings-blocked-unblock-btn" data-username="${esc(username)}" style="font-size:12px; padding:6px 12px;">
-                    <i class="fa-solid fa-ban"></i> Engeli Kaldır
-                </button>
-            </div>
-        `).join('');
-
-        // Görünen ad/avatarı Supabase'den asenkron doldur
-        if (window.FocusSupabase && blocked.length) {
-            window.FocusSupabase.from('profiles').select('username, display_name, avatar_color').in('username', blocked).then(({ data }) => {
-                (data || []).forEach(u => {
-                    const nameEl = document.getElementById(`settings-blocked-name-${u.username}`);
-                    const avatarEl = document.getElementById(`settings-blocked-avatar-${u.username}`);
-                    if (nameEl) nameEl.textContent = u.display_name || u.username;
-                    if (avatarEl) {
-                        const color = (u.avatar_color || '6c5ce7').replace('#', '');
-                        avatarEl.style.background = '#' + color;
-                        avatarEl.textContent = (u.display_name || u.username).charAt(0).toUpperCase();
-                    }
-                });
-            });
-        }
-
-        listEl.querySelectorAll('.settings-blocked-unblock-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const username = btn.dataset.username;
-                window.dcShowConfirm({
-                    title: 'Engeli Kaldır',
-                    message: `@${username} adlı kullanıcının engelini kaldırmak istediğine emin misin? Tekrar profilini görebilir, mesajlaşabilir ve aynı gruptaysanız mesajlarını görebilirsiniz.`,
-                    confirmText: 'Engeli Kaldır',
-                    cancelText: 'Vazgeç',
-                    danger: false,
-                    icon: 'fa-ban',
-                    onConfirm: () => {
-                        toggleUserBlocked(username);
-                                                    dcShowToast(`@${username} engeli kaldırıldı`);
-                        renderBlockedUsersSettings();
-                    }
-                });
-            });
-        });
-    }
-    window.renderBlockedUsersSettings = renderBlockedUsersSettings;
 
     function hasUnreadDm(username) {
         const c = _recentConvos[username];
@@ -2505,7 +2377,7 @@ function _pickNewOwner(members, groupName) {
         if (!otherProfile || !otherProfile.username) return;
         const otherUsername = otherProfile.username;
 
-        if (typeof isBlockedEitherWay === 'function' && isBlockedEitherWay(otherUsername)) {
+        if (typeof window.isBlockedEitherWay === 'function' && window.isBlockedEitherWay(otherUsername)) {
             delete _recentConvos[otherUsername];
             delete _pendingDmRequestsSupabase[otherUsername];
             renderRecentConversations();
@@ -2964,7 +2836,7 @@ function _pickNewOwner(members, groupName) {
         const dismissedMap = window.loadDismissedRecentConvos();
         const entries = Object.values(_recentConvos)
             .filter(c => c.lastTimestamp)
-            .filter(c => c.type === 'group' || c.type === 'workroom' || !(typeof isBlockedEitherWay === 'function' && isBlockedEitherWay(c.username)))
+            .filter(c => c.type === 'group' || c.type === 'workroom' || !(typeof window.isBlockedEitherWay === 'function' && window.isBlockedEitherWay(c.username)))
             .filter(c => !(dismissedMap[c.key] && c.lastTimestamp <= dismissedMap[c.key]))
             .sort((a, b) => {
                 const pinnedA = window.isChatPinned(a.key) ? 1 : 0;
@@ -4148,6 +4020,7 @@ function _pickNewOwner(members, groupName) {
         saveFriends(getFriends().filter(u => u !== username));
         _syncFriendRemoveToSupabase(username);
     }
+    window.removeFriend = removeFriend;
 
     // Arkadaş listesinde olmayan kişilerle paylaşılmış (yetim) alışkanlıkları temizler.
     // Sayfa açılışında bir kez çalışır — arkadaşlıktan çıkarma temizliği yapılmadan önce
@@ -4229,7 +4102,7 @@ function _pickNewOwner(members, groupName) {
         if (!window.FocusSupabase || !currentUser?.id) return;
 
         const friends = getFriends();
-        const usersToFetch = [...new Set([currentUser.username, ...friends.filter(u => !isBlockedEitherWay(u))])];
+        const usersToFetch = [...new Set([currentUser.username, ...friends.filter(u => !window.isBlockedEitherWay(u))])];
 
         const { data: profiles } = await window.FocusSupabase
             .from('profiles')
@@ -4298,7 +4171,7 @@ function _pickNewOwner(members, groupName) {
             // Arkadaşlar (kendini çift saymamak için filtrele)
             const visible = Object.entries(all)
                 .filter(([u]) => friends.includes(u) && u !== currentUser?.username)
-                .filter(([u]) => !(typeof isBlockedEitherWay === 'function' && isBlockedEitherWay(u)))
+                .filter(([u]) => !(typeof window.isBlockedEitherWay === 'function' && window.isBlockedEitherWay(u)))
                 .map(([u, d]) => ({ username: u, ...d, isMe: false }));
 
             // Kendini her zaman ekle (isMe:true ile vurgulanır)
@@ -7481,7 +7354,7 @@ function _pickNewOwner(members, groupName) {
             resultEl.innerHTML = `<p style="color:#ff9f43; font-size:13px;">Kendinizi ekleyemezsiniz 😄</p>`;
             return;
         }
-        if (typeof isBlockedEitherWay === 'function' && isBlockedEitherWay(username)) {
+        if (typeof window.isBlockedEitherWay === 'function' && window.isBlockedEitherWay(username)) {
             resultEl.innerHTML = `<p style="color:#ff4757; font-size:13px;"><i class="fa-solid fa-circle-xmark"></i> "@${_escapeHtml(username)}" bulunamadı.</p>`;
             return;
         }
@@ -13495,7 +13368,7 @@ function _pickNewOwner(members, groupName) {
             if (!membersData) return;
 
             const usernames = Object.keys(membersData)
-                .filter(u => !(typeof isBlockedEitherWay === 'function' && isBlockedEitherWay(u)));
+                .filter(u => !(typeof window.isBlockedEitherWay === 'function' && window.isBlockedEitherWay(u)));
             if (activeCountEl) activeCountEl.textContent = `${usernames.length} Üye`;
 
             let totalGroupFocusMinutes = 0;
@@ -18161,7 +18034,7 @@ function renderFlatChannelItem(container, groupCode, roomId, roomName) {
             let onlineCount = 0;
 
             const sorted = Object.keys(latestMembers)
-                .filter(u => !(typeof isBlockedEitherWay === 'function' && isBlockedEitherWay(u)))
+                .filter(u => !(typeof window.isBlockedEitherWay === 'function' && window.isBlockedEitherWay(u)))
                 .sort((a, b) => {
                     const aOn = isMemberOnline(latestMembers[a].userId);
                     const bOn = isMemberOnline(latestMembers[b].userId);
@@ -19555,7 +19428,7 @@ function renderFlatChannelItem(container, groupCode, roomId, roomName) {
                 count++;
                 const m = msgSnap.val();
                 if (!m) return;
-                if (m.username !== user.username && typeof isBlockedEitherWay === 'function' && isBlockedEitherWay(m.username)) return;
+                if (m.username !== user.username && typeof window.isBlockedEitherWay === 'function' && window.isBlockedEitherWay(m.username)) return;
                 // Kullanıcının gruba katılma tarihinden ÖNCEKİ mesajlar "Daha fazla yükle"
                 // ile de gösterilmesin — bu sınıra ulaşıldıysa daha eski sayfalar da
                 // tamamen filtreleneceği için "Daha fazla yükle" butonu kaldırılır.
@@ -22362,7 +22235,7 @@ function renderFlatChannelItem(container, groupCode, roomId, roomName) {
         document.body.appendChild(modal);
         requestAnimationFrame(() => modal.querySelector('#focusai-settings-box').classList.add('settings-modal-box--open'));
 
-        renderBlockedUsersSettings();
+        window.renderBlockedUsersSettings();
 
         const closeModal = () => {
             const box = modal.querySelector('#focusai-settings-box');
@@ -22445,7 +22318,7 @@ function renderFlatChannelItem(container, groupCode, roomId, roomName) {
             if (Array.isArray(presArr)) presArr.forEach(p => { if (p.username) onlineUsernames.add(p.username); });
         });
 
-        const visibleFriends = friends.filter(u => !(typeof isBlockedEitherWay === 'function' && isBlockedEitherWay(u)));
+        const visibleFriends = friends.filter(u => !(typeof window.isBlockedEitherWay === 'function' && window.isBlockedEitherWay(u)));
 
         const profiles = await Promise.all(visibleFriends.map(u => (
             typeof _resolveProfileByUsername === 'function' ? _resolveProfileByUsername(u) : null
@@ -22570,7 +22443,7 @@ function renderFlatChannelItem(container, groupCode, roomId, roomName) {
 
         // Engellenen (veya bizi engelleyen) kullanıcıların profili hiçbir
         // şekilde görüntülenemez
-        if (me && me.username !== username && typeof isBlockedEitherWay === 'function' && isBlockedEitherWay(username)) {
+        if (me && me.username !== username && typeof window.isBlockedEitherWay === 'function' && window.isBlockedEitherWay(username)) {
                             dcShowToast('Bu kullanıcının profilini görüntüleyemezsiniz.');
             return;
         }
