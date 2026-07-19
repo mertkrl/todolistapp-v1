@@ -293,6 +293,7 @@ function _pickNewOwner(members, groupName) {
     let scwTimerInterval = null;
     let isScwRunning = false;
     let currentRoomLinkedHabit = null; // { id, name, pairId } — odanın bağlı olduğu ortak alışkanlık (varsa)
+    window._cwGetLinkedHabit = () => currentRoomLinkedHabit;
     // Ortak odak odası geliştirmeleri için durum değişkenleri
     let currentRoomIsHost = false;
     window._cwGetRoomIsHost = () => currentRoomIsHost;
@@ -301,6 +302,9 @@ function _pickNewOwner(members, groupName) {
     let currentRoomPhase = 'work'; // 'work' | 'break' — sohbet görünürlüğü hesaplamasında kullanılır
     let sharedFocusMyTaskId = null; // Bu kullanıcının ortak odakta seçtiği görev id'si
     let sharedFocusMyTaskText = ''; // Seçilen görevin metni — bireysel modda senkron oda olmadığı için yerelde tutulur
+    // Salt-okunur/yazma köprüsü — social-group-focus-task-selector.js için.
+    window._gfGetMyTask = () => ({ id: sharedFocusMyTaskId, text: sharedFocusMyTaskText });
+    window._gfSetMyTask = (id, text) => { sharedFocusMyTaskId = id; sharedFocusMyTaskText = text; };
     let sharedFocusSoloMode = false; // true: tam ekran odaklanma arayüzü bir oda yerine tek başına seans için açık
     let sharedFocusBreakMinutes = 10; // Odanın mola süresi (dk) — partnerle senkron, ayarlanabilir
     let sharedFocusMinimized = false; // true: kullanıcı sadece arayüzden ayrıldı, zamanlayıcı arka planda akıyor
@@ -5624,98 +5628,9 @@ function _pickNewOwner(members, groupName) {
     // gfSendBreakMessage, gfEnsureBreakChatBindings) window.* üzerinden
     // çağrılıyor.
 
-    // ── Görev seçimi — bireysel sistemdeki .active-task-selector/.timer-task-dropdown
-    // deseniyle birebir aynı; seçilen görev Firebase'e (writeSharedFocusMyTask) yazılır ──
-    function gfApplyActiveTaskDisplay() {
-        const panel = document.getElementById('gf-active-focus-task');
-        const nameEl = document.getElementById('gf-focus-task-name');
-        const selText = document.getElementById('gf-current-task-text');
-        if (sharedFocusMyTaskId && sharedFocusMyTaskText) {
-            if (panel) panel.classList.remove('hidden');
-            if (nameEl) nameEl.textContent = sharedFocusMyTaskText;
-            if (selText) selText.innerHTML = `<i class="fa-solid fa-crosshairs" style="color:#ff9f43;"></i> <span style="color:#ff9f43;">${_escapeHtml(sharedFocusMyTaskText)}</span>`;
-        } else {
-            if (panel) panel.classList.add('hidden');
-            if (selText) selText.innerHTML = `<i class="fa-solid fa-bullseye"></i> Odaklanılacak Hedefi Seç`;
-        }
-    }
-
-    function gfSelectMyTask(taskId, taskText) {
-        sharedFocusMyTaskId = taskId;
-        sharedFocusMyTaskText = taskText;
-        gfApplyActiveTaskDisplay();
-        writeSharedFocusMyTask(taskId, taskText);
-        document.getElementById('gf-task-dropdown')?.classList.add('hidden');
-    }
-
-    function gfClearMyTask() {
-        sharedFocusMyTaskId = null;
-        sharedFocusMyTaskText = '';
-        gfApplyActiveTaskDisplay();
-        writeSharedFocusMyTask(null, null);
-        document.getElementById('gf-task-dropdown')?.classList.add('hidden');
-    }
-
-    function gfPopulateTaskDropdown() {
-        const listEl = document.getElementById('gf-task-list');
-        if (!listEl) return;
-        listEl.innerHTML = '';
-        const tasks = (typeof window.getTodayTasksForFocus === 'function') ? window.getTodayTasksForFocus() : [];
-
-        if (sharedFocusMyTaskId) {
-            const clearLi = document.createElement('li');
-            clearLi.className = 'timer-todo-item';
-            clearLi.innerHTML = `<i class="fa-solid fa-xmark si-red"></i> <span class="task-name" style="color:#ff4757; font-weight:600;">Odağı Kaldır</span>`;
-            clearLi.onclick = (e) => { e.stopPropagation(); gfClearMyTask(); };
-            listEl.appendChild(clearLi);
-            const hr = document.createElement('hr');
-            hr.style.cssText = 'border:0; border-top:1px solid rgba(255,255,255,0.1); margin:5px 0;';
-            listEl.appendChild(hr);
-        }
-
-        if (currentRoomLinkedHabit && currentRoomLinkedHabit.id) {
-            const li = document.createElement('li');
-            li.className = 'timer-todo-item';
-            li.innerHTML = `<i class="fa-solid fa-people-arrows si-purple"></i> <span class="task-name si-purple">🤝 Ortak Alışkanlık: ${_escapeHtml(currentRoomLinkedHabit.name)}</span>`;
-            li.onclick = (e) => { e.stopPropagation(); gfSelectMyTask(`habit:${currentRoomLinkedHabit.id}`, currentRoomLinkedHabit.name); };
-            listEl.appendChild(li);
-        }
-
-        if (tasks.length === 0 && !(currentRoomLinkedHabit && currentRoomLinkedHabit.id)) {
-            if (!sharedFocusMyTaskId) {
-                listEl.innerHTML += '<li style="padding:10px; text-align:center; color:var(--text-muted); font-size:12px;">Bugün için bekleyen görev yok.</li>';
-            }
-            return;
-        }
-
-        tasks.forEach(t => {
-            const li = document.createElement('li');
-            li.className = 'timer-todo-item';
-            li.innerHTML = `<i class="fa-regular fa-circle"></i> <span class="task-name">${_escapeHtml(t.text)}</span>`;
-            li.onclick = (e) => { e.stopPropagation(); gfSelectMyTask(t.id, t.text); };
-            listEl.appendChild(li);
-        });
-    }
-
-    let gfTaskSelectorBound = false;
-    function gfEnsureTaskSelectorBindings() {
-        if (gfTaskSelectorBound) return;
-        gfTaskSelectorBound = true;
-        const selector = document.getElementById('gf-active-task-selector');
-        const dropdown = document.getElementById('gf-task-dropdown');
-        const clearBtn = document.getElementById('gf-clear-focus-btn');
-        if (selector) {
-            selector.addEventListener('click', (e) => {
-                if (e.target.closest('#gf-task-dropdown')) return;
-                gfPopulateTaskDropdown();
-                dropdown?.classList.toggle('hidden');
-            });
-            document.addEventListener('click', (e) => {
-                if (!selector.contains(e.target)) dropdown?.classList.add('hidden');
-            });
-        }
-        if (clearBtn) clearBtn.addEventListener('click', (e) => { e.stopPropagation(); gfClearMyTask(); });
-    }
+    // ── Görev seçimi — social-group-focus-task-selector.js dosyasına
+    // taşındı (Faz 2, 2026-07-19). window._gfGetMyTask()/_gfSetMyTask()
+    // üzerinden sharedFocusMyTaskId/Text'e erişiyor.
 
     // ── "Ayrıl" seçim modalı — social-group-focus-leave.js dosyasına
     // taşındı (Faz 2, 2026-07-19 — en karmaşık yüksek risk parçası: oda
@@ -5736,7 +5651,7 @@ function _pickNewOwner(members, groupName) {
         window.gfExitFocusMode();
         window.gfEnsureIdleBindings();
         window.gfEnsureFocusModeBinding();
-        gfEnsureTaskSelectorBindings();
+        window.gfEnsureTaskSelectorBindings();
         window.gfEnsureBreakChatBindings();
         gfEnsureDurationSettingsBindings();
         // Hidden input'ları aktif oturum değerleriyle senkronize et
@@ -5843,8 +5758,8 @@ function _pickNewOwner(members, groupName) {
             : null);
         gfEnsureRoomControlBindings();
         ensureSharedFocusReturnButtonBinding();
-        gfPopulateTaskDropdown();
-        gfApplyActiveTaskDisplay();
+        window.gfPopulateTaskDropdown();
+        window.gfApplyActiveTaskDisplay();
         applySharedFocusModePill(sharedFocusSession ? sharedFocusSession.focusMinutes : (Math.round(scwTimeLeft / 60) || 25));
         applySharedFocusBreakPill(sharedFocusBreakMinutes || SHARED_FOCUS_DEFAULT_BREAK_MINUTES);
         syncSharedFocusTimerUI();
@@ -5918,8 +5833,8 @@ function _pickNewOwner(members, groupName) {
         gfOpenOverlayShell();
         gfEnsureRoomControlBindings();
         ensureSharedFocusReturnButtonBinding();
-        gfPopulateTaskDropdown();
-        gfApplyActiveTaskDisplay();
+        window.gfPopulateTaskDropdown();
+        window.gfApplyActiveTaskDisplay();
         syncSharedFocusTimerUI();
         if (sharedFocusDisplaySyncInterval) clearInterval(sharedFocusDisplaySyncInterval);
         sharedFocusDisplaySyncInterval = setInterval(syncSharedFocusTimerUI, 500);
@@ -6197,8 +6112,8 @@ function _pickNewOwner(members, groupName) {
     // farklı görevlere odaklanabilir ya da aynı görevi seçip birlikte çalışabilirler.
     // ──────────────────────────────────────────────────────
     function populateSharedFocusTaskSelect() {
-        gfPopulateTaskDropdown();
-        gfApplyActiveTaskDisplay();
+        window.gfPopulateTaskDropdown();
+        window.gfApplyActiveTaskDisplay();
     }
 
     function writeSharedFocusMyTask(taskId, taskText) {
@@ -6211,6 +6126,7 @@ function _pickNewOwner(members, groupName) {
             return;
         }
     }
+    window.writeSharedFocusMyTask = writeSharedFocusMyTask;
 
     // Birleştirilmiş arayüzde ayrı bir görev-durumu paneli yok — görev bilgisi
     // doğrudan `.active-focus-task` alanında (gfApplyActiveTaskDisplay) gösteriliyor.
