@@ -50,6 +50,7 @@
             () => import('./planning-ghost-toast.js'),
             () => import('./planning.js'),
             () => import('./planning-utils.js'),
+            () => import('./planning-quick-create.js'),
             () => import('./collab.js'),
         ];
         for (const step of steps) {

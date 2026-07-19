@@ -207,234 +207,227 @@ planning-ghost-toast.js:43  ${entry.user_color||'#aaa'}
 planning-ghost-toast.js:47  ${actionIcons[entry.action]||'·'}
 planning.js:224  ${invites.map(inv => _lpaInviteCardHTML(inv)).join('')}
 planning.js:225  ${rest.length ? `<div class="pg-pv-assign-status-list" style="margin-top:${invites.length ? '10px' ...}
-planning.js:1151  ${avgPct}
-planning.js:1328  ${cat.color}
-planning.js:1328  ${cat.color}
-planning.js:1328  ${cat.color}
-planning.js:1328  ${cat.icon}
-planning.js:1328  ${cat.label}
-planning.js:1331  ${window.progressRing(pct,cat.color)}
-planning.js:1335  ${st.color}
-planning.js:1335  ${st.label}
-planning.js:1336  ${g.deadline?`<span class="pg-dp-meta-item"><i class="ti ti-calendar-due"></i> ${window.fmtDate(g.d...}
-planning.js:1337  ${ms.length>0?`<span class="pg-dp-meta-item"><i class="ti ti-flag-3"></i> ${ms.filter(m=>m.done).le...}
-planning.js:1359  ${cat.color}
-planning.js:1387  ${m.id}
-planning.js:1389  ${m.id}
-planning.js:1389  ${goalId}
-planning.js:1394  ${dlLabel?`<span class="pg-ms-date-label"><i class="ti ti-calendar"></i> ${dlLabel}</span>`:''}
-planning.js:1395  ${subs.length?`<span class="pg-ms-subtask-counter"><i class="ti ti-checklist"></i> ${subsDone}/${su...}
-planning.js:1397  ${subsHTML}
-planning.js:1399  ${m.id}
-planning.js:1401  ${extras}
-planning.js:1404  ${m.id}
-planning.js:1404  ${goalId}
-planning.js:1405  ${m.id}
-planning.js:1405  ${goalId}
-planning.js:1473  ${dep.id}
-planning.js:1559  ${active}
-planning.js:1560  ${done}
-planning.js:1561  ${avgPct}
-planning.js:1562  ${doneMs}
-planning.js:1562  ${totalMs}
-planning.js:1643  ${c.id === _qcState.category ? ' selected' : ''}
-planning.js:1644  ${c.id}
-planning.js:1644  ${c.color}
-planning.js:1645  ${c.icon}
-planning.js:1645  ${c.label}
-planning.js:1666  ${o.months}
-planning.js:1666  ${o.label}
-planning.js:1886  ${today}
-planning.js:1923  ${g.id}
-planning.js:2049  ${rows.map(r => _lpaStatusRowHTML(r, false)).join('')}
-planning.js:2174  ${_lpaCreateBtnHtml}
-planning.js:2176  ${buckets[activeTab].length ? buckets[activeTab].map(r => _lpaStatusRowHTML(r, true, true, { showEd...}
-planning.js:2262  ${_lpaCreateBtnHtml}
-planning.js:2388  ${isOnline ? '<span class="pg-cw-online-dot"></span>' : ''}
-planning.js:2494  ${color}
-planning.js:2494  ${initials}
-planning.js:2495  ${status === 'accepted' ? '<span class="pg-cw-online-dot"></span>' : ''}
-planning.js:2501  ${status === 'accepted' ? '<span class="pg-cw-member-joined">✓ Katıldı</span>' : '<span class="pg-c...}
-planning.js:2641  ${gName}
-planning.js:2651  ${g.id}
-planning.js:2655  ${isTemplates ? `<button class="pg-lp-existing-use" data-id="${g.id}" title="Bu şablondan Uygulama ...}
-planning.js:2656  ${g.id}
-planning.js:2657  ${g.id}
-planning.js:2727  ${g.id}
-planning.js:2903  ${s.id}
-planning.js:3306  ${(m.user_id||'?')[0].toUpperCase()}
-planning.js:3335  ${cat.id === currentCat ? ' selected' : ''}
-planning.js:3336  ${cat.id}
-planning.js:3336  ${cat.color}
-planning.js:3337  ${cat.icon}
-planning.js:3338  ${cat.label}
-planning.js:3364  ${p.val === current ? ' selected' : ''}
-planning.js:3365  ${p.val}
-planning.js:3365  ${p.color}
-planning.js:3366  ${p.emoji}
-planning.js:3366  ${p.label}
-planning.js:3394  ${o.months}
-planning.js:3394  ${o.label}
-planning.js:3507  ${cat.color}
-planning.js:3507  ${cat.color}
-planning.js:3507  ${i + 1}
-planning.js:3508  ${m.icon}
-planning.js:3510  ${i}
-planning.js:3512  ${i + 1}
-planning.js:3550  ${m.id}
-planning.js:3551  ${i + 1}
-planning.js:3552  ${m.icon}
-planning.js:3555  ${i > 0 ? `<button class="pg-icon-btn pg-wz-ms-up" data-wid="${m.id}" title="Yukarı" type="button">...}
-planning.js:3556  ${i < ms.length - 1 ? `<button class="pg-icon-btn pg-wz-ms-dn" data-wid="${m.id}" title="Aşağı" typ...}
-planning.js:3557  ${m.id}
-planning.js:3676  ${new Date(_wzCalYear, _wzCalMonth).toLocaleDateString('tr-TR',{month:'long',year:'numeric'})}
-planning.js:3676  ${new Date(m2yr, m2mo).toLocaleDateString('tr-TR',{month:'long',year:'numeric'})}
-planning.js:3680  ${_wzRenderBookingMonth(_wzCalYear, _wzCalMonth, ranges)}
-planning.js:3681  ${_wzRenderBookingMonth(m2yr, m2mo, ranges)}
-planning.js:3910  ${cat.color}
-planning.js:3910  ${cat.color}
-planning.js:3910  ${cat.color}
-planning.js:3910  ${i + 1}
-planning.js:3913  ${m.icon}
-planning.js:3916  ${m.id}
-planning.js:3916  ${m.due_date || ''}
-planning.js:3974  ${monthLabel}
-planning.js:3978  ${dayHdrs.map(d => `<div class="pg-wz-cal-day-hdr">${d}</div>`).join('')}
-planning.js:3979  ${cells}
-planning.js:4013  ${cat.color}
-planning.js:4026  ${deadline.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric' })}
-planning.js:4046  ${conflicts[0]}
-planning.js:4046  ${conflicts.length > 1 ? ' (+' + (conflicts.length - 1) + ' daha)' : ''}
-planning.js:4098  ${msWithDates > 0 ? `<div class="pg-wz-gran-hint"><i class="ti ti-sparkles"></i> ${msWithDates} dön...}
-planning.js:4173  ${modeMap[wizardState.planMode] || ''}
-planning.js:4194  ${idx === 0 ? ' open' : ''}
-planning.js:4194  ${idx}
-planning.js:4195  ${idx}
-planning.js:4196  ${cat.color}
-planning.js:4196  ${cat.color}
-planning.js:4196  ${idx+1}
-planning.js:4197  ${ms.icon}
-planning.js:4199  ${cat.color}
-planning.js:4200  ${ms.due_date ? window.fmtShort(ms.due_date) : '—'}
-planning.js:4203  ${subs.length > 0 ? `<span class="pg-wz-acc-count" style="background:${cat.color}22;color:${cat.col...}
-planning.js:4204  ${det.criteria ? `<span class="pg-wz-acc-crit-badge">✓</span>` : ''}
-planning.js:4209  ${idx}
-planning.js:4257  ${totalDays > 0 ? `<div class="pg-wz-s4-workload"> <span><i class="ti ti-checklist" aria-hidden="tr...}
-planning.js:4265  ${cat.color}
-planning.js:4268  ${_wzRenderCapacityBar(subs, cat)}
-planning.js:4280  ${msEnd ? `max="${ms.due_date}"` : ''}
-planning.js:4281  ${msStart ? `min="${msStart.toISOString().split('T')[0]}"` : ''}
-planning.js:4287  ${cat.color}
-planning.js:4292  ${_wzRenderAccTaskItems(subs, cat)}
-planning.js:4413  ${det.subtasks?.length > 0 ? `<span class="pg-wz-acc-count" style="background:${cat.color}22;color:...}
-planning.js:4414  ${det.criteria ? `<span class="pg-wz-acc-crit-badge">✓</span>` : ''}
-planning.js:4443  ${modeLabel}
-planning.js:4447  ${cat.color}
-planning.js:4447  ${cat.color}
-planning.js:4447  ${idx+1}
-planning.js:4448  ${ms.icon}
-planning.js:4450  ${cat.color}
-planning.js:4451  ${ms.due_date ? `<span class="pg-wz-s4-ms-due"><i class="ti ti-calendar"></i> ${window.fmtDate(ms.d...}
-planning.js:4502  ${cat.color}
-planning.js:4504  ${subtasks.length > 0 ? `<span class="pg-wz-s4-task-count" style="background:${cat.color}22;color:$...}
-planning.js:4519  ${cat.color}
-planning.js:4552  ${i===idx?' active':''}
-planning.js:4553  ${i===idx?`background:${cat.color};box-shadow:0 0 0 3px ${cat.color}33;`:''}
-planning.js:5005  ${s.id}
-planning.js:5040  ${cat.color}
-planning.js:5043  ${cat.icon}
-planning.js:5045  ${goal.deadline ? `<div class="pg-wz-summary-row"> <span class="pg-wz-summary-label">Son Tarih</spa...}
-planning.js:5060  ${workDays.length ? `<div class="pg-wz-summary-row"> <span class="pg-wz-summary-label">Çalışma Günl...}
-planning.js:5064  ${goal.hours_per_week ? `<div class="pg-wz-summary-row"> <span class="pg-wz-summary-label">Haftalık...}
-planning.js:5068  ${totalSubs ? `<div class="pg-wz-summary-row"> <span class="pg-wz-summary-label">Toplam Alt Görev</...}
-planning.js:6534  ${cat.color}
-planning.js:6534  ${cat.color}
-planning.js:6538  ${cat.icon}
-planning.js:6538  ${cat.label}
-planning.js:6539  ${g.deadline ? `<span>·</span><span><i class="ti ti-calendar-due"></i> ${window.fmtDate(g.deadline)...}
-planning.js:6544  ${pct}
-planning.js:6544  ${cat.color}
-planning.js:6546  ${cat.color}
-planning.js:6546  ${pct}
-planning.js:6597  ${!isTpl ? `<button class="pg-pv-save-template-btn" id="pg-pv-save-template-btn" title="Bu planın a...}
-planning.js:6600  ${!isTpl ? `<button class="pg-pv-assign-class-btn" id="pg-pv-assign-class-btn"> <i class="ti ti-sen...}
-planning.js:6727  ${diff}
-planning.js:6729  ${-diff}
-planning.js:6740  ${cat.color}
-planning.js:6743  ${m.start_time || ''}
-planning.js:6743  ${m.end_time ? '–'+m.end_time : ''}
-planning.js:6745  ${window.fmtShort(m.start_date)}
-planning.js:6745  ${window.fmtShort(m.due_date)}
-planning.js:6745  ${timeLabel}
-planning.js:6746  ${window.fmtShort(m.due_date)}
-planning.js:6746  ${timeLabel}
-planning.js:6749  ${i > 0 ? `<div class="pg-pv-step-connector${ms[i-1].done?' done':''}"></div>` : ''}
-planning.js:6751  ${m.id}
-planning.js:6751  ${isActive?`--ms-color:${cat.color};`:''}
-planning.js:6752  ${isLocked ? 'title="Sıralı modda önceki aşama tamamlanmadan açılamaz"' : ''}
-planning.js:6755  ${isActive||m.done?`background:${cat.color};color:#000;`:''}
-planning.js:6756  ${m.done ? '✓' : i + 1}
-planning.js:6760  ${statusBadge}
-planning.js:6764  ${dateRange ? `<div class="pg-pv-step-daterange"><i class="ti ti-calendar-event"></i> ${dateRange}<...}
-planning.js:6766  ${(stTotal || mTasks.length) ? ` <div class="pg-pv-step-progress-row"> <div class="pg-pv-step-progr...}
-planning.js:6775  ${mTasks.length ? `<span class="pg-pv-step-stat"><i class="ti ti-checkbox"></i> ${mDone}/${mTasks.l...}
-planning.js:6776  ${stTotal ? `<span class="pg-pv-step-stat"><i class="ti ti-list-check"></i> ${stsDone}/${stTotal} a...}
-planning.js:6777  ${mDur ? `<span class="pg-pv-step-stat"><i class="ti ti-clock"></i> ${mDur}</span>` : ''}
-planning.js:6778  ${daysInfo ? `<span class="pg-pv-step-stat${m.due_date < today && !m.done ? ' overdue' : ''}"><i cl...}
-planning.js:6827  ${_pvMsIcon(ms, g)}
-planning.js:6832  ${cat.color}
-planning.js:6834  ${statusCls}
-planning.js:6834  ${statusLbl}
-planning.js:6838  ${ms.due_date || ''}
-planning.js:6838  ${cat.color}
-planning.js:6839  ${!ms.due_date ? '<span style="color:#444;font-size:11px;">Tarih belirle</span>' : ''}
-planning.js:6845  ${stTotal ? ` <div class="pg-pv-st-progress"> <div class="pg-pv-st-progress-header"> <span class="p...}
-planning.js:6881  ${_pvGetMsIndex(g, ms.id) === 0 ? 'disabled' : ''}
-planning.js:6885  ${ms.done ? '<i class="ti ti-rotate-counterclockwise"></i> Geri Al' : '<i class="ti ti-check"></i> ...}
-planning.js:6887  ${_pvGetMsIndex(g, ms.id) === (g.milestones.length - 1) ? 'disabled' : ''}
-planning.js:7065  ${cat.color}
-planning.js:7066  ${cat.color}
-planning.js:7066  ${cat.icon}
-planning.js:7070  ${cat.color}
-planning.js:7133  ${idx + 1}
-planning.js:7134  ${idx + 1}
-planning.js:7141  ${idx === 0 ? 'disabled' : ''}
-planning.js:7141  ${cat.color}
-planning.js:7145  ${Array(count).fill(0).map((_,i) => `<div class="pvwiz-name-dot${i < idx ? ' done' : i === idx ? ' ...}
-planning.js:7151  ${cat.color}
-planning.js:7152  ${idx < count - 1 ? 'İleri <i class="ti ti-arrow-right"></i>' : 'Tarihler <i class="ti ti-calendar"...}
-planning.js:7275  ${minDate ? `<span class="pvwiz-min-hint">(${window.fmtDate(minDate)} ve sonrası)</span>` : ''}
-planning.js:7310  ${avatar}
-planning.js:7317  ${avatar}
-planning.js:7976  ${monthLbl}
-planning.js:7980  ${_pvCalSwitchInline(g)}
-planning.js:7982  ${_pvBusyToggleBtn(g)}
-planning.js:7986  ${dayNames.map(d => `<div class="pg-pv-main-cal-hdr">${d}</div>`).join('')}
-planning.js:7987  ${cells}
-planning.js:8140  ${cat.color}
-planning.js:8141  ${cat.icon}
-planning.js:8146  ${cat.color}
-planning.js:8150  ${cat.color}
-planning.js:8153  ${totalDur ? `<div class="pvwiz-summary-stat-card"> <div class="pvwiz-summary-stat-val" style="colo...}
-planning.js:8158  ${msRows}
-planning.js:8159  ${cat.color}
-planning.js:8356  ${isToday ? 'Bugün' : dateLbl}
-planning.js:8358  ${isToday ? dateLbl : dayName}
-planning.js:8362  ${capacityHtml}
-planning.js:8366  ${typingHtml}
-planning.js:8367  ${tasksHtml}
-planning.js:8370  ${ownTasksHtml}
-planning.js:8372  ${msSubsHtml}
-planning.js:8378  ${blocksAdd ? '' : `<div class="pg-pv-day-add-task pg-pv-day-add-task-lp" id="pg-pv-day-add-task"> ...}
-planning.js:8487  ${cat.color}
-planning.js:8727  ${cat.color}
-planning.js:8727  ${done}
-planning.js:8727  ${pct}
-planning.js:8730  ${pct}
-planning.js:8730  ${cat.color}
-planning.js:8894  ${pct}
-planning.js:8895  ${done}
-planning.js:8916  ${items.length-5}
+planning.js:1157  ${avgPct}
+planning.js:1335  ${cat.color}
+planning.js:1335  ${cat.color}
+planning.js:1335  ${cat.color}
+planning.js:1335  ${cat.icon}
+planning.js:1335  ${cat.label}
+planning.js:1338  ${window.progressRing(pct,cat.color)}
+planning.js:1342  ${st.color}
+planning.js:1342  ${st.label}
+planning.js:1343  ${g.deadline?`<span class="pg-dp-meta-item"><i class="ti ti-calendar-due"></i> ${window.fmtDate(g.d...}
+planning.js:1344  ${ms.length>0?`<span class="pg-dp-meta-item"><i class="ti ti-flag-3"></i> ${ms.filter(m=>m.done).le...}
+planning.js:1366  ${cat.color}
+planning.js:1394  ${m.id}
+planning.js:1396  ${m.id}
+planning.js:1396  ${goalId}
+planning.js:1401  ${dlLabel?`<span class="pg-ms-date-label"><i class="ti ti-calendar"></i> ${dlLabel}</span>`:''}
+planning.js:1402  ${subs.length?`<span class="pg-ms-subtask-counter"><i class="ti ti-checklist"></i> ${subsDone}/${su...}
+planning.js:1404  ${subsHTML}
+planning.js:1406  ${m.id}
+planning.js:1408  ${extras}
+planning.js:1411  ${m.id}
+planning.js:1411  ${goalId}
+planning.js:1412  ${m.id}
+planning.js:1412  ${goalId}
+planning.js:1480  ${dep.id}
+planning.js:1566  ${active}
+planning.js:1567  ${done}
+planning.js:1568  ${avgPct}
+planning.js:1569  ${doneMs}
+planning.js:1569  ${totalMs}
+planning.js:1681  ${today}
+planning.js:1718  ${g.id}
+planning.js:1844  ${rows.map(r => _lpaStatusRowHTML(r, false)).join('')}
+planning.js:1969  ${_lpaCreateBtnHtml}
+planning.js:1971  ${buckets[activeTab].length ? buckets[activeTab].map(r => _lpaStatusRowHTML(r, true, true, { showEd...}
+planning.js:2057  ${_lpaCreateBtnHtml}
+planning.js:2183  ${isOnline ? '<span class="pg-cw-online-dot"></span>' : ''}
+planning.js:2289  ${color}
+planning.js:2289  ${initials}
+planning.js:2290  ${status === 'accepted' ? '<span class="pg-cw-online-dot"></span>' : ''}
+planning.js:2296  ${status === 'accepted' ? '<span class="pg-cw-member-joined">✓ Katıldı</span>' : '<span class="pg-c...}
+planning.js:2436  ${gName}
+planning.js:2446  ${g.id}
+planning.js:2450  ${isTemplates ? `<button class="pg-lp-existing-use" data-id="${g.id}" title="Bu şablondan Uygulama ...}
+planning.js:2451  ${g.id}
+planning.js:2452  ${g.id}
+planning.js:2522  ${g.id}
+planning.js:2698  ${s.id}
+planning.js:3102  ${(m.user_id||'?')[0].toUpperCase()}
+planning.js:3131  ${cat.id === currentCat ? ' selected' : ''}
+planning.js:3132  ${cat.id}
+planning.js:3132  ${cat.color}
+planning.js:3133  ${cat.icon}
+planning.js:3134  ${cat.label}
+planning.js:3160  ${p.val === current ? ' selected' : ''}
+planning.js:3161  ${p.val}
+planning.js:3161  ${p.color}
+planning.js:3162  ${p.emoji}
+planning.js:3162  ${p.label}
+planning.js:3190  ${o.months}
+planning.js:3190  ${o.label}
+planning.js:3303  ${cat.color}
+planning.js:3303  ${cat.color}
+planning.js:3303  ${i + 1}
+planning.js:3304  ${m.icon}
+planning.js:3306  ${i}
+planning.js:3308  ${i + 1}
+planning.js:3346  ${m.id}
+planning.js:3347  ${i + 1}
+planning.js:3348  ${m.icon}
+planning.js:3351  ${i > 0 ? `<button class="pg-icon-btn pg-wz-ms-up" data-wid="${m.id}" title="Yukarı" type="button">...}
+planning.js:3352  ${i < ms.length - 1 ? `<button class="pg-icon-btn pg-wz-ms-dn" data-wid="${m.id}" title="Aşağı" typ...}
+planning.js:3353  ${m.id}
+planning.js:3472  ${new Date(_wzCalYear, _wzCalMonth).toLocaleDateString('tr-TR',{month:'long',year:'numeric'})}
+planning.js:3472  ${new Date(m2yr, m2mo).toLocaleDateString('tr-TR',{month:'long',year:'numeric'})}
+planning.js:3476  ${_wzRenderBookingMonth(_wzCalYear, _wzCalMonth, ranges)}
+planning.js:3477  ${_wzRenderBookingMonth(m2yr, m2mo, ranges)}
+planning.js:3706  ${cat.color}
+planning.js:3706  ${cat.color}
+planning.js:3706  ${cat.color}
+planning.js:3706  ${i + 1}
+planning.js:3709  ${m.icon}
+planning.js:3712  ${m.id}
+planning.js:3712  ${m.due_date || ''}
+planning.js:3770  ${monthLabel}
+planning.js:3774  ${dayHdrs.map(d => `<div class="pg-wz-cal-day-hdr">${d}</div>`).join('')}
+planning.js:3775  ${cells}
+planning.js:3809  ${cat.color}
+planning.js:3822  ${deadline.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric' })}
+planning.js:3842  ${conflicts[0]}
+planning.js:3842  ${conflicts.length > 1 ? ' (+' + (conflicts.length - 1) + ' daha)' : ''}
+planning.js:3894  ${msWithDates > 0 ? `<div class="pg-wz-gran-hint"><i class="ti ti-sparkles"></i> ${msWithDates} dön...}
+planning.js:3969  ${modeMap[wizardState.planMode] || ''}
+planning.js:3990  ${idx === 0 ? ' open' : ''}
+planning.js:3990  ${idx}
+planning.js:3991  ${idx}
+planning.js:3992  ${cat.color}
+planning.js:3992  ${cat.color}
+planning.js:3992  ${idx+1}
+planning.js:3993  ${ms.icon}
+planning.js:3995  ${cat.color}
+planning.js:3996  ${ms.due_date ? window.fmtShort(ms.due_date) : '—'}
+planning.js:3999  ${subs.length > 0 ? `<span class="pg-wz-acc-count" style="background:${cat.color}22;color:${cat.col...}
+planning.js:4000  ${det.criteria ? `<span class="pg-wz-acc-crit-badge">✓</span>` : ''}
+planning.js:4005  ${idx}
+planning.js:4053  ${totalDays > 0 ? `<div class="pg-wz-s4-workload"> <span><i class="ti ti-checklist" aria-hidden="tr...}
+planning.js:4061  ${cat.color}
+planning.js:4064  ${_wzRenderCapacityBar(subs, cat)}
+planning.js:4076  ${msEnd ? `max="${ms.due_date}"` : ''}
+planning.js:4077  ${msStart ? `min="${msStart.toISOString().split('T')[0]}"` : ''}
+planning.js:4083  ${cat.color}
+planning.js:4088  ${_wzRenderAccTaskItems(subs, cat)}
+planning.js:4209  ${det.subtasks?.length > 0 ? `<span class="pg-wz-acc-count" style="background:${cat.color}22;color:...}
+planning.js:4210  ${det.criteria ? `<span class="pg-wz-acc-crit-badge">✓</span>` : ''}
+planning.js:4239  ${modeLabel}
+planning.js:4243  ${cat.color}
+planning.js:4243  ${cat.color}
+planning.js:4243  ${idx+1}
+planning.js:4244  ${ms.icon}
+planning.js:4246  ${cat.color}
+planning.js:4247  ${ms.due_date ? `<span class="pg-wz-s4-ms-due"><i class="ti ti-calendar"></i> ${window.fmtDate(ms.d...}
+planning.js:4298  ${cat.color}
+planning.js:4300  ${subtasks.length > 0 ? `<span class="pg-wz-s4-task-count" style="background:${cat.color}22;color:$...}
+planning.js:4315  ${cat.color}
+planning.js:4348  ${i===idx?' active':''}
+planning.js:4349  ${i===idx?`background:${cat.color};box-shadow:0 0 0 3px ${cat.color}33;`:''}
+planning.js:4801  ${s.id}
+planning.js:4836  ${cat.color}
+planning.js:4839  ${cat.icon}
+planning.js:4841  ${goal.deadline ? `<div class="pg-wz-summary-row"> <span class="pg-wz-summary-label">Son Tarih</spa...}
+planning.js:4856  ${workDays.length ? `<div class="pg-wz-summary-row"> <span class="pg-wz-summary-label">Çalışma Günl...}
+planning.js:4860  ${goal.hours_per_week ? `<div class="pg-wz-summary-row"> <span class="pg-wz-summary-label">Haftalık...}
+planning.js:4864  ${totalSubs ? `<div class="pg-wz-summary-row"> <span class="pg-wz-summary-label">Toplam Alt Görev</...}
+planning.js:6331  ${cat.color}
+planning.js:6331  ${cat.color}
+planning.js:6335  ${cat.icon}
+planning.js:6335  ${cat.label}
+planning.js:6336  ${g.deadline ? `<span>·</span><span><i class="ti ti-calendar-due"></i> ${window.fmtDate(g.deadline)...}
+planning.js:6341  ${pct}
+planning.js:6341  ${cat.color}
+planning.js:6343  ${cat.color}
+planning.js:6343  ${pct}
+planning.js:6394  ${!isTpl ? `<button class="pg-pv-save-template-btn" id="pg-pv-save-template-btn" title="Bu planın a...}
+planning.js:6397  ${!isTpl ? `<button class="pg-pv-assign-class-btn" id="pg-pv-assign-class-btn"> <i class="ti ti-sen...}
+planning.js:6524  ${diff}
+planning.js:6526  ${-diff}
+planning.js:6537  ${cat.color}
+planning.js:6540  ${m.start_time || ''}
+planning.js:6540  ${m.end_time ? '–'+m.end_time : ''}
+planning.js:6542  ${window.fmtShort(m.start_date)}
+planning.js:6542  ${window.fmtShort(m.due_date)}
+planning.js:6542  ${timeLabel}
+planning.js:6543  ${window.fmtShort(m.due_date)}
+planning.js:6543  ${timeLabel}
+planning.js:6546  ${i > 0 ? `<div class="pg-pv-step-connector${ms[i-1].done?' done':''}"></div>` : ''}
+planning.js:6548  ${m.id}
+planning.js:6548  ${isActive?`--ms-color:${cat.color};`:''}
+planning.js:6549  ${isLocked ? 'title="Sıralı modda önceki aşama tamamlanmadan açılamaz"' : ''}
+planning.js:6552  ${isActive||m.done?`background:${cat.color};color:#000;`:''}
+planning.js:6553  ${m.done ? '✓' : i + 1}
+planning.js:6557  ${statusBadge}
+planning.js:6561  ${dateRange ? `<div class="pg-pv-step-daterange"><i class="ti ti-calendar-event"></i> ${dateRange}<...}
+planning.js:6563  ${(stTotal || mTasks.length) ? ` <div class="pg-pv-step-progress-row"> <div class="pg-pv-step-progr...}
+planning.js:6572  ${mTasks.length ? `<span class="pg-pv-step-stat"><i class="ti ti-checkbox"></i> ${mDone}/${mTasks.l...}
+planning.js:6573  ${stTotal ? `<span class="pg-pv-step-stat"><i class="ti ti-list-check"></i> ${stsDone}/${stTotal} a...}
+planning.js:6574  ${mDur ? `<span class="pg-pv-step-stat"><i class="ti ti-clock"></i> ${mDur}</span>` : ''}
+planning.js:6575  ${daysInfo ? `<span class="pg-pv-step-stat${m.due_date < today && !m.done ? ' overdue' : ''}"><i cl...}
+planning.js:6624  ${_pvMsIcon(ms, g)}
+planning.js:6629  ${cat.color}
+planning.js:6631  ${statusCls}
+planning.js:6631  ${statusLbl}
+planning.js:6635  ${ms.due_date || ''}
+planning.js:6635  ${cat.color}
+planning.js:6636  ${!ms.due_date ? '<span style="color:#444;font-size:11px;">Tarih belirle</span>' : ''}
+planning.js:6642  ${stTotal ? ` <div class="pg-pv-st-progress"> <div class="pg-pv-st-progress-header"> <span class="p...}
+planning.js:6678  ${_pvGetMsIndex(g, ms.id) === 0 ? 'disabled' : ''}
+planning.js:6682  ${ms.done ? '<i class="ti ti-rotate-counterclockwise"></i> Geri Al' : '<i class="ti ti-check"></i> ...}
+planning.js:6684  ${_pvGetMsIndex(g, ms.id) === (g.milestones.length - 1) ? 'disabled' : ''}
+planning.js:6862  ${cat.color}
+planning.js:6863  ${cat.color}
+planning.js:6863  ${cat.icon}
+planning.js:6867  ${cat.color}
+planning.js:6930  ${idx + 1}
+planning.js:6931  ${idx + 1}
+planning.js:6938  ${idx === 0 ? 'disabled' : ''}
+planning.js:6938  ${cat.color}
+planning.js:6942  ${Array(count).fill(0).map((_,i) => `<div class="pvwiz-name-dot${i < idx ? ' done' : i === idx ? ' ...}
+planning.js:6948  ${cat.color}
+planning.js:6949  ${idx < count - 1 ? 'İleri <i class="ti ti-arrow-right"></i>' : 'Tarihler <i class="ti ti-calendar"...}
+planning.js:7072  ${minDate ? `<span class="pvwiz-min-hint">(${window.fmtDate(minDate)} ve sonrası)</span>` : ''}
+planning.js:7107  ${avatar}
+planning.js:7114  ${avatar}
+planning.js:7773  ${monthLbl}
+planning.js:7777  ${_pvCalSwitchInline(g)}
+planning.js:7779  ${_pvBusyToggleBtn(g)}
+planning.js:7783  ${dayNames.map(d => `<div class="pg-pv-main-cal-hdr">${d}</div>`).join('')}
+planning.js:7784  ${cells}
+planning.js:7937  ${cat.color}
+planning.js:7938  ${cat.icon}
+planning.js:7943  ${cat.color}
+planning.js:7947  ${cat.color}
+planning.js:7950  ${totalDur ? `<div class="pvwiz-summary-stat-card"> <div class="pvwiz-summary-stat-val" style="colo...}
+planning.js:7955  ${msRows}
+planning.js:7956  ${cat.color}
+planning.js:8153  ${isToday ? 'Bugün' : dateLbl}
+planning.js:8155  ${isToday ? dateLbl : dayName}
+planning.js:8159  ${capacityHtml}
+planning.js:8163  ${typingHtml}
+planning.js:8164  ${tasksHtml}
+planning.js:8167  ${ownTasksHtml}
+planning.js:8169  ${msSubsHtml}
+planning.js:8175  ${blocksAdd ? '' : `<div class="pg-pv-day-add-task pg-pv-day-add-task-lp" id="pg-pv-day-add-task"> ...}
+planning.js:8284  ${cat.color}
+planning.js:8524  ${cat.color}
+planning.js:8524  ${done}
+planning.js:8524  ${pct}
+planning.js:8527  ${pct}
+planning.js:8527  ${cat.color}
+planning.js:8691  ${pct}
+planning.js:8692  ${done}
+planning.js:8713  ${items.length-5}
 social.js:72  ${type}
 social.js:73  ${icon || icons[type] || icons.info}
 social.js:76  ${desc}
@@ -914,3 +907,10 @@ auth-ui.js:131  ${_avatarColorSwatches()}
 social-message-pins.js:269  ${keys.length > 1 ? `Sabitlenmiş mesaj (${_dcPinnedIndex + 1}/${keys.length})` : 'Sabitlenmiş mesaj'}
 social-message-pins.js:272  ${keys.length > 1 ? `<button class="dc-pinned-nav-btn" data-action="next-pin" title="Sonraki sabitl...}
 social-message-pins.js:273  ${canUnpin ? `<button class="dc-pinned-unpin-btn" data-action="unpin" title="Sabitlemeyi kaldır"><i...}
+planning-quick-create.js:78  ${c.id === _qcState.category ? ' selected' : ''}
+planning-quick-create.js:79  ${c.id}
+planning-quick-create.js:79  ${c.color}
+planning-quick-create.js:80  ${c.icon}
+planning-quick-create.js:80  ${c.label}
+planning-quick-create.js:101  ${o.months}
+planning-quick-create.js:101  ${o.label}
