@@ -5,6 +5,19 @@
 // (Supabase user id kısayolu olarak) yerel değişken adı olarak da kullanılıyor;
 // bu isim çakışması mekanik taşımayı riskli kılıyor, o yüzden uid() planning.js'te
 // bırakıldı.
+const CATEGORIES = [
+    { id: 'egitim',  label: 'Eğitim',  icon: '🧠', color: '#7c6eff' },
+    { id: 'saglik',  label: 'Sağlık',  icon: '💪', color: '#ef476f' },
+    { id: 'kariyer', label: 'Kariyer', icon: '💼', color: '#06d6a0' },
+    { id: 'finans',  label: 'Finans',  icon: '💰', color: '#ffd166' },
+    { id: 'kisisel', label: 'Kişisel', icon: '🌱', color: '#ff9f43' },
+    { id: 'diger',   label: 'Diğer',   icon: '✨', color: '#a78bfa' },
+];
+window.CATEGORIES = CATEGORIES;
+
+function getCat(id) { return CATEGORIES.find(c => c.id === id) || CATEGORIES[5]; }
+window.getCat = getCat;
+
 function msUid() { return 'ms_' + Date.now() + '_' + Math.random().toString(36).slice(2,7); }
 window.msUid = msUid;
 

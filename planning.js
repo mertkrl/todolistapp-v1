@@ -72,14 +72,7 @@
         diger:   ['Araştırma yap', 'Plan oluştur', 'Adım adım ilerle', 'Değerlendir'],
     };
 
-    const CATEGORIES = [
-        { id: 'egitim',  label: 'Eğitim',  icon: '🧠', color: '#7c6eff' },
-        { id: 'saglik',  label: 'Sağlık',  icon: '💪', color: '#ef476f' },
-        { id: 'kariyer', label: 'Kariyer', icon: '💼', color: '#06d6a0' },
-        { id: 'finans',  label: 'Finans',  icon: '💰', color: '#ffd166' },
-        { id: 'kisisel', label: 'Kişisel', icon: '🌱', color: '#ff9f43' },
-        { id: 'diger',   label: 'Diğer',   icon: '✨', color: '#a78bfa' },
-    ];
+    // CATEGORIES → planning-utils.js dosyasına taşındı.
     const STATUS_META = {
         active:    { label: 'Aktif',        color: '#4ade80' },
         paused:    { label: 'Duraklatıldı', color: '#ffd166' },
@@ -811,7 +804,7 @@
         return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
                         .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
     }
-    function getCat(id) { return CATEGORIES.find(c => c.id === id) || CATEGORIES[5]; }
+    // getCat → planning-utils.js dosyasına taşındı.
 
     // deadlineLabel/fmtDate/fmtShort/progressRing → planning-utils.js
     // dosyasına taşındı (Faz 2, 2026-07-19).
@@ -825,7 +818,7 @@
 
     // ── Goal CRUD ─────────────────────────────
     function addGoal(data) {
-        const cat = getCat(data.category);
+        const cat = window.getCat(data.category);
         goals.unshift({
             id: uid(), title: data.title.trim(),
             description: (data.description||'').trim(),
@@ -840,7 +833,7 @@
     function updateGoal(id, data) {
         const idx = goals.findIndex(g=>g.id===id);
         if (idx===-1) return;
-        const cat = getCat(data.category);
+        const cat = window.getCat(data.category);
         goals[idx] = { ...goals[idx], ...data, color: cat.color, _dirty: true };
         persistGoals(); render(); toast('Hedef güncellendi ✓');
     }
@@ -1094,7 +1087,7 @@
     }
 
     function cardHTML(g) {
-        const cat=getCat(g.category), st=STATUS_META[g.status]||STATUS_META.active;
+        const cat=window.getCat(g.category), st=STATUS_META[g.status]||STATUS_META.active;
         const pct=g.progress_pct||0, ms=g.milestones||[];
         const msDone=ms.filter(m=>m.done).length, archived=g.status==='archived';
         const dl=window.deadlineLabel(g.deadline);
@@ -1327,7 +1320,7 @@
 
     function refreshDetailSummary(g) {
         const el=document.getElementById('pg-dp-summary'); if (!el) return;
-        const cat=getCat(g.category), st=STATUS_META[g.status]||STATUS_META.active, pct=g.progress_pct||0;
+        const cat=window.getCat(g.category), st=STATUS_META[g.status]||STATUS_META.active, pct=g.progress_pct||0;
         const ms=g.milestones||[];
         el.innerHTML=`
         <div class="pg-dp-goal-top">
@@ -1352,7 +1345,7 @@
         const sliderV=document.getElementById('pg-dp-slider-val');
         const manualWrap=document.getElementById('pg-dp-manual-wrap');
         const autoLabel=document.getElementById('pg-dp-auto-label');
-        const cat=getCat(g.category), pct=g.progress_pct||0;
+        const cat=window.getCat(g.category), pct=g.progress_pct||0;
         const hasMilestones=(g.milestones||[]).length>0;
 
         if (fill)   { fill.style.width=pct+'%'; fill.style.background=cat.color; }
@@ -1571,7 +1564,7 @@
         ${topGoals.length>0?`
         <div style="font-size:11px;font-weight:700;color:var(--t2,#888);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">En İlerli Hedefler</div>
         ${topGoals.map(g=>{
-            const cat=getCat(g.category);
+            const cat=window.getCat(g.category);
             return `<div class="pg-stats-goal-row">
                 <div class="pg-stats-goal-dot" style="background:${cat.color};"></div>
                 <span class="pg-stats-goal-name">${esc(g.title)}</span>
@@ -2824,7 +2817,7 @@
         if (!g?.milestones?.length && !templateTasks.length) { toast('Şablon olarak kaydetmek için önce en az bir aşama veya görev ekleyin 📋'); return; }
         const newGoal = {
             id: uid(), title: `${g.title} (Şablon)`, description: g.description || '',
-            category: g.category || 'egitim', color: g.color || getCat('egitim').color,
+            category: g.category || 'egitim', color: g.color || window.getCat('egitim').color,
             deadline: '', priority: g.priority || 2,
             status: 'active', progress_pct: 0,
             milestones: _cloneMilestonesForTemplate(g.milestones),
@@ -2852,7 +2845,7 @@
 
         const newGoal = {
             id: uid(), title: name,
-            description: desc, category: 'egitim', color: getCat('egitim').color,
+            description: desc, category: 'egitim', color: window.getCat('egitim').color,
             deadline: '', priority: 2,
             status: 'active', progress_pct: 0, milestones: [],
             work_days: [], hours_per_week: 5,
@@ -2952,7 +2945,7 @@
         const targets = isPersonal ? studentIds : [null];
         const createdGoals = targets.map(studentId => ({
             id: uid(), title: (isPersonal && targets.length > 1) ? `${planName} — ${nameOf(studentId)}` : planName,
-            description: desc || template?.description || '', category: 'egitim', color: getCat('egitim').color,
+            description: desc || template?.description || '', category: 'egitim', color: window.getCat('egitim').color,
             deadline: '', priority: 2,
             status: 'active', progress_pct: 0,
             milestones: template ? _cloneMilestonesForTemplate(template.milestones) : [],
@@ -3508,7 +3501,7 @@
     function _wzRenderMsNameInputs() {
         const el = document.getElementById('pg-wz-ms-inputs');
         if (!el) return;
-        const cat = getCat(wizardState.goal.category);
+        const cat = window.getCat(wizardState.goal.category);
         el.innerHTML = wizardState.milestones.map((m, i) => `
             <div class="pg-wz-ms-inp-row">
                 <div class="pg-wz-ms-inp-num" style="background:${cat.color}18;color:${cat.color};">${i + 1}</div>
@@ -3911,7 +3904,7 @@
     function _wzRenderMsDates() {
         const el = document.getElementById('pg-wz-ms-dates');
         if (!el) return;
-        const cat = getCat(wizardState.goal.category);
+        const cat = window.getCat(wizardState.goal.category);
         el.innerHTML = wizardState.milestones.map((m, i) => `
             <div class="pg-wz-ms-date-row">
                 <div class="pg-wz-ms-date-num" style="background:${cat.color}18;border-color:${cat.color}44;color:${cat.color};">${i + 1}</div>
@@ -4008,7 +4001,7 @@
         el.style.display = '';
 
         const totalDays = Math.max(1, Math.ceil((deadline - today) / 86400000));
-        const cat = getCat(wizardState.goal.category);
+        const cat = window.getCat(wizardState.goal.category);
 
         const markers = ms.map(m => {
             const days = Math.ceil((new Date(m.due_date) - today) / 86400000);
@@ -4163,7 +4156,7 @@
 
     // ⑤ Tüm milestone'ları accordion'da göster
     function _wzRenderMilestoneAccordion() {
-        const cat = getCat(wizardState.goal.category);
+        const cat = window.getCat(wizardState.goal.category);
 
         // Nav butonlarını gizle (accordion navigation'ı yer alıyor)
         document.getElementById('pg-wz-s4-prev')?.style.setProperty('display','none');
@@ -4429,7 +4422,7 @@
         wizardState.s4MsIdx = idx;
         const ms  = wizardState.milestones[idx];
         if (!ms) return;
-        const cat = getCat(wizardState.goal.category);
+        const cat = window.getCat(wizardState.goal.category);
         if (!wizardState.msDet[ms.id])
             wizardState.msDet[ms.id] = { criteria: '', subtasks: [], resources: '', expanded: false, planned_units: [] };
         const det = wizardState.msDet[ms.id];
@@ -5027,7 +5020,7 @@
     // ── Step 5 ────────────────────────────────
     function _wzStep5Render() {
         const { goal, milestones, firstMsDetail } = wizardState;
-        const cat = getCat(goal.category);
+        const cat = window.getCat(goal.category);
 
         // Celebration sub text
         const subEl = document.getElementById('pg-wz-celebration-sub');
@@ -5088,7 +5081,7 @@
     function _wzSave() {
         if (!wizardState) return;
         const { goal, milestones, firstMsDetail, mode } = wizardState;
-        const cat = getCat(goal.category);
+        const cat = window.getCat(goal.category);
 
         const newGoal = {
             id: uid(), title: goal.title.trim(),
@@ -6533,7 +6526,7 @@
     // ── Header ────────────────────────────────
     function _pvRenderHeader(g) {
         _pvUpdateConflictBanner(g);
-        const cat = getCat(g.category);
+        const cat = window.getCat(g.category);
         const pct = g.progress_pct || 0;
         const el  = document.getElementById('pg-pv-goal-info');
         if (!el) return;
@@ -6685,7 +6678,7 @@
         // hariç tutulur — gerçek bir "aşama" değiller, sol listede aşama gibi görünüp
         // kafa karıştırmasınlar diye (bkz. _pvIsMirrorMs).
         const ms  = (g.milestones || []).filter(m => !_pvIsMirrorMs(m));
-        const cat = getCat(g.category);
+        const cat = window.getCat(g.category);
 
         // Wizard active and in dates step → keep showing chat even with milestones
         const wizActive = pvWiz && pvWiz.step !== 'done' && pvWiz.step !== null;
@@ -6822,7 +6815,7 @@
         }
         if (emptyEl) emptyEl.style.display = 'none';
 
-        const cat      = getCat(g.category);
+        const cat      = window.getCat(g.category);
         const stDone   = (ms.subtasks || []).filter(s => s.done).length;
         const stTotal  = (ms.subtasks || []).length;
         const stPct    = stTotal ? Math.round(stDone / stTotal * 100) : 0;
@@ -7061,7 +7054,7 @@
     function _pvRenderWizard(g, container) {
         // Always prefer live goal from goals array to avoid stale closure issues
         const _liveG = () => goals.find(x => x.id === pvGoalId) || g;
-        const cat    = getCat(g.category);
+        const cat    = window.getCat(g.category);
         const quotes = PV_MOTIVATION[g.category] || PV_MOTIVATION.diger;
         const quote  = quotes[Math.floor(Date.now() / 86400000) % quotes.length];
 
@@ -7476,10 +7469,10 @@
         // ait olmayan görevler de gösteriliyor — onları kendi hedeflerinin renginde çiz ki
         // "bu ders" ile "kendi görevim" birbirinden ayırt edilebilsin.
         const isForeign = g.lpa_id && String(t.parentGoal) !== String(g.id);
-        let cat = getCat(g.category);
+        let cat = window.getCat(g.category);
         if (isForeign) {
             const ownerGoal = goals.find(x => String(x.id) === String(t.parentGoal));
-            cat = getCat(ownerGoal?.category);
+            cat = window.getCat(ownerGoal?.category);
         }
         const s = _pvTimeToMinLocal(t.timeStart), e = _pvTimeToMinLocal(t.timeEnd || t.timeStart);
         // Chip bir tek saatlik hücrenin İÇİNE ekleniyor — top, o hücrenin başından
@@ -7812,7 +7805,7 @@
         const lastDate = new Date(pvCalYear, pvCalMonth + 1, 0).getDate();
         const startDow = (firstDay.getDay() + 6) % 7; // Monday-first
         const monthLbl = firstDay.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' });
-        const cat      = getCat(g.category);
+        const cat      = window.getCat(g.category);
 
         // Build milestone lookup by date — takvimden saat saat eklenen görevlerin "aynası"
         // olan milestone'lar (task_mirror_id'li) burada HARİÇ tutulur: bunlar gerçek bir
@@ -8113,7 +8106,7 @@
     }
 
     function _pvRenderPlanSummary(g, container) {
-        const cat    = getCat(g.category);
+        const cat    = window.getCat(g.category);
         const msList = g.milestones || [];
         const allTasks = FocusStorage.get('tasks', []).filter(t => String(t.parentGoal) === String(g.id));
         const goalTasks = allTasks.filter(t => {
@@ -8195,7 +8188,7 @@
             return;
         }
 
-        const cat      = getCat(g.category);
+        const cat      = window.getCat(g.category);
         const dateObj  = new Date(dateStr + 'T00:00:00');
         const dayName  = dateObj.toLocaleDateString('tr-TR', { weekday: 'long' });
         const dateLbl  = dateObj.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -8725,7 +8718,7 @@
         const el  = document.getElementById('pg-pv-overall-progress');
         if (!el) return;
         const ms  = g.milestones || [];
-        const cat = getCat(g.category);
+        const cat = window.getCat(g.category);
         const pct = g.progress_pct || 0;
         const done = ms.filter(m => m.done).length;
         el.innerHTML = `
