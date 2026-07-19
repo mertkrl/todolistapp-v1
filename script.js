@@ -122,62 +122,23 @@ document.addEventListener('DOMContentLoaded', () => {
          });
      });
      
-     function getProgressColor(pct) {
-         function lerp(a, b, t) { return Math.round(a + (b - a) * t); }
-         let r, g, b;
-         if (pct <= 50) {
-             // Altın → Sarı  (#D4900E → #F0C040)
-             const t = pct / 50;
-             r = lerp(212, 240, t); g = lerp(144, 192, t); b = lerp(14, 64, t);
-         } else if (pct <= 80) {
-             // Sarı → Sarı-yeşil  (#F0C040 → #A8E063)
-             const t = (pct - 50) / 30;
-             r = lerp(240, 168, t); g = lerp(192, 224, t); b = lerp(64, 99, t);
-         } else {
-             // Sarı-yeşil → Yeşil  (#A8E063 → #4ADE80)
-             const t = (pct - 80) / 20;
-             r = lerp(168, 74, t); g = lerp(224, 222, t); b = lerp(99, 128, t);
-         }
-         return `rgb(${r},${g},${b})`;
-     }
-
-     function formatDateToString(date) {
-         return `${String(date.getDate()).padStart(2, '0')}-${String(date.getMonth() + 1).padStart(2, '0')}-${date.getFullYear()}`; // GÜNCELLEME: Sıralama gün-ay-yıl yapıldı
-     }
-    window.formatDateToString = formatDateToString; // script-nlp.js gibi ayrı script scope'larından erişim için
-     // HTML <input type="date"> için dd-mm-yyyy → yyyy-mm-dd
-     function toInputDate(ddmmyyyy) {
-         if (!ddmmyyyy) return '';
-         const parts = ddmmyyyy.split('-');
-         if (parts.length !== 3) return ddmmyyyy;
-         return `${parts[2]}-${parts[1]}-${parts[0]}`;
-     }
-    window.toInputDate = toInputDate; // script-goal-deadline-extend.js gibi ayrı script scope'larından erişim için
-     // <input type="date"> değerini (yyyy-mm-dd) app formatına (dd-mm-yyyy) çevir
-     function fromInputDate(yyyymmdd) {
-         if (!yyyymmdd) return '';
-         const parts = yyyymmdd.split('-');
-         if (parts.length !== 3) return yyyymmdd;
-         return `${parts[2]}-${parts[1]}-${parts[0]}`;
-     }
+    // getProgressColor/formatDateToString/toInputDate/fromInputDate →
+    // script-date-time-utils.js dosyasına taşındı (Faz 2, 2026-07-19).
+    // window.* üzerinden erişiliyor (index.html'de script.js'ten ÖNCE
+    // yüklenmesi gerekiyor — aşağıdaki currentWeekStr satırı senkron
+    // çağırıyor).
      const monthNames = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
      const monthNamesShort = ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"];
      const dayNames = ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'];
  
-     function getWeekNumber(d) {
-         const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-         const dayNum = date.getUTCDay() || 7;
-         date.setUTCDate(date.getUTCDate() + 4 - dayNum);
-         const yearStart = new Date(Date.UTC(date.getUTCFullYear(),0,1));
-         return Math.ceil((((date - yearStart) / 86400000) + 1)/7);
-     }
+     // getWeekNumber → script-date-time-utils.js dosyasına taşındı.
  
-     const currentWeekStr = new Date().getFullYear() + "-W" + getWeekNumber(new Date());
+     const currentWeekStr = new Date().getFullYear() + "-W" + window.getWeekNumber(new Date());
  
      let tasks = Store.tasks.get();
      tasks = tasks.map(t => {
          if(!t.id) t.id = generateId();
-         if(!t.date) t.date = formatDateToString(new Date());
+         if(!t.date) t.date = window.formatDateToString(new Date());
          // Migrate YYYY-MM-DD → DD-MM-YYYY
          if (t.date && /^\d{4}-\d{2}-\d{2}$/.test(t.date)) {
              const p = t.date.split('-');
@@ -217,10 +178,10 @@ document.addEventListener('DOMContentLoaded', () => {
      let goals = Store.goals.get();
      let rawHabits = Store.habits.get();
      let habits = rawHabits.map(h => {
-         if(!h.startDate) h.startDate = formatDateToString(new Date());
+         if(!h.startDate) h.startDate = window.formatDateToString(new Date());
          // Migrasyon: eski yyyy-mm-dd formatını dd-mm-yyyy'ye çevir
          else if (/^\d{4}-\d{2}-\d{2}$/.test(h.startDate)) {
-             h.startDate = fromInputDate(h.startDate);
+             h.startDate = window.fromInputDate(h.startDate);
          }
          return h;
      });
@@ -249,7 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const oldReflectionHistory = FocusStorage.get('reflection_history', {});
         for (let key in oldReflectionHistory) {
             const e = oldReflectionHistory[key];
-            const isoDate = /^\d{2}-\d{2}-\d{4}$/.test(key) ? toInputDate(key) : key;
+            const isoDate = /^\d{2}-\d{2}-\d{4}$/.test(key) ? window.toInputDate(key) : key;
             mergedJournal[isoDate] = {
                 date: isoDate,
                 achieve: e.achieve || '',
@@ -377,7 +338,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (targetDate < goalStartDate) {
             showPremiumModal({
                 title: 'Hatalı Tarih 📅',
-                message: `Bu görev, seçtiğiniz ana hedefin başlangıç tarihinden (${formatDateToString(goalStartDate)}) önce olamaz!`,
+                message: `Bu görev, seçtiğiniz ana hedefin başlangıç tarihinden (${window.formatDateToString(goalStartDate)}) önce olamaz!`,
                 type: 'warning'
             });
             return false;
@@ -386,7 +347,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (targetDate > goalEndDate) {
             showPremiumModal({
                 title: 'Hatalı Tarih 📅',
-                message: `Bu görev, seçtiğiniz ana hedefin bitiş tarihinden (${formatDateToString(goalEndDate)}) sonra olamaz!`,
+                message: `Bu görev, seçtiğiniz ana hedefin bitiş tarihinden (${window.formatDateToString(goalEndDate)}) sonra olamaz!`,
                 type: 'warning'
             });
             return false;
@@ -397,37 +358,8 @@ document.addEventListener('DOMContentLoaded', () => {
     window.checkGoalDateBoundaries = checkGoalDateBoundaries; // script-milestone-goal-actions.js gibi ayrı modüllerden erişim için
 
 
-     function timeToMins(t) {
-         if(!t) return 0;
-         const parts = t.split(':').map(Number);
-         return parts[0] * 60 + parts[1];
-     }
-    window.timeToMins = timeToMins; // script-day-summary-card.js gibi ayrı script scope'larından erişim için
- 
-     function getNextRecurringDate(dateStr, recurringType) {
-         const [d, m, y] = dateStr.split('-').map(Number); // GÜNCELLENDİ: gün, ay, yıl sırasına alındı
-         const date = new Date(y, m - 1, d);
-         if (recurringType === 'daily') {
-             date.setDate(date.getDate() + 1);
-         } else if (recurringType === 'weekly') {
-             date.setDate(date.getDate() + 7);
-         } else if (recurringType === 'weekdays') {
-             date.setDate(date.getDate() + 1);
-             while (date.getDay() === 0 || date.getDay() === 6) {
-                 date.setDate(date.getDate() + 1);
-             }
-         } else if (recurringType === 'monthly') {
-             date.setMonth(date.getMonth() + 1);
-         }
-         return formatDateToString(date);
-     }
- 
-     function addOneHour(timeStr) {
-         if (!timeStr) return "13:00";
-         let [hours, minutes] = timeStr.split(':').map(Number);
-         hours = (hours + 1) % 24; // YENİ: 23'ten sonra 00'a (gece yarısı) kusursuz döngü yapar
-         return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-     }
+     // timeToMins/getNextRecurringDate/addOneHour → script-date-time-utils.js
+     // dosyasına taşındı (Faz 2, 2026-07-19).
 
      // O gün için ilk boş (çakışmayan) saat dilimini bulur — örn. 09:00-10:00 doluysa 10:00-11:00 önerir.
      function getNextAvailableTimeSlot(dateStr, durationMins = 60, startHour = 9, endHour = 22) {
@@ -459,8 +391,8 @@ document.addEventListener('DOMContentLoaded', () => {
              // Bu takvim girişine karşılık gelen görev artık yoksa çakışma sayma
              if (ev.id && !taskIds.has(ev.id)) continue;
 
-             const evStart = timeToMins(ev.timeStart || ev.time || "12:00");
-             const evEnd = timeToMins(ev.timeEnd || "13:00");
+             const evStart = window.timeToMins(ev.timeStart || ev.time || "12:00");
+             const evEnd = window.timeToMins(ev.timeEnd || "13:00");
              if (evEnd < evStart) continue;
 
              if(startMins < evEnd && endMins > evStart) return true;
@@ -477,8 +409,8 @@ document.addEventListener('DOMContentLoaded', () => {
          const taskIds = new Set(tasks.map(t => t.id));
          for (const ev of calendarEvents[dateStr]) {
              if (ev.id && !taskIds.has(ev.id)) continue;
-             const evStart = timeToMins(ev.timeStart || ev.time || "12:00");
-             const evEnd = timeToMins(ev.timeEnd || "13:00");
+             const evStart = window.timeToMins(ev.timeStart || ev.time || "12:00");
+             const evEnd = window.timeToMins(ev.timeEnd || "13:00");
              if (evEnd < evStart) continue;
              if (startMins < evEnd && endMins > evStart) return ev;
          }
@@ -524,7 +456,7 @@ document.addEventListener('DOMContentLoaded', () => {
  
    function addGlobalTask(text, priority, category, date, start, end, parentHabit = "", parentGoal = "", recurring = "", routineId = "") {
          const id = generateId();
-         const isOvernight = timeToMins(end) < timeToMins(start); 
+         const isOvernight = window.timeToMins(end) < window.timeToMins(start); 
          
          // Görevin tarihine göre hangi dönüm noktasına düştüğünü otomatik bul
          let parentMilestone = "";
@@ -1096,7 +1028,7 @@ document.addEventListener('DOMContentLoaded', () => {
                  return;
              }
  
-             const todayStr = formatDateToString(new Date());
+             const todayStr = window.formatDateToString(new Date());
              let highlightHistory = FocusStorage.get('highlight_history', {});
              
              if(highlightHistory[todayStr]) {
@@ -1127,7 +1059,7 @@ document.addEventListener('DOMContentLoaded', () => {
              if (val && val.completed) completedDays.add(dateKey);
          });
 
-         const todayStr = formatDateToString(new Date());
+         const todayStr = window.formatDateToString(new Date());
 
          // Bugün tamamlanan görev yoksa seri sıfır — dünden saymaya başlama
          let streak = 0;
@@ -1135,7 +1067,7 @@ document.addEventListener('DOMContentLoaded', () => {
              let d = new Date();
              d.setHours(0, 0, 0, 0);
              while (true) {
-                 const ds = formatDateToString(d);
+                 const ds = window.formatDateToString(d);
                  if (completedDays.has(ds)) {
                      streak++;
                      d.setDate(d.getDate() - 1);
@@ -1210,7 +1142,7 @@ document.addEventListener('DOMContentLoaded', () => {
      }
  
      function loadDailyHighlight() {
-         const todayStr = formatDateToString(new Date());
+         const todayStr = window.formatDateToString(new Date());
          let highlightHistory = FocusStorage.get('highlight_history', {});
          let todayHighlight = highlightHistory[todayStr];
          const goalCard = document.getElementById('td-goal-wrap');
@@ -1244,7 +1176,7 @@ document.addEventListener('DOMContentLoaded', () => {
      }
  
      window.toggleHighlightTask = function(dateStr = null) {
-         const targetDate = dateStr || formatDateToString(new Date());
+         const targetDate = dateStr || window.formatDateToString(new Date());
          let highlightHistory = FocusStorage.get('highlight_history', {});
          
          if(highlightHistory[targetDate]) {
@@ -1255,7 +1187,7 @@ document.addEventListener('DOMContentLoaded', () => {
              // Yeni Ana Hedef Sinerjisi
              checkGoalSynergy(highlightHistory[targetDate].parentGoal, targetDate, willComplete);
  
-             if (targetDate === formatDateToString(new Date())) {
+             if (targetDate === window.formatDateToString(new Date())) {
                  loadDailyHighlight(); 
              }
              
@@ -1274,7 +1206,7 @@ document.addEventListener('DOMContentLoaded', () => {
                  }
              }
              
-             if(willComplete && targetDate === formatDateToString(new Date())) {
+             if(willComplete && targetDate === window.formatDateToString(new Date())) {
                  showPremiumModal({ title: 'Mükemmel İş!', message: 'Bugünün en önemli hedefini tamamladın. Geri kalan her şey artık daha kolay.', type: 'success' });
              }
 
@@ -1290,7 +1222,7 @@ document.addEventListener('DOMContentLoaded', () => {
              const parentGoal = highlightParentSelect ? highlightParentSelect.value : "";
              if (text === "") return;
              
-             const todayStr = formatDateToString(new Date());
+             const todayStr = window.formatDateToString(new Date());
              let highlightHistory = FocusStorage.get('highlight_history', {});
              
              highlightHistory[todayStr] = { text: text, completed: false, parentGoal: parentGoal };
@@ -1337,7 +1269,7 @@ document.addEventListener('DOMContentLoaded', () => {
  
      if(editHighlightBtn) {
          editHighlightBtn.addEventListener('click', () => {
-             const todayStr = formatDateToString(new Date());
+             const todayStr = window.formatDateToString(new Date());
              let highlightHistory = FocusStorage.get('highlight_history', {});
              let todayHighlight = highlightHistory[todayStr];
  
@@ -1373,7 +1305,7 @@ document.addEventListener('DOMContentLoaded', () => {
                  showCancel: true,
                  confirmText: 'Sil',
                  onConfirm: () => {
-                     const todayStr = formatDateToString(new Date());
+                     const todayStr = window.formatDateToString(new Date());
                      let highlightHistory = FocusStorage.get('highlight_history', {});
                      delete highlightHistory[todayStr];
                      FocusStorage.set('highlight_history', highlightHistory); if(window.FocusSync) window.FocusSync.pushKey('highlight_history', highlightHistory);
@@ -1700,19 +1632,19 @@ document.addEventListener('DOMContentLoaded', () => {
      });
  
      initCustomTimePicker('task-time-start-box', 'task-time-start-display', 'task-time-start', 'task-time-start-dropdown', (newTime) => {
-         const nextTime = addOneHour(newTime);
+         const nextTime = window.addOneHour(newTime);
          updateEndPicker('task-time-end', nextTime);
      });
      initCustomTimePicker('task-time-end-box', 'task-time-end-display', 'task-time-end', 'task-time-end-dropdown');
  
      initCustomTimePicker('event-time-start-box', 'event-time-start-display', 'event-time-start', 'event-time-start-dropdown', (newTime) => {
-         const nextTime = addOneHour(newTime);
+         const nextTime = window.addOneHour(newTime);
          updateEndPicker('event-time-end', nextTime);
      });
      initCustomTimePicker('event-time-end-box', 'event-time-end-display', 'event-time-end', 'event-time-end-dropdown');
  
      initCustomTimePicker('wiz-time-start-box', 'wiz-time-start-display', 'wiz-new-task-start', 'wiz-time-start-dropdown', (newTime) => {
-         const nextTime = addOneHour(newTime);
+         const nextTime = window.addOneHour(newTime);
          const display = document.getElementById('wiz-time-end-display');
          const input = document.getElementById('wiz-new-task-end');
          const dropdown = document.getElementById('wiz-time-end-dropdown');
@@ -2428,7 +2360,7 @@ document.addEventListener('DOMContentLoaded', () => {
          if (convertDateInput._flatpickr) {
             convertDateInput._flatpickr.setDate(new Date(), false);
         } else {
-            convertDateInput.value = formatDateToString(new Date());
+            convertDateInput.value = window.formatDateToString(new Date());
         }
          convertPriorityInput.value = 'medium';
          if(convertTaskRecurring) convertTaskRecurring.value = '';
@@ -2441,7 +2373,7 @@ document.addEventListener('DOMContentLoaded', () => {
  
      if (convertStartTimeInput && convertEndTimeInput) {
          convertStartTimeInput.addEventListener('change', () => {
-             convertEndTimeInput.value = addOneHour(convertStartTimeInput.value);
+             convertEndTimeInput.value = window.addOneHour(convertStartTimeInput.value);
          });
      }
  
@@ -2503,8 +2435,8 @@ document.addEventListener('DOMContentLoaded', () => {
                      return;
                  }
  
-                 const startMins = timeToMins(start);
-                 const endMins = timeToMins(end);
+                 const startMins = window.timeToMins(start);
+                 const endMins = window.timeToMins(end);
  
                  if(startMins >= endMins) {
                      showPremiumModal({ title: 'Hatalı Zaman', message: 'Bitiş saati başlangıçtan önce veya aynı olamaz.', type: 'warning' });
@@ -2535,7 +2467,7 @@ document.addEventListener('DOMContentLoaded', () => {
                      icon: iconMap[category] || 'fa-star', 
                      targetDays: duration, 
                      category: category,
-                     startDate: formatDateToString(new Date()),
+                     startDate: window.formatDateToString(new Date()),
                      buddy: 'none', 
                      parentGoals: [],
                      history: {} 
@@ -2550,7 +2482,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Fikir dönüşüm günlüğünü veritabanına tarihli kaydet
             let conversionLog = FocusStorage.get('mind_dump_conversions', []);
-            conversionLog.push({ id: id, date: formatDateToString(new Date()) });
+            conversionLog.push({ id: id, date: window.formatDateToString(new Date()) });
             FocusStorage.set('mind_dump_conversions', conversionLog);
  
             saveMindDumps();
@@ -2673,7 +2605,7 @@ document.addEventListener('DOMContentLoaded', () => {
          const progressText = document.getElementById('daily-progress-text');
          if(!progressText) return;
 
-         const todayStr = formatDateToString(new Date());
+         const todayStr = window.formatDateToString(new Date());
          const todayHabits = getHabitsForDate(todayStr);
          const todayTasks = tasks.filter(t => t.date === todayStr && !t.isLessonPlanDraft);
 
@@ -2720,7 +2652,7 @@ document.addEventListener('DOMContentLoaded', () => {
      // çağrısı yapamadığı için window.updateStats gerekiyor.
      window.updateStats = function() { return updateStats(); };
      function updateStats() {
-         const todayStr = formatDateToString(new Date());
+         const todayStr = window.formatDateToString(new Date());
          const todayHabits = getHabitsForDate(todayStr);
          const todayTasks = tasks.filter(t => t.date === todayStr && !t.isLessonPlanDraft);
  
@@ -2766,7 +2698,7 @@ document.addEventListener('DOMContentLoaded', () => {
          if (!card) return;
          card.style.display = 'none';
          return;
-         const todayStr = formatDateToString(new Date());
+         const todayStr = window.formatDateToString(new Date());
          const highlightHistory = FocusStorage.get('highlight_history', {});
          const todayHighlight = highlightHistory[todayStr];
          if (!todayHighlight) {
@@ -2793,7 +2725,7 @@ document.addEventListener('DOMContentLoaded', () => {
          const pendingHd = document.getElementById('today-pending-hd');
          const completedHd = document.getElementById('today-completed-hd');
          if (!pendingList || !completedList) return;
-         const todayStr = formatDateToString(new Date());
+         const todayStr = window.formatDateToString(new Date());
          const todayTasks = tasks.filter(t => t.date === todayStr && !t.isLessonPlanDraft);
          const pending = todayTasks.filter(t => !t.completed);
          const completed = todayTasks.filter(t => t.completed);
@@ -2884,7 +2816,7 @@ document.addEventListener('DOMContentLoaded', () => {
  
      function renderTasks() {
          taskList.innerHTML = '';
-         const todayStr = formatDateToString(new Date());
+         const todayStr = window.formatDateToString(new Date());
          
          let highlightHistory = FocusStorage.get('highlight_history', {});
          
@@ -2932,7 +2864,7 @@ document.addEventListener('DOMContentLoaded', () => {
          // tıklanınca ilgili grubun Ödevler sekmesine götürür (checkbox ile tamamlanmaz).
          const todayAssignments = (window.FocusAssignments?.items || []).filter(a => {
              if (a.done || !a.due_date) return false;
-             return formatDateToString(new Date(a.due_date)) === todayStr;
+             return window.formatDateToString(new Date(a.due_date)) === todayStr;
          });
          todayAssignments.forEach(a => {
              const overdue = new Date(a.due_date) < new Date();
@@ -2963,7 +2895,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
          let yest = new Date();
          yest.setDate(yest.getDate() - 1);
-         const yesterdayStr = formatDateToString(yest);
+         const yesterdayStr = window.formatDateToString(yest);
  
          // Hem bugünün görevlerini hem de dünden sarkan (gece kuşu) görevlerini al
          // isLessonPlanDraft: öğretmenin BAŞKA BİR öğrenci için henüz atamadığı ders planı
@@ -3336,7 +3268,7 @@ document.addEventListener('DOMContentLoaded', () => {
      // "hangi göreve odaklanacaksın?" seçeneği sunabilsin diye basit bir global erişim sağlar.
      window.getTodayTasksForFocus = function() {
          try {
-             const todayStr = formatDateToString(new Date());
+             const todayStr = window.formatDateToString(new Date());
              return tasks
                  .filter(t => t.date === todayStr && !t.completed && !t.isLessonPlanDraft)
                  .map(t => ({ id: t.id, text: t.text }));
@@ -3379,7 +3311,7 @@ document.addEventListener('DOMContentLoaded', () => {
              icon: habitData.icon || 'fa-repeat',
              targetDays: habitData.targetDays || 21,
              category: habitData.category || 'genel',
-             startDate: habitData.startDate || formatDateToString(new Date()),
+             startDate: habitData.startDate || window.formatDateToString(new Date()),
              buddy: habitData.buddy,
              pairId: habitData.pairId,
              parentGoals: habitData.parentGoals || [],
@@ -3608,8 +3540,8 @@ document.addEventListener('DOMContentLoaded', () => {
              }
  
              if (addThisDay) {
-                 const dateStr = formatDateToString(checkDate);
-                 const conflict = hasTimeConflict(dateStr, timeToMins(start), timeToMins(end));
+                 const dateStr = window.formatDateToString(checkDate);
+                 const conflict = hasTimeConflict(dateStr, window.timeToMins(start), window.timeToMins(end));
                  if (!conflict) {
                      addGlobalTask(text, priority, category, dateStr, start, end, parentHabit, parentGoal, recurring, routineId);
                      addedCount++;
@@ -3643,13 +3575,13 @@ document.addEventListener('DOMContentLoaded', () => {
      // Eğer NLP saat bulduysa onu kullan, bulamadıysa arayüzdeki mevcut saati kullan
      const timeStart = smartData.parsedTime ? smartData.parsedTime : taskTimeStart.value;
      // Bitiş saatini başlangıca göre otomatik 1 saat sonrasına ayarla
-     const timeEnd = smartData.parsedTime ? addOneHour(timeStart) : taskTimeEnd.value;
+     const timeEnd = smartData.parsedTime ? window.addOneHour(timeStart) : taskTimeEnd.value;
  
      // Eğer NLP "yarın" gibi bir tarih bulduysa o tarihi, bulamadıysa bugünü kullan
-     const taskDateStr = smartData.parsedDate ? smartData.parsedDate : formatDateToString(new Date());
+     const taskDateStr = smartData.parsedDate ? smartData.parsedDate : window.formatDateToString(new Date());
  
-     const startMins = timeToMins(timeStart);
-     const endMins = timeToMins(timeEnd);
+     const startMins = window.timeToMins(timeStart);
+     const endMins = window.timeToMins(timeEnd);
 
      if(startMins === endMins) {
          showPremiumModal({ title: 'Hatalı Zaman', message: 'Görev başlangıç ve bitiş saati aynı olamaz.', type: 'warning' });
@@ -3672,7 +3604,7 @@ document.addEventListener('DOMContentLoaded', () => {
      if(taskParentSelect) taskParentSelect.value = '';
      
      // Arayüzdeki seçici saatleri bir sonraki boş saat dilimine ilerlet (örn. 09-10 eklendiyse 10-11 önerilir)
-     const nextSlot = getNextAvailableTimeSlot(taskDateStr, timeToMins(timeEnd) - timeToMins(timeStart) || 60);
+     const nextSlot = getNextAvailableTimeSlot(taskDateStr, window.timeToMins(timeEnd) - window.timeToMins(timeStart) || 60);
      updateEndPicker('task-time-start', nextSlot.start);
      updateEndPicker('task-time-end', nextSlot.end);
 
@@ -3692,7 +3624,7 @@ document.addEventListener('DOMContentLoaded', () => {
              tdAddForm.style.display = open ? 'none' : 'flex';
              tdToggleAdd.classList.toggle('is-open', !open);
              if (!open) {
-                 const todayStr = formatDateToString(new Date());
+                 const todayStr = window.formatDateToString(new Date());
                  const nextSlot = getNextAvailableTimeSlot(todayStr);
                  updateEndPicker('task-time-start', nextSlot.start);
                  updateEndPicker('task-time-end', nextSlot.end);
@@ -3748,7 +3680,7 @@ document.addEventListener('DOMContentLoaded', () => {
                  editTaskTextInput.focus();
                  return;
              }
-             if (timeToMins(newStart) >= timeToMins(newEnd)) {
+             if (window.timeToMins(newStart) >= window.timeToMins(newEnd)) {
                  editTaskTimeError.style.display = 'block';
                  return;
              }
@@ -3808,15 +3740,15 @@ document.addEventListener('DOMContentLoaded', () => {
      if (editTaskStart) {
          editTaskStart.addEventListener('change', () => {
              if (editTaskEnd) {
-                 editTaskEnd.value = addOneHour(editTaskStart.value);
+                 editTaskEnd.value = window.addOneHour(editTaskStart.value);
              }
-             const ok = timeToMins(editTaskStart.value) < timeToMins(editTaskEnd.value);
+             const ok = window.timeToMins(editTaskStart.value) < window.timeToMins(editTaskEnd.value);
              editTaskTimeError.style.display = ok ? 'none' : 'block';
          });
      }
      if (editTaskEnd) {
          editTaskEnd.addEventListener('change', () => {
-             const ok = timeToMins(editTaskStart.value) < timeToMins(editTaskEnd.value);
+             const ok = window.timeToMins(editTaskStart.value) < window.timeToMins(editTaskEnd.value);
              editTaskTimeError.style.display = ok ? 'none' : 'block';
          });
      }
@@ -3957,7 +3889,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
      if(habitStartDateInput) {
         if(habitStartDateInput._flatpickr) { habitStartDateInput._flatpickr.setDate(new Date()); }
-        else { habitStartDateInput.value = toInputDate(formatDateToString(new Date())); }
+        else { habitStartDateInput.value = window.toInputDate(window.formatDateToString(new Date())); }
         _syncEndDateFromTarget();
     }
  
@@ -4136,7 +4068,7 @@ document.addEventListener('DOMContentLoaded', () => {
  
      function getChallengeDays(habit) {
          const days = [];
-         const todayStr = formatDateToString(new Date());
+         const todayStr = window.formatDateToString(new Date());
          const todayDate = new Date();
          todayDate.setHours(0,0,0,0);
          
@@ -4146,7 +4078,7 @@ document.addEventListener('DOMContentLoaded', () => {
          currentDate.setHours(0,0,0,0);
          
          for (let i = 0; i < habit.targetDays; i++) {
-             const dateStr = formatDateToString(currentDate);
+             const dateStr = window.formatDateToString(currentDate);
              const isCompleted = !!habit.history[dateStr];
              const isToday = dateStr === todayStr;
              const isFuture = currentDate > todayDate; 
@@ -4170,7 +4102,7 @@ document.addEventListener('DOMContentLoaded', () => {
  
      function renderHabits() {
          habitList.innerHTML = '';
-         const todayStr = formatDateToString(new Date());
+         const todayStr = window.formatDateToString(new Date());
 
          // "+ Yeni Alışkanlık" butonuna aktif/limit sayısını göster; limite ulaşınca soluklaştır
          if (btnOpenHabitModal) {
@@ -4349,7 +4281,7 @@ document.addEventListener('DOMContentLoaded', () => {
          const text = habitInput.value.trim();
          const targetDays = parseInt(habitTargetInput.value) || 21;
          const category = habitCategorySelect.value;
-         const startDate = habitStartDateInput.value ? fromInputDate(habitStartDateInput.value) : formatDateToString(new Date());
+         const startDate = habitStartDateInput.value ? window.fromInputDate(habitStartDateInput.value) : window.formatDateToString(new Date());
          const buddy = habitBuddySelect ? habitBuddySelect.value : 'none'; 
          const pillsContainer = document.getElementById('habit-goal-pills');
          const selectedGoals = pillsContainer ? Array.from(pillsContainer.querySelectorAll('.goal-pill.selected')).map(p => p.dataset.val) : [];
@@ -4811,7 +4743,7 @@ document.addEventListener('DOMContentLoaded', () => {
                          }
 
                          // Günlük odak ve kategori geçmişini hafızaya ekleyen akıllı motor
-                         const todayDateStr = formatDateToString(new Date());
+                         const todayDateStr = window.formatDateToString(new Date());
                          let focusHistory = FocusStorage.get('focus_history', {});
                          focusHistory[todayDateStr] = (focusHistory[todayDateStr] || 0) + modeMins;
                          FocusStorage.set('focus_history', focusHistory);
@@ -5007,7 +4939,7 @@ document.addEventListener('DOMContentLoaded', () => {
          _serverFocusSessionId = null;
          _stopFocusHeartbeat();
 
-         const todayDateStr = formatDateToString(new Date());
+         const todayDateStr = window.formatDateToString(new Date());
          let focusHistory = FocusStorage.get('focus_history', {});
          focusHistory[todayDateStr] = (focusHistory[todayDateStr] || 0) + minutesSpent;
          FocusStorage.set('focus_history', focusHistory);
@@ -5607,14 +5539,14 @@ document.addEventListener('DOMContentLoaded', () => {
              d.className = 'cal-day'; 
              d.textContent = i;
              
-             const check = formatDateToString(new Date(year, month, i));
+             const check = window.formatDateToString(new Date(year, month, i));
              d.setAttribute('data-date', check); // YENİ EKLENEN SATIR: Sürükle-bırak için tarihi hücreye işliyoruz
-             if (check === formatDateToString(new Date())) d.classList.add('today');
-             if (check === formatDateToString(selectedDate)) d.classList.add('selected');
+             if (check === window.formatDateToString(new Date())) d.classList.add('today');
+             if (check === window.formatDateToString(selectedDate)) d.classList.add('selected');
              
              // Dünden sarkan (gece kuşu) görev var mı kontrolü
              let prevD = new Date(year, month, i - 1);
-             const prevCheck = formatDateToString(prevD);
+             const prevCheck = window.formatDateToString(prevD);
              const overnightEvents = (calendarEvents[prevCheck] || []).filter(e => e.isOvernight && !e.isLessonPlanDraft);
 
              // Bugünün tüm etkinlikleri (isLessonPlanDraft: öğretmenin başka bir öğrenci için
@@ -5628,7 +5560,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
              // Sınıf ödevleri (window.FocusAssignments, social.js) — o gün teslim tarihi olan,
              // henüz teslim edilmemiş ödevler. Normal görevlerden ayrı bir nokta rengiyle işaretlenir.
-             const dayAssignments = (window.FocusAssignments?.items || []).filter(a => !a.done && a.due_date && formatDateToString(new Date(a.due_date)) === check);
+             const dayAssignments = (window.FocusAssignments?.items || []).filter(a => !a.done && a.due_date && window.formatDateToString(new Date(a.due_date)) === check);
 
              // Heat overlay: toplam yük hesabı → data-heat attribute
              const heatCount = allDayItems.length + todaysHabits.length + (hasHighlight ? 1 : 0) + dayAssignments.length;
@@ -5743,7 +5675,7 @@ document.addEventListener('DOMContentLoaded', () => {
      }
  
      function renderEvents() {
-         const check = formatDateToString(selectedDate);
+         const check = window.formatDateToString(selectedDate);
          
          // Arama ve Filtreleme Değerlerini Al
          const searchQuery = document.getElementById('calendar-search-input') ? document.getElementById('calendar-search-input').value.toLowerCase().trim() : '';
@@ -5795,7 +5727,7 @@ document.addEventListener('DOMContentLoaded', () => {
              // Dünden sarkan (gece kuşu) görevler
              let prevDate = new Date(selectedDate);
              prevDate.setDate(prevDate.getDate() - 1);
-             const prevCheck = formatDateToString(prevDate);
+             const prevCheck = window.formatDateToString(prevDate);
              if (calendarEvents[prevCheck]) {
                  const overnightEvents = calendarEvents[prevCheck].filter(e => e.isOvernight && !e.isLessonPlanDraft);
                  dayEvents.push(...overnightEvents);
@@ -5922,7 +5854,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (dayHabits.length > 0 && searchQuery === '') {
                 calHabitsBand.style.display = 'block';
                 let habitsHTML = '';
-                const todayStrForHabit = formatDateToString(new Date());
+                const todayStrForHabit = window.formatDateToString(new Date());
                 
                 dayHabits.forEach(habit => {
                     const isCompleted = !!habit.history[check]; 
@@ -6178,13 +6110,13 @@ document.addEventListener('DOMContentLoaded', () => {
  
          // Eğer NLP saat bulduysa onu kullan, bulamadıysa arayüzdeki mevcut saati kullan
          const timeStart = smartData.parsedTime ? smartData.parsedTime : eventTimeStart.value;
-         const timeEnd = smartData.parsedTime ? addOneHour(timeStart) : eventTimeEnd.value;
+         const timeEnd = smartData.parsedTime ? window.addOneHour(timeStart) : eventTimeEnd.value;
  
          // NLP tarih bulduysa onu kullan, bulamadıysa takvimde KULLANICININ SEÇTİĞİ tarihi kullan
-         const d = smartData.parsedDate ? smartData.parsedDate : formatDateToString(selectedDate); 
+         const d = smartData.parsedDate ? smartData.parsedDate : window.formatDateToString(selectedDate); 
  
-         const startMins = timeToMins(timeStart);
-         const endMins = timeToMins(timeEnd);
+         const startMins = window.timeToMins(timeStart);
+         const endMins = window.timeToMins(timeEnd);
 
          // --- YENİ: Ana Hedef Tarih Sınırı Kontrolü ---
             if (!checkGoalDateBoundaries(parentGoal, d)) {
@@ -6208,7 +6140,7 @@ document.addEventListener('DOMContentLoaded', () => {
          if(eventParentGoalSelect) eventParentGoalSelect.value = '';
          
          // Bir sonraki görev ekleme pratikliği için zaman seçicilerini bir sonraki boş dilime ilerlet
-         const nextSlot = getNextAvailableTimeSlot(d, timeToMins(timeEnd) - timeToMins(timeStart) || 60);
+         const nextSlot = getNextAvailableTimeSlot(d, window.timeToMins(timeEnd) - window.timeToMins(timeStart) || 60);
          updateEndPicker('event-time-start', nextSlot.start);
          updateEndPicker('event-time-end', nextSlot.end);
          eventPriority.value = 'medium';
@@ -6230,7 +6162,7 @@ document.addEventListener('DOMContentLoaded', () => {
              eventModalDateLabel.textContent = selectedDate.toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long' });
          }
          if (selectedDate) {
-             const nextSlot = getNextAvailableTimeSlot(formatDateToString(selectedDate));
+             const nextSlot = getNextAvailableTimeSlot(window.formatDateToString(selectedDate));
              updateEndPicker('event-time-start', nextSlot.start);
              updateEndPicker('event-time-end', nextSlot.end);
          }
@@ -6406,10 +6338,10 @@ document.addEventListener('DOMContentLoaded', () => {
  
          // --- Temel veriler ---
          const highlightHistory = FocusStorage.get('highlight_history', {});
-         const filteredTasks = tasks.filter(t => t.completed && inRange(t.date || formatDateToString(now)));
+         const filteredTasks = tasks.filter(t => t.completed && inRange(t.date || window.formatDateToString(now)));
          const filteredHighlights = Object.entries(highlightHistory).filter(([ds, h]) => h.completed && inRange(ds));
          const completedTaskCount = filteredTasks.length + filteredHighlights.length;
-         const totalTasksCount = tasks.filter(t => inRange(t.date || formatDateToString(now))).length + Object.keys(highlightHistory).filter(ds => inRange(ds)).length;
+         const totalTasksCount = tasks.filter(t => inRange(t.date || window.formatDateToString(now))).length + Object.keys(highlightHistory).filter(ds => inRange(ds)).length;
          const completionRate = totalTasksCount === 0 ? 0 : Math.round((completedTaskCount / totalTasksCount) * 100);
  
          // --- Odaklanma ---
@@ -6423,7 +6355,7 @@ document.addEventListener('DOMContentLoaded', () => {
              for (let i = 0; i < filterDays; i++) {
                  const dCheck = new Date();
                  dCheck.setDate(dCheck.getDate() - i);
-                 const dsCheck = formatDateToString(dCheck);
+                 const dsCheck = window.formatDateToString(dCheck);
                  if (focusHistory[dsCheck]) focusMinutes += focusHistory[dsCheck];
              }
          }
@@ -6494,7 +6426,7 @@ document.addEventListener('DOMContentLoaded', () => {
          // EKLEME: 1. Ana Hedef Serisi Hesaplama Algoritması
          let highlightStreak = 0;
          let streakCheckDate = new Date();
-         let todayStr = formatDateToString(streakCheckDate);
+         let todayStr = window.formatDateToString(streakCheckDate);
          
          // Eğer bugün henüz ana hedef tamamlanmadıysa ama dün tamamlandıysa seriyi dünden itibaren geriye doğru saymaya başla
          if (!(highlightHistory[todayStr] && highlightHistory[todayStr].completed)) {
@@ -6502,7 +6434,7 @@ document.addEventListener('DOMContentLoaded', () => {
          }
          
          while (true) {
-             let dStr = formatDateToString(streakCheckDate);
+             let dStr = window.formatDateToString(streakCheckDate);
              if (highlightHistory[dStr] && highlightHistory[dStr].completed) {
                  highlightStreak++;
                  streakCheckDate.setDate(streakCheckDate.getDate() - 1); // Bir gün geriye git
@@ -6520,7 +6452,7 @@ document.addEventListener('DOMContentLoaded', () => {
          // Geçmiş verileri kaybetmemek için eski sayacı yeni sisteme göçür (Migration)
          if (legacyCount > 0 && conversionLog.length === 0) {
              for (let i = 0; i < legacyCount; i++) {
-                 conversionLog.push({ id: 'legacy_' + i, date: formatDateToString(now) });
+                 conversionLog.push({ id: 'legacy_' + i, date: window.formatDateToString(now) });
              }
              FocusStorage.set('mind_dump_conversions', conversionLog);
          }
@@ -6552,10 +6484,10 @@ document.addEventListener('DOMContentLoaded', () => {
                  const dt = new Date(y, m - 1, d);
                  return dt >= startDate && dt < endDate;
              }
-             const tasksInRange = tasks.filter(t => t.completed && within(t.date || formatDateToString(now)));
+             const tasksInRange = tasks.filter(t => t.completed && within(t.date || window.formatDateToString(now)));
              const highlightsInRange = Object.entries(highlightHistory).filter(([ds, h]) => h.completed && within(ds));
              const completed = tasksInRange.length + highlightsInRange.length;
-             const totalInRange = tasks.filter(t => within(t.date || formatDateToString(now))).length
+             const totalInRange = tasks.filter(t => within(t.date || window.formatDateToString(now))).length
                  + Object.keys(highlightHistory).filter(ds => within(ds)).length;
              const rate = totalInRange === 0 ? 0 : Math.round((completed / totalInRange) * 100);
              let focus = 0;
@@ -6706,7 +6638,7 @@ document.addEventListener('DOMContentLoaded', () => {
              // 2. ADIM: Isı haritası kutucuklarını (hücreleri) oluşturma
              for (let i = totalDays - 1; i >= 0; i--) {
                  const d = new Date(); d.setDate(d.getDate() - i); d.setHours(0,0,0,0);
-                 const ds = formatDateToString(d);
+                 const ds = window.formatDateToString(d);
                  const count = tasksByDay[ds] || 0;
                  
                  // Sıfır görev varsa seviye 0, diğer durumlarda yoğunluğa göre seviye ataması
@@ -6794,7 +6726,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (trendTitleEl) trendTitleEl.textContent = `Son ${filterDays} Günlük İlerleme`;
                 for (let i = filterDays - 1; i >= 0; i--) {
                     const d = new Date(); d.setDate(d.getDate() - i);
-                    const ds = formatDateToString(d);
+                    const ds = window.formatDateToString(d);
                     const dayNamesShortTr = ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'];
                     const label = filterDays === 7
                         ? `${d.getDate()} ${monthNamesShort ? monthNamesShort[d.getMonth()] : ''}`
@@ -7040,21 +6972,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // --- Streak ---
-        todayStr = formatDateToString(now);
+        todayStr = window.formatDateToString(now);
         const taskDaySet = new Set();
          tasks.filter(t=>t.completed).forEach(t => { if(t.date) taskDaySet.add(t.date); });
          Object.entries(highlightHistory).filter(([,h])=>h.completed).forEach(([ds])=>taskDaySet.add(ds));
          let streak = 0, streakBest = 0, tempStreak = 0;
          const msDay = 86400000;
          for (let i=0; i<365; i++) {
-             const d=new Date(now.getTime()-i*msDay); const ds=formatDateToString(d);
+             const d=new Date(now.getTime()-i*msDay); const ds=window.formatDateToString(d);
              if (taskDaySet.has(ds)) { if(i===streak) streak++; tempStreak++; streakBest=Math.max(streakBest,tempStreak); } else { tempStreak=0; }
          }
          const dotsEl = document.getElementById('streak-dots');
          if (dotsEl) {
              let dotsHTML = '';
              for (let i=6; i>=0; i--) {
-                 const d=new Date(now.getTime()-i*msDay); const ds=formatDateToString(d);
+                 const d=new Date(now.getTime()-i*msDay); const ds=window.formatDateToString(d);
                  dotsHTML += `<div class="streak-dot${taskDaySet.has(ds)?' active':''}" title="${ds}"></div>`;
              }
              dotsEl.innerHTML = dotsHTML;
@@ -7099,7 +7031,7 @@ document.addEventListener('DOMContentLoaded', () => {
          }
  
          let html = '';
-         const todayStr = formatDateToString(new Date());
+         const todayStr = window.formatDateToString(new Date());
  
          buddyHabits.forEach(habit => {
              const completedDays = Object.keys(habit.history).length;
@@ -7240,7 +7172,7 @@ document.addEventListener('DOMContentLoaded', () => {
          for(let i=0; i<7; i++) {
              let currDate = new Date(d);
              currDate.setDate(d.getDate() + i);
-             let dateStr = formatDateToString(currDate);
+             let dateStr = window.formatDateToString(currDate);
              wizardDates.push(dateStr);
  
              let dayName = dayNames[currDate.getDay() === 0 ? 0 : currDate.getDay() ];
@@ -7354,8 +7286,8 @@ document.addEventListener('DOMContentLoaded', () => {
  
          if(!name || !date || !start || !end) return;
  
-         const startMins = timeToMins(start);
-         const endMins = timeToMins(end);
+         const startMins = window.timeToMins(start);
+         const endMins = window.timeToMins(end);
  
          if(startMins >= endMins) {
              showPremiumModal({ title: 'Hatalı Zaman', message: 'Bitiş saati başlangıçtan önce olamaz.', type: 'warning' });
@@ -7373,11 +7305,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
          let totalMins = 0;
-         stagedTasks.forEach(t => { if(t.date === date) totalMins += (timeToMins(t.end) - timeToMins(t.start)); });
+         stagedTasks.forEach(t => { if(t.date === date) totalMins += (window.timeToMins(t.end) - window.timeToMins(t.start)); });
          if(calendarEvents[date]) {
              calendarEvents[date].forEach(ev => { 
                  if (ev.weekStr !== currentWeekStr) {
-                     totalMins += (timeToMins(ev.timeEnd) - timeToMins(ev.timeStart)); 
+                     totalMins += (window.timeToMins(ev.timeEnd) - window.timeToMins(ev.timeStart)); 
                  }
              });
          }
@@ -7393,7 +7325,7 @@ document.addEventListener('DOMContentLoaded', () => {
          document.getElementById('wiz-parent-goal').value = '';
          
          const nextStart = end;
-         const nextEnd = addOneHour(end);
+         const nextEnd = window.addOneHour(end);
          
          const displayStart = document.getElementById('wiz-time-start-display');
          const inputStart = document.getElementById('wiz-new-task-start');
@@ -7409,8 +7341,8 @@ document.addEventListener('DOMContentLoaded', () => {
      function hasStagedConflict(date, startMins, endMins) {
          for(let st of stagedTasks) {
              if(st.date === date) {
-                 let stStart = timeToMins(st.start);
-                 let stEnd = timeToMins(st.end);
+                 let stStart = window.timeToMins(st.start);
+                 let stEnd = window.timeToMins(st.end);
                  if(startMins < stEnd && endMins > stStart) return true;
              }
          }
@@ -7422,13 +7354,13 @@ document.addEventListener('DOMContentLoaded', () => {
          let totalMins = 0;
  
          stagedTasks.forEach(t => {
-             if(t.date === currentDate) totalMins += (timeToMins(t.end) - timeToMins(t.start));
+             if(t.date === currentDate) totalMins += (window.timeToMins(t.end) - window.timeToMins(t.start));
          });
  
          if(calendarEvents[currentDate]) {
              calendarEvents[currentDate].forEach(ev => {
                  if (ev.weekStr !== currentWeekStr) { 
-                     totalMins += (timeToMins(ev.timeEnd) - timeToMins(ev.timeStart));
+                     totalMins += (window.timeToMins(ev.timeEnd) - window.timeToMins(ev.timeStart));
                  }
              });
          }
@@ -7572,7 +7504,7 @@ document.addEventListener('DOMContentLoaded', () => {
          if (d.getHours() < 3) {
              d.setDate(d.getDate() - 1);
          }
-         return formatDateToString(d);
+         return window.formatDateToString(d);
      }
  
      function isReflectionTime() {
@@ -7585,14 +7517,14 @@ document.addEventListener('DOMContentLoaded', () => {
      // saatinde o günün kaydı hiç yoksa modalı bir kez otomatik açar.
      function checkEveningReflection() {
          if (!isReflectionTime()) return;
-         const logDate = toInputDate(getLogicalReflectionDate());
+         const logDate = window.toInputDate(getLogicalReflectionDate());
          const journalEntries = FocusStorage.get('focusai_journal_entries', []);
          const todayEntry = journalEntries.find(e => e.date === logDate);
          if (!todayEntry) openReflectionModal();
      }
  
      function openReflectionModal() {
-         const logDate = toInputDate(getLogicalReflectionDate());
+         const logDate = window.toInputDate(getLogicalReflectionDate());
          const journalEntries = FocusStorage.get('focusai_journal_entries', []);
          const todayRef = journalEntries.find(e => e.date === logDate);
 
@@ -7661,7 +7593,7 @@ document.addEventListener('DOMContentLoaded', () => {
      const skipReflectionBtn = document.getElementById('skip-reflection-btn');
      if (skipReflectionBtn) {
          skipReflectionBtn.addEventListener('click', () => {
-             const logDate = toInputDate(getLogicalReflectionDate());
+             const logDate = window.toInputDate(getLogicalReflectionDate());
              let journalEntries = FocusStorage.get('focusai_journal_entries', []);
 
              if (!journalEntries.find(e => e.date === logDate)) {
@@ -7686,7 +7618,7 @@ document.addEventListener('DOMContentLoaded', () => {
      if (saveReflectionBtn) {
          saveReflectionBtn._mainListenerAdded = true;
          saveReflectionBtn.addEventListener('click', () => {
-             const logDate = toInputDate(getLogicalReflectionDate()); // yyyy-mm-dd — kütüphane renderer ile eşleşir
+             const logDate = window.toInputDate(getLogicalReflectionDate()); // yyyy-mm-dd — kütüphane renderer ile eşleşir
              const achieve = document.getElementById('reflection-achieve').value.trim();
              const improve = document.getElementById('reflection-improve').value.trim();
 
@@ -8161,7 +8093,7 @@ document.addEventListener('DOMContentLoaded', () => {
          const drawer = document.getElementById('cal-day-drawer');
          if (!drawer) return;
 
-         const todayStr = formatDateToString(new Date());
+         const todayStr = window.formatDateToString(new Date());
          const isPast   = dateStr < todayStr;
 
          // Görev ekleme formu: geçmiş günlerde gizle
@@ -8209,7 +8141,7 @@ document.addEventListener('DOMContentLoaded', () => {
      window.renderDayDrawer = function(dateStr) {
          const [dd, mm, yyyy] = dateStr.split('-');
          const date = new Date(parseInt(yyyy), parseInt(mm) - 1, parseInt(dd));
-         const todayStr = formatDateToString(new Date());
+         const todayStr = window.formatDateToString(new Date());
          const isFuture = dateStr > todayStr;
          const isPast   = dateStr < todayStr;
 
@@ -8284,7 +8216,7 @@ document.addEventListener('DOMContentLoaded', () => {
              const evDone  = dayEvents.filter(ev => { const t = tasks.find(t => String(t.id) === String(ev.id)); return t && t.completed; }).length;
              const evTotal = dayEvents.length;
              const evPct   = Math.round((evDone / evTotal) * 100);
-             const usedMin = dayEvents.reduce((s, ev) => s + Math.max(0, timeToMins(ev.timeEnd || '10:00') - timeToMins(ev.timeStart || '09:00')), 0);
+             const usedMin = dayEvents.reduce((s, ev) => s + Math.max(0, window.timeToMins(ev.timeEnd || '10:00') - window.timeToMins(ev.timeStart || '09:00')), 0);
              const usedH   = Math.floor(usedMin / 60);
              const usedM   = usedMin % 60;
              const usedStr = usedH > 0 ? `${usedH}s ${usedM > 0 ? usedM + 'dk' : ''}`.trim() : `${usedM}dk`;
@@ -8367,7 +8299,7 @@ document.addEventListener('DOMContentLoaded', () => {
                  let sd = new Date(hyyyy, hmm - 1, hdd);
                  sd.setHours(0, 0, 0, 0);
                  while (true) {
-                     const sds = formatDateToString(sd);
+                     const sds = window.formatDateToString(sd);
                      if (h.history[sds]) { streak++; sd.setDate(sd.getDate() - 1); }
                      else break;
                  }
@@ -8386,7 +8318,7 @@ document.addEventListener('DOMContentLoaded', () => {
                  let dotsHtml = '';
                  for (let i = 6; i >= 0; i--) {
                      const pd = new Date(hyyyy, hmm - 1, hdd - i);
-                     const pds = formatDateToString(pd);
+                     const pds = window.formatDateToString(pd);
                      const filled = !!h.history[pds];
                      const isToday = i === 0;
                      dotsHtml += `<span class="cdd-hdot ${filled ? 'filled' : ''} ${isToday ? 'today' : ''}"
@@ -8509,7 +8441,7 @@ document.addEventListener('DOMContentLoaded', () => {
      const _cddTEnd   = document.getElementById('cdd-time-end');
      if (_cddTStart && _cddTEnd) {
          _cddTStart.addEventListener('change', () => {
-             _cddTEnd.value = addOneHour(_cddTStart.value);
+             _cddTEnd.value = window.addOneHour(_cddTStart.value);
          });
      }
 
@@ -8575,11 +8507,11 @@ document.addEventListener('DOMContentLoaded', () => {
          const text     = smart.cleanText || inp.value.trim();
          const priority = pri    ? pri.value    : 'medium';
          const tStart   = (smart.parsedTime) || (tSEl ? tSEl.value : '09:00');
-         const tEnd     = tEEl  ? tEEl.value   : addOneHour(tStart);
+         const tEnd     = tEEl  ? tEEl.value   : window.addOneHour(tStart);
          const goalId   = goalEl ? goalEl.value : '';
-         const ds       = formatDateToString(selectedDate);
-         const sMins    = timeToMins(tStart);
-         const eMins    = timeToMins(tEnd);
+         const ds       = window.formatDateToString(selectedDate);
+         const sMins    = window.timeToMins(tStart);
+         const eMins    = window.timeToMins(tEnd);
 
          // Bitiş saati başlangıçtan önce olamaz
          if (eMins <= sMins) {
@@ -8595,7 +8527,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
          // 2. Burnout (480 dk = 8 saat)
          const usedMin = (calendarEvents[ds] || []).reduce((s, ev) =>
-             s + Math.max(0, timeToMins(ev.timeEnd || '10:00') - timeToMins(ev.timeStart || '09:00')), 0);
+             s + Math.max(0, window.timeToMins(ev.timeEnd || '10:00') - window.timeToMins(ev.timeStart || '09:00')), 0);
          if (usedMin + Math.max(0, eMins - sMins) > 480) {
              showPremiumModal({ title: 'Kapasite Uyarısı! 🔥', message: 'Bu güne 8 saatten fazla görev yığdın. Hedeflerini diğer günlere dağıt.', type: 'warning' });
              return;
@@ -8832,8 +8764,8 @@ document.addEventListener('DOMContentLoaded', () => {
          function computeChipColumns(evs) {
              const items = evs.map(ev => ({
                  ev,
-                 start: timeToMins(ev.timeStart || '0:00'),
-                 end:   timeToMins(ev.timeEnd   || '1:00'),
+                 start: window.timeToMins(ev.timeStart || '0:00'),
+                 end:   window.timeToMins(ev.timeEnd   || '1:00'),
                  col: 0
              })).sort((a, b) => a.start - b.start);
              const colEnds = [];
@@ -8850,13 +8782,13 @@ document.addEventListener('DOMContentLoaded', () => {
          if (!grid) return;
          const weekStart = getWeekStart(selectedDate);
          const days = Array.from({ length: 7 }, (_, i) => { const d = new Date(weekStart); d.setDate(weekStart.getDate() + i); return d; });
-         const todayStr = formatDateToString(new Date());
+         const todayStr = window.formatDateToString(new Date());
          let html = '';
  
          // Köşe + Gün başlıkları
          html += `<div class="weekly-corner"></div>`;
          days.forEach((d, i) => {
-             const ds = formatDateToString(d);
+             const ds = window.formatDateToString(d);
              const isToday = ds === todayStr;
             html += `<div class="weekly-day-header${isToday ? ' today-col' : ''}" data-action="weekly-day-header-click" data-date="${ds}" style="cursor:pointer;">
                  <div class="wdh-name">${DAY_NAMES_LOCAL[i]}</div>
@@ -8868,7 +8800,7 @@ document.addEventListener('DOMContentLoaded', () => {
          for (let h = CAL_HOUR_START; h <= CAL_HOUR_END; h++) {
              html += `<div class="weekly-hour-label">${String(h).padStart(2,'0')}:00</div>`;
              days.forEach(d => {
-                 const ds = formatDateToString(d);
+                 const ds = window.formatDateToString(d);
                  
                  // ── GERÇEK TEK PARÇA TAŞMA MOTORU (HAFTALIK) ──
                  let cellEvs = [];
@@ -8877,8 +8809,8 @@ document.addEventListener('DOMContentLoaded', () => {
                  (calendarEvents[ds] || []).filter(ev => !ev.isLessonPlanDraft).forEach(ev => {
                      const startH = parseInt((ev.timeStart || '0:00').split(':')[0]);
                      if (startH === h) {
-                         let startMins = timeToMins(ev.timeStart || '0:00');
-                         let endMins = ev.isOvernight ? 1440 : timeToMins(ev.timeEnd || '0:00');
+                         let startMins = window.timeToMins(ev.timeStart || '0:00');
+                         let endMins = ev.isOvernight ? 1440 : window.timeToMins(ev.timeEnd || '0:00');
                          let duration = endMins - startMins;
                          cellEvs.push({
                              ...ev,
@@ -8892,10 +8824,10 @@ document.addEventListener('DOMContentLoaded', () => {
                  if (h === 0) {
                      let prevD = new Date(d);
                      prevD.setDate(prevD.getDate() - 1);
-                     let prevDs = formatDateToString(prevD);
+                     let prevDs = window.formatDateToString(prevD);
                      (calendarEvents[prevDs] || []).filter(ev => !ev.isLessonPlanDraft).forEach(ev => {
                          if (ev.isOvernight) {
-                             let endMins = timeToMins(ev.timeEnd || '0:00');
+                             let endMins = window.timeToMins(ev.timeEnd || '0:00');
                              cellEvs.push({
                                  ...ev,
                                  _cTopPx: 0,
@@ -8957,7 +8889,7 @@ document.addEventListener('DOMContentLoaded', () => {
  
          // Şimdiki zaman çizgisi — sadece bugünün kolonunda
          const now = new Date();
-         const nowDateStr = formatDateToString(now);
+         const nowDateStr = window.formatDateToString(now);
          const nowH = now.getHours();
          if (nowH >= CAL_HOUR_START && nowH <= CAL_HOUR_END) {
              const nowMinPx = Math.round((now.getMinutes() / 60) * 60);
@@ -9089,7 +9021,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
          // Bitiş saati otomatik +1h, zaman rozetini güncelle
          document.getElementById('iqa-start').addEventListener('change', function() {
-             document.getElementById('iqa-end').value = addOneHour(this.value);
+             document.getElementById('iqa-end').value = window.addOneHour(this.value);
              document.getElementById('iqa-time-badge').textContent = `${this.value} – ${document.getElementById('iqa-end').value}`;
          });
          document.getElementById('iqa-end').addEventListener('change', function() {
@@ -9101,7 +9033,7 @@ document.addEventListener('DOMContentLoaded', () => {
              const text = document.getElementById('iqa-input').value.trim();
              if (!text) { document.getElementById('iqa-input').focus(); return; }
              const start = document.getElementById('iqa-start').value || `${String(_iqaH).padStart(2,'0')}:00`;
-             const end   = document.getElementById('iqa-end').value   || addOneHour(start);
+             const end   = document.getElementById('iqa-end').value   || window.addOneHour(start);
              const prio  = document.getElementById('iqa-priority').value;
              const cat   = document.getElementById('iqa-category').value;
              addGlobalTask(text, prio, cat, _iqaDs, start, end, '', '');
@@ -9143,7 +9075,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
          const hStr = String(h).padStart(2, '0');
          const startVal = `${hStr}:00`;
-         const endVal   = addOneHour(startVal);
+         const endVal   = window.addOneHour(startVal);
          document.getElementById('iqa-time-badge').textContent = `${hStr}:00 – ${endVal}`;
          document.getElementById('iqa-start').value = startVal;
          document.getElementById('iqa-end').value   = endVal;
@@ -9235,7 +9167,7 @@ document.addEventListener('DOMContentLoaded', () => {
          const task = tasks.find(t => String(t.id) === String(_calDragId));
          if (!task) return;
 
-         const durMins = Math.max(30, timeToMins(task.timeEnd || '13:00') - timeToMins(task.timeStart || '12:00'));
+         const durMins = Math.max(30, window.timeToMins(task.timeEnd || '13:00') - window.timeToMins(task.timeStart || '12:00'));
          const startTotal = h * 60 + snapMins;
          const endTotal   = Math.min(24 * 60, startTotal + durMins);
          const endH = Math.floor(endTotal / 60), endM = endTotal % 60;
@@ -9310,8 +9242,8 @@ document.addEventListener('DOMContentLoaded', () => {
          const countEl = document.getElementById('daily-event-count');
          if (!grid) return;
  
-         const dateStr = formatDateToString(selectedDate);
-         const todayStr = formatDateToString(new Date());
+         const dateStr = window.formatDateToString(selectedDate);
+         const todayStr = window.formatDateToString(new Date());
          const now = new Date();
          const dayEvs = (calendarEvents[dateStr] || []).filter(e => !e.isLessonPlanDraft);
  
@@ -9345,8 +9277,8 @@ document.addEventListener('DOMContentLoaded', () => {
              dayEvs.forEach(ev => {
                  const startH = parseInt((ev.timeStart || '0:00').split(':')[0]);
                  if (startH === h) {
-                     let startMins = timeToMins(ev.timeStart || '0:00');
-                     let endMins = ev.isOvernight ? 1440 : timeToMins(ev.timeEnd || '0:00');
+                     let startMins = window.timeToMins(ev.timeStart || '0:00');
+                     let endMins = ev.isOvernight ? 1440 : window.timeToMins(ev.timeEnd || '0:00');
                      let duration = endMins - startMins;
                      cellEvs.push({
                          ...ev,
@@ -9360,10 +9292,10 @@ document.addEventListener('DOMContentLoaded', () => {
              if (h === 0) {
                  let prevDate = new Date(selectedDate);
                  prevDate.setDate(prevDate.getDate() - 1);
-                 const prevCheck = formatDateToString(prevDate);
+                 const prevCheck = window.formatDateToString(prevDate);
                  (calendarEvents[prevCheck] || []).filter(ev => !ev.isLessonPlanDraft).forEach(ev => {
                      if (ev.isOvernight) {
-                         let endMins = timeToMins(ev.timeEnd || '0:00');
+                         let endMins = window.timeToMins(ev.timeEnd || '0:00');
                          cellEvs.push({
                              ...ev,
                              _cTopPx: 0,
@@ -9437,7 +9369,7 @@ document.addEventListener('DOMContentLoaded', () => {
  
      window.dailyHourCellClick = function(h, event) {
          if (event) event.stopPropagation();
-         const ds = formatDateToString(selectedDate);
+         const ds = window.formatDateToString(selectedDate);
          const cell = (event && (event.currentTarget || event.target)) || null;
          openCalInlineAdd(ds, h, cell, event);
      };
@@ -9472,12 +9404,12 @@ document.addEventListener('DOMContentLoaded', () => {
          snapMins = snapMins || 0;
 
          // Aynı konuma bırakıldıysa işlem yapma
-         const oldStartM = timeToMins(task.timeStart || '12:00');
+         const oldStartM = window.timeToMins(task.timeStart || '12:00');
          if (oldDateStr === newDate && Math.floor(oldStartM / 60) === newHour && (oldStartM % 60) === snapMins) return;
 
          const newStartTotal = newHour * 60 + snapMins;
          const newStart = `${String(newHour).padStart(2,'0')}:${String(snapMins).padStart(2,'0')}`;
-         const oldEndM = timeToMins(task.timeEnd || '13:00');
+         const oldEndM = window.timeToMins(task.timeEnd || '13:00');
          const durMins = Math.max(30, oldEndM - oldStartM);
          const newEndTotal = Math.min(23 * 60 + 59, newStartTotal + durMins);
          const newEnd = `${String(Math.floor(newEndTotal / 60)).padStart(2,'0')}:${String(newEndTotal % 60).padStart(2,'0')}`;
@@ -9525,7 +9457,7 @@ document.addEventListener('DOMContentLoaded', () => {
          renderEvents();
          const drawer = document.getElementById('cal-day-drawer');
          if (drawer && drawer.classList.contains('open')) {
-             const ds = formatDateToString(selectedDate);
+             const ds = window.formatDateToString(selectedDate);
              window.renderDayDrawer(ds);
              window.renderDaySummary(ds);
          }
@@ -9698,7 +9630,7 @@ document.addEventListener('DOMContentLoaded', () => {
  
      // 3. Bulamadıysak Günün Ana Hedefi mi diye bak
      if (!t && id === 'highlight-task') {
-         const todayStr = formatDateToString(new Date());
+         const todayStr = window.formatDateToString(new Date());
          let highlightHistory = FocusStorage.get('highlight_history', {});
          if (highlightHistory[todayStr]) taskName = highlightHistory[todayStr].text;
      }
@@ -9738,10 +9670,10 @@ document.addEventListener('DOMContentLoaded', () => {
      }
      // --------------------------------------------
  
-     const todayStr = formatDateToString(new Date());
+     const todayStr = window.formatDateToString(new Date());
      let yest = new Date();
      yest.setDate(yest.getDate() - 1);
-     const yesterdayStr = formatDateToString(yest);
+     const yesterdayStr = window.formatDateToString(yest);
  
      // 1. Bugünün Görevleri (Takvim dahil) + Dünden sarkanlar
      // isLessonPlanDraft: öğretmenin başka bir öğrenci için henüz atamadığı ders planı taslağı — gizli.
@@ -9880,7 +9812,7 @@ document.addEventListener('DOMContentLoaded', () => {
      document.getElementById('goal-desc-input').value = '';
      const _deadlineEl = document.getElementById('goal-deadline-input');
     if (_deadlineEl._flatpickr) { _deadlineEl._flatpickr.setDate(new Date()); }
-    else { _deadlineEl.value = toInputDate(formatDateToString(new Date())); }
+    else { _deadlineEl.value = window.toInputDate(window.formatDateToString(new Date())); }
  }
  function closeGoalModal() {
      goalModal.classList.add('hidden');
@@ -10018,7 +9950,7 @@ document.addEventListener('DOMContentLoaded', () => {
          if (document.getElementById('goal-deadline-input')._flatpickr) {
              document.getElementById('goal-deadline-input')._flatpickr.setDate(new Date());
          } else {
-             document.getElementById('goal-deadline-input').value = toInputDate(formatDateToString(new Date()));
+             document.getElementById('goal-deadline-input').value = window.toInputDate(window.formatDateToString(new Date()));
          }
 
          closeGoalModal();
@@ -10052,7 +9984,7 @@ document.addEventListener('DOMContentLoaded', () => {
             habits.forEach(h => { 
                 if(h.parentGoals) h.parentGoals = h.parentGoals.filter(gid => gid !== id);
                 //  edef silindiğinde bugünkü sahte kilit geçmişini temizler
-                const todayStr = formatDateToString(new Date());
+                const todayStr = window.formatDateToString(new Date());
                 if (h.history && h.history[todayStr]) {
                     delete h.history[todayStr];
                 }
@@ -10685,7 +10617,7 @@ document.addEventListener('DOMContentLoaded', () => {
              const action = el.dataset.action;
              if (action === 'daily-hour-cell-click') {
                  const h = parseInt(el.dataset.hour, 10);
-                 const ds = formatDateToString(selectedDate);
+                 const ds = window.formatDateToString(selectedDate);
                  openCalInlineAdd(ds, h, el, e);
              } else if (action === 'daily-toggle-task') {
                  window.toggleTask(el.dataset.id);
@@ -10876,7 +10808,7 @@ document.addEventListener('DOMContentLoaded', () => {
  
         // Tarih ve saat alanlarını bugüne/varsayılana sıfırla
         const detailDateInput = document.getElementById('detail-task-date');
-        if(detailDateInput) detailDateInput.value = toInputDate(formatDateToString(new Date()));
+        if(detailDateInput) detailDateInput.value = window.toInputDate(window.formatDateToString(new Date()));
         const detailTimeStart = document.getElementById('detail-task-time-start');
         const detailTimeEnd = document.getElementById('detail-task-time-end');
         if(detailTimeStart) detailTimeStart.value = '09:00';
@@ -11004,7 +10936,7 @@ document.addEventListener('DOMContentLoaded', () => {
          const linkedTasks = tasks.filter(t => String(t.parentGoal) === String(goalId));
 
          // Günün hedefini de dahil et (highlight_history, tarih=bugün, parentGoal=bu hedef)
-         const _todayStrAP = formatDateToString(new Date());
+         const _todayStrAP = window.formatDateToString(new Date());
          const _hlHistory = FocusStorage.get('highlight_history', {});
          const _todayHL = _hlHistory[_todayStrAP];
          if (_todayHL && _todayHL.parentGoal && String(_todayHL.parentGoal) === String(goalId)) {
@@ -11196,7 +11128,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if(linkedHabits.length === 0) {
             detailHabitList.innerHTML = '<li class="empty-list-note">Bu hedefe bağlı destekleyici alışkanlık bulunmuyor. "Alışkanlıklar" sekmesinden ekleyebilirsiniz.</li>';
         } else {
-            const todayStr = formatDateToString(new Date());
+            const todayStr = window.formatDateToString(new Date());
  
             linkedHabits.forEach(h => {
                 const hCompleted = Object.keys(h.history).length;
@@ -11412,7 +11344,7 @@ document.addEventListener('DOMContentLoaded', () => {
          todayDateOnly.setHours(0, 0, 0, 0);
          quickDateInput._flatpickr.setDate(todayDateOnly, true);
      } else {
-         quickDateInput.value = formatDateToString(new Date());
+         quickDateInput.value = window.formatDateToString(new Date());
      }
      quickStartInput.value = '09:00'; 
      quickEndInput.value = '10:00';
@@ -11485,7 +11417,7 @@ document.addEventListener('DOMContentLoaded', () => {
  window._focusOpenQuickAdd = openQuickAdd; // Global köprü
  if (quickStartInput && quickEndInput) {
      quickStartInput.addEventListener('change', () => {
-         quickEndInput.value = addOneHour(quickStartInput.value);
+         quickEndInput.value = window.addOneHour(quickStartInput.value);
      });
  }
  if (closeQuickAddBtn) closeQuickAddBtn.addEventListener('click', closeQuickAdd);
@@ -11516,7 +11448,7 @@ document.addEventListener('DOMContentLoaded', () => {
          if(smartData.parsedDate) quickDateInput.value = smartData.parsedDate;
          if(smartData.parsedTime) {
              quickStartInput.value = smartData.parsedTime;
-             quickEndInput.value = addOneHour(smartData.parsedTime);
+             quickEndInput.value = window.addOneHour(smartData.parsedTime);
          }
      });
      
@@ -11535,7 +11467,7 @@ document.addEventListener('DOMContentLoaded', () => {
          const smartData = parseSmartText(rawText);
          const text = smartData.cleanText || "İsimsiz Görev";
          
-         const date = quickDateInput.value || formatDateToString(new Date());
+         const date = quickDateInput.value || window.formatDateToString(new Date());
          const start = quickStartInput.value;
          const end = quickEndInput.value;
          const priority = quickPriority.value;
@@ -11547,8 +11479,8 @@ document.addEventListener('DOMContentLoaded', () => {
              return;
          }
  
-         const startMins = timeToMins(start);
-         const endMins = timeToMins(end);
+         const startMins = window.timeToMins(start);
+         const endMins = window.timeToMins(end);
  
          if(startMins >= endMins) {
              showPremiumModal({ title: 'Hatalı Zaman', message: 'Bitiş saati başlangıçtan önce olamaz.', type: 'warning' });
@@ -11637,13 +11569,13 @@ document.addEventListener('DOMContentLoaded', () => {
              // NLP saat bulduysa onu kullan, bulamadıysa arayüzdeki zorunlu saati kullan
              const manualTime = document.getElementById('quick-add-time').value;
              const timeStart = smartData.parsedTime ? smartData.parsedTime : (manualTime || "09:00");
-             const timeEnd = addOneHour(timeStart); // Bitiş otomatik 1 saat sonrası
+             const timeEnd = window.addOneHour(timeStart); // Bitiş otomatik 1 saat sonrası
  
              // NLP tarih bulduysa onu kullan, yoksa bugün
-             const taskDateStr = smartData.parsedDate ? smartData.parsedDate : formatDateToString(new Date());
+             const taskDateStr = smartData.parsedDate ? smartData.parsedDate : window.formatDateToString(new Date());
  
-             const startMins = timeToMins(timeStart);
-             const endMins = timeToMins(timeEnd);
+             const startMins = window.timeToMins(timeStart);
+             const endMins = window.timeToMins(timeEnd);
  
              // Çakışma kontrolü
              if (hasTimeConflict(taskDateStr, startMins, endMins)) {
@@ -11977,8 +11909,8 @@ document.addEventListener('DOMContentLoaded', () => {
          let start = `${String(hour).padStart(2, '0')}:00`;
          let end = `${String(hour + 1).padStart(2, '0')}:00`;
          
-         let startMins = timeToMins(start);
-         let endMins = timeToMins(end);
+         let startMins = window.timeToMins(start);
+         let endMins = window.timeToMins(end);
          
          // hasTimeConflict zaten çakışma olup olmadığını kontrol ediyor
          if (!hasTimeConflict(dateStr, startMins, endMins)) {

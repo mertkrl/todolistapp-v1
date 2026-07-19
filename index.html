@@ -5001,6 +5001,10 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.5/dist/umd/supabase.js" integrity="sha384-fTq5g8tD1IgcQKSKKNu5HdZncuhKN6e5MmGdzPNCK4jk3lh0tfnPZAtrUvyvgt4i" crossorigin="anonymous"></script>
     <script type="module" src="supabase-client.js"></script>
     <script type="module" src="auth-ui.js"></script>
+    <!-- script.js yüklenir yüklenmez (üst düzeyde, senkron) getWeekNumber()
+         çağırıyor (currentWeekStr hesaplaması) — bu yüzden script.js'ten
+         ÖNCE gelmeli. -->
+    <script type="module" src="script-date-time-utils.js"></script>
     <script type="module" src="script.js"></script>
     <script type="module" src="script-ambient-sounds.js"></script>
     <script type="module" src="script-undo-toast.js"></script>
