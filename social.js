@@ -5507,56 +5507,9 @@ function _pickNewOwner(members, groupName) {
     let _gfLeaveChoiceAC = null;
     let _gfLeaveBtnAC = null;
 
-    // ── Alıntı rotasyonu — bireysel sistemdeki 5 alıntı + grup motivasyon sözleri birleştirildi ──
-    const GF_QUOTES = [
-        "Başlamak için mükemmel olmak zorunda değilsin, ama mükemmel olmak için başlamak zorundasın.",
-        "Zorluklar, başarının süsüdür. Odaklan ve aş.",
-        "Odağını nereye verirsen, enerjin oraya akar.",
-        "Küçük ve istikrarlı adımlar, en büyük dağları aşırır.",
-        "Başarı, her gün tekrarlanan küçük çabaların toplamıdır.",
-        "🚀 Küçük adımlar, büyük başarılara götürür.",
-        "🔥 Şu an harcadığın her dakika, geleceğine yapılan bir yatırım.",
-        "🌱 Disiplin, hedeflerinle hayalin arasındaki köprüdür.",
-        "💪 Zorlandığın an, aslında geliştiğin andır.",
-        "🎯 Odaklan: yapman gereken tek şey bu an.",
-        "⏳ Zaman geçiyor — onu değerli kılan, şu an verdiğin emek.",
-        "🌟 Bugün attığın adım, yarının sonucunu belirler.",
-        "🤝 Birlikte ilerlemek, motivasyonu ikiye katlar.",
-        "✨ Mükemmel olmak zorunda değilsin, sadece devam et.",
-        "🧠 Derin odak, en güçlü süper gücündür.",
-        "🌤️ Her seans, daha iyi bir versiyonuna bir adım daha.",
-        "🏆 Tutarlılık, yetenekten daha güçlüdür."
-    ];
-    let gfQuoteInterval = null;
-    let gfQuoteIndex = -1;
-
-    function gfShowNextQuote() {
-        const el = document.getElementById('gf-focus-quote');
-        if (!el) return;
-        let nextIndex;
-        do {
-            nextIndex = Math.floor(Math.random() * GF_QUOTES.length);
-        } while (GF_QUOTES.length > 1 && nextIndex === gfQuoteIndex);
-        gfQuoteIndex = nextIndex;
-        el.style.opacity = 0;
-        setTimeout(() => {
-            el.textContent = `"${GF_QUOTES[gfQuoteIndex]}"`;
-            el.style.opacity = 1;
-        }, 1400);
-    }
-
-    function gfStartQuoteRotation() {
-        gfShowNextQuote();
-        if (gfQuoteInterval) clearInterval(gfQuoteInterval);
-        gfQuoteInterval = setInterval(gfShowNextQuote, 15000);
-    }
-
-    function gfStopQuoteRotation() {
-        if (gfQuoteInterval) { clearInterval(gfQuoteInterval); gfQuoteInterval = null; }
-        // Fade animasyonu ortasında durmuş olabilir — opacity'yi geri getir
-        const el = document.getElementById('gf-focus-quote');
-        if (el) el.style.opacity = 1;
-    }
+    // ── Alıntı rotasyonu — social-focus-quote-rotation.js dosyasına taşındı
+    // (Faz 2, 2026-07-19). GF_QUOTES/gfShowNextQuote/gfStartQuoteRotation/
+    // gfStopQuoteRotation artık window.* üzerinden erişiliyor.
 
     // ── "Odak Modu" / Ghost Mode — bireysel sistemdeki resetIdleTimer deseninin birebir aynısı ──
     let gfIdleTimeout = null;
@@ -6201,7 +6154,7 @@ function _pickNewOwner(members, groupName) {
             overlay.classList.remove('visible', 'group-focus-mode-active', 'group-ghost-mode-active');
             overlay.style.display = 'none';
         }
-        gfStopQuoteRotation();
+        window.gfStopQuoteRotation();
         gfHidePhaseTransition();
         gfToggleBreakChat(false);
         gfExitFocusMode();
@@ -6290,7 +6243,7 @@ function _pickNewOwner(members, groupName) {
         const overlay = document.getElementById('group-focus-overlay');
         if (overlay) { overlay.classList.remove('visible'); overlay.style.display = 'none'; }
         if (sharedFocusDisplaySyncInterval) { clearInterval(sharedFocusDisplaySyncInterval); sharedFocusDisplaySyncInterval = null; }
-        gfStopQuoteRotation();
+        window.gfStopQuoteRotation();
         gfExitFocusMode();
         sharedFocusInFocusMode = false;
 
@@ -6454,8 +6407,8 @@ function _pickNewOwner(members, groupName) {
         gfIsRunning = shouldFocus;
         if (shouldFocus !== sharedFocusInFocusMode) {
             sharedFocusInFocusMode = shouldFocus;
-            if (shouldFocus) gfStartQuoteRotation();
-            else gfStopQuoteRotation();
+            if (shouldFocus) window.gfStartQuoteRotation();
+            else window.gfStopQuoteRotation();
             // Yalnızca durum GERÇEKTEN değiştiğinde yeniden tetikle — her tick'te
             // çağrılırsa zamanlayıcı sürekli sıfırlanır ve ghost-mode hiç tetiklenmez
             gfResetIdleTimer();
