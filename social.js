@@ -5635,41 +5635,9 @@ function _pickNewOwner(members, groupName) {
 
     // ── Metro Timeline Render ──
     // stations = [{type:'focus'|'break', label:'...'}], activeIndex = 0-based
-    function gfRenderMetroTimeline(rounds, activeIndex, focusMin, breakMin) {
-        const track = document.getElementById('gf-metro-track');
-        if (!track) return;
-        // Tur sayısına göre boyut sınıfı uygula
-        track.classList.remove('gf-metro-md', 'gf-metro-sm');
-        if (rounds >= 8) track.classList.add('gf-metro-sm');
-        else if (rounds >= 5) track.classList.add('gf-metro-md');
-        // Durak listesi oluştur: F1,B1,F2,B2,...,FN
-        const stations = [];
-        for (let i = 1; i <= rounds; i++) {
-            stations.push({ type: 'focus', label: `Odak ${i}`, sub: `${focusMin}dk` });
-            if (i < rounds) stations.push({ type: 'brk', label: `Mola ${i}`, sub: `${breakMin}dk` });
-        }
-        let html = '';
-        stations.forEach((st, idx) => {
-            const isDone   = idx < activeIndex;
-            const isActive = idx === activeIndex;
-            const stateClass = isDone ? 'done' : (isActive ? 'active' : '');
-            const icon = st.type === 'focus'
-                ? '<i class="fa-solid fa-brain"></i>'
-                : '<i class="fa-solid fa-mug-hot"></i>';
-            html += `<div class="gf-metro-station ${st.type} ${stateClass}" data-idx="${idx}">
-                <div class="gf-metro-dot">${icon}</div>
-                <div class="gf-metro-label">${st.label}<br><span style="font-weight:400;opacity:.7">${st.sub}</span></div>
-            </div>`;
-            if (idx < stations.length - 1) {
-                const railClass = isDone ? 'done' : 'ahead';
-                html += `<div class="gf-metro-rail ${railClass}"></div>`;
-            }
-        });
-        track.innerHTML = html;
-        // Aktif durağı görünür yap (scroll)
-        const activeEl = track.querySelector('.gf-metro-station.active');
-        if (activeEl) activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-    }
+    // gfRenderMetroTimeline → social-group-focus-render.js dosyasına taşındı
+    // (Faz 2, 2026-07-19) — sadece parametre + DOM kullanıyor, window.* ile
+    // erişiliyor.
 
     // ── Aşama göstergesi (Metro timeline + Tur sayacı + halka rengi) ──
     function gfApplyPhaseIndicator(phaseType, round, totalRounds) {
@@ -5703,7 +5671,7 @@ function _pickNewOwner(members, groupName) {
 
         const focusMin = parseInt(document.getElementById('gf-duration-input')?.value) || 25;
         const breakMin = parseInt(document.getElementById('gf-break-input')?.value) || 10;
-        gfRenderMetroTimeline(rounds, activeIdx, focusMin, breakMin);
+        window.gfRenderMetroTimeline(rounds, activeIdx, focusMin, breakMin);
 
         // Halka rengi
         const overlay = document.getElementById('group-focus-overlay');
@@ -5751,18 +5719,8 @@ function _pickNewOwner(members, groupName) {
         if (el) { el.classList.remove('visible'); el.classList.add('hidden'); }
     }
 
-    // ── Katılımcı grid — "Birlikte Çalışalım" odasındaki kartlarla birebir aynı ──
-    function gfRenderParticipants(people) {
-        const pcountEl = document.getElementById('gf-pcount');
-        const listEl = document.getElementById('gf-participants');
-        if (!pcountEl || !listEl) return;
-        pcountEl.textContent = (people.length <= 1) ? 'Tek başına' : `${people.length} katılımcı`;
-        listEl.innerHTML = people.map(name => `
-            <div class="cws-participant-chip">
-                <div class="cws-participant-avatar">${_escapeHtml((name || '?')[0].toUpperCase())}</div>
-                <span>${_escapeHtml(name)}</span>
-            </div>`).join('');
-    }
+    // gfRenderParticipants → social-group-focus-render.js dosyasına taşındı
+    // (Faz 2, 2026-07-19) — window.* ile erişiliyor.
 
     // ── Mola sohbeti — hem "oda" (cw_rooms/.../chat) hem "meydan okuma" (challenges/.../break_chat)
     // kaynaklarını aynı gf-break-chat arayüzüne bağlar; mesaj biçimleri normalize edilir ──
@@ -6218,7 +6176,7 @@ function _pickNewOwner(members, groupName) {
         const _initIdx = sharedFocusSession
             ? (_initIsBreak ? (_initRound - 1) * 2 + 1 : (_initRound - 1) * 2)
             : 0;
-        gfRenderMetroTimeline(sessionRounds, _initIdx, sessionFocus, sessionBreak);
+        window.gfRenderMetroTimeline(sessionRounds, _initIdx, sessionFocus, sessionBreak);
 
         const leaveBtn = document.getElementById('gf-leave-btn');
         if (leaveBtn) {
@@ -6394,7 +6352,7 @@ function _pickNewOwner(members, groupName) {
         } else {
             (room.members || []).forEach(m => { if (m.displayName) people.push(m.displayName); });
         }
-        gfRenderParticipants(people);
+        window.gfRenderParticipants(people);
     }
 
     // Bireysel arayüzdeki .timer-modes (Odaklanma/Mola sekmeleri) ile birebir aynı
@@ -7154,7 +7112,7 @@ function _pickNewOwner(members, groupName) {
             const activeIdx = sharedFocusSession
                 ? (isBreak ? (currentRound - 1) * 2 + 1 : (currentRound - 1) * 2)
                 : 0;
-            gfRenderMetroTimeline(val, activeIdx, focusMin, breakMin);
+            window.gfRenderMetroTimeline(val, activeIdx, focusMin, breakMin);
         };
         document.getElementById('gf-rounds-step-dec')?.addEventListener('click', () => {
             const inp = document.getElementById('gf-rounds-stepper');
