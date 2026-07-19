@@ -5502,7 +5502,6 @@ function _pickNewOwner(members, groupName) {
     // yıldırım butonuyla başlatılan meydan okuma tabanlı) akışı bu TEK ortak
     // bileşeni besler ve aşağıdaki ortak gf* yardımcılarını paylaşır.
     // ══════════════════════════════════════════════════════
-    const GF_RING_CIRCUMFERENCE = 816.8;
     let gfMode = null; // 'room' (Birlikte Odaklanma Odası) | 'challenge' (⚡ Birlikte Çalışalım)
     let _gfLeaveChoiceAC = null;
     let _gfLeaveBtnAC = null;
@@ -5571,20 +5570,8 @@ function _pickNewOwner(members, groupName) {
     }
 
     // ── Halka animasyonu — bireysel updateTimerDisplay() ile birebir aynı formül ──
-    function gfUpdateRing(remainingMs, totalMs) {
-        const ring = document.getElementById('gf-progress-ring');
-        const minEl = document.getElementById('gf-minutes');
-        const secEl = document.getElementById('gf-seconds');
-        const remainSec = Math.max(0, Math.ceil(remainingMs / 1000));
-        const m = Math.floor(remainSec / 60);
-        const s = remainSec % 60;
-        if (minEl) minEl.textContent = String(m).padStart(2, '0');
-        if (secEl) secEl.textContent = String(s).padStart(2, '0');
-        if (ring) {
-            const percent = totalMs > 0 ? Math.max(0, Math.min(1, remainingMs / totalMs)) : 0;
-            ring.style.strokeDashoffset = GF_RING_CIRCUMFERENCE - (percent * GF_RING_CIRCUMFERENCE);
-        }
-    }
+    // gfUpdateRing → social-group-focus-render.js dosyasına taşındı (Faz 2,
+    // 2026-07-19) — sadece parametre + DOM kullanıyor, window.* ile erişiliyor.
 
     // ── Metro Timeline Render ──
     // stations = [{type:'focus'|'break', label:'...'}], activeIndex = 0-based
@@ -6502,7 +6489,7 @@ function _pickNewOwner(members, groupName) {
         if (sharedFocusSession) {
             const ph = deriveSharedFocusPhase(sharedFocusSession, Date.now());
             if (ph) {
-                gfUpdateRing(ph.remainingMs, ph.durMs);
+                window.gfUpdateRing(ph.remainingMs, ph.durMs);
                 const currentRound = gfComputeCurrentRound(sharedFocusSession, sharedFocusTotalRounds);
                 gfApplyPhaseIndicator(ph.type === 'break' ? 'break' : 'focus', currentRound, sharedFocusTotalRounds);
             }
@@ -6511,7 +6498,7 @@ function _pickNewOwner(members, groupName) {
             if (pauseIcon) pauseIcon.className = sharedFocusSession.paused ? 'fa-solid fa-play' : 'fa-solid fa-pause';
         } else {
             const totalMs = Math.max(0, (scwTimeLeft || 0)) * 1000;
-            gfUpdateRing(totalMs, totalMs || 1);
+            window.gfUpdateRing(totalMs, totalMs || 1);
             gfApplyPhaseIndicator('focus', 1, sharedFocusTotalRounds);
             if (startBtn) startBtn.classList.remove('hidden');
             if (pauseBtn) pauseBtn.classList.add('hidden');

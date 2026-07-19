@@ -51,3 +51,21 @@ function gfRenderParticipants(people) {
         </div>`).join('');
 }
 window.gfRenderParticipants = gfRenderParticipants;
+
+// ── İlerleme halkası + geri sayım metni ──
+const GF_RING_CIRCUMFERENCE = 816.8;
+function gfUpdateRing(remainingMs, totalMs) {
+    const ring = document.getElementById('gf-progress-ring');
+    const minEl = document.getElementById('gf-minutes');
+    const secEl = document.getElementById('gf-seconds');
+    const remainSec = Math.max(0, Math.ceil(remainingMs / 1000));
+    const m = Math.floor(remainSec / 60);
+    const s = remainSec % 60;
+    if (minEl) minEl.textContent = String(m).padStart(2, '0');
+    if (secEl) secEl.textContent = String(s).padStart(2, '0');
+    if (ring) {
+        const percent = totalMs > 0 ? Math.max(0, Math.min(1, remainingMs / totalMs)) : 0;
+        ring.style.strokeDashoffset = GF_RING_CIRCUMFERENCE - (percent * GF_RING_CIRCUMFERENCE);
+    }
+}
+window.gfUpdateRing = gfUpdateRing;
