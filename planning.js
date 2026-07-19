@@ -176,7 +176,7 @@
     function _lpaInviteCardHTML(inv) {
         const groupName = esc(inv.groups?.name || 'sınıfın');
         const metaParts = [groupName];
-        if (inv.deadline) metaParts.push(`Son tarih: ${fmtDate(inv.deadline)}`);
+        if (inv.deadline) metaParts.push(`Son tarih: ${window.fmtDate(inv.deadline)}`);
         return `
             <div class="pg-lpa-invite-card" data-lpa-id="${inv.id}" data-goal-id="${inv.goal_id}" data-group-code="${esc(inv.groups?.code || '')}">
                 <div class="pg-lpa-invite-top">
@@ -596,7 +596,7 @@
                 if (error || !preview) throw new Error('Plan bulunamadı');
                 tGoal = preview;
                 clonedMs = (preview.milestones || []).map(m => ({
-                    id: msUid(), title: m.title, due_date: m.due_date || '', start_date: m.start_date || '',
+                    id: window.msUid(), title: m.title, due_date: m.due_date || '', start_date: m.start_date || '',
                     start_time: m.start_time || '', end_time: m.end_time || '',
                     is_task_mirror: !!m.is_task_mirror,
                     done: false, order: m.order_index, description: m.description || '',
@@ -802,7 +802,7 @@
 
     // ── Helpers ───────────────────────────────
     function uid()   { return 'pg_' + Date.now() + '_' + Math.random().toString(36).slice(2,7); }
-    function msUid() { return 'ms_' + Date.now() + '_' + Math.random().toString(36).slice(2,7); }
+    // msUid → planning-utils.js dosyasına taşındı.
     // Tek kaynak: script.js'teki window.escapeHtml. planning.js önce bu dosya
     // yüklendikten sonra çalıştığı için normalde her zaman mevcuttur; olası bir
     // yükleme sırası değişikliğine karşı aynı mantığı yerel fallback olarak tutuyoruz.
@@ -813,36 +813,8 @@
     }
     function getCat(id) { return CATEGORIES.find(c => c.id === id) || CATEGORIES[5]; }
 
-    function deadlineLabel(dl) {
-        if (!dl) return '';
-        const diff = Math.ceil((new Date(dl) - new Date()) / 86400000);
-        if (diff < 0)   return `<span style="color:#f87171;">${Math.abs(diff)} gün geçti ⚠️</span>`;
-        if (diff === 0) return `<span style="color:#ffd166;">Bugün son gün!</span>`;
-        if (diff <= 7)  return `<span style="color:#ffd166;">${diff} gün kaldı</span>`;
-        if (diff <= 30) return `<span style="color:#a78bfa;">${diff} gün kaldı</span>`;
-        return `<span style="color:rgba(255,255,255,.35);">${diff} gün kaldı</span>`;
-    }
-    function fmtDate(d) {
-        if (!d) return '';
-        return new Date(d).toLocaleDateString('tr-TR', { day:'numeric', month:'short', year:'numeric' });
-    }
-    function fmtShort(d) {
-        if (!d) return '';
-        return new Date(d).toLocaleDateString('tr-TR', { day:'numeric', month:'short' });
-    }
-
-    function progressRing(pct, color) {
-        const r = 22, circ = 2 * Math.PI * r, dash = (pct/100)*circ;
-        return `<div class="pg-ring-wrap">
-            <svg width="56" height="56" viewBox="0 0 56 56" style="transform:rotate(-90deg);">
-                <circle cx="28" cy="28" r="${r}" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="4"/>
-                <circle cx="28" cy="28" r="${r}" fill="none" stroke="${color}" stroke-width="4"
-                    stroke-dasharray="${dash.toFixed(1)} ${(circ-dash).toFixed(1)}"
-                    stroke-linecap="round" style="transition:stroke-dasharray .6s ease;"/>
-            </svg>
-            <span class="pg-ring-pct" style="color:${color};">${pct}%</span>
-        </div>`;
-    }
+    // deadlineLabel/fmtDate/fmtShort/progressRing → planning-utils.js
+    // dosyasına taşındı (Faz 2, 2026-07-19).
 
     function _recalcProgress(g) {
         const ms = g.milestones || [];
@@ -967,7 +939,7 @@
         if (!g) return;
         if (!g.milestones) g.milestones = [];
         const ms = {
-            id: msUid(), title: data.title.trim(),
+            id: window.msUid(), title: data.title.trim(),
             description: (data.description||'').trim(),
             due_date: data.due_date||'', done: false,
             order: g.milestones.length, subtasks: [],
@@ -984,7 +956,7 @@
         const ms = (g?.milestones||[]).find(m=>m.id===msId);
         if (!g||!ms||!title.trim()) return;
         if (!ms.subtasks) ms.subtasks = [];
-        ms.subtasks.push({ id: msUid(), title: title.trim(), done: false });
+        ms.subtasks.push({ id: window.msUid(), title: title.trim(), done: false });
         g._dirty = true;
         persistGoals(); renderMilestoneList(goalId);
     }
@@ -1125,7 +1097,7 @@
         const cat=getCat(g.category), st=STATUS_META[g.status]||STATUS_META.active;
         const pct=g.progress_pct||0, ms=g.milestones||[];
         const msDone=ms.filter(m=>m.done).length, archived=g.status==='archived';
-        const dl=deadlineLabel(g.deadline);
+        const dl=window.deadlineLabel(g.deadline);
         const urgency  = archived ? '' : _deadlineUrgency(g.deadline);
         const blocked  = !archived && isBlocked(g.id);
         const priLabel=['','🔴 Yüksek','🟡 Orta','🟢 Düşük'][g.priority]||'';
@@ -1143,7 +1115,7 @@
                         ${g.pending_accept?'<span class="pg-teacher-plan-badge" title="Saatleri düzenliyorsun — henüz kabul etmedin, Ders Planları listesinden Kabul Et\'e basman gerekiyor" style="color:#FF9F1C;border-color:rgba(255,159,28,.35);background:rgba(255,159,28,.1);"><i class="ti ti-clock-pause"></i> Taslak — Kabul Bekliyor</span>':((g.lpa_id || (g.collab_room_id && g.my_role && g.my_role!=='owner'))?'<span class="pg-teacher-plan-badge" title="Bu plan sana atandı"><i class="ti ti-school"></i> Öğretmen Planı</span>':'')}
                         ${(()=>{ if (!g.collab_room_id) return ''; const online=window.PlanningCollab?.isActive()&&window.PlanningCollab.goalId===g.id ? Object.keys(window.PlanningCollab.onlineUsers||{}).length : 0; return `<span class="pg-collab-chip" title="Ortak Planlama Aktif">${online>0?`<span class="pg-collab-online-dot"></span> ${online} çevrimiçi`:'<i class="ti ti-users"></i> İşbirliği'}</span>`; })()}
                     </div>
-                    ${progressRing(pct, cat.color)}
+                    ${window.progressRing(pct, cat.color)}
                 </div>
                 <h3 class="pg-card-title pg-card-open" data-id="${g.id}" style="cursor:pointer;" title="Detayları aç">${esc(g.title)}</h3>
                 ${g.description?`<p class="pg-card-desc">${esc(g.description)}</p>`:''}
@@ -1363,12 +1335,12 @@
                 <span class="pg-cat-badge" style="background:${cat.color}22;color:${cat.color};border:1px solid ${cat.color}44;font-size:11px;padding:2px 8px;border-radius:5px;display:inline-flex;align-items:center;gap:4px;margin-bottom:6px;">${cat.icon} ${cat.label}</span>
                 <h2 class="pg-dp-goal-title">${esc(g.title)}</h2>
             </div>
-            ${progressRing(pct,cat.color)}
+            ${window.progressRing(pct,cat.color)}
         </div>
         ${g.description?`<p class="pg-dp-goal-desc">${esc(g.description)}</p>`:''}
         <div class="pg-dp-goal-meta">
             <span class="pg-dp-meta-item" style="color:${st.color};">● ${st.label}</span>
-            ${g.deadline?`<span class="pg-dp-meta-item"><i class="ti ti-calendar-due"></i> ${fmtDate(g.deadline)}</span>`:''}
+            ${g.deadline?`<span class="pg-dp-meta-item"><i class="ti ti-calendar-due"></i> ${window.fmtDate(g.deadline)}</span>`:''}
             ${ms.length>0?`<span class="pg-dp-meta-item"><i class="ti ti-flag-3"></i> ${ms.filter(m=>m.done).length}/${ms.length} milestone</span>`:''}
         </div>`;
     }
@@ -1405,7 +1377,7 @@
         }
         const isCollab = !!(g.collab_room_id && window.PlanningCollab?.isActive());
         el.innerHTML=ms.map(m=>{
-            const dlLabel=m.due_date?fmtDate(m.due_date):'';
+            const dlLabel=m.due_date?window.fmtDate(m.due_date):'';
             const extras = typeof window.PlanningCollabMsExtras === 'function'
                 ? window.PlanningCollabMsExtras(m.id, m.title)
                 : '';
@@ -2783,7 +2755,7 @@
     // tarih/durum bilgisi taşınmaz, çünkü şablon farklı dönemlerde yeniden tarihlenerek kullanılır.
     function _cloneMilestonesForTemplate(sourceMilestones) {
         return (sourceMilestones || []).map((m, i) => ({
-            id: msUid(), title: m.title, description: m.description || '',
+            id: window.msUid(), title: m.title, description: m.description || '',
             due_date: '', start_date: '', done: false, order: m.order ?? i,
             subtasks: (m.subtasks || []).map(s => ({ id: uid(), title: s.title, done: false, date: '' })),
         }));
@@ -3516,7 +3488,7 @@
         if (n > current) {
             for (let i = current; i < n; i++) {
                 wizardState.milestones.push({
-                    id: msUid(), title: '', icon: MS_ICONS[i % MS_ICONS.length],
+                    id: window.msUid(), title: '', icon: MS_ICONS[i % MS_ICONS.length],
                     _tpl: null, due_date: '', _weeks: 4,
                 });
             }
@@ -3904,8 +3876,8 @@
                 const { startStr, endStr } = getMsStartEnd(i);
 
                 // Aralık etiketi
-                const startLabel = startStr ? fmtShort(startStr) : '—';
-                const endLabel   = endStr   ? fmtShort(endStr)   : 'seçilmedi';
+                const startLabel = startStr ? window.fmtShort(startStr) : '—';
+                const endLabel   = endStr   ? window.fmtShort(endStr)   : 'seçilmedi';
                 const rangeLabel = `${startLabel} → ${endLabel}`;
                 const hasDate    = !!endStr;
 
@@ -4166,7 +4138,7 @@
             const cur = new Date(start); let n = 0;
             while (cur <= end && n < 30) {
                 const ds = cur.toISOString().split('T')[0];
-                det.subtasks.push({ id: msUid(), title: `Çalışma — ${fmtShort(ds)}`, done: false, date: ds });
+                det.subtasks.push({ id: window.msUid(), title: `Çalışma — ${window.fmtShort(ds)}`, done: false, date: ds });
                 cur.setDate(cur.getDate() + 1); n++;
             }
         } else if (mode === 'weekly') {
@@ -4176,14 +4148,14 @@
             while (cur <= end) {
                 const ws = new Date(cur); const we = new Date(cur); we.setDate(we.getDate() + 6);
                 const actualEnd = we > end ? end : we;
-                det.subtasks.push({ id: msUid(), title: `Hafta ${wn}: ${fmtShort(ws.toISOString().split('T')[0])} – ${fmtShort(actualEnd.toISOString().split('T')[0])}`, done: false, date: ws.toISOString().split('T')[0] });
+                det.subtasks.push({ id: window.msUid(), title: `Hafta ${wn}: ${window.fmtShort(ws.toISOString().split('T')[0])} – ${window.fmtShort(actualEnd.toISOString().split('T')[0])}`, done: false, date: ws.toISOString().split('T')[0] });
                 cur.setDate(cur.getDate() + 7); wn++;
             }
         } else if (mode === 'monthly') {
             let cur = new Date(start.getFullYear(), start.getMonth(), 1);
             let mn = 1;
             while (cur <= end) {
-                det.subtasks.push({ id: msUid(), title: `${mn}. Ay — ${cur.toLocaleDateString('tr-TR', {month:'long', year:'numeric'})}`, done: false, date: `${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,'0')}-01` });
+                det.subtasks.push({ id: window.msUid(), title: `${mn}. Ay — ${cur.toLocaleDateString('tr-TR', {month:'long', year:'numeric'})}`, done: false, date: `${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,'0')}-01` });
                 cur.setMonth(cur.getMonth() + 1); mn++;
             }
         }
@@ -4232,7 +4204,7 @@
                     <span class="pg-wz-acc-icon">${ms.icon}</span>
                     <div class="pg-wz-acc-info">
                         <span class="pg-wz-acc-name" style="color:${cat.color};">${esc(ms.title)}</span>
-                        <span class="pg-wz-acc-due">${ms.due_date ? fmtShort(ms.due_date) : '—'}</span>
+                        <span class="pg-wz-acc-due">${ms.due_date ? window.fmtShort(ms.due_date) : '—'}</span>
                     </div>
                     <div class="pg-wz-acc-badges">
                         ${subs.length > 0 ? `<span class="pg-wz-acc-count" style="background:${cat.color}22;color:${cat.color};">${subs.length} görev</span>` : ''}
@@ -4360,7 +4332,7 @@
                 </div>
                 ${st.timeStart ? `<span class="pg-wz-s4-task-time-badge">${st.timeStart}${st.timeEnd ? `–${st.timeEnd}` : ''}</span>` : ''}
                 <span class="pg-wz-s4-task-title">${esc(st.title)}</span>
-                ${st.date ? `<span class="pg-wz-s4-task-date-badge" style="color:${cat.color};background:${cat.color}18;">${fmtShort(st.date)}</span>` : ''}
+                ${st.date ? `<span class="pg-wz-s4-task-date-badge" style="color:${cat.color};background:${cat.color}18;">${window.fmtShort(st.date)}</span>` : ''}
                 <button class="pg-wz-s4-task-del" data-del="${i}" type="button"><i class="ti ti-x" aria-hidden="true"></i></button>
             </div>`
         ).join('');
@@ -4379,7 +4351,7 @@
                 const subs  = wizardState.msDet[ms.id].subtasks;
                 const i     = subs.findIndex(s => s.title === title);
                 if (i !== -1) subs.splice(i, 1);
-                else subs.push({ id: msUid(), title, done: false, date: '' });
+                else subs.push({ id: window.msUid(), title, done: false, date: '' });
                 _wzRenderAccContent(idx, cat);
             });
         });
@@ -4396,7 +4368,7 @@
             const date      = dateInp?.value || '';
             const timeStart = startInp?.value || '';
             const timeEnd   = endInp?.value || '';
-            wizardState.msDet[ms.id].subtasks.push({ id: msUid(), title: val, done: false, date, timeStart, timeEnd });
+            wizardState.msDet[ms.id].subtasks.push({ id: window.msUid(), title: val, done: false, date, timeStart, timeEnd });
             inp.value = ''; if (dateInp) dateInp.value = ''; if (startInp) startInp.value = ''; if (endInp) endInp.value = '';
             if (charCountEl) charCountEl.textContent = '0';
             _wzRefreshAccTaskList(el, ms, det, cat, idx);
@@ -4483,7 +4455,7 @@
                     <span class="pg-wz-s4-ms-icon">${ms.icon}</span>
                     <div class="pg-wz-s4-ms-title-wrap">
                         <span class="pg-wz-s4-ms-name" style="color:${cat.color};">${esc(ms.title)}</span>
-                        ${ms.due_date ? `<span class="pg-wz-s4-ms-due"><i class="ti ti-calendar"></i> ${fmtDate(ms.due_date)}</span>` : ''}
+                        ${ms.due_date ? `<span class="pg-wz-s4-ms-due"><i class="ti ti-calendar"></i> ${window.fmtDate(ms.due_date)}</span>` : ''}
                     </div>
                     <button class="pg-wz-s4-cal-toggle-btn" id="pg-wz-s4-cal-toggle" type="button">
                         <i class="ti ti-calendar-stats"></i> Takvimde Gör
@@ -4626,7 +4598,7 @@
                 if (i !== -1) {
                     subs.splice(i, 1);
                 } else {
-                    subs.push({ id: msUid(), title, done: false });
+                    subs.push({ id: window.msUid(), title, done: false });
                 }
                 _wzRenderMsPlanner(idx);
             });
@@ -4638,7 +4610,7 @@
         const addTask = () => {
             const val = inp?.value.trim();
             if (!val) return;
-            wizardState.msDet[ms.id].subtasks.push({ id: msUid(), title: val, done: false });
+            wizardState.msDet[ms.id].subtasks.push({ id: window.msUid(), title: val, done: false });
             inp.value = '';
             _wzRenderS4TaskList(idx, cat);
             inp.focus();
@@ -4851,7 +4823,7 @@
             return `<div class="pg-wz-plan-week${sel?' selected':''}${w.isCurrent?' current':''}" data-unit="${w.key}" role="button"
                 style="${sel ? `background:${cat.color}18;border-color:${cat.color};` : ''}">
                 <div class="pg-wz-week-main">
-                    <div class="pg-wz-week-dates" style="${sel ? `color:${cat.color};font-weight:700;` : ''}">${fmtShort(w.start)} — ${fmtShort(w.end)}</div>
+                    <div class="pg-wz-week-dates" style="${sel ? `color:${cat.color};font-weight:700;` : ''}">${window.fmtShort(w.start)} — ${window.fmtShort(w.end)}</div>
                     ${w.isCurrent ? `<span class="pg-wz-week-current-badge" style="color:${cat.color};border-color:${cat.color}44;background:${cat.color}15;">Bu Hafta</span>` : ''}
                 </div>
                 <div class="pg-wz-week-day-dots">${dayDots}</div>
@@ -5060,7 +5032,7 @@
         // Celebration sub text
         const subEl = document.getElementById('pg-wz-celebration-sub');
         if (subEl) {
-            subEl.textContent = `${cat.icon} ${goal.title} · ${milestones.length} aşama · ${goal.deadline ? fmtDate(goal.deadline) + ' hedef tarihi' : 'Esnek takvim'}`;
+            subEl.textContent = `${cat.icon} ${goal.title} · ${milestones.length} aşama · ${goal.deadline ? window.fmtDate(goal.deadline) + ' hedef tarihi' : 'Esnek takvim'}`;
         }
 
         // Summary
@@ -5079,7 +5051,7 @@
                 </div>
                 ${goal.deadline ? `<div class="pg-wz-summary-row">
                     <span class="pg-wz-summary-label">Son Tarih</span>
-                    <span class="pg-wz-summary-val">${fmtDate(goal.deadline)}</span>
+                    <span class="pg-wz-summary-val">${window.fmtDate(goal.deadline)}</span>
                 </div>` : ''}
                 <div class="pg-wz-summary-row">
                     <span class="pg-wz-summary-label">Dönüm Noktaları</span>
@@ -5088,7 +5060,7 @@
                 <div class="pg-wz-summary-ms-list">
                     ${milestones.map(m => `<div class="pg-wz-summary-ms-item">
                         ${m.icon} ${esc(m.title)}
-                        ${m.due_date ? `<span class="pg-wz-summary-ms-date">· ${fmtShort(m.due_date)}</span>` : ''}
+                        ${m.due_date ? `<span class="pg-wz-summary-ms-date">· ${window.fmtShort(m.due_date)}</span>` : ''}
                         ${msDet[m.id]?.criteria ? `<span class="pg-wz-summary-ms-date" style="color:#4ade80;"> ✓ ${esc(msDet[m.id].criteria)}</span>` : ''}
                     </div>`).join('')}
                 </div>
@@ -6571,7 +6543,7 @@
                 <div class="pg-pv-goal-title-text">${esc(g.title)}</div>
                 <div class="pg-pv-goal-meta">
                     <span>${cat.icon} ${cat.label}</span>
-                    ${g.deadline ? `<span>·</span><span><i class="ti ti-calendar-due"></i> ${fmtDate(g.deadline)}</span>` : ''}
+                    ${g.deadline ? `<span>·</span><span><i class="ti ti-calendar-due"></i> ${window.fmtDate(g.deadline)}</span>` : ''}
                 </div>
             </div>
             <div class="pg-pv-goal-progress-wrap">
@@ -6777,8 +6749,8 @@
             // Date range label
             const timeLabel = (m.start_time || m.end_time) ? ` · ${m.start_time || ''}${m.end_time ? '–'+m.end_time : ''}` : '';
             const dateRange = (m.start_date && m.due_date)
-                ? `${fmtShort(m.start_date)} → ${fmtShort(m.due_date)}${timeLabel}`
-                : m.due_date ? `Bitiş: ${fmtShort(m.due_date)}${timeLabel}` : '';
+                ? `${window.fmtShort(m.start_date)} → ${window.fmtShort(m.due_date)}${timeLabel}`
+                : m.due_date ? `Bitiş: ${window.fmtShort(m.due_date)}${timeLabel}` : '';
 
             return `
             ${i > 0 ? `<div class="pg-pv-step-connector${ms[i-1].done?' done':''}"></div>` : ''}
@@ -7000,7 +6972,7 @@
                 const val = stInp.value.trim();
                 if (!val) return;
                 if (!ms.subtasks) ms.subtasks = [];
-                ms.subtasks.push({ id: msUid(), title: val, done: false });
+                ms.subtasks.push({ id: window.msUid(), title: val, done: false });
                 stInp.value = '';
                 _recalcProgress(g); g._dirty = true;
                 persistGoals(); render();
@@ -7284,7 +7256,7 @@
                 _pvWizAddBubble(chat, '🤖', i === 0
                     ? `Süper! Şimdi her aşamanın bitiş tarihini takvimden seçin 👇\n"${esc(m.title)}" ne zaman bitmeli?`
                     : `"${esc(m.title)}" ne zaman bitmeli?`, i * 50, null, false);
-                _pvWizAddUserBubble(chat, `📅 ${fmtDate(m.due_date)}`, i * 50 + 25);
+                _pvWizAddUserBubble(chat, `📅 ${window.fmtDate(m.due_date)}`, i * 50 + 25);
             });
 
             if (idx >= askUpto) {
@@ -7307,7 +7279,7 @@
                     const hint = document.createElement('div');
                     hint.className = 'pvwiz-cal-hint';
                     hint.innerHTML = `<i class="ti ti-hand-click"></i> Takvimde bir güne tıklayın
-                        ${minDate ? `<span class="pvwiz-min-hint">(${fmtDate(minDate)} ve sonrası)</span>` : ''}`;
+                        ${minDate ? `<span class="pvwiz-min-hint">(${window.fmtDate(minDate)} ve sonrası)</span>` : ''}`;
                     chat.appendChild(hint);
                     setTimeout(() => hint.classList.add('visible'), 30);
                 });
@@ -7550,7 +7522,7 @@
         g.milestones = g.milestones || [];
         let ms = g.milestones.find(m => m.task_mirror_id === taskId);
         if (!ms) {
-            ms = { id: msUid(), task_mirror_id: taskId, is_task_mirror: true, done: false, order: g.milestones.length, description: '' };
+            ms = { id: window.msUid(), task_mirror_id: taskId, is_task_mirror: true, done: false, order: g.milestones.length, description: '' };
             g.milestones.push(ms);
         }
         ms.title = title;
@@ -8822,7 +8794,7 @@
         if (!title) { inp?.focus(); return; }
         if (_pvIsLessonPlan(g) && !dateInp?.value) { dateInp?.focus(); toast('Ders hangi güne planlanacak?'); return; }
         if (!g.milestones) g.milestones = [];
-        const newMs = { id: msUid(), title, description: '', due_date: dateInp?.value || '',
+        const newMs = { id: window.msUid(), title, description: '', due_date: dateInp?.value || '',
             done: false, order: g.milestones.length, subtasks: [], created_at: new Date().toISOString() };
         if (_pvIsLessonPlan(g)) {
             newMs.start_time = startTimeInp?.value || '';
@@ -8943,7 +8915,7 @@
                     <div class="tsw-ms-title${ms.done?' done':''}">${esc(ms.title)}</div>
                     <div class="tsw-goal-name" style="color:${color};">${esc(goal.title)}</div>
                 </div>
-                <span class="tsw-date">${fmtShort(ms.due_date)}</span>
+                <span class="tsw-date">${window.fmtShort(ms.due_date)}</span>
             </div>`;
         }).join('');
 
