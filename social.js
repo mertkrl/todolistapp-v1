@@ -1979,9 +1979,9 @@ function _pickNewOwner(members, groupName) {
             }
             if (localStorage.getItem('focusai_chat_notif_sound') === 'false') return;
             // Sessize alınmış DM'ler için bildirim/ses gösterme
-            if (ctx.type === 'dm' && typeof isChatMuted === 'function' && isChatMuted(ctx.username)) return;
+            if (ctx.type === 'dm' && typeof window.isChatMuted === 'function' && window.isChatMuted(ctx.username)) return;
             // Sessize alınmış grup kanalları için bildirim/ses gösterme
-            if (ctx.type === 'group' && ctx.chatPath && typeof isChatMuted === 'function' && isChatMuted(ctx.chatPath)) return;
+            if (ctx.type === 'group' && ctx.chatPath && typeof window.isChatMuted === 'function' && window.isChatMuted(ctx.chatPath)) return;
 
             // Bu sohbet zaten açıksa VE sekme/pencere görünürdeyse, kullanıcı mesajı
             // canlı görüyor — ses/bildirim/toast gösterme. Fakat sohbet açık olsa da
@@ -2038,6 +2038,7 @@ function _pickNewOwner(members, groupName) {
     // SON MESAJLAŞMALAR + OKUNMAMIŞ MESAJ ROZETLERİ
     // ──────────────────────────────────────────────────────
     let _recentConvos    = {}; // username -> { username, displayName, avatarColor, customAvatar, text, fromMe, lastTimestamp }
+    window._dcGetRecentConvo = (key) => _recentConvos[key];
     let _recentConvoRefs = [];
     // Çevrimiçi listesinde avatara art arda tıklanırsa (çift tık) sohbeti aç
     // (social-online-friends.js ile paylaşılıyor, bu yüzden window üzerinde)
@@ -2112,62 +2113,23 @@ function _pickNewOwner(members, groupName) {
     // Farklı (kardeş) IIFE kapsamındaki Supabase grup sohbeti kodu için global erişim
     window.markGroupRead = markGroupRead;
 
-    // ─── SABİTLE / SESSİZE AL ────────────────────────────────
+    // loadJsonList/saveJsonList burada kalıyor (Engelle özelliği gibi başka
+    // yerlerde de kullanılıyor) — social-chat-list-actions.js gibi ayrılan
+    // modüllerin erişebilmesi için köprülendi.
     function loadJsonList(key) {
         try { return JSON.parse(localStorage.getItem(key) || '[]'); }
         catch { return []; }
     }
+    window.loadJsonList = loadJsonList;
     function saveJsonList(key, list) {
         localStorage.setItem(key, JSON.stringify(list));
     }
+    window.saveJsonList = saveJsonList;
 
-    function isChatPinned(username) {
-        return loadJsonList('focusai_pinned_chats').includes(username);
-    }
-    window.isChatPinned = isChatPinned;
-
-    function toggleChatPinned(username) {
-        let list = loadJsonList('focusai_pinned_chats');
-        if (list.includes(username)) list = list.filter(u => u !== username);
-        else list.push(username);
-        saveJsonList('focusai_pinned_chats', list);
-        renderRecentConversations();
-    }
-    window.toggleChatPinned = toggleChatPinned;
-
-    function isChatMuted(username) {
-        return loadJsonList('focusai_muted_chats').includes(username);
-    }
-    window.isChatMuted = isChatMuted;
-
-    function toggleChatMuted(username) {
-        let list = loadJsonList('focusai_muted_chats');
-        if (list.includes(username)) list = list.filter(u => u !== username);
-        else list.push(username);
-        saveJsonList('focusai_muted_chats', list);
-        renderRecentConversations();
-    }
-    window.toggleChatMuted = toggleChatMuted;
-
-    // ─── SON MESAJLAŞMALARDAN KALDIR ─────────────────────────
-    // Mesajları silmez; sadece o anki son mesaja kadarını "görülmüş" sayıp
-    // listeden gizler. Karşı taraf yeni bir mesaj atarsa sohbet listeye geri döner.
-    function loadDismissedRecentConvos() {
-        try { return JSON.parse(localStorage.getItem('focusai_dismissed_recent_convos') || '{}'); }
-        catch { return {}; }
-    }
-    function saveDismissedRecentConvos(map) {
-        localStorage.setItem('focusai_dismissed_recent_convos', JSON.stringify(map));
-    }
-    function removeRecentConvo(key) {
-        const c = _recentConvos[key];
-        if (!c) return;
-        const map = loadDismissedRecentConvos();
-        map[key] = c.lastTimestamp || Date.now();
-        saveDismissedRecentConvos(map);
-        renderRecentConversations();
-    }
-    window.removeRecentConvo = removeRecentConvo;
+    // ─── SABİTLE / SESSİZE AL / SON MESAJLAŞMALARDAN KALDIR —
+    // social-chat-list-actions.js dosyasına taşındı (Faz 2, 2026-07-19).
+    // window.isChatPinned/toggleChatPinned/isChatMuted/toggleChatMuted/
+    // removeRecentConvo üzerinden erişiliyor.
 
     // ─── ENGELLE ─────────────────────────────────────────────
     function isUserBlocked(username) {
@@ -2999,14 +2961,14 @@ function _pickNewOwner(members, groupName) {
         const header    = document.getElementById('dc-recent-convos-header');
         if (!container) return;
 
-        const dismissedMap = loadDismissedRecentConvos();
+        const dismissedMap = window.loadDismissedRecentConvos();
         const entries = Object.values(_recentConvos)
             .filter(c => c.lastTimestamp)
             .filter(c => c.type === 'group' || c.type === 'workroom' || !(typeof isBlockedEitherWay === 'function' && isBlockedEitherWay(c.username)))
             .filter(c => !(dismissedMap[c.key] && c.lastTimestamp <= dismissedMap[c.key]))
             .sort((a, b) => {
-                const pinnedA = isChatPinned(a.key) ? 1 : 0;
-                const pinnedB = isChatPinned(b.key) ? 1 : 0;
+                const pinnedA = window.isChatPinned(a.key) ? 1 : 0;
+                const pinnedB = window.isChatPinned(b.key) ? 1 : 0;
                 if (pinnedA !== pinnedB) return pinnedB - pinnedA;
                 return b.lastTimestamp - a.lastTimestamp;
             })
@@ -3032,8 +2994,8 @@ function _pickNewOwner(members, groupName) {
                     ? `<span class="dc-unread-pill has-count">${unreadCount > 9 ? '9+' : unreadCount}</span>`
                     : '<span class="dc-unread-pill"></span>')
                 : '';
-            const pinned = isChatPinned(c.key);
-            const muted  = isChatMuted(c.key);
+            const pinned = window.isChatPinned(c.key);
+            const muted  = window.isChatMuted(c.key);
             const previewPrefix = c.fromMe ? 'Sen: ' : (isGroup ? `${esc(c.fromName || '')}: ` : '');
             const avatarHtml = isGroup
                 ? `<div class="dc-recent-convo-avatar dc-recent-convo-avatar--group"><i class="fa-solid ${c.type === 'workroom' ? 'fa-door-open' : 'fa-hashtag'}"></i></div>`
@@ -3077,8 +3039,8 @@ function _pickNewOwner(members, groupName) {
         document.querySelectorAll('.dc-convo-context-menu').forEach(el => el.remove());
 
         const isGroup = type === 'group';
-        const pinned = !isGroup && isChatPinned(username);
-        const muted  = !isGroup && isChatMuted(username);
+        const pinned = !isGroup && window.isChatPinned(username);
+        const muted  = !isGroup && window.isChatMuted(username);
 
         const menu = document.createElement('div');
         menu.className = 'dc-convo-context-menu';
@@ -3094,15 +3056,15 @@ function _pickNewOwner(members, groupName) {
         document.body.appendChild(menu);
 
         menu.querySelector('[data-action="pin"]')?.addEventListener('click', () => {
-            toggleChatPinned(username);
+            window.toggleChatPinned(username);
             menu.remove();
         });
         menu.querySelector('[data-action="mute"]')?.addEventListener('click', () => {
-            toggleChatMuted(username);
+            window.toggleChatMuted(username);
             menu.remove();
         });
         menu.querySelector('[data-action="remove"]')?.addEventListener('click', () => {
-            removeRecentConvo(key);
+            window.removeRecentConvo(key);
             menu.remove();
         });
 
@@ -17701,7 +17663,7 @@ function renderFlatChannelItem(container, groupCode, roomId, roomName) {
         ? `focusai_community/groups/${groupCode}/messages`
         : `focusai_community/groups/${groupCode}/rooms/${roomId}/messages`;
     const supabaseChatPath = `supabase_group_${roomId === 'general' ? (window.getMyGroupsDataCache?.()[groupCode]?._supaId || roomId) : roomId}`;
-    const muted = typeof isChatMuted === 'function' && isChatMuted(supabaseChatPath);
+    const muted = typeof window.isChatMuted === 'function' && window.isChatMuted(supabaseChatPath);
     const item = document.createElement('div');
     item.className = 'dc-channel-item' + (roomId === dcActiveRoomId ? ' active' : '') + (muted ? ' is-muted' : '');
     item.dataset.roomId = roomId;
@@ -17756,16 +17718,16 @@ function renderFlatChannelItem(container, groupCode, roomId, roomName) {
         const items = [];
         // Sessize Al — her kanal/odada göster
         if (opts.chatPath !== undefined) {
-            const muted = typeof isChatMuted === 'function' && isChatMuted(opts.chatPath);
+            const muted = typeof window.isChatMuted === 'function' && window.isChatMuted(opts.chatPath);
             items.push({
                 icon: muted ? 'fa-bell' : 'fa-bell-slash',
                 label: muted ? 'Bildirimleri Aç' : 'Sessize Al',
                 cls: 'item-mute',
                 action: () => {
-                    if (typeof toggleChatMuted === 'function') toggleChatMuted(opts.chatPath);
+                    if (typeof window.toggleChatMuted === 'function') window.toggleChatMuted(opts.chatPath);
                     // Kanal satırındaki ikonunu da güncelle
                     if (opts.muteIconEl) {
-                        const nowMuted = typeof isChatMuted === 'function' && isChatMuted(opts.chatPath);
+                        const nowMuted = typeof window.isChatMuted === 'function' && window.isChatMuted(opts.chatPath);
                         opts.muteIconEl.className = `fa-solid ${nowMuted ? 'fa-bell-slash' : 'fa-bell'}`;
                     }
                 }
