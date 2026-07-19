@@ -28,6 +28,7 @@
             () => import('./social-group-focus-task-selector.js'),
             () => import('./social-chat-list-actions.js'),
             () => import('./social-block-users.js'),
+            () => import('./social-chat-local-delete.js'),
             () => import('./social-online-people-popover.js'),
             () => import('./social-assignments-badge.js'),
             () => import('./social-focus-hush.js'),

@@ -16703,36 +16703,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // ─── ANİMASYON / İLK YÜKLEME TAKİBİ ─────────────────────
     let _dcRenderedKeys    = {};        // path -> Set(msgKey) — yeni mesaj animasyonu için
 
-    // ─── SADECE BENDEN SİL (yerel — sadece bu cihazda/kullanıcıda) ──────
-    // "Sohbeti temizle" ve "sadece benden sil" işlemleri Firebase'den silmez,
-    // sadece bu kullanıcının arayüzünde mesajları gizler.
-    function dcClearedAtKey(path) {
-        return `dc_cleared_at_${path}`;
-    }
-    function dcGetClearedAt(path) {
-        return parseInt(localStorage.getItem(dcClearedAtKey(path)) || '0', 10) || 0;
-    }
-    function dcSetClearedAt(path, ts) {
-        localStorage.setItem(dcClearedAtKey(path), String(ts));
-    }
-    // Farklı (kardeş) IIFE kapsamlarındaki "Sohbeti Temizle" butonu için global erişim
-    window.dcSetClearedAt = dcSetClearedAt;
-
-    function dcDeletedForMeKey(path) {
-        return `dc_deleted_for_me_${path}`;
-    }
-    function dcGetDeletedForMe(path) {
-        try {
-            return new Set(JSON.parse(localStorage.getItem(dcDeletedForMeKey(path)) || '[]'));
-        } catch {
-            return new Set();
-        }
-    }
-    function dcAddDeletedForMe(path, keys) {
-        const set = dcGetDeletedForMe(path);
-        keys.forEach(k => set.add(k));
-        localStorage.setItem(dcDeletedForMeKey(path), JSON.stringify(Array.from(set)));
-    }
+    // ─── SADECE BENDEN SİL — social-chat-local-delete.js dosyasına
+    // taşındı (Faz 2, 2026-07-19). window.dcGetClearedAt/dcSetClearedAt/
+    // window.dcGetDeletedForMe/window.dcAddDeletedForMe üzerinden erişiliyor.
 
     // ─── YAZIYOR... GÖSTERGESİ ───────────────────────────────
     let _dcTypingMyRef       = null;    // Kendi "yazıyor" durumumuzun ref'i
@@ -18570,8 +18543,8 @@ function renderFlatChannelItem(container, groupCode, roomId, roomName) {
                 _dcOldestCreatedAt = null;
                 return;
             }
-            const clearedAt = dcGetClearedAt(groupPath);
-            const deletedForMe = dcGetDeletedForMe(groupPath);
+            const clearedAt = window.dcGetClearedAt(groupPath);
+            const deletedForMe = window.dcGetDeletedForMe(groupPath);
             const prevKeys = _dcRenderedKeys[groupPath];
             const newKeys = new Set();
             const _cacheEntry = { meta: { type: 'group', groupCode, roomName: displayLabel.replace(/^#\s*/, ''), roomId: scope.id, channelId: null, displayName: displayLabel }, msgs: {} };
@@ -19157,8 +19130,8 @@ function renderFlatChannelItem(container, groupCode, roomId, roomName) {
                 return;
             }
             const lastRead = _dcOpenLastRead;
-            const clearedAt = dcGetClearedAt(dmPath);
-            const deletedForMe = dcGetDeletedForMe(dmPath);
+            const clearedAt = window.dcGetClearedAt(dmPath);
+            const deletedForMe = window.dcGetDeletedForMe(dmPath);
             const prevKeys = _dcRenderedKeys[dmPath];
             const newKeys = new Set();
             let dividerInserted = false;
@@ -19477,8 +19450,8 @@ function renderFlatChannelItem(container, groupCode, roomId, roomName) {
                 const prevHeight = streamEl.scrollHeight;
                 const frag = document.createDocumentFragment();
                 const knownKeys = _dcRenderedKeys[dmPath];
-                const clearedAt = dcGetClearedAt(dmPath);
-                const deletedForMe = dcGetDeletedForMe(dmPath);
+                const clearedAt = window.dcGetClearedAt(dmPath);
+                const deletedForMe = window.dcGetDeletedForMe(dmPath);
                 rows.forEach(row => {
                     const m = _normalizeSupabaseDmMessage(row, _dcCurrentOtherProfile);
                     window._dcGlobalMsgCache[dmPath].msgs[row.id] = m;
@@ -19530,8 +19503,8 @@ function renderFlatChannelItem(container, groupCode, roomId, roomName) {
                 const prevHeight = streamEl.scrollHeight;
                 const frag = document.createDocumentFragment();
                 const knownKeys = _dcRenderedKeys[groupPath];
-                const clearedAt = dcGetClearedAt(groupPath);
-                const deletedForMe = dcGetDeletedForMe(groupPath);
+                const clearedAt = window.dcGetClearedAt(groupPath);
+                const deletedForMe = window.dcGetDeletedForMe(groupPath);
                 for (const row of rows) {
                     const m = await _normalizeSupabaseGroupMessage(row);
                     if (_dcCurrentGroupScope !== scope) return;
@@ -20153,7 +20126,7 @@ function renderFlatChannelItem(container, groupCode, roomId, roomName) {
                         if (rowEl) rowEl.style.display = '';
                     },
                     onCommit: () => {
-                        dcAddDeletedForMe(path, [msgKey]);
+                        window.dcAddDeletedForMe(path, [msgKey]);
                         delete _dcMsgRegistry[msgKey];
                         if (rowEl) rowEl.remove();
                     }
@@ -21437,7 +21410,7 @@ function renderFlatChannelItem(container, groupCode, roomId, roomName) {
                         rows.forEach(row => { if (row) row.style.display = ''; });
                     },
                     onCommit: () => {
-                        dcAddDeletedForMe(path, keys);
+                        window.dcAddDeletedForMe(path, keys);
                         keys.forEach((key, i) => {
                             delete _dcMsgRegistry[key];
                             if (rows[i]) rows[i].remove();
