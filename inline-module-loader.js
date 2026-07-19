@@ -24,6 +24,7 @@
             () => import('./social-group-focus-idle.js'),
             () => import('./social-message-pins.js'),
             () => import('./social-group-focus-break-chat.js'),
+            () => import('./social-group-focus-leave.js'),
             () => import('./social-online-people-popover.js'),
             () => import('./social-assignments-badge.js'),
             () => import('./social-focus-hush.js'),

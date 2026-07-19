@@ -271,9 +271,11 @@ function _pickNewOwner(members, groupName) {
     let currentRoomId = null;
     let _cwRoomIsSupabase = false;
     let _cwRoomSupaChannel = null;
-    // Salt-okunur köprü — social-group-focus-break-chat.js gibi ayrılan
-    // modüllerin bu kanalı social.js'e taşımadan kullanabilmesi için.
+    // Salt-okunur köprüler — social-group-focus-break-chat.js /
+    // social-group-focus-leave.js gibi ayrılan modüllerin bu değişkenleri
+    // social.js'e taşımadan kullanabilmesi için.
     window._cwGetRoomChannel = () => _cwRoomSupaChannel;
+    window._cwGetRoomId = () => currentRoomId;
     let _cwPartnerUsername = null;
     let _cwPartnerName     = null;
     let _cwPartnerColor    = null;
@@ -293,6 +295,7 @@ function _pickNewOwner(members, groupName) {
     let currentRoomLinkedHabit = null; // { id, name, pairId } — odanın bağlı olduğu ortak alışkanlık (varsa)
     // Ortak odak odası geliştirmeleri için durum değişkenleri
     let currentRoomIsHost = false;
+    window._cwGetRoomIsHost = () => currentRoomIsHost;
     let sharedFocusBreakInterval = null;
     let sharedFocusBindingsReady = false;
     let currentRoomPhase = 'work'; // 'work' | 'break' — sohbet görünürlüğü hesaplamasında kullanılır
@@ -5506,7 +5509,8 @@ function _pickNewOwner(members, groupName) {
     // bileşeni besler ve aşağıdaki ortak gf* yardımcılarını paylaşır.
     // ══════════════════════════════════════════════════════
     let gfMode = null; // 'room' (Birlikte Odaklanma Odası) | 'challenge' (⚡ Birlikte Çalışalım)
-    let _gfLeaveChoiceAC = null;
+    window._gfGetMode = () => gfMode;
+    // _gfLeaveChoiceAC → social-group-focus-leave.js dosyasına taşındı.
     let _gfLeaveBtnAC = null;
 
     // ── Alıntı rotasyonu — social-focus-quote-rotation.js dosyasına taşındı
@@ -5713,112 +5717,12 @@ function _pickNewOwner(members, groupName) {
         if (clearBtn) clearBtn.addEventListener('click', (e) => { e.stopPropagation(); gfClearMyTask(); });
     }
 
-    // ── "Ayrıl" seçim modalı — bireysel/grup ayrımı olmadan tek ortak akış ──
-    let gfLeaveChoiceBound = false;
-    function gfOpenLeaveChoiceModal() {
-        const modal = document.getElementById('gf-leave-choice-modal');
-        if (!modal) { console.warn('[CW-DEBUG] gf-leave-choice-modal bulunamadı, direkt gfLeaveSessionCompletely'); gfLeaveSessionCompletely(); return; }
-        modal.classList.remove('hidden');
-        gfEnsureLeaveChoiceBindings();
-    }
-    function gfCloseLeaveChoiceModal() {
-        document.getElementById('gf-leave-choice-modal')?.classList.add('hidden');
-    }
-    function gfEnsureLeaveChoiceBindings() {
-        const cancelBtn    = document.getElementById('gf-leave-cancel-btn');
-        const interfaceBtn = document.getElementById('gf-leave-interface-btn');
-        const sessionBtn   = document.getElementById('gf-leave-session-btn');
-
-        if (_gfLeaveChoiceAC) _gfLeaveChoiceAC.abort();
-        _gfLeaveChoiceAC = new AbortController();
-        const { signal: _gfSig } = _gfLeaveChoiceAC;
-
-        if (cancelBtn) cancelBtn.addEventListener('click', gfCloseLeaveChoiceModal, { signal: _gfSig });
-        if (interfaceBtn) interfaceBtn.addEventListener('click', () => {
-            try { gfCloseLeaveChoiceModal(); gfLeaveInterfaceOnly(); } catch (e) { console.error('[CW-DEBUG] gfLeaveInterfaceOnly hatası:', e); }
-        }, { signal: _gfSig });
-        if (sessionBtn) sessionBtn.addEventListener('click', () => {
-            try { gfCloseLeaveChoiceModal(); gfLeaveSessionCompletely(); } catch (e) { console.error('[CW-DEBUG] gfLeaveSessionCompletely hatası:', e); }
-        }, { signal: _gfSig });
-    }
-
-    // "Sadece Arayüzden Ayrıl" — oturum/zamanlayıcı arka planda devam eder, overlay sadece gizlenir
-    function gfLeaveInterfaceOnly() {
-        if (gfMode === 'room') {
-            minimizeSharedFocusOverlay();
-        }
-    }
-
-    // "Oturumdan Tamamen Ayrıl" — oda/oturum kapanır ya da katılımcı listesinden çıkılır
-    function gfLeaveSessionCompletely() {
-        if (gfMode !== 'room') return;
-        if (!window.FocusSupabase || !currentRoomId || !currentUser?.id) {
-            closeGroupFocusOverlay();
-            exitCWRoomLocal();
-            return;
-        }
-
-        const leftRoomId = currentRoomId;
-        const wasOwner = currentRoomIsHost;
-        const myName = currentUser.displayName || currentUser.username || 'Bir katılımcı';
-        // Kanal referansını burada yakalıyoruz — exitCWRoomLocal() bu kanalı
-        // kaldırır, o yüzden TÜM broadcast'ler ve DB yazımları bitmeden
-        // exitCWRoomLocal() ÇAĞRILMAMALI (aksi halde broadcast zaten kapanmış
-        // bir kanala gider ve karşı tarafa hiç ulaşmaz).
-        const chan = _cwRoomSupaChannel;
-        const localExit = () => { closeGroupFocusOverlay(); exitCWRoomLocal(); };
-
-        window.FocusSupabase.from('cw_room_members').select('user_id, role').eq('room_id', leftRoomId)
-            .then(({ data: members }) => {
-                const others = (members || []).filter(m => m.user_id !== currentUser.id);
-
-                const finish = () => window.FocusSupabase.from('cw_room_members')
-                    .delete().eq('room_id', leftRoomId).eq('user_id', currentUser.id)
-                    .then(({ error }) => {
-                        if (error) console.error('[FocusAI] oda üyeliğinden çıkma hatası', error);
-                        localExit();
-                    });
-
-                chan?.send({ type: 'broadcast', event: 'participant_left', payload: { displayName: myName } });
-
-                if (!others.length) {
-                    // Son kişi ayrılıyor — oturum tamamen biter
-                    window.FocusSupabase.from('cw_rooms').update({
-                        active: false, ended_by_id: currentUser.id,
-                        ended_by_name: myName, ended_at: new Date().toISOString()
-                    }).eq('id', leftRoomId).then(({ error }) => {
-                        if (error) console.error('[FocusAI] oturumu sonlandırma hatası', error);
-                        finish();
-                    });
-                    return;
-                }
-
-                const afterOwnership = () => {
-                    if (others.length === 1) {
-                        // Geride tek kişi kaldı — "tek başına devam?" sorusu ona gitsin
-                        chan?.send({ type: 'broadcast', event: 'solo_continue_prompt', payload: { leftDisplayName: myName } });
-                    }
-                    finish();
-                };
-
-                if (wasOwner) {
-                    // Sahiplik geride kalan bir üyeye devredilir. Doğrudan
-                    // cw_room_members.update({role}) BAŞKASININ satırını hedeflediği
-                    // için RLS'de reddediliyordu (policy sadece kendi satırına izin
-                    // veriyor) — bu yüzden security definer RPC kullanılıyor (070).
-                    const newOwner = others[Math.floor(Math.random() * others.length)];
-                    window.FocusSupabase.rpc('transfer_cw_room_ownership', {
-                        p_room_id: leftRoomId, p_new_owner_id: newOwner.user_id
-                    }).then(({ data, error }) => {
-                        if (error || !data?.ok) console.error('[FocusAI] oda sahipliği devri hatası', error || data?.error);
-                        afterOwnership();
-                    });
-                } else {
-                    afterOwnership();
-                }
-            })
-            .catch(() => localExit());
-    }
+    // ── "Ayrıl" seçim modalı — social-group-focus-leave.js dosyasına
+    // taşındı (Faz 2, 2026-07-19 — en karmaşık yüksek risk parçası: oda
+    // sahipliği devri + çoklu Supabase callback zinciri). gfMode/
+    // currentRoomId/currentRoomIsHost/_cwRoomSupaChannel salt-okunur
+    // getter'larla, minimizeSharedFocusOverlay/closeGroupFocusOverlay/
+    // exitCWRoomLocal window.* köprüsüyle okunuyor.
 
     // ──────────────────────────────────────────────────────
     // ORTAK OVERLAY — AÇMA / KAPAMA (her iki akış için TEK nokta)
@@ -5868,7 +5772,7 @@ function _pickNewOwner(members, groupName) {
                 if (sharedFocusSoloMode) {
                     minimizeSharedFocusOverlay();
                 } else {
-                    gfOpenLeaveChoiceModal();
+                    window.gfOpenLeaveChoiceModal();
                 }
             }, { signal: _gfLeaveBtnAC.signal });
         }
@@ -5891,6 +5795,7 @@ function _pickNewOwner(members, groupName) {
         window.gfSetBreakChatPath(null);
         document.getElementById('gf-leave-choice-modal')?.classList.add('hidden');
     }
+    window.closeGroupFocusOverlay = closeGroupFocusOverlay;
 
     // Bireysel (oda dışı) odaklanma seansı için "Birlikte Çalışalım" arayüzüyle birebir aynı
     // görünümdeki tam ekranı besleyecek sahte bir "oda" nesnesi üretir — partner alanları boş kalır,
@@ -5986,10 +5891,11 @@ function _pickNewOwner(members, groupName) {
             showPremiumModal({ title: '🔻 Arayüzden Ayrıldın', message: `Zamanlayıcı arka planda akmaya devam ediyor. İstediğin zaman Mini Odak Odası'ndaki "${returnLabel}" butonuyla geri dönebilirsin.`, type: 'info' });
         }
     }
+    window.minimizeSharedFocusOverlay = minimizeSharedFocusOverlay;
 
     // Geriye dönük uyumluluk: artık tüm "ayrıl" akışı ortak gfOpenLeaveChoiceModal'a yönlenir
     function openSharedFocusLeaveChoiceModal() {
-        gfOpenLeaveChoiceModal();
+        window.gfOpenLeaveChoiceModal();
     }
 
     // Mini Odak Odası'ndaki "Ortak Odaklanma Arayüzüne Dön" butonu — tek seferlik bağlanır
@@ -7205,7 +7111,7 @@ function _pickNewOwner(members, groupName) {
         sharedFocusBreakMinutes = SHARED_FOCUS_DEFAULT_BREAK_MINUTES;
         sharedFocusMinimized = false;
         sharedFocusPhaseInitialized = false;
-        gfCloseLeaveChoiceModal();
+        window.gfCloseLeaveChoiceModal();
         const returnBtn = document.getElementById('scw-return-shared-focus-btn');
         if (returnBtn) returnBtn.classList.add('hidden');
         _syncFocusReturnMiniBtn();
@@ -7220,6 +7126,7 @@ function _pickNewOwner(members, groupName) {
         closeSharedFocusOverlay(); // Ayrı odak odası arayüzünü kapat ve zamanlayıcıyı eski yerine koy
         resetScwTimer();
     }
+    window.exitCWRoomLocal = exitCWRoomLocal;
 
     // ──────────────────────────────────────────────────────
     // UI YARDIMCILARI
