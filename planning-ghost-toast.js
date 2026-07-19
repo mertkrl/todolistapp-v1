@@ -41,7 +41,7 @@
             <span class="pg-ghost-toast-avatar" style="background:${entry.user_color||'#888'};">${esc((entry.user_name||'?').slice(0,2).toUpperCase())}</span>
             <span class="pg-ghost-toast-body">
                 <span class="pg-ghost-toast-name" style="color:${entry.user_color||'#aaa'};">${esc(entry.user_name)}</span>
-                <span class="pg-ghost-toast-action">${entry.action_label}</span>
+                <span class="pg-ghost-toast-action">${esc(entry.action_label)}</span>
                 ${entry.target ? `<span class="pg-ghost-toast-target">"${esc(entry.target.slice(0,28))}"</span>` : ''}
             </span>
             <span class="pg-ghost-toast-icon">${actionIcons[entry.action]||'·'}</span>`;

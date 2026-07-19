@@ -3,28 +3,21 @@
 # innerHTML enjeksiyonu var mı diye bakar (bkz. scripts/check-innerhtml-gate.py).
 # Mevcut bilinen bulgular (scripts/innerhtml-baseline.txt) commit'i engellemez,
 # sadece o listede olmayan yeni bulgular engeller.
+#
+# Repo kökü artık bu projenin kendisi (todolistapp v1) — ayrı bir alt yol
+# hesaplamaya gerek yok.
 set -euo pipefail
 
-# Bu depo (Web Site Denemeleri) birden fazla proje içeriyor; bu hook sadece
-# bu alt projedeki (todolistapp v1) .js dosyalarını denetler.
-PROJECT_DIR="Gemini/Deneme/todolistapp v1"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
 
 staged_js=()
 while IFS= read -r line; do
   [ -n "$line" ] && staged_js+=("$line")
-done < <(git diff --cached --name-only --diff-filter=ACM -- "$PROJECT_DIR/*.js" || true)
+done < <(git diff --cached --name-only --diff-filter=ACM -- '*.js' || true)
 
 if [ "${#staged_js[@]}" -eq 0 ]; then
   exit 0
 fi
 
-# check-innerhtml-gate.py dosya yollarını PROJECT_DIR'e göreli bekliyor
-rel_js=()
-for f in "${staged_js[@]}"; do
-  rel_js+=("${f#"$PROJECT_DIR/"}")
-done
-
-cd "$PROJECT_DIR"
-python3 scripts/check-innerhtml-gate.py "${rel_js[@]}"
+python3 scripts/check-innerhtml-gate.py "${staged_js[@]}"
