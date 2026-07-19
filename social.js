@@ -5510,64 +5510,12 @@ function _pickNewOwner(members, groupName) {
     // (Faz 2, 2026-07-19). GF_QUOTES/gfShowNextQuote/gfStartQuoteRotation/
     // gfStopQuoteRotation artık window.* üzerinden erişiliyor.
 
-    // ── "Odak Modu" / Ghost Mode — bireysel sistemdeki resetIdleTimer deseninin birebir aynısı ──
-    let gfIdleTimeout = null;
-    let gfIdleBound = false;
-    let gfIsRunning = false;
-    let gfGhostModeEnabled = true;
-
-    function gfResetIdleTimer() {
-        clearTimeout(gfIdleTimeout);
-        const overlay = document.getElementById('group-focus-overlay');
-        if (!overlay) return;
-        overlay.classList.remove('group-ghost-mode-active');
-        if (gfGhostModeEnabled && gfIsRunning && overlay.classList.contains('group-focus-mode-active')) {
-            gfIdleTimeout = setTimeout(() => {
-                overlay.classList.add('group-ghost-mode-active');
-            }, 3000);
-        }
-    }
-
-    function gfEnsureIdleBindings() {
-        if (gfIdleBound) return;
-        gfIdleBound = true;
-        ['mousemove', 'mousedown', 'keydown', 'touchstart'].forEach(evt => {
-            document.addEventListener(evt, gfResetIdleTimer);
-        });
-    }
-
-    function gfEnsureFocusModeBinding() {
-        const btn = document.getElementById('gf-focus-mode-btn');
-        if (!btn || btn.dataset.gfBound) return;
-        btn.dataset.gfBound = '1';
-        btn.addEventListener('click', () => {
-            const overlay = document.getElementById('group-focus-overlay');
-            if (!overlay) return;
-            overlay.classList.toggle('group-focus-mode-active');
-            if (overlay.classList.contains('group-focus-mode-active')) {
-                btn.innerHTML = '<i class="fa-solid fa-compress"></i> Çıkış';
-                btn.classList.replace('secondary', 'primary');
-                gfResetIdleTimer();
-            } else {
-                btn.innerHTML = '<i class="fa-solid fa-expand"></i> Odak Modu';
-                btn.classList.replace('primary', 'secondary');
-                clearTimeout(gfIdleTimeout);
-                overlay.classList.remove('group-ghost-mode-active');
-            }
-        });
-    }
-
-    function gfExitFocusMode() {
-        const overlay = document.getElementById('group-focus-overlay');
-        const btn = document.getElementById('gf-focus-mode-btn');
-        if (overlay) overlay.classList.remove('group-focus-mode-active', 'group-ghost-mode-active');
-        if (btn) {
-            btn.innerHTML = '<i class="fa-solid fa-expand"></i> Odak Modu';
-            btn.classList.remove('primary');
-            btn.classList.add('secondary');
-        }
-        clearTimeout(gfIdleTimeout);
-    }
+    // ── "Odak Modu" / Ghost Mode — social-group-focus-idle.js dosyasına
+    // taşındı (Faz 2, 2026-07-19). gfIsRunning/gfGhostModeEnabled artık o
+    // dosyada tamamen özel; buradan window.gfSetRunning()/
+    // window.gfSetGhostModeEnabled() ile güncelleniyor. Diğer fonksiyonlar
+    // (gfResetIdleTimer, gfEnsureIdleBindings, gfEnsureFocusModeBinding,
+    // gfExitFocusMode) window.* üzerinden çağrılıyor.
 
     // ── Halka animasyonu — bireysel updateTimerDisplay() ile birebir aynı formül ──
     // gfUpdateRing → social-group-focus-render.js dosyasına taşındı (Faz 2,
@@ -6087,9 +6035,9 @@ function _pickNewOwner(members, groupName) {
         overlay.style.display = 'flex';
         requestAnimationFrame(() => overlay.classList.add('visible'));
         gfHidePhaseTransition();
-        gfExitFocusMode();
-        gfEnsureIdleBindings();
-        gfEnsureFocusModeBinding();
+        window.gfExitFocusMode();
+        window.gfEnsureIdleBindings();
+        window.gfEnsureFocusModeBinding();
         gfEnsureTaskSelectorBindings();
         gfEnsureBreakChatBindings();
         gfEnsureDurationSettingsBindings();
@@ -6144,8 +6092,8 @@ function _pickNewOwner(members, groupName) {
         window.gfStopQuoteRotation();
         gfHidePhaseTransition();
         gfToggleBreakChat(false);
-        gfExitFocusMode();
-        gfIsRunning = false;
+        window.gfExitFocusMode();
+        window.gfSetRunning(false);
         gfBreakChatPath = null;
         document.getElementById('gf-leave-choice-modal')?.classList.add('hidden');
     }
@@ -6231,7 +6179,7 @@ function _pickNewOwner(members, groupName) {
         if (overlay) { overlay.classList.remove('visible'); overlay.style.display = 'none'; }
         if (sharedFocusDisplaySyncInterval) { clearInterval(sharedFocusDisplaySyncInterval); sharedFocusDisplaySyncInterval = null; }
         window.gfStopQuoteRotation();
-        gfExitFocusMode();
+        window.gfExitFocusMode();
         sharedFocusInFocusMode = false;
 
         sharedFocusMinimized = true;
@@ -6391,14 +6339,14 @@ function _pickNewOwner(members, groupName) {
     // Çalışma durumu değiştiğinde "Odak Modu"na uygun şekilde alıntı rotasyonunu/ghost-mode iznini günceller
     function gfApplyFocusModeFromState() {
         const shouldFocus = isScwRunning && currentRoomPhase !== 'break';
-        gfIsRunning = shouldFocus;
+        window.gfSetRunning(shouldFocus);
         if (shouldFocus !== sharedFocusInFocusMode) {
             sharedFocusInFocusMode = shouldFocus;
             if (shouldFocus) window.gfStartQuoteRotation();
             else window.gfStopQuoteRotation();
             // Yalnızca durum GERÇEKTEN değiştiğinde yeniden tetikle — her tick'te
             // çağrılırsa zamanlayıcı sürekli sıfırlanır ve ghost-mode hiç tetiklenmez
-            gfResetIdleTimer();
+            window.gfResetIdleTimer();
         }
     }
 
@@ -7013,7 +6961,7 @@ function _pickNewOwner(members, groupName) {
                 if (focusChipEl) focusChipEl.textContent = `${parseInt(document.getElementById('gf-duration-input')?.value) || 25} dk odak`;
                 if (breakChipEl) breakChipEl.textContent = `${parseInt(document.getElementById('gf-break-input')?.value) || 10} dk mola`;
                 settingsModal?.classList.remove('hidden');
-                gfResetIdleTimer();
+                window.gfResetIdleTimer();
                 setTimeout(() => {
                     const el = document.elementFromPoint(window.innerWidth/2, window.innerHeight/2);
                 }, 100);
@@ -7075,13 +7023,7 @@ function _pickNewOwner(members, groupName) {
 
         const ghostToggle = document.getElementById('gf-setting-ghostmode');
         ghostToggle?.addEventListener('change', () => {
-            gfGhostModeEnabled = ghostToggle.checked;
-            if (!gfGhostModeEnabled) {
-                clearTimeout(gfIdleTimeout);
-                document.getElementById('group-focus-overlay')?.classList.remove('group-ghost-mode-active');
-            } else {
-                gfResetIdleTimer();
-            }
+            window.gfSetGhostModeEnabled(ghostToggle.checked);
         });
     }
 

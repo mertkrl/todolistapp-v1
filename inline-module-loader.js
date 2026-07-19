@@ -21,6 +21,7 @@
             () => import('./social-emoji-picker.js'),
             () => import('./social-group-focus-render.js'),
             () => import('./social-focus-quote-rotation.js'),
+            () => import('./social-group-focus-idle.js'),
             () => import('./social-online-people-popover.js'),
             () => import('./social-assignments-badge.js'),
             () => import('./social-focus-hush.js'),
