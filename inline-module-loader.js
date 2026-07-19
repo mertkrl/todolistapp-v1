@@ -18,6 +18,7 @@
     async function start() {
         const steps = [
             () => import('./social.js'),
+            () => import('./social-emoji-picker.js'),
             () => import('./social-online-people-popover.js'),
             () => import('./social-assignments-badge.js'),
             () => import('./social-focus-hush.js'),

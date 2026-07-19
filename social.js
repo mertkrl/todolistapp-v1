@@ -19201,7 +19201,7 @@ function renderFlatChannelItem(container, groupCode, roomId, roomName) {
         if (_blockedBanner) _blockedBanner.remove();
 
         initDcChatTheme();
-        initDcEmojiPicker();
+        window.initDcEmojiPicker();
         setupDcScrollButton(streamEl);
         showDcSkeleton(streamEl);
 
@@ -19801,7 +19801,7 @@ function renderFlatChannelItem(container, groupCode, roomId, roomName) {
         if (typeof window.updateDcBlockedBanner === 'function') window.updateDcBlockedBanner(targetUsername);
 
         initDcChatTheme();
-        initDcEmojiPicker();
+        window.initDcEmojiPicker();
         setupDcScrollButton(streamEl);
         showDcSkeleton(streamEl);
 
@@ -21182,7 +21182,7 @@ function renderFlatChannelItem(container, groupCode, roomId, roomName) {
 
         const picker = document.createElement('div');
         picker.className = 'activity-reaction-picker dc-msg-reaction-picker dc-emoji-popover dc-msg-reaction-picker-full';
-        picker.innerHTML = Object.entries(DC_EMOJI_GROUPS).map(([label, emojis]) => `
+        picker.innerHTML = Object.entries(window.DC_EMOJI_GROUPS).map(([label, emojis]) => `
             <div class="dc-emoji-popover-group-label">${label}</div>
             <div class="dc-emoji-popover-grid">
                 ${emojis.map(e => `<button type="button" class="dc-emoji-popover-btn" data-emoji="${e}">${e}</button>`).join('')}
@@ -21246,54 +21246,9 @@ function renderFlatChannelItem(container, groupCode, roomId, roomName) {
     }
 
     // ─── EMOJİ PICKER ───────────────────────────────────
-    const DC_EMOJI_GROUPS = {
-        'Sık Kullanılan': ['😀','😂','🤣','😊','😍','😘','😜','🤔','😎','🙄','😢','😭','😡','👍','👎','👏','🙏','💪','🔥','❤️','💜','💯','🎉','✅'],
-        'Yüzler':         ['😀','😃','😄','😁','😆','😅','😂','🙂','😉','😊','😇','😍','😘','😋','😜','🤪','🤨','🧐','😎','😏','😒','😞','😔','😢','😭','😤','😠','😡','🥳','😴','🤯','🤗','🤭','🤫','🤐','😷','🤒','🥺'],
-        'Jestler':        ['👍','👎','👏','🙏','👋','🤝','💪','✌️','🤞','👌','🤟','🫶','👊','🙌','🤙'],
-        'Semboller':      ['❤️','💜','💛','💚','💙','🧡','🖤','🤍','💯','🔥','✨','⭐','✅','❌','⚡','🎯','💡','🎵','🎮','📌']
-    };
-
-    function initDcEmojiPicker() {
-        const btn = document.getElementById('dc-emoji-picker-btn');
-        const popover = document.getElementById('dc-emoji-picker-popover');
-        if (!btn || !popover) return;
-
-        if (!popover.dataset.filled) {
-            popover.dataset.filled = '1';
-            popover.innerHTML = Object.entries(DC_EMOJI_GROUPS).map(([label, emojis]) => `
-                <div class="dc-emoji-popover-group-label">${label}</div>
-                <div class="dc-emoji-popover-grid">
-                    ${emojis.map(e => `<button type="button" class="dc-emoji-popover-btn" data-emoji="${e}">${e}</button>`).join('')}
-                </div>
-            `).join('');
-            popover.addEventListener('click', (e) => {
-                const emojiBtn = e.target.closest('.dc-emoji-popover-btn');
-                if (!emojiBtn) return;
-                const input = document.getElementById('sidebar-chat-message-input');
-                if (!input) return;
-                const emoji = emojiBtn.dataset.emoji;
-                const start = input.selectionStart ?? input.value.length;
-                const end = input.selectionEnd ?? input.value.length;
-                input.value = input.value.slice(0, start) + emoji + input.value.slice(end);
-                const newPos = start + emoji.length;
-                input.focus();
-                input.setSelectionRange(newPos, newPos);
-                input.dispatchEvent(new Event('input', { bubbles: true }));
-            });
-        }
-
-        if (btn.dataset.bound === '1') return;
-        btn.dataset.bound = '1';
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            popover.style.display = (popover.style.display === 'none' || !popover.style.display) ? 'block' : 'none';
-        });
-        document.addEventListener('click', (e) => {
-            if (popover.style.display === 'block' && !popover.contains(e.target) && e.target !== btn) {
-                popover.style.display = 'none';
-            }
-        });
-    }
+    // social-emoji-picker.js dosyasına taşındı (Faz 2, 2026-07-19) — sıfır
+    // paylaşılan sohbet-state bağımlılığı olduğu için temiz ayrılabildi.
+    // DC_EMOJI_GROUPS ve initDcEmojiPicker artık window.* üzerinden erişiliyor.
 
     // ─── @BAHSETME (MENTION) OTO-TAMAMLAMA ─────────────────
     // @ ile sadece o an aynı çalışma odasında (presence) bulunan kişiler etiketlenebilir
