@@ -291,7 +291,7 @@ def main():
         'social-emoji-picker.js', 'social-group-focus-render.js',
         'social-focus-quote-rotation.js', 'social-group-focus-idle.js',
         'social-message-pins.js', 'social-group-focus-break-chat.js', 'social-group-focus-leave.js', 'social-group-focus-task-selector.js', 'social-chat-list-actions.js', 'social-block-users.js', 'social-chat-local-delete.js', 'social-focus-reminders.js',
-        'script-date-time-utils.js', 'script-calendar-date-utils.js', 'planning-utils.js', 'planning-quick-create.js', 'planning-collab-wait.js',
+        'script-date-time-utils.js', 'script-calendar-date-utils.js', 'planning-utils.js', 'planning-quick-create.js', 'planning-collab-wait.js', 'planning-lesson-plan-invites.js',
     ]
     base = Path.cwd()
     total = 0

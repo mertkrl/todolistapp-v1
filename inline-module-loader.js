@@ -52,6 +52,7 @@
             () => import('./planning-utils.js'),
             () => import('./planning-quick-create.js'),
             () => import('./planning-collab-wait.js'),
+            () => import('./planning-lesson-plan-invites.js'),
             () => import('./collab.js'),
         ];
         for (const step of steps) {
