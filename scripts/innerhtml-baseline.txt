@@ -567,65 +567,65 @@ social.js:15514  ${activeNowHtml}
 social.js:15518  ${groupCode}
 social.js:15521  ${isFull ? `<button class="primary-btn" disabled style="padding: 5px 12px; font-size: 11px; backgro...}
 social.js:15732  ${(discoverFilterHasSlot || discoverFilterActiveOnly) ? "Filtrelere uyan grup bulunamadı." : "Katıl...}
-social.js:16816  ${whenTxt}
-social.js:16816  ${next.duration || 60}
-social.js:16819  ${iAmIn ? '<i class="fa-solid fa-check"></i> Varsın' : '<i class="fa-solid fa-hand"></i> Varım'}
-social.js:17493  ${it.cls}
-social.js:17494  ${it.icon}
-social.js:17495  ${it.label}
-social.js:17683  ${isAnnouncement ? '<span class="dc-subchan-announce-badge" title="Duyuru kanalı — sadece yöneticil...}
-social.js:17684  ${isLocked && !isAnnouncement ? '<span class="dc-subchan-locked-badge" title="Bu odaya girmek için ...}
-social.js:17914  ${avatarImgHtml({ ...mData, displayName: mData.displayName || mUsername }, 26, 'flex-shrink:0;')}
-social.js:17920  ${mRole}
-social.js:17922  ${actDetailS}
-social.js:18000  ${avatarImgHtml({ avatarColor: presence.avatarColor, customAvatar: presence.customAvatar, displayNa...}
-social.js:18003  ${isMe ? ' <span class="presence-you-tag">ben</span>' : ''}
-social.js:19527  ${c}
-social.js:19560  ${emoji}
-social.js:19561  ${avatarImgHtml({ displayName: m.displayName, avatarColor: m.avatarColor, customAvatar: m.customAva...}
-social.js:19580  ${m.type === 'system_join' ? '<i class="fa-solid fa-arrow-right-to-bracket" style="color:#2ed573;ma...}
-social.js:19597  ${accent}
-social.js:19597  ${bg}
-social.js:19597  ${accent}
-social.js:19598  ${icon}
-social.js:19699  ${canPin ? ` <button class="dc-msg-action-btn${isPinned ? ' is-selected' : ''}" data-action="pin" t...}
-social.js:19702  ${isMe ? ` <button class="dc-msg-action-btn" data-action="edit" title="Düzenle"><i class="fa-solid ...}
-social.js:19706  ${canModerate ? ` <button class="dc-msg-action-btn dc-msg-action-danger" data-action="mod-delete" t...}
-social.js:19766  ${roleBadgeHtml}
-social.js:19767  ${timeStr}
-social.js:20094  ${label}
-social.js:20245  ${i === 0 ? ' is-active' : ''}
-social.js:20634  ${Object.entries(DC_CHAT_THEMES).map(([key, t]) => ` <button class="dc-theme-swatch" data-theme="${...}
-social.js:20637  ${customColor}
-social.js:20638  ${customColor}
-social.js:20645  ${Object.entries(DC_CHAT_WALLPAPERS).map(([key, w]) => ` <button class="dc-wallpaper-swatch ${wallp...}
-social.js:20653  ${Object.entries(DC_CHAT_BUBBLE_SHAPES).map(([key, s]) => ` <button class="dc-theme-pill" data-shap...}
-social.js:20662  ${Object.entries(DC_CHAT_FONT_SIZES).map(([key, s]) => ` <button class="dc-theme-pill" data-fontsiz...}
-social.js:20670  ${Object.entries(DC_CHAT_FONT_FAMILIES).map(([key, f]) => ` <button class="dc-theme-pill" data-font...}
-social.js:20761  ${rows.map(r => ` <div class="dc-msg-skeleton-row${r.side === 'right' ? ' right' : ''}"> <div class...}
-social.js:21403  ${icon}
-social.js:21454  ${allowEveryone ? `<button class="dc-confirm-btn dc-confirm-ok danger" data-action="everyone" style...}
-social.js:22024  ${savedTheme === 'dark' ? 'active' : ''}
-social.js:22027  ${savedTheme === 'light' ? 'active' : ''}
-social.js:22058  ${savedPrivacy === 'everyone' ? 'selected' : ''}
-social.js:22059  ${savedPrivacy === 'friends' ? 'selected' : ''}
-social.js:22060  ${savedPrivacy === 'nobody' ? 'selected' : ''}
-social.js:22077  ${savedLang === 'tr' ? 'selected' : ''}
-social.js:22078  ${savedLang === 'en' ? 'selected' : ''}
-social.js:22203  ${avatarImgHtml(uData, 30, 'flex-shrink:0;')}
-social.js:22205  ${typeof hasUnreadDm === 'function' && hasUnreadDm(username) ? '<span class="dc-unread-dot"></span>...}
-social.js:22356  ${color}
-social.js:22356  ${color}
-social.js:22360  ${stColor}
-social.js:22360  ${stLabel}
-social.js:22372  ${xp.toLocaleString('tr-TR')}
-social.js:22376  ${focusStr}
-social.js:22380  ${focusStreak}
-social.js:22385  ${groupJoinedAt ? `<div class="mp-info-row"><i class="fa-solid fa-door-open"></i><span>Gruba katıld...}
-social.js:22386  ${joinedAt ? `<div class="mp-info-row"><i class="fa-solid fa-calendar-plus"></i><span>Platforma kat...}
-social.js:22387  ${completedGoals}
-social.js:22390  ${cgId}
-social.js:22391  ${!isMe ? `<div class="mp-actions" style="margin-top:8px;"> <button class="mp-action-btn mp-dm-btn"...}
+social.js:16616  ${whenTxt}
+social.js:16616  ${next.duration || 60}
+social.js:16619  ${iAmIn ? '<i class="fa-solid fa-check"></i> Varsın' : '<i class="fa-solid fa-hand"></i> Varım'}
+social.js:17293  ${it.cls}
+social.js:17294  ${it.icon}
+social.js:17295  ${it.label}
+social.js:17483  ${isAnnouncement ? '<span class="dc-subchan-announce-badge" title="Duyuru kanalı — sadece yöneticil...}
+social.js:17484  ${isLocked && !isAnnouncement ? '<span class="dc-subchan-locked-badge" title="Bu odaya girmek için ...}
+social.js:17714  ${avatarImgHtml({ ...mData, displayName: mData.displayName || mUsername }, 26, 'flex-shrink:0;')}
+social.js:17720  ${mRole}
+social.js:17722  ${actDetailS}
+social.js:17800  ${avatarImgHtml({ avatarColor: presence.avatarColor, customAvatar: presence.customAvatar, displayNa...}
+social.js:17803  ${isMe ? ' <span class="presence-you-tag">ben</span>' : ''}
+social.js:19327  ${c}
+social.js:19360  ${emoji}
+social.js:19361  ${avatarImgHtml({ displayName: m.displayName, avatarColor: m.avatarColor, customAvatar: m.customAva...}
+social.js:19380  ${m.type === 'system_join' ? '<i class="fa-solid fa-arrow-right-to-bracket" style="color:#2ed573;ma...}
+social.js:19397  ${accent}
+social.js:19397  ${bg}
+social.js:19397  ${accent}
+social.js:19398  ${icon}
+social.js:19499  ${canPin ? ` <button class="dc-msg-action-btn${isPinned ? ' is-selected' : ''}" data-action="pin" t...}
+social.js:19502  ${isMe ? ` <button class="dc-msg-action-btn" data-action="edit" title="Düzenle"><i class="fa-solid ...}
+social.js:19506  ${canModerate ? ` <button class="dc-msg-action-btn dc-msg-action-danger" data-action="mod-delete" t...}
+social.js:19566  ${roleBadgeHtml}
+social.js:19567  ${timeStr}
+social.js:19894  ${label}
+social.js:20045  ${i === 0 ? ' is-active' : ''}
+social.js:20434  ${Object.entries(DC_CHAT_THEMES).map(([key, t]) => ` <button class="dc-theme-swatch" data-theme="${...}
+social.js:20437  ${customColor}
+social.js:20438  ${customColor}
+social.js:20445  ${Object.entries(DC_CHAT_WALLPAPERS).map(([key, w]) => ` <button class="dc-wallpaper-swatch ${wallp...}
+social.js:20453  ${Object.entries(DC_CHAT_BUBBLE_SHAPES).map(([key, s]) => ` <button class="dc-theme-pill" data-shap...}
+social.js:20462  ${Object.entries(DC_CHAT_FONT_SIZES).map(([key, s]) => ` <button class="dc-theme-pill" data-fontsiz...}
+social.js:20470  ${Object.entries(DC_CHAT_FONT_FAMILIES).map(([key, f]) => ` <button class="dc-theme-pill" data-font...}
+social.js:20561  ${rows.map(r => ` <div class="dc-msg-skeleton-row${r.side === 'right' ? ' right' : ''}"> <div class...}
+social.js:21203  ${icon}
+social.js:21254  ${allowEveryone ? `<button class="dc-confirm-btn dc-confirm-ok danger" data-action="everyone" style...}
+social.js:21824  ${savedTheme === 'dark' ? 'active' : ''}
+social.js:21827  ${savedTheme === 'light' ? 'active' : ''}
+social.js:21858  ${savedPrivacy === 'everyone' ? 'selected' : ''}
+social.js:21859  ${savedPrivacy === 'friends' ? 'selected' : ''}
+social.js:21860  ${savedPrivacy === 'nobody' ? 'selected' : ''}
+social.js:21877  ${savedLang === 'tr' ? 'selected' : ''}
+social.js:21878  ${savedLang === 'en' ? 'selected' : ''}
+social.js:22003  ${avatarImgHtml(uData, 30, 'flex-shrink:0;')}
+social.js:22005  ${typeof hasUnreadDm === 'function' && hasUnreadDm(username) ? '<span class="dc-unread-dot"></span>...}
+social.js:22156  ${color}
+social.js:22156  ${color}
+social.js:22160  ${stColor}
+social.js:22160  ${stLabel}
+social.js:22172  ${xp.toLocaleString('tr-TR')}
+social.js:22176  ${focusStr}
+social.js:22180  ${focusStreak}
+social.js:22185  ${groupJoinedAt ? `<div class="mp-info-row"><i class="fa-solid fa-door-open"></i><span>Gruba katıld...}
+social.js:22186  ${joinedAt ? `<div class="mp-info-row"><i class="fa-solid fa-calendar-plus"></i><span>Platforma kat...}
+social.js:22187  ${completedGoals}
+social.js:22190  ${cgId}
+social.js:22191  ${!isMe ? `<div class="mp-actions" style="margin-top:8px;"> <button class="mp-action-btn mp-dm-btn"...}
 social-toast.js:41  ${type}
 social-toast.js:42  ${icon || icons[type] || icons.info}
 social-toast.js:45  ${desc}
