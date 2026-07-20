@@ -50,6 +50,7 @@
             () => import('./planning-ghost-toast.js'),
             () => import('./planning-dependency-graph.js'),
             () => import('./planning-lesson-plan-modal.js'),
+            () => import('./planning-realtime.js'),
             () => import('./planning.js'),
             () => import('./planning-utils.js'),
             () => import('./planning-quick-create.js'),

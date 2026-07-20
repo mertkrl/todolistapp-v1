@@ -94,6 +94,8 @@
     const CATEGORY_KEYS = ['egitim','saglik','kariyer','finans','kisisel','diger'];
     let editingId    = null;
     let detailGoalId = null;
+    // planning-realtime.js modülünün detay paneli açık mı diye bakabilmesi için köprü.
+    window._pgGetDetailGoalId = () => detailGoalId;
 
     // Wizard state
     let wizardState  = null;
@@ -607,6 +609,7 @@
         if (g.progress_pct === 100 && ms.length > 0) g.status = 'completed';
         else if (g.status === 'completed' && g.progress_pct < 100) g.status = 'active';
     }
+    window._recalcProgress = _recalcProgress;
 
     // ── Goal CRUD ─────────────────────────────
     function addGoal(data) {
@@ -1130,6 +1133,7 @@
             ${ms.length>0?`<span class="pg-dp-meta-item"><i class="ti ti-flag-3"></i> ${ms.filter(m=>m.done).length}/${ms.length} milestone</span>`:''}
         </div>`;
     }
+    window.refreshDetailSummary = refreshDetailSummary;
 
     function _initDetailProgress(g) {
         const fill=document.getElementById('pg-dp-pfill');
@@ -1151,6 +1155,7 @@
         if (autoLabel)  autoLabel.style.display  = hasMilestones ? ''     : 'none';
         if (autoLabel)  autoLabel.innerHTML = `<i class="ti ti-robot" style="color:${cat.color};"></i> Otomatik · Milestone tamamlandıkça güncellenir`;
     }
+    window._initDetailProgress = _initDetailProgress;
 
     function renderMilestoneList(goalId) {
         const g=goals.find(g=>g.id===goalId);
@@ -1204,6 +1209,7 @@
         if (typeof window.PlanningCollabBindMsExtras === 'function')
             window.PlanningCollabBindMsExtras(el);
     }
+    window.renderMilestoneList = renderMilestoneList;
 
     function _bindMilestoneDragSort(el, goalId) {
         let dragSrc = null;
@@ -4436,11 +4442,11 @@
         // 4.1 — Server'dan güncel veriyi çek (arka planda)
         setTimeout(loadGoalsFromServer, 600);
         // 4.2 — Realtime subscription
-        setTimeout(_subscribeRealtime, 1200);
+        setTimeout(window._subscribeRealtime, 1200);
         // 4.3 — Bildirim izni + deadline taraması
         setTimeout(_requestNotificationPermission, 3000);
-        setTimeout(_checkDeadlineNotifications, 4000);
-        setInterval(_checkDeadlineNotifications, 3600000); // Saatte bir kontrol
+        setTimeout(window._checkDeadlineNotifications, 4000);
+        setInterval(window._checkDeadlineNotifications, 3600000); // Saatte bir kontrol
 
         // Filter — tek bir dropdown butonu içinde
         const filterToggleBtn = document.getElementById('pg-filter-toggle-btn');
@@ -4687,117 +4693,12 @@
         }
     }
 
-    function _checkDeadlineNotifications() {
-        if (Notification.permission !== 'granted') return;
-        const now = new Date();
-        goals.filter(g => g.status === 'active' && g.deadline).forEach(g => {
-            const diff = Math.ceil((new Date(g.deadline) - now) / 86400000);
-            const key  = 'pg_notif_' + g.id + '_' + g.deadline;
-            if (diff === 7 && !sessionStorage.getItem(key + '_7')) {
-                _notifyLocal('📅 Deadline Yaklaşıyor', `"${g.title}" için 7 gün kaldı!`, key + '_7');
-                sessionStorage.setItem(key + '_7', '1');
-            }
-            if (diff === 1 && !sessionStorage.getItem(key + '_1')) {
-                _notifyLocal('⚠️ Yarın Son Gün!', `"${g.title}" için son gün yarın!`, key + '_1');
-                sessionStorage.setItem(key + '_1', '1');
-            }
-            if (diff < 0 && !sessionStorage.getItem(key + '_over')) {
-                _notifyLocal('🔴 Deadline Geçti', `"${g.title}" için son tarih geçti.`, key + '_over');
-                sessionStorage.setItem(key + '_over', '1');
-            }
-        });
-    }
-
-    // ── 4.2 Realtime Subscription ────────────
-    let _realtimeChannel = null;
-    // Debounce: çok kullanıcılı ortamda toast flood önlemi
-    let _realtimeToastCount = 0, _realtimeToastTimer = null;
-    function _debouncedRealtimeToast() {
-        _realtimeToastCount++;
-        clearTimeout(_realtimeToastTimer);
-        _realtimeToastTimer = setTimeout(() => {
-            const n = _realtimeToastCount;
-            _realtimeToastCount = 0;
-            toast(`🔄 ${n > 1 ? n + ' güncelleme' : 'Güncelleme'} senkronize edildi`);
-        }, 800);
-    }
-
-    function _subscribeRealtime() {
-        if (!window.FocusSupabase || !window.currentUser) return;
-        const sb = window.FocusSupabase, uid = window.currentUser.id;
-
-        // Önceki kanalı temizle
-        if (_realtimeChannel) { sb.removeChannel(_realtimeChannel); _realtimeChannel = null; }
-
-        _realtimeChannel = sb.channel('planning-realtime-' + uid)
-            // Hedef değişiklikleri
-            .on('postgres_changes', {
-                event: '*', schema: 'public', table: 'planning_goals',
-                filter: 'user_id=eq.' + uid,
-            }, payload => {
-                _handleGoalChange(payload);
-            })
-            // Milestone değişiklikleri (collab için kritik)
-            .on('postgres_changes', {
-                event: '*', schema: 'public', table: 'planning_milestones',
-            }, payload => {
-                _handleMilestoneChange(payload);
-            })
-            .subscribe();
-    }
-
-    function _handleGoalChange(payload) {
-        const { eventType, new: row, old: oldRow } = payload;
-        if (eventType === 'DELETE') {
-            goals = goals.filter(g => g.id !== oldRow.id);
-        } else if (eventType === 'INSERT') {
-            if (!goals.find(g => g.id === row.id)) goals.unshift({ ...row, milestones: [], _dirty: false });
-        } else if (eventType === 'UPDATE') {
-            const idx = goals.findIndex(g => g.id === row.id);
-            if (idx !== -1 && !goals[idx]._dirty) {
-                goals[idx] = {
-                    ...goals[idx], ...row,
-                    // Realtime row'u milestone'ları içermez — local'i koru
-                    milestones:     goals[idx].milestones,
-                    collab_room_id: goals[idx].collab_room_id || row.collab_room_id || null,
-                    invite_code:    goals[idx].invite_code    || null,
-                    my_role:        goals[idx].my_role        || null,
-                    _dirty: false,
-                };
-            }
-        }
-        if (typeof FocusStorage !== 'undefined') FocusStorage.set('planning_goals', goals);
-        render();
-        if (typeof window.renderPlanningStats === 'function') window.renderPlanningStats();
-    }
-
-    function _handleMilestoneChange(payload) {
-        const { eventType, new: row, old: oldRow } = payload;
-        const g = goals.find(g => g.id === (row?.goal_id || oldRow?.goal_id));
-        if (!g) return;
-        if (!g.milestones) g.milestones = [];
-
-        if (eventType === 'DELETE') {
-            g.milestones = g.milestones.filter(m => m.id !== oldRow.id);
-        } else if (eventType === 'INSERT') {
-            if (!g.milestones.find(m => m.id === row.id)) {
-                g.milestones.push({ id:row.id, title:row.title, due_date:row.due_date||'',
-                    done:!!row.done, order:row.order_index, description:'', created_at:row.created_at });
-            }
-        } else if (eventType === 'UPDATE') {
-            const idx = g.milestones.findIndex(m => m.id === row.id);
-            if (idx !== -1) {
-                g.milestones[idx] = { ...g.milestones[idx], title:row.title,
-                    due_date:row.due_date||'', done:!!row.done, order:row.order_index };
-            }
-        }
-        _recalcProgress(g);
-        if (typeof FocusStorage !== 'undefined') FocusStorage.set('planning_goals', goals);
-        render();
-        if (detailGoalId === g.id) { renderMilestoneList(g.id); refreshDetailSummary(g); _initDetailProgress(g); }
-        if (typeof window.renderPlanningStats === 'function') window.renderPlanningStats();
-        _debouncedRealtimeToast();
-    }
+    // _checkDeadlineNotifications, _debouncedRealtimeToast, _subscribeRealtime,
+    // _handleGoalChange, _handleMilestoneChange -> planning-realtime.js dosyasına
+    // taşındı (Faz 2, 2026-07-20). window._checkDeadlineNotifications/
+    // _subscribeRealtime köprüleriyle erişilir.
+    // ÖNEMLİ: init() bunları setTimeout/setInterval'e SENKRON referans olarak
+    // veriyor, bu yüzden bu modül planning.js'ten ÖNCE yüklenmeli.
 
     // ══════════════════════════════════════════
     // BİRLEŞİK PLAN GÖRÜNÜMÜ — Faz 3
