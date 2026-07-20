@@ -48,6 +48,7 @@
             () => import('./social-polls.js'),
             () => import('./planning-wizard-info-tooltip.js'),
             () => import('./planning-ghost-toast.js'),
+            () => import('./planning-dependency-graph.js'),
             () => import('./planning.js'),
             () => import('./planning-utils.js'),
             () => import('./planning-quick-create.js'),

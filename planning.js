@@ -85,6 +85,11 @@
     let _pgRenderCount = 0;
     let goals        = [];
     let dependencies  = [];  // [{from:goalId, to:goalId}]
+    // planning-dependency-graph.js modülüne taşınan fonksiyonların bu diziyi
+    // okuyup (referans — push/find çalışır) ve yeniden atayabilmesi (filter/
+    // JSON.parse reassignment) için köprü.
+    window._pgGetDependencies = () => dependencies;
+    window._pgSetDependencies = (arr) => { dependencies = arr; };
     let activeFilters = new Set(['all']); // çoklu seçim — 'all' ve '__archived__' birbirini dışlar, diğerleri serbestçe birleşir
     const CATEGORY_KEYS = ['egitim','saglik','kariyer','finans','kisisel','diger'];
     let editingId    = null;
@@ -879,7 +884,7 @@
         const msDone=ms.filter(m=>m.done).length, archived=g.status==='archived';
         const dl=window.deadlineLabel(g.deadline);
         const urgency  = archived ? '' : _deadlineUrgency(g.deadline);
-        const blocked  = !archived && isBlocked(g.id);
+        const blocked  = !archived && window.isPlanningGoalBlocked(g.id);
         const priLabel=['','🔴 Yüksek','🟡 Orta','🟢 Düşük'][g.priority]||'';
         return `
         <div class="pg-card${archived?' pg-card-archived':''}${urgency?' pg-card-'+urgency:''}${blocked?' pg-card-blocked':''}" data-id="${g.id}">
@@ -1247,7 +1252,7 @@
                  .map(g => `<option value="${g.id}">${esc(g.title)}</option>`).join('');
 
         // Mevcut bağımlılıkları listele (bu hedef: to)
-        const myDeps = dependencies.filter(d => d.to === goalId);
+        const myDeps = window._pgGetDependencies().filter(d => d.to === goalId);
         if (!myDeps.length) {
             list.innerHTML = '<p style="font-size:11px;color:#444;text-align:center;">Bağımlılık yok</p>';
         } else {
@@ -1262,7 +1267,7 @@
                 </div>`;
             }).join('');
             list.querySelectorAll('[data-dep-id]').forEach(b =>
-                b.addEventListener('click', () => { removeDependency(b.dataset.depId); _renderDepPanel(goalId); }));
+                b.addEventListener('click', () => { window.removePlanningDependency(b.dataset.depId); _renderDepPanel(goalId); }));
         }
 
         // Ekle butonu
@@ -1270,7 +1275,7 @@
             btn.onclick = () => {
                 const fromId = sel.value;
                 if (!fromId) return;
-                addDependency(fromId, goalId);
+                window.addPlanningDependency(fromId, goalId);
                 _renderDepPanel(goalId);
             };
         }
@@ -4759,8 +4764,8 @@
             toast(`"${snapshot.title}" silindi`, {
                 undoFn: () => {
                     goals.unshift(snapshot);
-                    depSnapshot.forEach(d=>{ if(!dependencies.find(x=>x.id===d.id)) dependencies.push(d); });
-                    persistGoals(); saveDependencies(); render();
+                    depSnapshot.forEach(d=>{ if(!window._pgGetDependencies().find(x=>x.id===d.id)) window._pgGetDependencies().push(d); });
+                    persistGoals(); window.saveDependencies(); render();
                     toast('Geri alındı ↩');
                 },
                 undoLabel: 'Geri Al',
@@ -4774,7 +4779,7 @@
         const g = goals.find(x=>x.id===id);
         if (!g) return;
         const snapshot = JSON.parse(JSON.stringify(g));
-        const depSnapshot = dependencies.filter(d=>d.from===id||d.to===id);
+        const depSnapshot = window._pgGetDependencies().filter(d=>d.from===id||d.to===id);
         // Collab hedefler için seçenek modalı göster
         if (g.collab_room_id) {
             _showCollabDeleteModal(snapshot, depSnapshot);
@@ -4784,8 +4789,8 @@
         toast(`"${snapshot.title}" silindi`, {
             undoFn: () => {
                 goals.unshift(snapshot);
-                depSnapshot.forEach(d=>{ if(!dependencies.find(x=>x.id===d.id)) dependencies.push(d); });
-                persistGoals(); saveDependencies(); render();
+                depSnapshot.forEach(d=>{ if(!window._pgGetDependencies().find(x=>x.id===d.id)) window._pgGetDependencies().push(d); });
+                persistGoals(); window.saveDependencies(); render();
                 toast('Geri alındı ↩');
             },
             undoLabel: 'Geri Al',
@@ -4817,7 +4822,7 @@
     // ── Init ──────────────────────────────────
     function init() {
         loadGoals();
-        loadDependencies();
+        window.loadDependencies();
         // Hard reset sonrası PlanView'i geri aç
         const lastGoalId = localStorage.getItem('pg_pv_last_goal');
         if (lastGoalId && goals.find(g => g.id === lastGoalId)) {
@@ -5048,96 +5053,13 @@
     }
 
     // ── 5.3 Dependency Graph ──────────────────
-    function loadDependencies() {
-        dependencies = JSON.parse(localStorage.getItem('planning_deps') || '[]');
-    }
-
-    function saveDependencies() {
-        localStorage.setItem('planning_deps', JSON.stringify(dependencies));
-        if (window.FocusSupabase && window.currentUser) {
-            // Tüm bağımlılıkları upsert et
-            const uid = window.currentUser.id;
-            window.FocusSupabase.from('goal_dependencies')
-                .delete().eq('user_id', uid).then(() => {
-                    if (!dependencies.length) return;
-                    window.FocusSupabase.from('goal_dependencies').insert(
-                        dependencies.map(d => ({ ...d, user_id: uid }))
-                    ).then(() => {}).catch(() => {});
-                });
-        }
-    }
-
-    function isBlocked(goalId) {
-        return dependencies
-            .filter(d => d.to === goalId)
-            .some(d => {
-                const dep = goals.find(g => g.id === d.from);
-                return dep && dep.status !== 'completed';
-            });
-    }
-
-    function addDependency(fromId, toId) {
-        if (fromId === toId) return;
-        if (dependencies.find(d => d.from === fromId && d.to === toId)) return;
-        // Döngü kontrolü
-        if (_wouldCreateCycle(fromId, toId)) { toast('⚠️ Bu bağımlılık döngü oluşturur'); return; }
-        dependencies.push({ id: 'dep_' + Date.now(), from: fromId, to: toId });
-        saveDependencies();
-        render();
-        toast('Bağımlılık eklendi ✓');
-    }
-
-    function removeDependency(depId) {
-        dependencies = dependencies.filter(d => d.id !== depId);
-        saveDependencies();
-        render();
-    }
-
-    function _wouldCreateCycle(fromId, toId) {
-        const visited = new Set();
-        const stack   = [toId];
-        while (stack.length) {
-            const cur = stack.pop();
-            if (cur === fromId) return true;
-            if (visited.has(cur)) continue;
-            visited.add(cur);
-            dependencies.filter(d => d.from === cur).forEach(d => stack.push(d.to));
-        }
-        return false;
-    }
-
-    // Timeline'da bağımlılık oklarını çiz
-    function _drawDependencyArrows(active, xOfFn, ROW_H, HEADER_H) {
-        if (!dependencies.length) return '';
-        let arrows = '';
-        dependencies.forEach(dep => {
-            const fi = active.findIndex(g => g.id === dep.from);
-            const ti = active.findIndex(g => g.id === dep.to);
-            if (fi === -1 || ti === -1) return;
-            const fromG = active[fi], toG = active[ti];
-            // Ok: from hedefin deadline'ından to hedefin başına
-            const x1 = fromG.deadline ? xOfFn(fromG.deadline) : xOfFn(fromG.created_at);
-            const y1 = HEADER_H + fi * ROW_H + ROW_H / 2;
-            const x2 = toG.created_at ? xOfFn(toG.created_at.split('T')[0]) : x1 + 20;
-            const y2 = HEADER_H + ti * ROW_H + ROW_H / 2;
-            const blocked = toG.status !== 'completed' && fromG.status !== 'completed';
-            const color   = blocked ? '#f87171' : '#4ade80';
-            const mx = (x1 + x2) / 2;
-            arrows += `<path d="M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}"
-                fill="none" stroke="${color}" stroke-width="1.5" stroke-dasharray="4 3" opacity=".6"
-                marker-end="url(#dep-arrow-${blocked?'red':'green'})"/>`;
-        });
-        // Arrow markers
-        const defs = `<defs>
-            <marker id="dep-arrow-red" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
-                <path d="M0,0 L6,3 L0,6 Z" fill="#f87171"/>
-            </marker>
-            <marker id="dep-arrow-green" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
-                <path d="M0,0 L6,3 L0,6 Z" fill="#4ade80"/>
-            </marker>
-        </defs>`;
-        return defs + arrows;
-    }
+    // loadDependencies/saveDependencies/isBlocked/addDependency/removeDependency/
+    // _wouldCreateCycle/_drawDependencyArrows planning-dependency-graph.js'e taşındı
+    // (Faz 2, 2026-07-20) — window.loadDependencies/saveDependencies/
+    // addPlanningDependency/removePlanningDependency/getPlanningDependencies/
+    // isPlanningGoalBlocked köprüleriyle erişilir. Bu modül planning.js'ten ÖNCE
+    // yüklenmeli (bkz. inline-module-loader.js) çünkü init() içinde
+    // window.loadDependencies() senkron çağrılıyor.
 
     // ── 4.3 Push & Local Notifications ─────────
     window._notifyLocal = function _notifyLocal(title, body, tag) {
@@ -8215,10 +8137,8 @@
     };
 
     window.renderPlanningRef   = ()=>{ render(); };
-    window.addPlanningDependency    = addDependency;
-    window.removePlanningDependency = removeDependency;
-    window.getPlanningDependencies  = () => dependencies;
-    window.isPlanningGoalBlocked    = isBlocked;
+    // addPlanningDependency/removePlanningDependency/getPlanningDependencies/
+    // isPlanningGoalBlocked artık planning-dependency-graph.js'te tanımlanıyor.
     window.initPlanningModule  = init;
     window.renderPlanningStats = renderStatsCard;
     // Sınıf paneli (social.js) gibi dış yerlerden doğrudan Ders Planı modalını açmak için
