@@ -37,106 +37,106 @@ script.js:2338  ${autoBadge}
 script.js:3100  ${currentHabitFilter === 'all' ? 'active' : ''}
 script.js:3102  ${currentHabitFilter === cat.id ? 'active' : ''}
 script.js:3102  ${cat.id}
-script.js:3256  ${MAX_ACTIVE_HABITS}
-script.js:3304  ${buddyBadge}
-script.js:3305  ${linkedGoalBadges}
-script.js:3309  ${targetDays}
-script.js:3310  ${dateRangeText}
-script.js:3313  ${progressPercentage}
+script.js:3257  ${MAX_ACTIVE_HABITS}
+script.js:3305  ${buddyBadge}
+script.js:3306  ${linkedGoalBadges}
+script.js:3310  ${targetDays}
+script.js:3311  ${dateRangeText}
 script.js:3314  ${progressPercentage}
-script.js:3314  ${completedDays}
-script.js:3314  ${targetDays}
-script.js:3316  ${trackerHTML}
-script.js:3319  ${habit.history[todayStr] ? 'done' : ''}
-script.js:3319  ${todayStr}
-script.js:3320  ${habit.history[todayStr] ? 'fa-check' : 'fa-bolt'}
-script.js:3320  ${habit.history[todayStr] ? 'Tamamlandı' : 'Bugünü Tamamla'}
-script.js:3323  ${habit.id}
-script.js:4346  ${res.icon}
-script.js:4348  ${shortDate}
-script.js:4349  ${res.time || 'Tüm Gün'}
-script.js:4350  ${res.type}
-script.js:4671  ${c}
-script.js:4671  ${t}
-script.js:4750  ${parseInt(d)}
-script.js:4750  ${activeFullMonths[parseInt(m)-1]}
-script.js:4750  ${y}
-script.js:4955  ${W}
-script.js:4955  ${H}
-script.js:4966  ${gridAndYLabels}
-script.js:4967  ${areaFor(linePath2, points2)}
-script.js:4968  ${areaFor(linePath, points)}
-script.js:4969  ${linePath2}
-script.js:4970  ${linePath}
-script.js:4971  ${dotsFor(points2, 'trend-line-dot trend-series-focus-dot')}
-script.js:4972  ${dotsFor(points, 'trend-line-dot trend-series-tasks-dot')}
-script.js:4973  ${xLabels}
-script.js:4974  ${padT}
-script.js:4974  ${padT + innerH}
-script.js:4977  ${padL}
-script.js:4977  ${innerW}
-script.js:4977  ${H}
-script.js:5002  ${p.value}
-script.js:5003  ${p.value2}
-script.js:5258  ${dayName}
-script.js:5258  ${shortDate}
-script.js:5477  ${t.start}
-script.js:5477  ${t.end}
-script.js:5478  ${badgeHTML}
-script.js:5480  ${t.id}
-script.js:5508  ${t.id}
+script.js:3315  ${progressPercentage}
+script.js:3315  ${completedDays}
+script.js:3315  ${targetDays}
+script.js:3317  ${trackerHTML}
+script.js:3320  ${habit.history[todayStr] ? 'done' : ''}
+script.js:3320  ${todayStr}
+script.js:3321  ${habit.history[todayStr] ? 'fa-check' : 'fa-bolt'}
+script.js:3321  ${habit.history[todayStr] ? 'Tamamlandı' : 'Bugünü Tamamla'}
+script.js:3324  ${habit.id}
+script.js:4347  ${res.icon}
+script.js:4349  ${shortDate}
+script.js:4350  ${res.time || 'Tüm Gün'}
+script.js:4351  ${res.type}
+script.js:4672  ${c}
+script.js:4672  ${t}
+script.js:4751  ${parseInt(d)}
+script.js:4751  ${activeFullMonths[parseInt(m)-1]}
+script.js:4751  ${y}
+script.js:4956  ${W}
+script.js:4956  ${H}
+script.js:4967  ${gridAndYLabels}
+script.js:4968  ${areaFor(linePath2, points2)}
+script.js:4969  ${areaFor(linePath, points)}
+script.js:4970  ${linePath2}
+script.js:4971  ${linePath}
+script.js:4972  ${dotsFor(points2, 'trend-line-dot trend-series-focus-dot')}
+script.js:4973  ${dotsFor(points, 'trend-line-dot trend-series-tasks-dot')}
+script.js:4974  ${xLabels}
+script.js:4975  ${padT}
+script.js:4975  ${padT + innerH}
+script.js:4978  ${padL}
+script.js:4978  ${innerW}
+script.js:4978  ${H}
+script.js:5003  ${p.value}
+script.js:5004  ${p.value2}
+script.js:5259  ${dayName}
+script.js:5259  ${shortDate}
+script.js:5478  ${t.start}
+script.js:5478  ${t.end}
+script.js:5479  ${badgeHTML}
+script.js:5481  ${t.id}
 script.js:5509  ${t.id}
-script.js:5512  ${shortDate}
-script.js:5512  ${t.start}
-script.js:5512  ${t.end}
-script.js:6039  ${group.members}
-script.js:6043  ${Math.round((group.weeklyGoalCurrent / group.weeklyGoalMax) * 100)}
-script.js:6085  ${encodeURIComponent(member.name)}
-script.js:6085  ${member.color.replace('#','')}
-script.js:6085  ${borderStyle}
-script.js:6088  ${member.status}
-script.js:6115  ${rankIcon}
-script.js:6116  ${encodeURIComponent(user.name)}
-script.js:6119  ${user.score}
-script.js:6265  ${emptyMsg}
-script.js:7214  ${timeStr}
-script.js:8469  ${_todayStrAP}
-script.js:8469  ${goalId}
-script.js:8470  ${t.completed ? '<i class="fa-solid fa-check" style="font-size:11px; color:white;"></i>' : ''}
-script.js:8476  ${t.date}
-script.js:8482  ${pClass}
-script.js:8483  ${t.id}
-script.js:8483  ${goalId}
-script.js:8484  ${t.completed ? '<i class="fa-solid fa-check" style="font-size:11px; color:white;"></i>' : ''}
-script.js:8489  ${t.timeStart || '09:00'}
-script.js:8490  ${t.priority==='high' ? 'color:#ff4757; background:rgba(255,71,87,0.1); border:1px solid rgba(255,7...}
-script.js:8490  ${pLabel}
-script.js:8491  ${t.date ? `<span style="font-size:10px; background:rgba(255,255,255,0.05); padding:2px 8px; border...}
-script.js:8494  ${t.id}
-script.js:8494  ${t.date}
-script.js:8494  ${goalId}
-script.js:8523  ${groupKey}
-script.js:8527  ${msDateRange}
-script.js:8528  ${msCompleted}
-script.js:8528  ${msTotal}
-script.js:8533  ${groupKey}
-script.js:8585  ${h.icon || 'fa-leaf'}
-script.js:8591  ${h.id}
-script.js:8591  ${todayStr}
-script.js:8591  ${goalId}
-script.js:8599  ${hCompleted}
-script.js:8599  ${hTarget}
-script.js:8600  ${hProgress}
-script.js:8603  ${hProgress}
-script.js:8671  ${m.completed ? 'Tamamlandı' : `Adım ${index + 1}`}
-script.js:8672  ${m.completed ? '<i class="fa-solid fa-check" style="font-size:10px; color:#fff;"></i>' : `<span cl...}
-script.js:8680  ${m.completed ? '<i class="fa-solid fa-circle-check" style="font-size:10px;"></i> Tamamlandı' : `<i...}
-script.js:8684  ${dateBadge}
-script.js:8685  ${taskBadge}
-script.js:8689  ${goal.id}
-script.js:8689  ${m.id}
-script.js:8690  ${goal.id}
-script.js:8690  ${m.id}
+script.js:5510  ${t.id}
+script.js:5513  ${shortDate}
+script.js:5513  ${t.start}
+script.js:5513  ${t.end}
+script.js:6040  ${group.members}
+script.js:6044  ${Math.round((group.weeklyGoalCurrent / group.weeklyGoalMax) * 100)}
+script.js:6086  ${encodeURIComponent(member.name)}
+script.js:6086  ${member.color.replace('#','')}
+script.js:6086  ${borderStyle}
+script.js:6089  ${member.status}
+script.js:6116  ${rankIcon}
+script.js:6117  ${encodeURIComponent(user.name)}
+script.js:6120  ${user.score}
+script.js:6266  ${emptyMsg}
+script.js:7215  ${timeStr}
+script.js:8425  ${_todayStrAP}
+script.js:8425  ${goalId}
+script.js:8426  ${t.completed ? '<i class="fa-solid fa-check" style="font-size:11px; color:white;"></i>' : ''}
+script.js:8432  ${t.date}
+script.js:8438  ${pClass}
+script.js:8439  ${t.id}
+script.js:8439  ${goalId}
+script.js:8440  ${t.completed ? '<i class="fa-solid fa-check" style="font-size:11px; color:white;"></i>' : ''}
+script.js:8445  ${t.timeStart || '09:00'}
+script.js:8446  ${t.priority==='high' ? 'color:#ff4757; background:rgba(255,71,87,0.1); border:1px solid rgba(255,7...}
+script.js:8446  ${pLabel}
+script.js:8447  ${t.date ? `<span style="font-size:10px; background:rgba(255,255,255,0.05); padding:2px 8px; border...}
+script.js:8450  ${t.id}
+script.js:8450  ${t.date}
+script.js:8450  ${goalId}
+script.js:8479  ${groupKey}
+script.js:8483  ${msDateRange}
+script.js:8484  ${msCompleted}
+script.js:8484  ${msTotal}
+script.js:8489  ${groupKey}
+script.js:8541  ${h.icon || 'fa-leaf'}
+script.js:8547  ${h.id}
+script.js:8547  ${todayStr}
+script.js:8547  ${goalId}
+script.js:8555  ${hCompleted}
+script.js:8555  ${hTarget}
+script.js:8556  ${hProgress}
+script.js:8559  ${hProgress}
+script.js:8627  ${m.completed ? 'Tamamlandı' : `Adım ${index + 1}`}
+script.js:8628  ${m.completed ? '<i class="fa-solid fa-check" style="font-size:10px; color:#fff;"></i>' : `<span cl...}
+script.js:8636  ${m.completed ? '<i class="fa-solid fa-circle-check" style="font-size:10px;"></i> Tamamlandı' : `<i...}
+script.js:8640  ${dateBadge}
+script.js:8641  ${taskBadge}
+script.js:8645  ${goal.id}
+script.js:8645  ${m.id}
+script.js:8646  ${goal.id}
+script.js:8646  ${m.id}
 script-ambient-sounds.js:101  ${icon}
 script-ambient-sounds.js:196  ${type}
 script-ambient-sounds.js:197  ${label.icon}
