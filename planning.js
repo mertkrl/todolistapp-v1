@@ -1855,418 +1855,21 @@
     // _collabWaitRefreshWaitingList/_collabWaitRefreshAccepted →
     // planning-collab-wait.js dosyasına taşındı (Faz 2, 2026-07-19).
 
-    // ══════════════════════════════════════════
-    // PLANLAMA SİHİRBAZI — Premium v2
-    // ══════════════════════════════════════════
-
-    function openModeSelect() {
-        document.getElementById('pg-mode-select-overlay')?.classList.remove('hidden');
-        const lpBtn = document.getElementById('pg-mode-lesson-plan-btn');
-        if (lpBtn) {
-            lpBtn.classList.add('hidden');
-            (_wzLessonPlanGroups ? Promise.resolve(_wzLessonPlanGroups) : _wzCheckLessonPlanGroups())
-                .then(groups => lpBtn.classList.toggle('hidden', !groups?.length));
-        }
-    }
-    function closeModeSelect() {
-        document.getElementById('pg-mode-select-overlay')?.classList.add('hidden');
-    }
-
-    // ══════════════════════════════════════════
-    // DERS PLANI — Oluşturma (minimal: sınıf + açıklama)
-    // Kaydedilince normal planlama ekranına (openPlanView) gider —
-    // aşama/milestone eklemek isteğe bağlıdır, tıpkı bireysel planlamada olduğu gibi.
-    // ══════════════════════════════════════════
-    let _lpStudents = [];   // seçili sınıfın üyeleri: [{id, display_name, username}]
-    let _lpTarget = 'class'; // 'class' | 'student' — Uygulama Planı'nda hedef türü
-
-    function openLessonPlanModal() {
-        const modal = document.getElementById('pg-lp-modal');
-        if (!modal) return;
-        document.getElementById('pg-lp-desc').value = '';
-        document.getElementById('pg-lp-name').value = '';
-        document.getElementById('pg-lp-template-name').value = '';
-        document.getElementById('pg-lp-template-desc').value = '';
-        _lpShowChoiceStep();
-        modal.classList.remove('hidden');
-    }
-
-    function _lpHideAllSteps() {
-        document.getElementById('pg-lp-choice-step')?.classList.add('hidden');
-        document.getElementById('pg-lp-templates-step')?.classList.add('hidden');
-        document.getElementById('pg-lp-templates-footer')?.classList.add('hidden');
-        document.getElementById('pg-lp-instances-step')?.classList.add('hidden');
-        document.getElementById('pg-lp-instances-footer')?.classList.add('hidden');
-        document.getElementById('pg-lp-template-step')?.classList.add('hidden');
-        document.getElementById('pg-lp-template-footer')?.classList.add('hidden');
-        document.getElementById('pg-lp-form-step')?.classList.add('hidden');
-        document.getElementById('pg-lp-form-footer')?.classList.add('hidden');
-    }
-
-    function _lpShowChoiceStep() {
-        _lpHideAllSteps();
-        document.getElementById('pg-lp-choice-step')?.classList.remove('hidden');
-        _lpUpdateBrowseCounts();
-    }
-
-    function _lpUpdateBrowseCounts() {
-        const tplCount = goals.filter(g => g.plan_mode === 'lesson-plan' && g.context?.isTemplate).length;
-        const instCount = goals.filter(g => g.plan_mode === 'lesson-plan' && !g.context?.isTemplate).length;
-        const tplEl = document.getElementById('pg-lp-templates-count');
-        const instEl = document.getElementById('pg-lp-instances-count');
-        if (tplEl) tplEl.textContent = tplCount;
-        if (instEl) instEl.textContent = instCount;
-    }
-
-    // "Şablonlarım" / "Ders Planlarım" gözat ekranları — ayrı bir adımda listelenir,
-    // "Düzenle" butonuna basınca planlama arayüzüne (openPlanView) gidilir.
-    function _lpRenderListStep(kind) {
-        const isTemplates = kind === 'templates';
-        const items = goals.filter(g => g.plan_mode === 'lesson-plan' && !!g.context?.isTemplate === isTemplates);
-        const listEl = document.getElementById(isTemplates ? 'pg-lp-templates-list' : 'pg-lp-instances-list');
-        if (!listEl) return;
-        if (!items.length) {
-            listEl.innerHTML = `<p class="pg-cw-empty">${isTemplates ? 'Henüz bir şablonun yok.' : 'Henüz bir uygulama planın yok.'}</p>`;
-            return;
-        }
-        listEl.innerHTML = items.map(g => {
-            let meta = '';
-            if (!isTemplates) {
-                const gName = (_wzLessonPlanGroups || []).find(x => x.id === g.context?.lessonPlanGroupId)?.name || 'Sınıf';
-                meta = g.context?.lessonPlanStudentId ? `${gName} · Kişiye Özel` : gName;
-            } else {
-                const msCount = (g.milestones || []).length;
-                const tkCount = _cloneTasksForTemplate(g.id).length;
-                const parts = [];
-                if (msCount) parts.push(`${msCount} aşama`);
-                if (tkCount) parts.push(`${tkCount} görev`);
-                meta = parts.length ? parts.join(' · ') : 'Boş şablon';
-            }
-            return `
-                <div class="pg-lp-existing-row" data-id="${g.id}">
-                    <span class="pg-lp-existing-row-title">${esc(g.title)}</span>
-                    ${meta ? `<span class="pg-lp-existing-row-meta">${esc(meta)}</span>` : ''}
-                    <div class="pg-lp-existing-row-actions">
-                        ${isTemplates ? `<button class="pg-lp-existing-use" data-id="${g.id}" title="Bu şablondan Uygulama Planı oluştur"><i class="ti ti-target-arrow"></i> Kullan</button>` : ''}
-                        <button class="pg-lp-existing-edit" data-id="${g.id}"><i class="ti ti-pencil"></i> Düzenle</button>
-                        <button class="pg-lp-existing-delete" data-id="${g.id}" title="Sil"><i class="ti ti-trash"></i></button>
-                    </div>
-                </div>`;
-        }).join('');
-    }
-
-    function _lpShowTemplatesListStep() {
-        _lpHideAllSteps();
-        document.getElementById('pg-lp-templates-step')?.classList.remove('hidden');
-        document.getElementById('pg-lp-templates-footer')?.classList.remove('hidden');
-        _lpRenderListStep('templates');
-    }
-
-    function _lpShowInstancesListStep() {
-        _lpHideAllSteps();
-        document.getElementById('pg-lp-instances-step')?.classList.remove('hidden');
-        document.getElementById('pg-lp-instances-footer')?.classList.remove('hidden');
-        _lpRenderListStep('instances');
-    }
-
-    function _lpBindExistingListEvents() {
-        const modal = document.getElementById('pg-lp-modal');
-        if (!modal || modal._lpListBound) return;
-        modal._lpListBound = true;
-        modal.addEventListener('click', e => {
-            const editBtn = e.target.closest('.pg-lp-existing-edit');
-            const delBtn  = e.target.closest('.pg-lp-existing-delete');
-            const useBtn  = e.target.closest('.pg-lp-existing-use');
-            if (delBtn) {
-                e.stopPropagation();
-                _deleteGoalWithUndo(delBtn.dataset.id);
-                _lpRenderListStep(document.getElementById('pg-lp-templates-step')?.classList.contains('hidden') ? 'instances' : 'templates');
-                _lpUpdateBrowseCounts();
-                return;
-            }
-            if (useBtn) {
-                e.stopPropagation();
-                _lpShowFormStep(useBtn.dataset.id);
-                return;
-            }
-            if (editBtn) {
-                e.stopPropagation();
-                const id = editBtn.dataset.id;
-                closeLessonPlanModal();
-                setTimeout(() => openPlanView(id), 200);
-            }
-        });
-    }
-
-    function _lpShowTemplateStep() {
-        _lpHideAllSteps();
-        document.getElementById('pg-lp-template-step')?.classList.remove('hidden');
-        document.getElementById('pg-lp-template-footer')?.classList.remove('hidden');
-        setTimeout(() => document.getElementById('pg-lp-template-name')?.focus(), 100);
-    }
-
-    async function _lpShowFormStep(presetTemplateId) {
-        _lpHideAllSteps();
-        document.getElementById('pg-lp-form-step')?.classList.remove('hidden');
-        document.getElementById('pg-lp-form-footer')?.classList.remove('hidden');
-        _lpSetTarget('class');
-        const nameEl = document.getElementById('pg-lp-name');
-        if (nameEl) nameEl.value = '';
-        const groupSel = document.getElementById('pg-lp-group');
-        if (groupSel) {
-            groupSel.innerHTML = '<option value="">Yükleniyor…</option>';
-            // Önbellek boşsa (ör. sayfa açılışında henüz doldurulmadıysa) burada
-            // yeniden çekilir — aksi halde stale/boş önbellek "Sınıf bulunamadı"
-            // uyarısını yanlışlıkla tetikler.
-            const groups = (_wzLessonPlanGroups && _wzLessonPlanGroups.length) ? _wzLessonPlanGroups : await _wzCheckLessonPlanGroups();
-            groupSel.innerHTML = groups.map(g => `<option value="${g.id}">${esc(g.name)}</option>`).join('') || '<option value="">Sınıf bulunamadı</option>';
-            _lpLoadStudents();
-        }
-        const tplSel = document.getElementById('pg-lp-form-template');
-        if (tplSel) {
-            const templates = goals.filter(x => x.plan_mode === 'lesson-plan' && x.context?.isTemplate);
-            tplSel.innerHTML = '<option value="">Boş başla</option>' +
-                templates.map(t => `<option value="${t.id}">${esc(t.title)}</option>`).join('');
-            tplSel.value = presetTemplateId || '';
-        }
-        setTimeout(() => document.getElementById('pg-lp-name')?.focus(), 100);
-    }
-
-    function _lpSetTarget(target) {
-        _lpTarget = target;
-        document.getElementById('pg-lp-target-class')?.classList.toggle('active', target === 'class');
-        document.getElementById('pg-lp-target-student')?.classList.toggle('active', target === 'student');
-        document.getElementById('pg-lp-student-group')?.classList.toggle('hidden', target !== 'student');
-    }
-
-    // Şablon içeriği: aşama/görev İSKELETİNİ (başlık, açıklama, alt görevler, sıra) klonlar —
-    // tarih/durum bilgisi taşınmaz, çünkü şablon farklı dönemlerde yeniden tarihlenerek kullanılır.
-    function _cloneMilestonesForTemplate(sourceMilestones) {
-        return (sourceMilestones || []).map((m, i) => ({
-            id: window.msUid(), title: m.title, description: m.description || '',
-            due_date: '', start_date: '', done: false, order: m.order ?? i,
-            subtasks: (m.subtasks || []).map(s => ({ id: uid(), title: s.title, done: false, date: '' })),
-        }));
-    }
-
-    // Ders planında asıl içerik genelde aşama değil, gün-saat gridine eklenen GÖREVLERdir
-    // (FocusStorage['tasks'], parentGoal ile bağlı). Şablona kaydederken bunları da klonlamak gerekir —
-    // gerçek tarih yerine ilk görevden itibaren GÖRECELİ gün farkı (dayOffset) saklanır, çünkü şablon
-    // farklı dönemlerde farklı bir başlangıç tarihiyle yeniden uygulanacaktır.
-    function _cloneTasksForTemplate(goalId) {
-        const tasks = (FocusStorage.get('tasks', []) || []).filter(t => String(t.parentGoal) === String(goalId) && t.date);
-        if (!tasks.length) return [];
-        const minYMD = tasks.reduce((min, t) => { const y = _normYMD(t.date); return (!min || y < min) ? y : min; }, null);
-        const minDate = new Date(minYMD + 'T00:00:00');
-        return tasks.map(t => {
-            const d = new Date(_normYMD(t.date) + 'T00:00:00');
-            const dayOffset = Math.round((d - minDate) / 86400000);
-            return { text: t.text, priority: t.priority || 2, category: t.category || '', timeStart: t.timeStart || '', timeEnd: t.timeEnd || '', dayOffset };
-        });
-    }
-
-    // Bir şablonun kayıtlı görevlerini yeni bir plana, bugünden başlayarak (dayOffset korunarak) uygular.
-    // Bu fonksiyonun iki çağrı yeri de (şablon oluşturma / şablondan ders planı oluşturma) HER ZAMAN
-    // öğretmen tarafında, henüz kimseye atanmamış bir plan üzerinde çalışır (newGoalId'nin `lpa_id`'si
-    // yoktur). Görev yine gerçek `tasks` deposuna yazılır (plan-editörünün kendi Gün Paneli/takvimi
-    // bunu okuyor), ama `isLessonPlanDraft` bayrağıyla işaretlenir ki öğretmenin KENDİ "Bugün"/Takvim
-    // görünümlerinde (script.js) gizlenip öğretmenin kendi takvimine sızması önlensin.
-    function _applyTemplateTasksToGoal(templateTasks, newGoalId) {
-        if (!templateTasks?.length || typeof window.addGlobalTask !== 'function') return;
-        const g = goals.find(x => x.id === newGoalId);
-        const isLessonPlanAuthoring = !!(g && _pvIsLessonPlan(g) && !g.lpa_id);
-        const base = new Date(); base.setHours(0, 0, 0, 0);
-        templateTasks.forEach(tt => {
-            const d = new Date(base); d.setDate(d.getDate() + tt.dayOffset);
-            const dateDDMMYYYY = `${String(d.getDate()).padStart(2,'0')}-${String(d.getMonth()+1).padStart(2,'0')}-${d.getFullYear()}`;
-            window.addGlobalTask(tt.text, tt.priority, tt.category, dateDDMMYYYY, tt.timeStart || '09:00', tt.timeEnd || '10:00', '', newGoalId);
-        });
-        if (isLessonPlanAuthoring) {
-            const allT = FocusStorage.get('tasks', []);
-            let changed = false;
-            allT.forEach(t => {
-                if (String(t.parentGoal) === String(newGoalId) && !t.isLessonPlanDraft) { t.isLessonPlanDraft = true; changed = true; }
-            });
-            if (changed) FocusStorage.set('tasks', allT);
-            // calendarEvents ayrı bir depoda tutuluyor — ana takvim görünümü oradan okuyor.
-            const events = FocusStorage.get('events', {});
-            let eventsChanged = false;
-            Object.keys(events).forEach(dateKey => {
-                (events[dateKey] || []).forEach(e => {
-                    if (String(e.parentGoal) === String(newGoalId) && !e.isLessonPlanDraft) { e.isLessonPlanDraft = true; eventsChanged = true; }
-                });
-            });
-            if (eventsChanged) FocusStorage.set('events', events);
-            if (changed || eventsChanged) {
-                if (typeof window.syncTasksFromStorage === 'function') window.syncTasksFromStorage();
-            }
-        }
-    }
-
-    // Var olan bir Uygulama Planı'nı (dolu haldeki aşama/görev yapısıyla) yeniden kullanılabilir bir Şablona dönüştürür.
-    // Şablonun görevleri de KENDİ id'sine bağlı gerçek FocusStorage görevleri olarak materialize edilir —
-    // böylece şablon, diğer ders planları gibi openPlanView'de normal şekilde açılıp düzenlenebilir,
-    // ve "Uygulama Planı" akışında _cloneTasksForTemplate(template.id) ile tutarlı biçimde okunur.
-    function _pvSaveGoalAsTemplate(g) {
-        const templateTasks = _cloneTasksForTemplate(g.id);
-        if (!g?.milestones?.length && !templateTasks.length) { toast('Şablon olarak kaydetmek için önce en az bir aşama veya görev ekleyin 📋'); return; }
-        const newGoal = {
-            id: uid(), title: `${g.title} (Şablon)`, description: g.description || '',
-            category: g.category || 'egitim', color: g.color || window.getCat('egitim').color,
-            deadline: '', priority: g.priority || 2,
-            status: 'active', progress_pct: 0,
-            milestones: _cloneMilestonesForTemplate(g.milestones),
-            work_days: [], hours_per_week: g.hours_per_week || 5,
-            context: { isTemplate: true },
-            plan_mode: 'lesson-plan',
-            created_at: new Date().toISOString(), _dirty: true,
-        };
-        goals.unshift(newGoal);
-        persistGoals();
-        if (templateTasks.length) {
-            _applyTemplateTasksToGoal(templateTasks, newGoal.id);
-            if (typeof window.renderTasks === 'function') window.renderTasks();
-            if (typeof window.renderCalendarGlobal === 'function') window.renderCalendarGlobal();
-        }
-        render();
-        toast('Plan şablon olarak kaydedildi — yeni dönemlerde tekrar kullanabilirsin 📋');
-    }
-
-    // "Şablon Oluştur" — sınıf/öğrenci seçimi olmadan, ad+açıklama girilip doğrudan planlama arayüzüne geçilir
-    function _lpSaveTemplate() {
-        const name = document.getElementById('pg-lp-template-name')?.value.trim();
-        const desc = document.getElementById('pg-lp-template-desc')?.value.trim();
-        if (!name) { toast('Şablona bir ad verin 📋'); return; }
-
-        const newGoal = {
-            id: uid(), title: name,
-            description: desc, category: 'egitim', color: window.getCat('egitim').color,
-            deadline: '', priority: 2,
-            status: 'active', progress_pct: 0, milestones: [],
-            work_days: [], hours_per_week: 5,
-            context: { isTemplate: true },
-            plan_mode: 'lesson-plan',
-            created_at: new Date().toISOString(), _dirty: true,
-        };
-        goals.unshift(newGoal);
-        persistGoals();
-        render();
-        closeLessonPlanModal();
-        toast('Şablon oluşturuldu! 📋');
-        setTimeout(() => openPlanView(newGoal.id), 350);
-    }
-
-    async function _lpLoadStudents() {
-        const groupId = document.getElementById('pg-lp-group')?.value;
-        const box = document.getElementById('pg-lp-students');
-        if (!groupId || !box || !window.FocusSupabase) { _lpStudents = []; return; }
-        const sb = window.FocusSupabase, myId = window.currentUser?.id;
-        box.innerHTML = '<div class="pg-cw-loading"><span class="pg-cw-pulse-dot"></span> Öğrenciler yükleniyor…</div>';
-        let rows;
-        try {
-            ({ data: rows } = await sb
-                .from('group_members').select('user_id, profiles(id, display_name, username)')
-                .eq('group_id', groupId));
-        } catch (e) {
-            console.warn('[FocusAI] _lpLoadStudents:', e);
-            box.innerHTML = '<p class="pg-cw-empty">Öğrenciler yüklenemedi. Tekrar dene.</p>';
-            _lpStudents = [];
-            return;
-        }
-        _lpStudents = (rows || []).map(r => r.profiles).filter(p => p && p.id !== myId);
-        _lpRenderStudentPicker();
-        const searchEl = document.getElementById('pg-lp-student-search');
-        if (searchEl && !searchEl._lpBound) {
-            searchEl._lpBound = true;
-            searchEl.addEventListener('input', () => _lpRenderStudentPicker(searchEl.value));
-        }
-    }
-
-    // Minimalist öğrenci seçici: arama kutusu + seçilenler üstte "chip" olarak,
-    // altta filtrelenebilir kompakt bir liste — büyük sınıflarda (çok öğrenci)
-    // uzun checkbox listesi yerine ölçeklenebilir bir arayüz sağlar.
-    function _lpRenderStudentPicker(query) {
-        const box = document.getElementById('pg-lp-students');
-        const chipsBox = document.getElementById('pg-lp-student-chips');
-        if (!box) return;
-        const selectedIds = new Set(Array.from(document.querySelectorAll('.pg-lp-student-cb:checked')).map(cb => cb.value));
-        if (!_lpStudents.length) { box.innerHTML = '<p class="pg-cw-empty">Bu grupta henüz öğrenci yok.</p>'; if (chipsBox) chipsBox.innerHTML = ''; return; }
-
-        if (chipsBox) {
-            const selected = _lpStudents.filter(s => selectedIds.has(s.id));
-            chipsBox.innerHTML = selected.map(s => `
-                <span class="pg-lp-student-chip" data-id="${s.id}">${esc(s.display_name || s.username)} <i class="ti ti-x"></i></span>`).join('');
-        }
-
-        const q = (query || '').trim().toLowerCase();
-        const list = q ? _lpStudents.filter(s => (s.display_name || s.username || '').toLowerCase().includes(q)) : _lpStudents;
-        box.innerHTML = list.length
-            ? list.map(s => `
-                <label class="pg-assign-student-row" for="pg-lp-student-${s.id}">
-                    <input type="checkbox" class="pg-lp-student-cb" id="pg-lp-student-${s.id}" value="${s.id}" ${selectedIds.has(s.id) ? 'checked' : ''}>
-                    <span class="pg-assign-checkbox"></span>
-                    <span class="pg-assign-student-name">${esc(s.display_name || s.username)}</span>
-                </label>`).join('')
-            : '<p class="pg-cw-empty">Eşleşen öğrenci yok.</p>';
-    }
-
-    function closeLessonPlanModal() {
-        document.getElementById('pg-lp-modal')?.classList.add('hidden');
-    }
-
-    function _lpSave() {
-        const groupId = document.getElementById('pg-lp-group')?.value;
-        const planName = document.getElementById('pg-lp-name')?.value.trim();
-        const desc = document.getElementById('pg-lp-desc')?.value.trim();
-        const isPersonal = _lpTarget === 'student';
-        const studentIds = isPersonal
-            ? Array.from(document.querySelectorAll('.pg-lp-student-cb:checked')).map(cb => cb.value)
-            : [];
-        if (!planName) { toast('Plana bir isim verin ✏️'); return; }
-        if (!groupId) { toast('Bir sınıf/ders grubu seçin 🏫'); return; }
-        if (isPersonal && !studentIds.length) { toast('En az bir öğrenci seçin 👤'); return; }
-        const groupName = (_wzLessonPlanGroups || []).find(g => g.id === groupId)?.name || 'Sınıf';
-        const nameOf = id => (_lpStudents.find(s => s.id === id)?.display_name || _lpStudents.find(s => s.id === id)?.username || 'Öğrenci');
-        const templateId = document.getElementById('pg-lp-form-template')?.value || '';
-        const template = templateId ? goals.find(x => x.id === templateId) : null;
-        // Şablonun görevleri her zaman KENDİ id'sine bağlı canlı FocusStorage görevlerinden okunur —
-        // şablon "Şablon Oluştur" akışında (görevler doğrudan eklenmiş) veya "Şablon Olarak Kaydet" akışında
-        // (görevler _pvSaveGoalAsTemplate ile materialize edilmiş) oluşturulmuş olsun fark etmez.
-        const templateTasks = template ? _cloneTasksForTemplate(template.id) : [];
-
-        // Kişiye özel + birden fazla öğrenci seçilmişse her öğrenci için ayrı bir plan oluşturulur
-        // (her öğrencinin dolu saatleri farklı olacağından tek plan yeterli olmaz).
-        // Şablon seçildiyse aşama/görev yapısı her öğrenci/sınıf planına ayrı ayrı klonlanır (paylaşılan referans değil).
-        const targets = isPersonal ? studentIds : [null];
-        const createdGoals = targets.map(studentId => ({
-            id: uid(), title: (isPersonal && targets.length > 1) ? `${planName} — ${nameOf(studentId)}` : planName,
-            description: desc || template?.description || '', category: 'egitim', color: window.getCat('egitim').color,
-            deadline: '', priority: 2,
-            status: 'active', progress_pct: 0,
-            milestones: template ? _cloneMilestonesForTemplate(template.milestones) : [],
-            work_days: [], hours_per_week: 5,
-            context: { lessonPlanGroupId: groupId, lessonPlanStudentId: studentId || null },
-            plan_mode: 'lesson-plan',
-            created_at: new Date().toISOString(), _dirty: true,
-        }));
-        goals.unshift(...createdGoals);
-        persistGoals();
-        if (templateTasks.length) {
-            createdGoals.forEach(cg => _applyTemplateTasksToGoal(templateTasks, cg.id));
-            if (typeof window.renderTasks === 'function') window.renderTasks();
-            if (typeof window.renderCalendarGlobal === 'function') window.renderCalendarGlobal();
-        }
-        render();
-        closeLessonPlanModal();
-        toast(createdGoals.length > 1 ? `${createdGoals.length} öğrenci için ders planı oluşturuldu! 🎓` : 'Ders planı oluşturuldu! 🎓');
-
-        // Sınıfa atama artık burada değil — öğretmen planlamayı bitirince
-        // plan ekranındaki "Sınıfa Ata" butonuyla kendi belirlediği anda yapar.
-        setTimeout(() => openPlanView(createdGoals[0].id), 350);
-    }
+    // openModeSelect, closeModeSelect, openLessonPlanModal, _lpHideAllSteps,
+    // _lpShowChoiceStep, _lpUpdateBrowseCounts, _lpRenderListStep,
+    // _lpShowTemplatesListStep, _lpShowInstancesListStep, _lpBindExistingListEvents,
+    // _lpShowTemplateStep, _lpShowFormStep, _lpSetTarget, _cloneMilestonesForTemplate,
+    // _cloneTasksForTemplate, _applyTemplateTasksToGoal, _pvSaveGoalAsTemplate,
+    // _lpSaveTemplate, _lpLoadStudents, _lpRenderStudentPicker, closeLessonPlanModal,
+    // _lpSave -> planning-lesson-plan-modal.js dosyasına taşındı (Faz 2, 2026-07-20).
+    // window.* köprüsüyle erişilir. Bu modül planning.js'ten ÖNCE yüklenmeli
+    // (init() içinde bu fonksiyonlar senkron addEventListener'a bağlanıyor).
 
     // Öğretmen/kurum yöneticisi bir sınıf/ders grubunda admin ise "Ders Planı" modu açılır
     let _wzLessonPlanGroups = null; // cache: [{id, name, classroom_type}] | []
+    // planning-lesson-plan-modal.js modülünün önbelleği okuyabilmesi için köprü
+    // (kendisi burada kalıyor çünkü cardHTML de kullanıyor).
+    window._wzGetLessonPlanGroups = () => _wzLessonPlanGroups;
     async function _wzCheckLessonPlanGroups() {
         // FocusSupabase/currentUser henüz hazır değilse sonucu ÖNBELLEKLEME —
         // aksi halde erken (login tamamlanmadan) çağrılan init() bu boş sonucu
@@ -2285,6 +1888,7 @@
             return []; // önbelleğe alınmaz (_wzLessonPlanGroups null kalır) — bir sonraki çağrıda tekrar denenir
         }
     }
+    window._wzCheckLessonPlanGroups = _wzCheckLessonPlanGroups;
 
     function openWizard() {
         const modal = document.getElementById('pg-wizard-modal');
@@ -4797,6 +4401,7 @@
             duration: 4000,
         });
     }
+    window._deleteGoalWithUndo = _deleteGoalWithUndo;
 
     function _deleteMilestoneWithUndo(goalId, msId) {
         const g = goals.find(x=>x.id===goalId);
@@ -4921,54 +4526,54 @@
 
 
         // New goal — mod seçimi açar
-        document.getElementById('pg-new-goal-btn')?.addEventListener('click', ()=>openModeSelect());
-        document.getElementById('pg-empty-add-btn')?.addEventListener('click', ()=>openModeSelect());
+        document.getElementById('pg-new-goal-btn')?.addEventListener('click', ()=>window.openModeSelect());
+        document.getElementById('pg-empty-add-btn')?.addEventListener('click', ()=>window.openModeSelect());
 
         // Mode select modal
-        document.getElementById('pg-mode-select-close')?.addEventListener('click', closeModeSelect);
+        document.getElementById('pg-mode-select-close')?.addEventListener('click', window.closeModeSelect);
         document.getElementById('pg-mode-select-overlay')?.addEventListener('click', e => {
-            if (e.target.id === 'pg-mode-select-overlay') closeModeSelect();
+            if (e.target.id === 'pg-mode-select-overlay') window.closeModeSelect();
         });
         document.getElementById('pg-mode-solo-btn')?.addEventListener('click', () => {
-            closeModeSelect();
+            window.closeModeSelect();
             window.openQuickCreate('solo');
         });
         document.getElementById('pg-mode-collab-btn')?.addEventListener('click', () => {
-            closeModeSelect();
+            window.closeModeSelect();
             window.openQuickCreate('collab');
         });
         document.getElementById('pg-mode-lesson-plan-btn')?.addEventListener('click', () => {
-            closeModeSelect();
-            openLessonPlanModal();
+            window.closeModeSelect();
+            window.openLessonPlanModal();
         });
 
         // Ders Planı oluşturma (minimal: sınıf + açıklama)
-        document.getElementById('pg-lp-modal-close')?.addEventListener('click', closeLessonPlanModal);
+        document.getElementById('pg-lp-modal-close')?.addEventListener('click', window.closeLessonPlanModal);
         document.getElementById('pg-lp-modal')?.addEventListener('click', e => {
-            if (e.target.id === 'pg-lp-modal') closeLessonPlanModal();
+            if (e.target.id === 'pg-lp-modal') window.closeLessonPlanModal();
         });
-        _lpBindExistingListEvents();
-        document.getElementById('pg-lp-choice-template')?.addEventListener('click', _lpShowTemplateStep);
-        document.getElementById('pg-lp-choice-instance')?.addEventListener('click', () => _lpShowFormStep());
-        document.getElementById('pg-lp-template-back-btn')?.addEventListener('click', _lpShowChoiceStep);
-        document.getElementById('pg-lp-browse-templates')?.addEventListener('click', _lpShowTemplatesListStep);
-        document.getElementById('pg-lp-browse-instances')?.addEventListener('click', _lpShowInstancesListStep);
-        document.getElementById('pg-lp-templates-back-btn')?.addEventListener('click', _lpShowChoiceStep);
-        document.getElementById('pg-lp-instances-back-btn')?.addEventListener('click', _lpShowChoiceStep);
-        document.getElementById('pg-lp-template-save-btn')?.addEventListener('click', _lpSaveTemplate);
-        document.getElementById('pg-lp-back-btn')?.addEventListener('click', _lpShowChoiceStep);
-        document.getElementById('pg-lp-target-class')?.addEventListener('click', () => _lpSetTarget('class'));
-        document.getElementById('pg-lp-target-student')?.addEventListener('click', () => _lpSetTarget('student'));
-        document.getElementById('pg-lp-group')?.addEventListener('change', _lpLoadStudents);
-        document.getElementById('pg-lp-save-btn')?.addEventListener('click', _lpSave);
+        window._lpBindExistingListEvents();
+        document.getElementById('pg-lp-choice-template')?.addEventListener('click', window._lpShowTemplateStep);
+        document.getElementById('pg-lp-choice-instance')?.addEventListener('click', () => window._lpShowFormStep());
+        document.getElementById('pg-lp-template-back-btn')?.addEventListener('click', window._lpShowChoiceStep);
+        document.getElementById('pg-lp-browse-templates')?.addEventListener('click', window._lpShowTemplatesListStep);
+        document.getElementById('pg-lp-browse-instances')?.addEventListener('click', window._lpShowInstancesListStep);
+        document.getElementById('pg-lp-templates-back-btn')?.addEventListener('click', window._lpShowChoiceStep);
+        document.getElementById('pg-lp-instances-back-btn')?.addEventListener('click', window._lpShowChoiceStep);
+        document.getElementById('pg-lp-template-save-btn')?.addEventListener('click', window._lpSaveTemplate);
+        document.getElementById('pg-lp-back-btn')?.addEventListener('click', window._lpShowChoiceStep);
+        document.getElementById('pg-lp-target-class')?.addEventListener('click', () => window._lpSetTarget('class'));
+        document.getElementById('pg-lp-target-student')?.addEventListener('click', () => window._lpSetTarget('student'));
+        document.getElementById('pg-lp-group')?.addEventListener('change', window._lpLoadStudents);
+        document.getElementById('pg-lp-save-btn')?.addEventListener('click', window._lpSave);
         document.getElementById('pg-lp-students')?.addEventListener('change', e => {
-            if (e.target.classList.contains('pg-lp-student-cb')) _lpRenderStudentPicker(document.getElementById('pg-lp-student-search')?.value);
+            if (e.target.classList.contains('pg-lp-student-cb')) window._lpRenderStudentPicker(document.getElementById('pg-lp-student-search')?.value);
         });
         document.getElementById('pg-lp-student-chips')?.addEventListener('click', e => {
             const chip = e.target.closest('.pg-lp-student-chip');
             if (!chip) return;
             const cb = document.getElementById(`pg-lp-student-${chip.dataset.id}`);
-            if (cb) { cb.checked = false; _lpRenderStudentPicker(document.getElementById('pg-lp-student-search')?.value); }
+            if (cb) { cb.checked = false; window._lpRenderStudentPicker(document.getElementById('pg-lp-student-search')?.value); }
         });
 
         // Wizard event bindings
@@ -5220,6 +4825,7 @@
     let pvWeekCursor = null;
     let pvDayCursor  = null;
     function _pvIsLessonPlan(g) { return g?.plan_mode === 'lesson-plan'; }
+    window._pvIsLessonPlan = _pvIsLessonPlan;
 
     // ── Ders planı: "Kaydet" butonu + kapatmadan önce kaydedilmemiş değişiklik uyarısı ──
     let pvUnsaved = false;
@@ -5818,7 +5424,7 @@
                     ${!isTpl ? `<button class="pg-pv-assign-class-btn" id="pg-pv-assign-class-btn">
                         <i class="ti ti-send"></i> Öğrencilere Ata
                     </button>` : ''}`;
-                document.getElementById('pg-pv-save-template-btn')?.addEventListener('click', () => _pvSaveGoalAsTemplate(g));
+                document.getElementById('pg-pv-save-template-btn')?.addEventListener('click', () => window._pvSaveGoalAsTemplate(g));
                 if (!isTpl) _pvRenderAssignmentStatus(g);
                 else document.getElementById('pg-pv-assign-status')?.classList.add('hidden');
                 document.getElementById('pg-pv-assign-class-btn')?.addEventListener('click', async () => {
@@ -6571,6 +6177,7 @@
         if (p.length !== 3) return d;
         return p[0].length === 2 ? `${p[2]}-${p[1]}-${p[0]}` : d;
     }
+    window._normYMD = _normYMD;
 
     // Called from calendar when wizard dates step is active
     function _pvWizAssignDate(g, dateStr) {
@@ -8141,8 +7748,8 @@
     // isPlanningGoalBlocked artık planning-dependency-graph.js'te tanımlanıyor.
     window.initPlanningModule  = init;
     window.renderPlanningStats = renderStatsCard;
-    // Sınıf paneli (social.js) gibi dış yerlerden doğrudan Ders Planı modalını açmak için
-    window.openLessonPlanModal = openLessonPlanModal;
+    // openLessonPlanModal artık planning-lesson-plan-modal.js'te tanımlanıyor
+    // (sınıf paneli/social.js gibi dış yerlerden window.openLessonPlanModal ile açılır).
     // social.js'in collab_goal_deleted bildiriminde çağırdığı API
     window._convertGoalToSoloById = _convertGoalToSolo;
     window._deleteGoalSilently    = deleteGoal;
