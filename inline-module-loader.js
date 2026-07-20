@@ -51,6 +51,7 @@
             () => import('./planning-dependency-graph.js'),
             () => import('./planning-lesson-plan-modal.js'),
             () => import('./planning-realtime.js'),
+            () => import('./planning-milestone-wizard.js'),
             () => import('./planning.js'),
             () => import('./planning-utils.js'),
             () => import('./planning-quick-create.js'),
