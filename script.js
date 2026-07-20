@@ -1518,132 +1518,24 @@ document.addEventListener('DOMContentLoaded', () => {
      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
      dateDisplay.textContent = new Date().toLocaleDateString('tr-TR', options);
  
-     const timeOptionsList = [];
-     for (let h = 0; h < 24; h++) {
-         for (let m = 0; m < 60; m += 30) {
-             timeOptionsList.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
-         }
-     }
-     // 23:59 sınırı tamamen kaldırıldı, menü 23:30'dan sonra otomatik 00:00'a atlamaya hazır.
+     // timeOptionsList, updateEndPicker, initCustomTimePicker (+ dropdown dışına
+     // tıklayınca kapatma dinleyicisi) -> script-time-picker.js dosyasına taşındı
+     // (Faz 2, 2026-07-20). window.updateEndPicker/window.initCustomTimePicker
+     // köprüsüyle erişilir. Yükleme sırası önemsiz (bkz. o dosyanın başlığı).
  
-     function updateEndPicker(inputIdPrefix, newTime) {
-         const display = document.getElementById(`${inputIdPrefix}-display`);
-         const input = document.getElementById(inputIdPrefix);
-         const dropdown = document.getElementById(`${inputIdPrefix}-dropdown`);
- 
-         if (display && input) {
-             display.textContent = newTime;
-             input.value = newTime;
-         }
- 
-         if (dropdown) {
-             dropdown.querySelectorAll('.custom-time-option').forEach(opt => {
-                 opt.classList.remove('selected');
-                 if (opt.textContent === newTime) opt.classList.add('selected');
-             });
-         }
-     }
- 
-     function initCustomTimePicker(boxId, displayId, inputId, dropdownId, onChangeCallback = null) {
-         const box = document.getElementById(boxId);
-         const display = document.getElementById(displayId);
-         const input = document.getElementById(inputId);
-         const dropdown = document.getElementById(dropdownId);
- 
-         if (!box || !dropdown || !input) return;
- 
-         dropdown.innerHTML = '';
-         
-         const loopCount = 3; // Sonsuzluk hissi için listeyi 3 kez kopyalıyoruz
-         let targetLi = null;
- 
-         // Listeyi 3 tur yazdır
-         for (let i = 0; i < loopCount; i++) {
-             timeOptionsList.forEach(time => {
-                 const li = document.createElement('li');
-                 li.className = 'custom-time-option';
-                 li.textContent = time;
-                 
-                 li.addEventListener('click', (e) => {
-                     e.stopPropagation(); 
-                     display.textContent = time;
-                     input.value = time;
-                     
-                     dropdown.classList.remove('show');
-                     box.classList.remove('active');
-                     if (onChangeCallback) onChangeCallback(time);
-                 });
-                 dropdown.appendChild(li);
-             });
-         }
- 
-         // --- YENİ EKLENEN: Gerçek Sonsuz Döngü (Infinite Scroll) Sihri ---
-         dropdown.addEventListener('scroll', () => {
-             const oneCycleHeight = dropdown.scrollHeight / loopCount;
-             
-             // Kullanıcı en tepeye kaydırırsa, hissettirmeden orta döngüye ışınla
-             if (dropdown.scrollTop < 10) {
-                 dropdown.scrollTop += oneCycleHeight;
-             }
-             // Kullanıcı en aşağı kaydırırsa, hissettirmeden orta döngüye ışınla
-             else if (dropdown.scrollTop + dropdown.clientHeight > dropdown.scrollHeight - 10) {
-                 dropdown.scrollTop -= oneCycleHeight;
-             }
-         });
- 
-         box.addEventListener('click', (e) => {
-             e.stopPropagation();
-            document.querySelectorAll('.custom-time-dropdown').forEach(d => {
-                if (d !== dropdown) { d.classList.remove('show'); d.classList.add('hidden'); }
-            });
-            document.querySelectorAll('.time-box').forEach(b => {
-                if (b !== box) b.classList.remove('active');
-            });
- 
-            // 'hidden' sınıfı 'display:none !important' uyguladığından, açılırken kaldırılmalı
-            dropdown.classList.remove('hidden');
-            dropdown.classList.toggle('show');
-            box.classList.toggle('active');
-            if (!dropdown.classList.contains('show')) dropdown.classList.add('hidden');
-             
-             if (dropdown.classList.contains('show')) {
-                 // Menü açıldığında her zaman ORTADAKİ döngüdeki saati bul ve oraya odaklan
-                 const options = Array.from(dropdown.children);
-                 const middleStartIndex = timeOptionsList.length;
-                 const middleEndIndex = timeOptionsList.length * 2;
-                 
-                 let currentSelected = options.find((child, index) => {
-                     return child.textContent === input.value && index >= middleStartIndex && index < middleEndIndex;
-                 });
-                 
-                 if (currentSelected) {
-                     options.forEach(opt => opt.classList.remove('selected'));
-                     currentSelected.classList.add('selected');
-                     // Menüyü tam o saatin üzerine ortala
-                     dropdown.scrollTop = currentSelected.offsetTop - (dropdown.clientHeight / 2) + (currentSelected.clientHeight / 2);
-                 }
-             }
-         });
-     }
- 
-     document.addEventListener('click', () => {
-         document.querySelectorAll('.custom-time-dropdown').forEach(d => d.classList.remove('show'));
-         document.querySelectorAll('.time-box').forEach(b => b.classList.remove('active'));
-     });
- 
-     initCustomTimePicker('task-time-start-box', 'task-time-start-display', 'task-time-start', 'task-time-start-dropdown', (newTime) => {
+     window.initCustomTimePicker('task-time-start-box', 'task-time-start-display', 'task-time-start', 'task-time-start-dropdown', (newTime) => {
          const nextTime = window.addOneHour(newTime);
-         updateEndPicker('task-time-end', nextTime);
+         window.updateEndPicker('task-time-end', nextTime);
      });
-     initCustomTimePicker('task-time-end-box', 'task-time-end-display', 'task-time-end', 'task-time-end-dropdown');
+     window.initCustomTimePicker('task-time-end-box', 'task-time-end-display', 'task-time-end', 'task-time-end-dropdown');
  
-     initCustomTimePicker('event-time-start-box', 'event-time-start-display', 'event-time-start', 'event-time-start-dropdown', (newTime) => {
+     window.initCustomTimePicker('event-time-start-box', 'event-time-start-display', 'event-time-start', 'event-time-start-dropdown', (newTime) => {
          const nextTime = window.addOneHour(newTime);
-         updateEndPicker('event-time-end', nextTime);
+         window.updateEndPicker('event-time-end', nextTime);
      });
-     initCustomTimePicker('event-time-end-box', 'event-time-end-display', 'event-time-end', 'event-time-end-dropdown');
+     window.initCustomTimePicker('event-time-end-box', 'event-time-end-display', 'event-time-end', 'event-time-end-dropdown');
  
-     initCustomTimePicker('wiz-time-start-box', 'wiz-time-start-display', 'wiz-new-task-start', 'wiz-time-start-dropdown', (newTime) => {
+     window.initCustomTimePicker('wiz-time-start-box', 'wiz-time-start-display', 'wiz-new-task-start', 'wiz-time-start-dropdown', (newTime) => {
          const nextTime = window.addOneHour(newTime);
          const display = document.getElementById('wiz-time-end-display');
          const input = document.getElementById('wiz-new-task-end');
@@ -1656,7 +1548,7 @@ document.addEventListener('DOMContentLoaded', () => {
              });
          }
      });
-     initCustomTimePicker('wiz-time-end-box', 'wiz-time-end-display', 'wiz-new-task-end', 'wiz-time-end-dropdown');
+     window.initCustomTimePicker('wiz-time-end-box', 'wiz-time-end-display', 'wiz-new-task-end', 'wiz-time-end-dropdown');
  
      
      function saveMindDumps() {
@@ -3391,7 +3283,7 @@ document.addEventListener('DOMContentLoaded', () => {
                  }), 0);
  
                  const _burstEl = document.querySelector(`[onclick*="toggleTask('${id}')"]`);
-                 if (_burstEl) { const _r = _burstEl.getBoundingClientRect(); microBurst(_r.left + _r.width / 2, _r.top + _r.height / 2); }
+                 if (_burstEl) { const _r = _burstEl.getBoundingClientRect(); window.microBurst(_r.left + _r.width / 2, _r.top + _r.height / 2); }
 
                  if (window.FocusAISocial && typeof window.FocusAISocial.postActivity === 'function') {
                      window.FocusAISocial.postActivity(`"${task.text}" görevini tamamladı ✅`);
@@ -3605,8 +3497,8 @@ document.addEventListener('DOMContentLoaded', () => {
      
      // Arayüzdeki seçici saatleri bir sonraki boş saat dilimine ilerlet (örn. 09-10 eklendiyse 10-11 önerilir)
      const nextSlot = getNextAvailableTimeSlot(taskDateStr, window.timeToMins(timeEnd) - window.timeToMins(timeStart) || 60);
-     updateEndPicker('task-time-start', nextSlot.start);
-     updateEndPicker('task-time-end', nextSlot.end);
+     window.updateEndPicker('task-time-start', nextSlot.start);
+     window.updateEndPicker('task-time-end', nextSlot.end);
 
      renderTasks();
      if(renderCalendarRef && renderEventsRef) { renderCalendarRef(); renderEventsRef(); }
@@ -3626,8 +3518,8 @@ document.addEventListener('DOMContentLoaded', () => {
              if (!open) {
                  const todayStr = window.formatDateToString(new Date());
                  const nextSlot = getNextAvailableTimeSlot(todayStr);
-                 updateEndPicker('task-time-start', nextSlot.start);
-                 updateEndPicker('task-time-end', nextSlot.end);
+                 window.updateEndPicker('task-time-start', nextSlot.start);
+                 window.updateEndPicker('task-time-end', nextSlot.end);
                  const inp = document.getElementById('task-input'); if(inp) inp.focus();
              }
          });
@@ -6130,8 +6022,8 @@ document.addEventListener('DOMContentLoaded', () => {
          
          // Bir sonraki görev ekleme pratikliği için zaman seçicilerini bir sonraki boş dilime ilerlet
          const nextSlot = getNextAvailableTimeSlot(d, window.timeToMins(timeEnd) - window.timeToMins(timeStart) || 60);
-         updateEndPicker('event-time-start', nextSlot.start);
-         updateEndPicker('event-time-end', nextSlot.end);
+         window.updateEndPicker('event-time-start', nextSlot.start);
+         window.updateEndPicker('event-time-end', nextSlot.end);
          eventPriority.value = 'medium';
  
          closeEventModal();
@@ -6152,8 +6044,8 @@ document.addEventListener('DOMContentLoaded', () => {
          }
          if (selectedDate) {
              const nextSlot = getNextAvailableTimeSlot(window.formatDateToString(selectedDate));
-             updateEndPicker('event-time-start', nextSlot.start);
-             updateEndPicker('event-time-end', nextSlot.end);
+             window.updateEndPicker('event-time-start', nextSlot.start);
+             window.updateEndPicker('event-time-end', nextSlot.end);
          }
          eventCreateModal.classList.remove('hidden');
          setTimeout(() => { const inp = document.getElementById('event-input'); if(inp) inp.focus(); }, 60);
@@ -10382,83 +10274,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
  // --- SÜRESİ DOLAN HEDEFİ AKTİFE GERİ TAŞIMA (Süreyi Uzat) → script-goal-deadline-extend.js dosyasına taşındı ---
 
- function microBurst(originX, originY) {
-     const COLORS = ['#6c5ce7','#a29bfe','#2ed573','#ff9f43','#feca57','#fd79a8','#74b9ff'];
-     const COUNT  = 16;
-     for (let i = 0; i < COUNT; i++) {
-         const angle    = (i / COUNT) * Math.PI * 2;
-         const distance = 38 + Math.random() * 32;
-         const size     = 5 + Math.random() * 5;
-         const d        = document.createElement('div');
-         Object.assign(d.style, {
-             position:     'fixed',
-             left:         (originX - size / 2) + 'px',
-             top:          (originY - size / 2) + 'px',
-             width:        size + 'px',
-             height:       size + 'px',
-             borderRadius: '50%',
-             background:   COLORS[i % COLORS.length],
-             pointerEvents:'none',
-             zIndex:       '999997',
-             opacity:      '1',
-             transition:   'none',
-             willChange:   'transform, opacity',
-         });
-         document.body.appendChild(d);
-         requestAnimationFrame(() => {
-             requestAnimationFrame(() => {
-                 d.style.transition = 'transform 0.55s cubic-bezier(.25,.46,.45,.94), opacity 0.55s ease';
-                 d.style.transform  = `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px) scale(0)`;
-                 d.style.opacity    = '0';
-             });
-         });
-         setTimeout(() => d.remove(), 700);
-     }
- }
- 
- // Görsel Şölen: Konfeti Animasyonu
- function fireConfetti() {
-     const canvas = document.getElementById('confetti-canvas');
-     if(!canvas) return;
-     const ctx = canvas.getContext('2d');
-     canvas.width = window.innerWidth;
-     canvas.height = window.innerHeight;
- 
-     const particles = [];
-     const colors = ['#2ed573', '#ff9f43', '#ff4757', '#6c5ce7', '#feca57'];
- 
-     for(let i=0; i<150; i++) {
-         particles.push({
-             x: canvas.width / 2, y: canvas.height / 2 + 50,
-             r: Math.random() * 6 + 2, dx: Math.random() * 15 - 7.5, dy: Math.random() * -15 - 5,
-             color: colors[Math.floor(Math.random() * colors.length)],
-             tilt: Math.random() * 10, tiltAngle: 0, tiltAngleInc: (Math.random() * 0.07) + 0.05
-         });
-     }
- 
-     let animationId;
-     function render() {
-         ctx.clearRect(0, 0, canvas.width, canvas.height);
-         let active = false;
-         particles.forEach(p => {
-             p.tiltAngle += p.tiltAngleInc;
-             p.y += (Math.cos(p.tiltAngle) + 1 + p.r / 2) / 2;
-             p.x += Math.sin(p.tiltAngle) * 2;
-             p.dy += 0.15; p.x += p.dx; p.y += p.dy;
-             
-             if(p.y <= canvas.height) active = true;
- 
-             ctx.beginPath(); ctx.lineWidth = p.r; ctx.strokeStyle = p.color;
-             ctx.moveTo(p.x + p.tilt + p.r, p.y); ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r);
-             ctx.stroke();
-         });
-         if(active) animationId = requestAnimationFrame(render);
-         else ctx.clearRect(0, 0, canvas.width, canvas.height);
-     }
-     render();
-     setTimeout(() => cancelAnimationFrame(animationId), 5000); // 5 saniye sonra temizle
- }
- window.fireConfetti = fireConfetti; // social.js gibi diğer scriptlerden (grup hedefi kutlaması) erişim için
+ // microBurst, fireConfetti -> script-confetti.js dosyasına taşındı (Faz 2,
+ // 2026-07-20). Paylaşılan state yok, window.microBurst/window.fireConfetti
+ // köprüsüyle erişilir. Yükleme sırası önemsiz (bu modülün çağrıları hep
+ // olay tetikleyicileri içinde, script.js'in kendi DOMContentLoaded'ının
+ // en üst seviyesinde değil).
 
  // ============ ALIŞKANLIK DÜZENLEME SİSTEMİ ============
  const editHabitModal = document.getElementById('edit-habit-modal');
