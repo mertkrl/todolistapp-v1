@@ -269,7 +269,7 @@ def main():
         'script.js', 'script-ambient-sounds.js', 'script-undo-toast.js', 'script-nlp.js',
         'script-system-settings.js', 'script-profile-edit.js', 'script-settings-steppers.js',
         'planning-wizard-info-tooltip.js', 'planning-ghost-toast.js',
-        'planning.js', 'social.js', 'social-toast.js', 'social-e2e.js', 'collab.js', 'auth-ui.js',
+        'planning.js', 'social.js', 'social-toast.js', 'social-e2e.js', 'social-productivity-share.js', 'collab.js', 'auth-ui.js',
         'social-roles.js', 'social-gamification.js', 'social-chat-extras.js', 'social-polls.js',
         'social-notif-sounds.js', 'social-buddy-habits.js', 'social-online-friends.js',
         'social-activity-feed.js', 'social-daily-race.js', 'social-online-people-popover.js',
