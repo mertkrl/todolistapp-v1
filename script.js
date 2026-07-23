@@ -129,11 +129,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // çağırıyor).
      const monthNames = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
      const monthNamesShort = ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"];
+     window.monthNames = monthNames; window.monthNamesShort = monthNamesShort; // Faz 6: script-statistics.js için
      const dayNames = ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'];
  
      // getWeekNumber → script-date-time-utils.js dosyasına taşındı.
  
      const currentWeekStr = new Date().getFullYear() + "-W" + window.getWeekNumber(new Date());
+     window.currentWeekStr = currentWeekStr; // Faz 6: script-plan-wizard.js için köprü
  
      let tasks = Store.tasks.get();
      tasks = tasks.map(t => {
@@ -171,7 +173,8 @@ document.addEventListener('DOMContentLoaded', () => {
      }
  
      const DEFAULT_HABIT_CATEGORY_IDS = ['genel', 'saglik', 'kisisel-gelisim'];
-     let habitCategories = FocusStorage.get('habit_categories', [
+     window.__getHabitCategoriesRef = () => habitCategories; // Faz 6: script-convert-modal.js için
+    let habitCategories = FocusStorage.get('habit_categories', [
          { id: 'genel', name: 'Genel' }, { id: 'saglik', name: 'Sağlık' }, { id: 'kisisel-gelisim', name: 'Kişisel Gelişim' }
      ]);
  
@@ -284,12 +287,14 @@ document.addEventListener('DOMContentLoaded', () => {
      // güncel referansı her çağrıda döndürür (değişkenler yeniden atandığında
      // -ör. tasks = tasks.map(...) gibi- de güncel kalır, closure sayesinde).
      window.__getTasksRef = () => tasks;
+    window.__setTasksRef = (v) => { tasks = v; }; // Faz 6: script-plan-wizard.js için (ilk kez tasks setter — dikkatli kullanılmalı)
      window.__getGoalsRef = () => goals;
      // script-goal-modal.js (Faz 2, 2026-07-20) deleteGoal içinde `goals = goals.filter(...)`
      // ile yeniden atama yapıyor — salt-okunur getter yetmediği için setter da eklendi.
      window.__setGoalsRef = (arr) => { goals = arr; };
      window.__getHabitsRef = () => habits;
      window.__getMindDumpsRef = () => mindDumps;
+    window.__setMindDumpsRef = (v) => { mindDumps = v; }; // Faz 6: script-convert-modal.js için
     window.__getCalendarEventsRef = () => calendarEvents;
 
      // Zihin çöplüğü hızlı/dip friksiyonlu bir yakalama alanı olmalı — sınırsız
@@ -307,6 +312,10 @@ document.addEventListener('DOMContentLoaded', () => {
      // kontrolleri zaten bunu güvenle ele alıyor).
      window.__getRenderStatisticsRef  = () => renderStatisticsRef;
      window.__getRenderSocialStatsRef = () => renderSocialStatsRef;
+     window.__getRenderBuddyHabitsRef = () => renderBuddyHabitsRef; // Faz 6: script-habit-sync.js için
+     window.__getRenderCalendarRef    = () => renderCalendarRef;
+     window.__getRenderEventsRef      = () => renderEventsRef;
+     window.__getRenderHabitsRef      = () => renderHabitsRef;
  
      // --- GELİŞMİŞ AKILLI METİN ALGILAMA (NLP) MOTORU → script-nlp.js dosyasına taşındı ---
  
@@ -1466,7 +1475,7 @@ document.addEventListener('DOMContentLoaded', () => {
                  if (window.renderCalendarGlobal) window.renderCalendarGlobal();
              } else if (action === 'cdd-edit-task') {
                  e.stopPropagation();
-                 editTask(id);
+                 window.editTask(id);
              } else if (action === 'cdd-delete-task') {
                  e.stopPropagation();
                  deleteGlobalTask(id, date);
@@ -1475,7 +1484,7 @@ document.addEventListener('DOMContentLoaded', () => {
                      if (window.renderCalendarGlobal) window.renderCalendarGlobal();
                  }, 80);
              } else if (action === 'cdd-toggle-habit') {
-                 toggleHabitFromToday(id, date);
+                 window.toggleHabitFromToday(id, date);
                  window.renderDayDrawer(date);
              }
          });
@@ -1483,240 +1492,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // window.deleteMindDump, window.startDumpEdit -> script-mind-dump.js dosyasına
     // taşındı (Faz 2, 2026-07-20).
- 
-     const convertModal = document.getElementById('convert-dump-modal');
-     const convertIdInput = document.getElementById('convert-dump-id');
-     const convertTextInput = document.getElementById('convert-dump-text');
-     
-     // YENİ TANIMLAMALAR
-     const dumpTaskFields = document.getElementById('dump-task-fields');
-     const dumpHabitFields = document.getElementById('dump-habit-fields');
-     const dumpGoalFields = document.getElementById('dump-goal-fields');
-     
-     const convertDateInput = document.getElementById('convert-dump-date');
-     const convertStartTimeInput = document.getElementById('convert-dump-start-time');
-     const convertEndTimeInput = document.getElementById('convert-dump-end-time');
-     const convertParentGoal = document.getElementById('convert-dump-parent-goal');
-     const convertPriorityInput = document.getElementById('convert-dump-priority');
-     const convertTaskRecurring = document.getElementById('convert-dump-task-recurring');
-     
-     const convertHabitCat = document.getElementById('convert-dump-habit-category');
-     const convertHabitDuration = document.getElementById('convert-dump-habit-duration');
-     
-     const dumpOpenGoalBtn = document.getElementById('dump-open-goal-modal-btn');
-     const dumpTypeRadios = document.querySelectorAll('input[name="dump_type"]');
-     const dumpTypeBtns = document.querySelectorAll('.dump-type-btn');
- 
-     const saveConvertBtn = document.getElementById('save-convert-dump-btn');
-     const closeConvertBtn = document.getElementById('close-convert-dump-btn');
-     const cancelConvertBtn = document.getElementById('cancel-convert-dump-btn');
- 
-     // TÜR DEĞİŞİMİ DİNLEYİCİSİ
-     dumpTypeRadios.forEach(radio => {
-         radio.addEventListener('change', (e) => {
-             dumpTypeBtns.forEach(btn => {
-                 btn.classList.remove('active');
-                 btn.style.background = 'var(--glass-bg)';
-                 btn.style.color = 'var(--text-muted)';
-                 btn.style.borderColor = 'var(--glass-border)';
-             });
-             
-             const selectedLabel = e.target.closest('label').querySelector('.dump-type-btn');
-             selectedLabel.classList.add('active');
-             selectedLabel.style.background = 'rgba(108, 92, 231, 0.2)';
-             selectedLabel.style.color = '#fff';
-             selectedLabel.style.borderColor = 'var(--primary-color)';
- 
-             const val = e.target.value;
-             dumpTaskFields.style.display = 'none';
-             dumpHabitFields.style.display = 'none';
-             dumpGoalFields.style.display = 'none';
-             saveConvertBtn.style.display = 'block';
- 
-             if(val === 'task') {
-                 dumpTaskFields.style.display = 'block';
-                 saveConvertBtn.innerHTML = '<i class="fa-solid fa-check"></i> Planla & Taşı';
-             } else if(val === 'habit') {
-                 dumpHabitFields.style.display = 'block';
-                 saveConvertBtn.innerHTML = '<i class="fa-solid fa-leaf"></i> Alışkanlık Yarat';
-                 
-                 // KATEGORİLERİ SENKRONİZE ET (Alışkanlıklar sekmesiyle aynı yapar)
-                 convertHabitCat.innerHTML = '';
-                 habitCategories.forEach(cat => {
-                     const opt = document.createElement('option');
-                     opt.value = cat.id; 
-                     opt.textContent = cat.name;
-                     convertHabitCat.appendChild(opt);
-                 });
-             } else if(val === 'goal') {
-                 dumpGoalFields.style.display = 'block';
-                 saveConvertBtn.style.display = 'none'; // Ana hedefte detaylı form açılır
-             }
-         });
-     });
- 
-     window.openConvertModal = function(id) {
-         const dump = mindDumps.find(d => String(d.id) === String(id));
-         if(!dump) return;
-         
-         convertIdInput.value = dump.id;
-         convertTextInput.value = dump.text;
-         
-         document.querySelector('input[name="dump_type"][value="task"]').click(); // Görevi varsayılan yap
-         
-         if (convertDateInput._flatpickr) {
-            convertDateInput._flatpickr.setDate(new Date(), false);
-        } else {
-            convertDateInput.value = window.formatDateToString(new Date());
-        }
-         convertPriorityInput.value = 'medium';
-         if(convertTaskRecurring) convertTaskRecurring.value = '';
-         if(convertStartTimeInput) convertStartTimeInput.value = '09:00';
-         if(convertEndTimeInput) convertEndTimeInput.value = '10:00';
-         if(convertParentGoal) convertParentGoal.value = '';
-         
-         convertModal.classList.remove('hidden');
-     }
- 
-     if (convertStartTimeInput && convertEndTimeInput) {
-         convertStartTimeInput.addEventListener('change', () => {
-             convertEndTimeInput.value = window.addOneHour(convertStartTimeInput.value);
-         });
-     }
- 
-     function closeConvertModal() {
-         convertModal.classList.add('hidden');
-     }
- 
-     if(closeConvertBtn) closeConvertBtn.addEventListener('click', closeConvertModal);
-     if(cancelConvertBtn) cancelConvertBtn.addEventListener('click', closeConvertModal);
- 
-     // HEDEF MODALINA YÖNLENDİRME (Ana Hedef Seçilirse)
-     if(dumpOpenGoalBtn) {
-         dumpOpenGoalBtn.addEventListener('click', () => {
-             const id = convertIdInput.value;
-             const text = convertTextInput.value.trim();
-             
-             closeConvertModal();
-             openGoalModal(); 
-             document.getElementById('goal-title-input').value = text; 
-             
-             mindDumps = mindDumps.filter(d => String(d.id) !== String(id));
-             window.saveMindDumps();
-             window.renderMindDumps();
-         });
-     }
- 
-     // SİSTEME EKLE BUTONU (Görev veya Alışkanlık)
-     if(saveConvertBtn) {
-         saveConvertBtn.addEventListener('click', () => {
-             const id = convertIdInput.value;
-             const text = convertTextInput.value.trim();
-             const type = document.querySelector('input[name="dump_type"]:checked').value;
- 
-             if(!text) return;
- 
-             if(type === 'task') {
-                const rawDate = convertDateInput.value;
-                let date;
-                if (/^\d{4}-\d{2}-\d{2}$/.test(rawDate)) {
-                    const [y, m, d] = rawDate.split('-');
-                    date = `${d}-${m}-${y}`;
-                } else {
-                    date = rawDate;
-                }
-                 const priority = convertPriorityInput.value;
-                 const start = convertStartTimeInput.value;
-                 const end = convertEndTimeInput.value;
-                 const parentGoal = convertParentGoal ? convertParentGoal.value : '';
-
-                    // --- YENİ: Ana Hedef Tarih Sınırı Kontrolü ---
-                    if (!checkGoalDateBoundaries(parentGoal, date)) {
-                        return;
-                    }
-
-                 const recurring = convertTaskRecurring ? convertTaskRecurring.value : '';
-                 
-                 if(!date || !start || !end) {
-                     showPremiumModal({ title: 'Eksik Bilgi', message: 'Lütfen görev için bir başlangıç ve bitiş saati belirleyin.', type: 'warning' });
-                     return;
-                 }
- 
-                 const startMins = window.timeToMins(start);
-                 const endMins = window.timeToMins(end);
- 
-                 if(startMins >= endMins) {
-                     showPremiumModal({ title: 'Hatalı Zaman', message: 'Bitiş saati başlangıçtan önce veya aynı olamaz.', type: 'warning' });
-                     return;
-                 }
- 
-                 if(hasTimeConflict(date, startMins, endMins)) {
-                     showPremiumModal({ title: 'Zaman Çakışması', message: 'Bu saatte takviminizde başka plan var.', type: 'warning' });
-                     return;
-                 }
- 
-                 addSmartTask(text, priority, 'kisisel', date, start, end, '', parentGoal, recurring);
-                 if(!recurring) {
-                     showPremiumModal({ title: 'Başarılı!', message: 'Fikriniz başarıyla bir göreve dönüştürüldü.', type: 'success' });
-                 }
-                 if (window.FocusAISocial && typeof window.FocusAISocial.postActivity === 'function') {
-                     window.FocusAISocial.postActivity(`"${text}" fikrini göreve dönüştürdü 💡`);
-                 }
-             } 
-             else if (type === 'habit') {
-                 const category = convertHabitCat.value;
-                 const duration = parseInt(convertHabitDuration.value) || 21;
-                 const iconMap = { 'health': 'fa-heart-pulse', 'education': 'fa-book-open', 'finance': 'fa-wallet', 'social': 'fa-users', 'work': 'fa-briefcase', 'other': 'fa-star' };
-                 
-                 habits.push({ 
-                     id: generateId(),
-                     name: text, 
-                     icon: iconMap[category] || 'fa-star', 
-                     targetDays: duration, 
-                     category: category,
-                     startDate: window.formatDateToString(new Date()),
-                     buddy: 'none', 
-                     parentGoals: [],
-                     history: {} 
-                 });
-                 saveHabits();
-                 renderHabits();
-                 showPremiumModal({ title: 'Başarılı!', message: 'Fikriniz yeni bir alışkanlığa dönüştürüldü.', type: 'success' });
-             }
- 
-            // Ortak: Çöplükten sil ve yenile
-            mindDumps = mindDumps.filter(d => String(d.id) !== String(id));
-            
-            // Fikir dönüşüm günlüğünü veritabanına tarihli kaydet
-            let conversionLog = FocusStorage.get('mind_dump_conversions', []);
-            conversionLog.push({ id: id, date: window.formatDateToString(new Date()) });
-            FocusStorage.set('mind_dump_conversions', conversionLog);
- 
-            window.saveMindDumps();
-            window.renderMindDumps();
-             
-             renderTasks();
-             if(renderCalendarRef) renderCalendarRef();
-             if(renderEventsRef) renderEventsRef();
-             if(renderStatisticsRef && document.getElementById('istatistikler').classList.contains('active')) renderStatisticsRef();
-             
-             // GÜNCELLEME: Takvimin aktif görünüm moduna (Aylık/Haftalık/Günlük) göre arayüzü ve havuzu zorunlu yenile
-                setTimeout(() => {
-                    if (typeof renderCalendar === 'function') renderCalendar();
-                    if (typeof renderEvents === 'function') renderEvents();
-                    if (typeof renderCalMindDump === 'function') renderCalMindDump();
-                    if (typeof window.renderCalMindDump === 'function') window.renderCalMindDump();
-                    if (typeof updateStats === 'function') updateStats();
-                    if (typeof renderTasks === 'function') renderTasks();
-                    
-                    // Aktif takvim görünümlerini (Haftalık/Günlük çipleri) anında yenileyen tetikleyiciler
-                    if (typeof window.renderWeeklyView === 'function') window.renderWeeklyView();
-                    if (typeof window.renderDailyView === 'function') window.renderDailyView();
-                }, 100);
-
-                closeConvertModal();
-        });
-    }
  
      const taskInput = document.getElementById('task-input');
      const taskParentSelect = document.getElementById('task-parent-habit');
@@ -1920,6 +1695,7 @@ document.addEventListener('DOMContentLoaded', () => {
      };
      // Öncelik rengi (küçük köşe nokta için)
      const PRIORITY_DOT_COLOR = { high: '#ff4757', medium: '#D4900E', low: '#2ed573' };
+    window.PRIORITY_DOT_COLOR = PRIORITY_DOT_COLOR; // Faz 6: script-calendar-week-day-view.js için
 
      function getCatColor(catId) {
          if (TASK_CAT_COLORS[catId]) return TASK_CAT_COLORS[catId];
@@ -1945,7 +1721,8 @@ document.addEventListener('DOMContentLoaded', () => {
          { bg: 'rgba(255,234,167,0.82)', border: '#ffeaa7', glow: 'rgba(255,234,167,0.32)' }, // cream
      ];
 
-     function getGoalColor(goalId) {
+     window.getGoalColor = (goalId) => getGoalColor(goalId); // Faz 6: script-calendar-month-view.js için
+    function getGoalColor(goalId) {
          if (!goalId) return null;
          const goal = goals.find(g => String(g.id) === String(goalId));
          if (!goal) return null;
@@ -2349,165 +2126,6 @@ document.addEventListener('DOMContentLoaded', () => {
      }
      window.renderTasks = renderTasks; // script-milestone-goal-actions.js gibi ayrı modüllerden erişim için
 
-     window.changeHabitDailyGoal = function(habitId, dateStr, goalId) {
-         const habit = habits.find(h => String(h.id) === String(habitId));
-         if (habit) {
-             if (!habit.dailyGoals) habit.dailyGoals = {};
-             habit.dailyGoals[dateStr] = goalId;
-             saveHabits();
-             renderGoals(); // <-- Bu satırın eklendiğinden emin ol
-         }
-     };
- 
-     // Bir alışkanlık %25 / %50 / %75 / %100 hedef gününe ulaştığında, o eşiği
-     // ilk geçtiği anda aktivite akışına ayrı bir kayıt düşer (her eşik bir kez).
-     function checkHabitMilestones(habit, oldCount, newCount) {
-         if (!window.FocusAISocial || typeof window.FocusAISocial.postActivity !== 'function') return;
-         const target = habit.targetDays || 21;
-         if (target <= 0) return;
-         [25, 50, 75, 100].forEach(milestone => {
-             const oldPct = (oldCount / target) * 100;
-             const newPct = (newCount / target) * 100;
-             if (oldPct < milestone && newPct >= milestone) {
-                 if (milestone === 100) {
-                     window.FocusAISocial.postActivity(`"${habit.name}" alışkanlığını %100 tamamladı, hedefe ulaştı! 🏆`);
-                 } else {
-                     window.FocusAISocial.postActivity(`"${habit.name}" alışkanlığında %${milestone}'e ulaştı 🔥`);
-                 }
-             }
-         });
-     }
-
-     window.toggleHabitFromToday = function(habitId, dateStr) {
-         const habit = habits.find(h => String(h.id) === String(habitId));
-         if (habit) {
-             const willComplete = !habit.history[dateStr];
-             const oldCount = Object.keys(habit.history).length;
-
-             if (willComplete) {
-                 habit.history[dateStr] = true;
-             } else {
-                 delete habit.history[dateStr];
-             }
-
-             // --- SİNERJİ: Alışkanlığa bağlı BUGÜNKÜ Görevleri de otomatik tamamla/kaldır ---
-             tasks.forEach(t => {
-                 if (String(t.parentHabit) === String(habitId) && t.date === dateStr) {
-                     t.completed = willComplete;
-                 }
-             });
-
-             saveHabits();
-             saveTasks();
-             renderTasks();
-
-             if(typeof renderHabitsRef === 'function') renderHabitsRef();
-             if(typeof renderCalendarRef === 'function') renderCalendarRef();
-             if(typeof renderEventsRef === 'function') renderEventsRef();
-             if(typeof renderGoals === 'function') renderGoals();
-             // Hedef detay modalı açıksa ilerlemeyi anında güncelle
-             const detailModal = document.getElementById('goal-details-modal');
-             const detailGoalId = document.getElementById('detail-active-goal-id');
-             if (detailModal && !detailModal.classList.contains('hidden') && detailGoalId && detailGoalId.value) {
-                 if(typeof updateGoalDetailsUI === 'function') updateGoalDetailsUI(detailGoalId.value);
-             }
-
-             if (willComplete && window.FocusAISocial && typeof window.FocusAISocial.postActivity === 'function') {
-                 window.FocusAISocial.postActivity(`"${habit.name}" alışkanlığını tamamladı 🔥`);
-                 checkHabitMilestones(habit, oldCount, oldCount + 1);
-             }
-         }
-     }
- 
-     // Ortak odaklanma odası (social.js) bugünün görevlerini listeleyip kullanıcıya
-     // "hangi göreve odaklanacaksın?" seçeneği sunabilsin diye basit bir global erişim sağlar.
-     window.getTodayTasksForFocus = function() {
-         try {
-             const todayStr = window.formatDateToString(new Date());
-             return tasks
-                 .filter(t => t.date === todayStr && !t.completed && !t.isLessonPlanDraft)
-                 .map(t => ({ id: t.id, text: t.text }));
-         } catch (e) {
-             return [];
-         }
-     };
-
-     // Ortak alışkanlık (buddy habit) entegrasyonu için social.js'in çağırdığı global yardımcılar.
-     // Bir günü "tamamlandı" olarak işaretler — zaten tamamlanmışsa dokunmaz (idempotent, toggle değildir).
-     window.markHabitCompleteForDate = function(habitId, dateStr) {
-         const habit = habits.find(h => String(h.id) === String(habitId));
-         if (!habit || habit.history[dateStr]) return false;
-
-         const oldCount = Object.keys(habit.history).length;
-         habit.history[dateStr] = true;
-         tasks.forEach(t => {
-             if (String(t.parentHabit) === String(habitId) && t.date === dateStr) t.completed = true;
-         });
-
-         checkHabitMilestones(habit, oldCount, oldCount + 1);
-
-         saveHabits();
-         saveTasks();
-         renderTasks();
-         if(typeof renderHabitsRef === 'function') renderHabitsRef();
-         if(typeof renderCalendarRef === 'function') renderCalendarRef();
-         if(typeof renderEventsRef === 'function') renderEventsRef();
-         if(typeof renderGoals === 'function') renderGoals();
-         if(typeof renderBuddyHabitsRef === 'function') renderBuddyHabitsRef();
-         return true;
-     };
-
-     // Davet kabul edildiğinde / partner kabul ettiğinde ortak alışkanlığı yerel listeye ekler.
-     window.addBuddyHabitLocal = function(habitData) {
-         if (habits.some(h => String(h.id) === String(habitData.id))) return false;
-         habits.push({
-             id: habitData.id,
-             name: habitData.name,
-             icon: habitData.icon || 'fa-repeat',
-             targetDays: habitData.targetDays || 21,
-             category: habitData.category || 'genel',
-             startDate: habitData.startDate || window.formatDateToString(new Date()),
-             buddy: habitData.buddy,
-             pairId: habitData.pairId,
-             parentGoals: habitData.parentGoals || [],
-             history: {}
-         });
-         saveHabits(); renderHabits(); renderTasks();
-         if(renderCalendarRef) renderCalendarRef();
-         if(renderEventsRef) renderEventsRef();
-         if(renderBuddyHabitsRef && document.getElementById('arkadaslar').classList.contains('active')) renderBuddyHabitsRef();
-         return true;
-     };
-
-     // Ortak alışkanlığı solo'ya çevir (buddy/pairId'yi kaldır)
-     window.convertBuddyHabitToSolo = function(habitId) {
-         const h = habits.find(h => String(h.id) === String(habitId));
-         if (!h) return;
-         h.buddy = null;
-         h.pairId = null;
-         saveHabits();
-         if (typeof renderHabits === 'function') renderHabits();
-         if (typeof renderBuddyHabitsRef === 'function') renderBuddyHabitsRef();
-         // Supabase'den de sil (artık buddy değil)
-         if (window.FocusSupabase && window.currentUser?.id) {
-             window.FocusSupabase.from('buddy_habits').delete().eq('id', String(habitId)).then(() => {});
-         }
-     };
-
-     // Alışkanlığı id'ye göre tamamen sil
-     window.deleteHabitById = function(habitId) {
-         const idx = habits.findIndex(h => String(h.id) === String(habitId));
-         if (idx === -1) return;
-         habits.splice(idx, 1);
-         saveHabits();
-         if (typeof renderHabits === 'function') renderHabits();
-         if (typeof renderGoals === 'function') renderGoals();
-         if (typeof renderBuddyHabitsRef === 'function') renderBuddyHabitsRef();
-         if (window.FocusSupabase && window.currentUser?.id) {
-             window.FocusSupabase.from('buddy_habits').delete().eq('id', String(habitId)).then(() => {});
-         }
-     };
-
      function playTaskCompleteSound() {
          const cfg = FocusStorage.get('system_settings', { tasksound: true });
          if (cfg.tasksound === false) return;
@@ -2665,7 +2283,8 @@ document.addEventListener('DOMContentLoaded', () => {
          }
      }
  
-     function addSmartTask(text, priority, category, startDateStr, start, end, parentHabit, parentGoal, recurring) {
+     window.addSmartTask = (...args) => addSmartTask(...args); // Faz 6: script-convert-modal.js için
+    function addSmartTask(text, priority, category, startDateStr, start, end, parentHabit, parentGoal, recurring) {
          if (!recurring) {
              // Rutin değilse normal şekilde 1 tane ekle geç
              addGlobalTask(text, priority, category, startDateStr, start, end, parentHabit, parentGoal, "", "");
@@ -2788,125 +2407,6 @@ document.addEventListener('DOMContentLoaded', () => {
          });
      }
  
-     const editTaskModal       = document.getElementById('edit-task-modal');
-     const editTaskIdInput     = document.getElementById('edit-task-id');
-     const editTaskTextInput   = document.getElementById('edit-task-text');
-     const editTaskParentSelect= document.getElementById('edit-task-parent-habit');
-     const editTaskPriority    = document.getElementById('edit-task-priority');
-     const editTaskCategory    = document.getElementById('edit-task-category');
-     const editTaskStart       = document.getElementById('edit-task-start');
-     const editTaskEnd         = document.getElementById('edit-task-end');
-     const editTaskTimeError   = document.getElementById('edit-task-time-error');
-     const saveEditTaskBtn     = document.getElementById('save-edit-task-btn');
-     const cancelEditTaskBtn   = document.getElementById('cancel-edit-task-btn');
-     const closeEditTaskBtn    = document.getElementById('close-edit-task-btn');
- 
-     function closeEditModal() {
-         if (editTaskModal) editTaskModal.classList.add('hidden');
-         if (editTaskTimeError) editTaskTimeError.style.display = 'none';
-     }
- 
-     window.editTask = function(id) {
-         const task = tasks.find(t => String(t.id) === String(id));
-         if (!task) return;
- 
-         editTaskIdInput.value       = task.id;
-         editTaskTextInput.value     = task.text;
-         if(editTaskParentSelect) editTaskParentSelect.value = task.parentHabit || "";
-         editTaskPriority.value      = task.priority  || 'medium';
-         editTaskCategory.value      = task.category  || 'kisisel';
-         editTaskStart.value         = task.timeStart || '09:00';
-         editTaskEnd.value           = task.timeEnd   || '10:00';
-         editTaskTimeError.style.display = 'none';
- 
-         editTaskModal.classList.remove('hidden');
-         editTaskTextInput.focus();
-     };
- 
-     if (saveEditTaskBtn) {
-         saveEditTaskBtn.addEventListener('click', () => {
-             const id       = editTaskIdInput.value;
-             const newText  = editTaskTextInput.value.trim();
-             const newParent = editTaskParentSelect ? editTaskParentSelect.value : "";
-             const newStart = editTaskStart.value;
-             const newEnd   = editTaskEnd.value;
- 
-             if (!newText) {
-                 editTaskTextInput.focus();
-                 return;
-             }
-             if (window.timeToMins(newStart) >= window.timeToMins(newEnd)) {
-                 editTaskTimeError.style.display = 'block';
-                 return;
-             }
-             editTaskTimeError.style.display = 'none';
- 
-             const task = tasks.find(t => String(t.id) === String(id));
-
-             // --- DÜZENLEME EKRANI HEDEF TARİH SINIRI KONTROLÜ (DÜZELTİLDİ) ---
-             const configGoalSelect = document.getElementById('edit-task-parent-goal');
-             const checkedParentGoal = configGoalSelect ? configGoalSelect.value : (task ? task.parentGoal : '');
-             if (checkedParentGoal && task && !checkGoalDateBoundaries(checkedParentGoal, task.date)) {
-                 return;
-             }
-
-             if (!task) return;
- 
-             const oldDate = task.date;
- 
-             task.text      = newText;
-             task.parentHabit = newParent;
-             task.priority  = editTaskPriority.value;
-             task.category  = editTaskCategory.value;
-             task.timeStart = newStart;
-             task.timeEnd   = newEnd;
- 
-             if (calendarEvents[oldDate]) {
-                 const ev = calendarEvents[oldDate].find(e => String(e.id) === String(id));
-                 if (ev) {
-                     ev.text      = newText;
-                     ev.parentHabit = newParent;
-                     ev.timeStart = newStart;
-                     ev.timeEnd   = newEnd;
-                     ev.priority  = task.priority;
-                 }
-             }
- 
-             saveTasks();
-             renderTasks();
-             if (renderCalendarRef)  renderCalendarRef();
-             if (renderEventsRef)    renderEventsRef();
-             if (typeof window.renderWeeklyView === 'function') window.renderWeeklyView();
-             if (typeof window.renderDailyView  === 'function') window.renderDailyView();
- 
-             closeEditModal();
-         });
-     }
- 
-     if (cancelEditTaskBtn) cancelEditTaskBtn.addEventListener('click', closeEditModal);
-     if (closeEditTaskBtn)  closeEditTaskBtn.addEventListener('click',  closeEditModal);
- 
-     if (editTaskModal) {
-         editTaskModal.addEventListener('click', (e) => {
-             if (e.target === editTaskModal) closeEditModal();
-         });
-     }
- 
-     if (editTaskStart) {
-         editTaskStart.addEventListener('change', () => {
-             if (editTaskEnd) {
-                 editTaskEnd.value = window.addOneHour(editTaskStart.value);
-             }
-             const ok = window.timeToMins(editTaskStart.value) < window.timeToMins(editTaskEnd.value);
-             editTaskTimeError.style.display = ok ? 'none' : 'block';
-         });
-     }
-     if (editTaskEnd) {
-         editTaskEnd.addEventListener('change', () => {
-             const ok = window.timeToMins(editTaskStart.value) < window.timeToMins(editTaskEnd.value);
-             editTaskTimeError.style.display = ok ? 'none' : 'block';
-         });
-     }
  
      const habitInput = document.getElementById('habit-input');
      const habitTargetInput = document.getElementById('habit-target');
@@ -3381,7 +2881,7 @@ document.addEventListener('DOMContentLoaded', () => {
                      const oldCount = Object.keys(habit.history).length;
                      if (habit.history[dot.dataset.date]) delete habit.history[dot.dataset.date];
                      else habit.history[dot.dataset.date] = true;
-                     checkHabitMilestones(habit, oldCount, Object.keys(habit.history).length);
+                     window.checkHabitMilestones(habit, oldCount, Object.keys(habit.history).length);
                  }
                  saveHabits(); renderHabits(); renderTasks();
                  if(renderCalendarRef) renderCalendarRef(); 
@@ -3407,7 +2907,7 @@ document.addEventListener('DOMContentLoaded', () => {
                  const oldCount = Object.keys(habit.history).length;
                  if (habit.history[today]) delete habit.history[today];
                  else habit.history[today] = true;
-                 checkHabitMilestones(habit, oldCount, Object.keys(habit.history).length);
+                 window.checkHabitMilestones(habit, oldCount, Object.keys(habit.history).length);
                  saveHabits(); renderHabits(); renderTasks();
                  if(renderCalendarRef) renderCalendarRef(); 
                  if(renderEventsRef) renderEventsRef();     
@@ -3545,11 +3045,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
      const monthYearDisplay = document.getElementById('month-year-display');
      const calendarDays = document.getElementById('calendar-days');
+     window.monthYearDisplay = monthYearDisplay; window.calendarDays = calendarDays; // Faz F: script-calendar-month-view.js için
      const prevMonthBtn = document.getElementById('prev-month-btn');
      const nextMonthBtn = document.getElementById('next-month-btn');
      const selectedDateTitle = document.getElementById('selected-date-title');
+     window.selectedDateTitle = selectedDateTitle; // Faz 6: script-calendar-month-view.js için köprü
      const eventsCountDisplay = document.getElementById('selected-date-events-count');
-     
+     window.eventsCountDisplay = eventsCountDisplay; // Faz F: script-calendar-month-view.js için
+
      const eventInput = document.getElementById('event-input');
      const eventParentSelect = document.getElementById('event-parent-habit');
      const eventParentGoalSelect = document.getElementById('event-parent-goal');
@@ -3558,6 +3061,7 @@ document.addEventListener('DOMContentLoaded', () => {
      const eventPriority = document.getElementById('event-priority');
      const addEventBtn = document.getElementById('add-event-btn');
      const eventList = document.getElementById('event-list');
+     window.eventList = eventList; // Faz F: script-calendar-month-view.js için
 
      if (eventList) {
          eventList.addEventListener('click', (e) => {
@@ -3588,7 +3092,11 @@ document.addEventListener('DOMContentLoaded', () => {
      }
 
      let currentDate = new Date();
-     let selectedDate = new Date(); 
+     let selectedDate = new Date();
+     window.__getCurrentDateRef = () => currentDate; // Faz 6: script-calendar-month-view.js için
+     window.__setCurrentDateRef = (v) => { currentDate = v; };
+     window.__getSelectedDateRef = () => selectedDate;
+     window.__setSelectedDateRef = (v) => { selectedDate = v; };
      
      const priorityLabels = { 'high': 'Yüksek', 'medium': 'Orta', 'low': 'Düşük' };
  
@@ -3596,457 +3104,10 @@ document.addEventListener('DOMContentLoaded', () => {
      // Aylık Takvim Hover Popup → script-calendar-hover-popup.js dosyasına taşındı
      // (window.showCalHoverPopup / window.hideCalHoverPopup olarak sağlanır)
 
-     function renderCalendar() {
-         const year = currentDate.getFullYear(); 
-         const month = currentDate.getMonth();
-         monthYearDisplay.textContent = `${monthNames[month]} ${year}`; 
-         calendarDays.innerHTML = '';
-         
-         const firstDay = new Date(year, month, 1).getDay();
-         const lastDate = new Date(year, month + 1, 0).getDate();
-         const startDay = firstDay === 0 ? 6 : firstDay - 1;
-         
-         for (let i = 0; i < startDay; i++) {
-             calendarDays.appendChild(Object.assign(document.createElement('div'), {className:'cal-day empty'}));
-         }
-         
-         for (let i = 1; i <= lastDate; i++) {
-             const d = document.createElement('div'); 
-             d.className = 'cal-day'; 
-             d.textContent = i;
-             
-             const check = window.formatDateToString(new Date(year, month, i));
-             d.setAttribute('data-date', check); // YENİ EKLENEN SATIR: Sürükle-bırak için tarihi hücreye işliyoruz
-             if (check === window.formatDateToString(new Date())) d.classList.add('today');
-             if (check === window.formatDateToString(selectedDate)) d.classList.add('selected');
-             
-             // Dünden sarkan (gece kuşu) görev var mı kontrolü
-             let prevD = new Date(year, month, i - 1);
-             const prevCheck = window.formatDateToString(prevD);
-             const overnightEvents = (calendarEvents[prevCheck] || []).filter(e => e.isOvernight && !e.isLessonPlanDraft);
-
-             // Bugünün tüm etkinlikleri (isLessonPlanDraft: öğretmenin başka bir öğrenci için
-             // henüz atamadığı ders planı taslağı — sadece planlama arayüzünde görünmeli)
-             const todaysEvents = (calendarEvents[check] || []).filter(e => !e.isLessonPlanDraft);
-             const todaysHabits = getHabitsForDate(check);
-             let highlightHistory = FocusStorage.get('highlight_history', {});
-             const hasHighlight = !!highlightHistory[check];
- 
-             const allDayItems = [...overnightEvents, ...todaysEvents];
-
-             // Sınıf ödevleri (window.FocusAssignments, social.js) — o gün teslim tarihi olan,
-             // henüz teslim edilmemiş ödevler. Normal görevlerden ayrı bir nokta rengiyle işaretlenir.
-             const dayAssignments = (window.FocusAssignments?.items || []).filter(a => !a.done && a.due_date && window.formatDateToString(new Date(a.due_date)) === check);
-
-             // Heat overlay: toplam yük hesabı → data-heat attribute
-             const heatCount = allDayItems.length + todaysHabits.length + (hasHighlight ? 1 : 0) + dayAssignments.length;
-             if (heatCount > 0) {
-                 const level = heatCount <= 2 ? 1 : heatCount <= 4 ? 2 : heatCount <= 7 ? 3 : 4;
-                 d.setAttribute('data-heat', level);
-             }
-
-             // Eğer o gün herhangi bir etkinlik varsa çoklu noktaları oluştur
-             if (allDayItems.length > 0 || todaysHabits.length > 0 || hasHighlight || dayAssignments.length > 0) {
-                 const dotsContainer = document.createElement('div');
-                 dotsContainer.className = 'cal-task-bars';
-                 
-                 // Ana hedef varsa turuncu yıldız renginde ilk sıraya ekle
-                 if (hasHighlight) {
-                     const dot = document.createElement('span');
-                     dot.className = 'cal-task-dot';
-                     dot.style.backgroundColor = '#ff9f43';
-                     dot.style.boxShadow = '0 0 4px #ff9f43';
-                     dotsContainer.appendChild(dot);
-                 }
- 
-                 // Renk kaynakları: önce hedef, yoksa kategori
-                 const dotSeen = new Set();
-                 const dotColors = [];
-                 function addDot(key, cc2) {
-                     if (dotSeen.has(key) || dotColors.length >= 4) return;
-                     dotSeen.add(key); dotColors.push(cc2);
-                 }
-                 allDayItems.forEach(ev => {
-                     const globalTask = tasks.find(t => String(t.id) === String(ev.id));
-                     if (globalTask && globalTask.parentGoal) {
-                         const gc = getGoalColor(globalTask.parentGoal);
-                         if (gc) { addDot('goal_' + globalTask.parentGoal, gc); return; }
-                     }
-                     const cat = (globalTask && globalTask.category) || 'kisisel';
-                     addDot('cat_' + cat, getCatColor(cat));
-                 });
-                 todaysHabits.forEach(h => {
-                     addDot('cat_' + (h.category || 'kisisel'), getCatColor(h.category || 'kisisel'));
-                 });
-                 dotColors.forEach(cc2 => {
-                     const dot = document.createElement('span');
-                     dot.className = 'cal-task-dot' + (cc2.isGoal ? ' cal-task-dot-goal' : '');
-                     dot.style.backgroundColor = cc2.border;
-                     dot.style.boxShadow = `0 0 4px ${cc2.border}`;
-                     dot.title = cc2.label;
-                     dotsContainer.appendChild(dot);
-                 });
-
-                 // Ödev noktası — diğer noktalardan ayrı görünsün diye kare şekilli, en sonda
-                 if (dayAssignments.length > 0) {
-                     const overdueAsg = dayAssignments.some(a => new Date(a.due_date) < new Date());
-                     const color = overdueAsg ? '#ff6b6b' : '#a29bfe';
-                     const dot = document.createElement('span');
-                     dot.className = 'cal-task-dot cal-task-dot-assignment';
-                     dot.style.backgroundColor = color;
-                     dot.style.boxShadow = `0 0 4px ${color}`;
-                     dot.title = `${dayAssignments.length} ödev${overdueAsg ? ' (süresi geçmiş)' : ''}`;
-                     dotsContainer.appendChild(dot);
-                 }
-
-                 d.appendChild(dotsContainer);
-             }
-             
-             d.onclick = () => {
-                 selectedDate = new Date(year, month, i);
-                 currentDate = new Date(selectedDate);
-                 renderCalendar();
-                 renderEvents(); // gizli elementler için uyumluluk
-                 openDayDrawer(check);
-             };
-
-             // Hover popup
-             d.addEventListener('mouseenter', (e) => showCalHoverPopup(e, check, allDayItems, todaysHabits, hasHighlight));
-             d.addEventListener('mouseleave', hideCalHoverPopup);
- 
-             // --- YENİ EKLENEN: Takvim Günlerine Sürükle-Bırak Özelliği ---
-             d.addEventListener('dragover', (e) => { e.preventDefault(); d.classList.add('drag-over'); });
-             d.addEventListener('dragleave', () => { d.classList.remove('drag-over'); });
-             d.addEventListener('drop', (e) => {
-                e.preventDefault();
-                d.classList.remove('drag-over');
-                const draggedTaskId = e.dataTransfer.getData('taskId') || e.dataTransfer.getData('dumpId'); // Bırakılan görevin veya fikrin ID'sini al
-                if(draggedTaskId) {
-                    // Sürüklenen şey bir zihin çöplüğü fikri mi kontrol et
-                    const dumpItem = typeof mindDumps !== 'undefined' && mindDumps.find(x => String(x.id) === String(draggedTaskId));
-                    if (dumpItem) {
-                        // Fikri otomatik olarak o güne orta öncelikli varsayılan görev olarak planla
-                        addSmartTask(dumpItem.text, 'medium', 'is', check, '09:00', '10:00', '', '', '');
-                        mindDumps = mindDumps.filter(x => String(x.id) !== String(draggedTaskId));
-                        window.saveMindDumps();
-                    } else {
-                        window.moveTaskToDate(draggedTaskId, check); // Normal görevi bu yeni güne taşı
-                    }
-                    
-                    // ANLIK GÖRÜNÜM SENKRONİZASYONU
-                    setTimeout(() => {
-                        if (typeof renderCalendar === 'function') renderCalendar();
-                        if (typeof renderEvents === 'function') renderEvents();
-                        if (typeof renderCalMindDump === 'function') renderCalMindDump();
-                        if (typeof window.renderMindDumps === 'function') window.renderMindDumps();
-                        if (typeof renderTasks === 'function') renderTasks();
-                        if (typeof updateStats === 'function') updateStats();
-                    }, 100);
-                }
-            });
-             // -------------------------------------------------------------
- 
-             calendarDays.appendChild(d);
-         }
-     }
- 
-     function renderEvents() {
-         const check = window.formatDateToString(selectedDate);
-         
-         // Arama ve Filtreleme Değerlerini Al
-         const searchQuery = document.getElementById('calendar-search-input') ? document.getElementById('calendar-search-input').value.toLowerCase().trim() : '';
-         const filterValue = document.getElementById('calendar-filter-select') ? document.getElementById('calendar-filter-select').value : 'all';
- 
-         let dayEvents = [];
-         let dayHabits = [];
-         let highlightList = [];
- 
-         // EĞER ARAMA KUTUSU DOLUYSA (TÜM GEÇMİŞTE VE GELECEKTE ARA)
-         if (searchQuery !== '') {
-             selectedDateTitle.textContent = `Arama Sonuçları: "${searchQuery}"`;
-             
-             // 1. Tüm Takvim Planlarını Ara (calendarEvents üzerinden)
-             let allCalendarItems = [];
-             for (let date in calendarEvents) {
-                 calendarEvents[date].forEach(ev => {
-                     allCalendarItems.push(Object.assign({}, ev, { _searchDate: date }));
-                 });
-             }
-             dayEvents = allCalendarItems.filter(ev => !ev.isLessonPlanDraft && ev.text.toLowerCase().includes(searchQuery));
-             if (filterValue !== 'all' && filterValue !== 'habit') {
-                 dayEvents = dayEvents.filter(ev => ev.priority === filterValue);
-             }
- 
-             // 2. Tüm Alışkanlıkları Ara
-             if (filterValue === 'all' || filterValue === 'habit') {
-                 dayHabits = habits.filter(h => h.name.toLowerCase().includes(searchQuery));
-             }
- 
-             // 3. Tüm Ana Hedefleri (Highlight) Ara
-             if (filterValue === 'all' || filterValue === 'high') {
-                 let hHistory = FocusStorage.get('highlight_history', {});
-                 for (let d in hHistory) {
-                     if (hHistory[d].text.toLowerCase().includes(searchQuery)) {
-                         highlightList.push({ date: d, data: hHistory[d] });
-                     }
-                 }
-             }
-         } 
-         // EĞER ARAMA BOŞSA (SADECE TAKVİMDE SEÇİLİ OLAN GÜNÜ GÖSTER)
-         else {
-             selectedDateTitle.textContent = selectedDate.toLocaleDateString('tr-TR', options);
-             
-             // Seçili Günün Görevleri (isLessonPlanDraft: öğretmenin başka bir öğrenci için
-             // henüz atamadığı ders planı taslağı — bu görünümde gizli kalmalı)
-             if (calendarEvents[check]) dayEvents.push(...calendarEvents[check].filter(e => !e.isLessonPlanDraft));
-
-             // Dünden sarkan (gece kuşu) görevler
-             let prevDate = new Date(selectedDate);
-             prevDate.setDate(prevDate.getDate() - 1);
-             const prevCheck = window.formatDateToString(prevDate);
-             if (calendarEvents[prevCheck]) {
-                 const overnightEvents = calendarEvents[prevCheck].filter(e => e.isOvernight && !e.isLessonPlanDraft);
-                 dayEvents.push(...overnightEvents);
-             }
- 
-             // Seçili Günün Alışkanlıkları ve Ana Hedefi
-             dayHabits = getHabitsForDate(check);
-             let highlightHistory = FocusStorage.get('highlight_history', {});
-             if (highlightHistory[check]) highlightList.push({ date: check, data: highlightHistory[check] });
- 
-             // Sadece Menü Filtresi Varsa Uygula
-             if (filterValue !== 'all') {
-                 if (filterValue === 'habit') {
-                     dayEvents = [];
-                     highlightList = [];
-                 } else {
-                     dayEvents = dayEvents.filter(ev => ev.priority === filterValue);
-                     dayHabits = [];
-                     if (filterValue !== 'high') highlightList = [];
-                 }
-             }
-         }
- 
-         // Görevleri Saate Göre Sırala
-         dayEvents.sort((a, b) => {
-             const timeA = a.timeStart || "00:00";
-             const timeB = b.timeStart || "00:00";
-             return timeA.localeCompare(timeB);
-         });
- 
-         eventsCountDisplay.textContent = `${dayEvents.length + dayHabits.length + highlightList.length} Plan`;
- 
-         // --- YENİ: Mikro İlerleme (Günlük Tamamlanma Yüzdesi) ---
-         let totalItemsForSelectedDay = dayEvents.length + dayHabits.length + highlightList.length;
-         let completedItemsForSelectedDay = 0;
-         
-         dayEvents.forEach(ev => {
-             const globalTask = tasks.find(t => String(t.id) === String(ev.id));
-             if (globalTask && globalTask.completed) completedItemsForSelectedDay++;
-         });
-         dayHabits.forEach(habit => { if (habit.history[check]) completedItemsForSelectedDay++; });
-         highlightList.forEach(hl => { if (hl.data.completed) completedItemsForSelectedDay++; });
- 
-         const calProgContainer = document.getElementById('cal-daily-progress-container');
-         const calProgCircle = document.getElementById('cal-daily-progress-circle');
-         const calProgText = document.getElementById('cal-daily-progress-text');
-         
-         if (calProgContainer && calProgCircle && calProgText) {
-             if (totalItemsForSelectedDay > 0) {
-                 calProgContainer.style.display = 'block';
-                 const percentage = Math.round((completedItemsForSelectedDay / totalItemsForSelectedDay) * 100);
-                 const offset = 100.5 - (percentage / 100) * 100.5;
-                 calProgCircle.style.strokeDashoffset = offset;
-                 calProgText.textContent = `%${percentage}`;
-                 
-                 if (percentage === 100) {
-                     calProgCircle.style.stroke = "#2ed573";
-                     calProgText.style.color = "#2ed573";
-                 } else {
-                     calProgCircle.style.stroke = "#ff9f43";
-                     calProgText.style.color = "#fff";
-                 }
-             } else {
-                 calProgContainer.style.display = 'none';
-             }
-         }
-         // ---------------------------------------------------------
- 
-         if (dayEvents.length === 0 && dayHabits.length === 0 && highlightList.length === 0) {
-             if (searchQuery !== '' || filterValue !== 'all') {
-                 eventList.innerHTML = '<div class="empty-state">Arama kriterlerine uygun plan bulunamadı.</div>';
-             } else {
-                 eventList.innerHTML = '<div class="empty-state">Bu tarih için plan yok.</div>';
-             }
-             return;
-         }
- 
-         let html = '';
- 
-       // 1. ANA HEDEFLERİ EKRANA YAZDIR
-       highlightList.forEach(hl => {
-         const isCompleted = hl.data.completed;
-         const hlDateStr = hl.date;
-         const [d, m, y] = hlDateStr.split('-');
-         const shortDate = `${parseInt(d)} ${monthNamesShort[parseInt(m)-1]} ${y}`;
-
-         let parentBadgeHTML = '';
-         if (hl.data.parentGoal) {
-             const pg = goals.find(g => String(g.id) === String(hl.data.parentGoal));
-             if (pg) {
-                 parentBadgeHTML = `<span style="font-size:10px; background:rgba(108,92,231,0.15); color:#a29bfe; padding:3px 10px; border-radius:20px; border:1px solid rgba(108,92,231,0.3); display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-mountain-sun"></i> ${escapeHtml(pg.title)}</span>`;
-             }
-         }
-
-         html += `
-         <li style="list-style:none; margin-bottom:16px;">
-             <div class="cal-highlight-card ${isCompleted ? 'cal-highlight-done' : ''}">
-                 <div class="cal-highlight-top">
-                     <div class="cal-highlight-icon-wrap">
-                         <i class="fa-solid fa-star"></i>
-                     </div>
-                     <div style="flex:1; min-width:0;">
-                         <div style="font-size:10px; font-weight:700; letter-spacing:1.5px; color:#ff9f43; text-transform:uppercase; margin-bottom:5px;">✦ Günün Odak Hedefi</div>
-                         <div style="font-size:15px; font-weight:700; color:${isCompleted ? 'var(--text-muted)' : '#fff'}; ${isCompleted ? 'text-decoration:line-through; opacity:0.6;' : ''} line-height:1.4; word-break:break-word;">${hl.data.text}</div>
-                         <div style="margin-top:8px; display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
-                             <span style="font-size:10px; background:rgba(255,255,255,0.05); color:var(--text-muted); padding:2px 8px; border-radius:20px; border:1px solid rgba(255,255,255,0.08);"><i class="fa-regular fa-calendar" style="margin-right:4px;"></i>${shortDate}</span>
-                             ${parentBadgeHTML}
-                             ${isCompleted ? '<span style="font-size:10px; background:rgba(46,213,115,0.15); color:#2ed573; padding:2px 10px; border-radius:20px; border:1px solid rgba(46,213,115,0.3); display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-check"></i> Tamamlandı</span>' : ''}
-                         </div>
-                     </div>
-                     <button class="cal-highlight-check-btn ${isCompleted ? 'done' : ''}" data-action="toggle-highlight-task" data-date="${hlDateStr}" title="${isCompleted ? 'Geri al' : 'Tamamla'}">
-                         ${isCompleted ? '<i class="fa-solid fa-check"></i>' : '<i class="fa-regular fa-circle-check"></i>'}
-                     </button>
-                 </div>
-             </div>
-         </li>`;
-         });
- 
-        // 2. ALIŞKANLIKLARI YATAY BANDA YAZDIR (YENİ)
-        const calHabitsBand = document.getElementById('calendar-habits-band');
-        const calHabitsList = document.getElementById('calendar-habits-list');
-        
-        if (calHabitsBand && calHabitsList) {
-            if (dayHabits.length > 0 && searchQuery === '') {
-                calHabitsBand.style.display = 'block';
-                let habitsHTML = '';
-                const todayStrForHabit = window.formatDateToString(new Date());
-                
-                dayHabits.forEach(habit => {
-                    const isCompleted = !!habit.history[check]; 
-                    const isFutureDate = check > todayStrForHabit; 
-                    const clickAttr = isFutureDate ? '' : `data-action="toggle-habit-today" data-id="${habit.id}" data-date="${check}"`;
-                    
-                    let checkIcon = isCompleted ? '<i class="fa-solid fa-circle-check" style="color: #2ed573; font-size: 16px;"></i>' : 
-                                   (isFutureDate ? '<i class="fa-solid fa-lock" style="color: var(--text-muted); opacity: 0.6; font-size: 16px;"></i>' : '<i class="fa-regular fa-circle" style="color: var(--text-muted); font-size: 16px;"></i>');
- 
-                    habitsHTML += `
-                    <div class="cal-habit-band-card ${isCompleted ? 'completed' : ''}" ${clickAttr} ${isFutureDate ? 'style="opacity:0.6; cursor:not-allowed;"' : ''}>
-                        <div>${checkIcon}</div>
-                        <div style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; font-weight: 500; ${isCompleted ? 'text-decoration:line-through; opacity:0.7;' : 'color:#fff;'}">${escapeHtml(habit.name)}</div>
-                    </div>`;
-                });
-                calHabitsList.innerHTML = habitsHTML;
-            } else {
-                calHabitsBand.style.display = 'none';
-                calHabitsList.innerHTML = '';
-            }
-        }
- 
-         // 3. GÖREVLERİ EKRANA YAZDIR
-         html += dayEvents.map((ev) => {
-             // F1.2 — Planlama milestone event'leri özel render
-             if (ev.isMilestone) {
-                 const msId = ev.id.replace('ms_cal_', '');
-                 const mColor = ev.milestoneColor || '#a78bfa';
-                 const planningGoals = (typeof FocusStorage !== 'undefined')
-                     ? FocusStorage.get('planning_goals', [])
-                     : JSON.parse(localStorage.getItem('planning_goals') || '[]');
-                 let msDone = false;
-                 for (const g of planningGoals) {
-                     const ms = (g.milestones || []).find(m => m.id === msId);
-                     if (ms) { msDone = !!ms.done; break; }
-                 }
-                 return `
-                 <li class="cal-event-item${msDone ? ' completed' : ''}" style="--pColor:${mColor};">
-                     <div class="tc-time-pill" style="color:${mColor};border-color:${mColor}44;">
-                         <i class="fa-solid fa-flag-checkered"></i> Milestone
-                     </div>
-                     <div class="timeline-card" style="border-color:${mColor}33;">
-                         <div class="tc-glow-bar" style="background:${mColor};"></div>
-                         <div class="tc-inner">
-                             <div class="tc-checkbox${msDone ? ' tc-checked' : ''}" style="${msDone ? 'background:'+mColor+';border-color:'+mColor+';' : 'border-color:'+mColor+';'}"
-                                  data-action="toggle-planning-milestone" data-id="${ev.id}">
-                                 ${msDone ? '<i class="fa-solid fa-check"></i>' : ''}
-                             </div>
-                             <div class="tc-content">
-                                 <div class="tc-title${msDone ? ' tc-done' : ''}" style="color:${msDone ? 'rgba(255,255,255,.4)' : '#fff'};">${ev.text}</div>
-                                 <div class="tc-meta">
-                                     <span class="tc-badge" style="background:${mColor}18;color:${mColor};border:1px solid ${mColor}44;"><i class="fa-solid fa-flag-checkered"></i> Dönüm Noktası</span>
-                                     <span class="tc-badge" style="cursor:pointer;opacity:.6;" data-action="switch-tab-planlama">Planlamaya Git →</span>
-                                 </div>
-                             </div>
-                         </div>
-                     </div>
-                 </li>`;
-             }
-
-             const globalTask = tasks.find(t => String(t.id) === String(ev.id));
-             const isCompleted = globalTask ? globalTask.completed : false;
-
-             const evTimeStart = ev.timeStart || ev.time || "12:00";
-             const evTimeEnd = ev.timeEnd || "13:00";
-             const evPriority = ev.priority || "medium";
-             const priorityLabel = priorityLabels[evPriority] || "Orta";
-
-             const evDate = (globalTask && globalTask.date) ? globalTask.date : (ev._searchDate || check);
-             const [d, m, y] = evDate.split('-'); // GÜNCELLEME: d, m, y sırasına alındı
-             const shortDate = `${parseInt(d)} ${monthNamesShort[parseInt(m)-1]}`;
-
-             let parentBadgeHTML = '';
-             if (ev.parentHabit) {
-                 const ph = habits.find(h => String(h.id) === String(ev.parentHabit));
-                 if (ph) parentBadgeHTML = `<span class="parent-habit-badge" style="font-size:10px; padding:2px 8px;"><i class="fa-solid fa-bullseye"></i> ${escapeHtml(ph.name)}</span>`;
-             }
-
-             const priorityColors = { 'high': '#ff4757', 'medium': '#ff9f43', 'low': '#2ed573' };
-             const pColor = priorityColors[evPriority] || '#ff9f43';
-
-             return `
-             <li class="cal-event-item priority-${evPriority}${isCompleted ? ' completed' : ''}" draggable="true" data-drag-id="${ev.id}">
-                 <div class="tc-time-pill">
-                     <i class="fa-regular fa-clock"></i> ${evTimeStart} <span class="tc-sep">→</span> ${evTimeEnd}
-                 </div>
-                 <div class="timeline-card">
-                     <div class="tc-glow-bar"></div>
-                     <div class="tc-inner">
-                         <div class="tc-checkbox${isCompleted ? ' tc-checked' : ''}" data-action="toggle-task" data-id="${ev.id}">
-                             ${isCompleted ? '<i class="fa-solid fa-check"></i>' : ''}
-                         </div>
-                         <div class="tc-content">
-                             <div class="tc-title${isCompleted ? ' tc-done' : ''}">${ev.text}</div>
-                             <div class="tc-meta">
-                                 <span class="tc-badge tc-prio-${evPriority}"><i class="fa-solid fa-circle-dot"></i> ${priorityLabel}</span>
-                                 <span class="tc-badge tc-badge-date"><i class="fa-regular fa-calendar"></i> ${shortDate}</span>
-                                 ${ev.parentHabit ? (() => { const ph = habits.find(h => String(h.id) === String(ev.parentHabit)); return ph ? `<span class="tc-badge tc-badge-goal"><i class="fa-solid fa-bullseye"></i> ${escapeHtml(ph.name)}</span>` : ''; })() : ''}
-                             </div>
-                         </div>
-                         <div class="tc-actions">
-                             <i class="fa-solid fa-grip-vertical tc-drag-icon" title="Sürükle & Taşı"></i>
-                             <button class="tc-edit-btn" data-action="edit-task" data-id="${ev.id}" title="Düzenle"><i class="fa-solid fa-pen"></i></button>
-                             <button class="tc-del-btn" data-action="delete-task" data-id="${ev.id}" data-date="${evDate}" title="Sil"><i class="fa-solid fa-trash-can"></i></button>
-                         </div>
-                     </div>
-                 </div>
-             </li>`;
-         }).join('');
- 
-         eventList.innerHTML = html;
-         initCalEventListDnD(check);
-     }
  
      // --- TAKVİM LİSTESİ İÇİ REORDER + TAMAMLAMA ANİMASYONU ---
-     function initCalEventListDnD(dateStr) {
+     window.initCalEventListDnD = (dateStr) => initCalEventListDnD(dateStr); // Faz 6: script-calendar-month-view.js için
+    function initCalEventListDnD(dateStr) {
          const list = document.getElementById('event-list');
          if (!list) return;
  
@@ -4074,7 +3135,7 @@ document.addEventListener('DOMContentLoaded', () => {
                  // Premium ghost
                  const evData = (calendarEvents[dateStr] || []).find(x => String(x.id) === String(dragSrcId));
                  if (evData) {
-                     const ghost = createCalDragGhost(evData.text, evData.timeStart, evData.timeEnd, evData.priority);
+                     const ghost = window.createCalDragGhost(evData.text, evData.timeStart, evData.timeEnd, evData.priority);
                      e.dataTransfer.setDragImage(ghost, 110, 28);
                  }
              });
@@ -4133,7 +3194,7 @@ document.addEventListener('DOMContentLoaded', () => {
                  evList.splice(insertIdx, 0, moved);
  
                  saveTasks();
-                 renderEvents();
+                 window.renderEvents();
              });
          });
      }
@@ -4166,8 +3227,8 @@ document.addEventListener('DOMContentLoaded', () => {
          // Kaydet ve Ekranı Yenile
          saveTasks();
          renderTasks();
-         renderCalendar();
-         renderEvents();
+         window.renderCalendar();
+         window.renderEvents();
          
          showPremiumModal({ title: 'Plan Taşındı 🗓️', message: 'Görev başarıyla yeni tarihine taşındı.', type: 'success' });
      }
@@ -4222,7 +3283,7 @@ document.addEventListener('DOMContentLoaded', () => {
          eventPriority.value = 'medium';
  
          closeEventModal();
-         renderCalendar(); renderEvents(); renderTasks();
+         window.renderCalendar(); window.renderEvents(); renderTasks();
      }
 
      // Event modal open/close
@@ -4361,8 +3422,8 @@ document.addEventListener('DOMContentLoaded', () => {
                      selectedDate = new Date(ty, tm - 1, td);
                      
                      switchTab('takvim'); 
-                     renderCalendar();
-                     renderEvents();
+                     window.renderCalendar();
+                     window.renderEvents();
                      closeSpotlight();
                  };
                  spotlightResultsList.appendChild(li);
@@ -4371,10 +3432,11 @@ document.addEventListener('DOMContentLoaded', () => {
          spotlightResultsWrapper.classList.remove('hidden');
      });
  
-     prevMonthBtn.onclick = () => { currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(); updateCalUnifiedTitle(); };
-     nextMonthBtn.onclick = () => { currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(); updateCalUnifiedTitle(); };
+     prevMonthBtn.onclick = () => { currentDate.setMonth(currentDate.getMonth() - 1); window.renderCalendar(); updateCalUnifiedTitle(); };
+     nextMonthBtn.onclick = () => { currentDate.setMonth(currentDate.getMonth() + 1); window.renderCalendar(); updateCalUnifiedTitle(); };
  
      let statsActiveFilter = 7;
+     window.__getStatsActiveFilter = () => statsActiveFilter; // Faz F: script-statistics.js için
  
      window.toggleActivityReaction = function(btn) {
          const countSpan = btn.querySelector('.reaction-count');
@@ -4396,698 +3458,6 @@ document.addEventListener('DOMContentLoaded', () => {
          // yazmak, eklenmiş arkadaşların listede kaybolmasına sebep oluyordu.
      }
  
-     function renderStatistics() {
-         const now = new Date();
-         const filterDays = statsActiveFilter;
-         let filterStart = null;
-         if (filterDays > 0) {
-             filterStart = new Date(now);
-             filterStart.setDate(filterStart.getDate() - filterDays);
-             filterStart.setHours(0,0,0,0);
-         }
- 
-         function inRange(dateStr) {
-             if (!filterStart) return true;
-             const [d, m, y] = dateStr.split('-').map(Number); // GÜNCELLEME: d, m, y sırasına alındı
-             return new Date(y, m-1, d) >= filterStart;
-         }
- 
-         // --- Temel veriler ---
-         const highlightHistory = FocusStorage.get('highlight_history', {});
-         const filteredTasks = tasks.filter(t => t.completed && inRange(t.date || window.formatDateToString(now)));
-         const filteredHighlights = Object.entries(highlightHistory).filter(([ds, h]) => h.completed && inRange(ds));
-         const completedTaskCount = filteredTasks.length + filteredHighlights.length;
-         const totalTasksCount = tasks.filter(t => inRange(t.date || window.formatDateToString(now))).length + Object.keys(highlightHistory).filter(ds => inRange(ds)).length;
-         const completionRate = totalTasksCount === 0 ? 0 : Math.round((completedTaskCount / totalTasksCount) * 100);
- 
-         // --- Odaklanma ---
-         let focusHistory = FocusStorage.get('focus_history', {});
-         let focusMinutes = 0;
-
-         if (filterDays === 0) {
-             totalFocusMinutes = FocusStorage.get('focus_minutes', 0) || 0;
-             focusMinutes = totalFocusMinutes;
-         } else {
-             for (let i = 0; i < filterDays; i++) {
-                 const dCheck = new Date();
-                 dCheck.setDate(dCheck.getDate() - i);
-                 const dsCheck = window.formatDateToString(dCheck);
-                 if (focusHistory[dsCheck]) focusMinutes += focusHistory[dsCheck];
-             }
-         }
-
-         // Supabase bağlıysa daily_stats'tan daha güncel veri çek (async, sonuçta günceller)
-         // NOT: daily_stats henüz senkronize olmamış/boşsa 0 dönebilir — bu durumda doğru
-         // hesaplanmış yerel değeri asla daha küçük/sıfır bir değerle ezmiyoruz (flash-then-revert-to-0 bug'ı).
-         if (window.FocusSync && window.FocusSync.isEnabled() && window.FocusSync.fetchFocusMinutesForPeriod) {
-             window.FocusSync.fetchFocusMinutesForPeriod(filterDays).then(supabaseMinutes => {
-                 if (supabaseMinutes !== null && supabaseMinutes >= focusMinutes) {
-                     const el = document.getElementById('stat-total-focus');
-                     if (el) {
-                         const m = supabaseMinutes;
-                         el.textContent = m >= 60
-                             ? `${Math.floor(m/60)} sa ${m%60 > 0 ? m%60+' dk' : ''}`
-                             : `${m} dk`;
-                     }
-                 }
-             });
-         }
-
-         let focusDisplay = focusMinutes >= 60
-             ? `${Math.floor(focusMinutes/60)} sa ${focusMinutes%60 > 0 ? focusMinutes%60+' dk' : ''}`
-             : `${focusMinutes} dk`;
-         document.getElementById('stat-total-focus').textContent = focusDisplay;
- 
-         // --- Alışkanlık ---
-         let totalHabitTargetDays = 0, completedHabitDaysCount = 0;
-         habits.forEach(h => {
-             totalHabitTargetDays += (h.targetDays || 21);
-             completedHabitDaysCount += Object.keys(h.history).filter(ds => inRange(ds)).length;
-         });
-         const habitRate = totalHabitTargetDays === 0 ? 0 : Math.round((completedHabitDaysCount / totalHabitTargetDays) * 100);
- 
-         // --- Peak Hour ---
-         const hourCounts = {};
-         filteredTasks.forEach(t => {
-             const hour = (t.timeEnd || t.timeStart || '12:00').split(':')[0] + ':00';
-             hourCounts[hour] = (hourCounts[hour] || 0) + 1;
-         });
-         let peakHour = '-', maxH = 0;
-         for (let h in hourCounts) { if (hourCounts[h] > maxH) { maxH = hourCounts[h]; peakHour = h; } }
- 
-         // --- Ana Hedef 30 gün ---
-         const thirtyAgo = new Date(); thirtyAgo.setDate(thirtyAgo.getDate()-30); thirtyAgo.setHours(0,0,0,0);
-         let completedHighlights30 = Object.entries(highlightHistory).filter(([ds,h]) => {
-             if (!h.completed) return false;
-             const [d, m, y] = ds.split('-').map(Number); // GÜNCELLEME: d, m, y sırasına alındı
-             return new Date(y,m-1,d) >= thirtyAgo;
-         }).length;
- 
-         // --- DOM Güncelle ---
-         document.getElementById('stat-total-tasks').textContent = completedTaskCount;
-         document.getElementById('stat-habit-rate').textContent = `%${habitRate}`;
-         document.getElementById('stat-completion-rate').textContent = `%${completionRate}`;
-         document.getElementById('stat-peak-hour').textContent = maxH > 0 ? peakHour : '-';
-         document.getElementById('stat-highlight-success').textContent = completedHighlights30;
-
-         // --- Düşük örneklem güven uyarıları (az veriyle yanıltıcı kesinlik göstermemek için) ---
-         const CONFIDENCE_MIN_SAMPLE = 5;
-         const completionConfidenceEl = document.getElementById('confidence-completion');
-         if (completionConfidenceEl) completionConfidenceEl.style.display = totalTasksCount < CONFIDENCE_MIN_SAMPLE ? 'inline-flex' : 'none';
-         const peakConfidenceEl = document.getElementById('confidence-peak');
-         if (peakConfidenceEl) peakConfidenceEl.style.display = filteredTasks.length < CONFIDENCE_MIN_SAMPLE ? 'inline-flex' : 'none';
-         const habitConfidenceEl = document.getElementById('confidence-habit');
-         if (habitConfidenceEl) habitConfidenceEl.style.display = (habits.length > 0 && completedHabitDaysCount < 3) ? 'inline-flex' : 'none';
-
-         // EKLEME: 1. Ana Hedef Serisi Hesaplama Algoritması
-         let highlightStreak = 0;
-         let streakCheckDate = new Date();
-         let todayStr = window.formatDateToString(streakCheckDate);
-         
-         // Eğer bugün henüz ana hedef tamamlanmadıysa ama dün tamamlandıysa seriyi dünden itibaren geriye doğru saymaya başla
-         if (!(highlightHistory[todayStr] && highlightHistory[todayStr].completed)) {
-             streakCheckDate.setDate(streakCheckDate.getDate() - 1);
-         }
-         
-         while (true) {
-             let dStr = window.formatDateToString(streakCheckDate);
-             if (highlightHistory[dStr] && highlightHistory[dStr].completed) {
-                 highlightStreak++;
-                 streakCheckDate.setDate(streakCheckDate.getDate() - 1); // Bir gün geriye git
-             } else {
-                 break; // Seri bozulduğu anda döngüden çık
-             }
-         }
-         const highlightStreakEl = document.getElementById('stat-highlight-streak');
-         if (highlightStreakEl) highlightStreakEl.textContent = `${highlightStreak} Gün`;
- 
-         // EKLEME: 2. Fikir Dönüşüm Oranı Hesaplama Algoritması (Dinamik ve Filtre Uyumlu)
-         let conversionLog = FocusStorage.get('mind_dump_conversions', []);
-         const legacyCount = parseInt(localStorage.getItem('convertedMindDumpsCount') || '0');
-         
-         // Geçmiş verileri kaybetmemek için eski sayacı yeni sisteme göçür (Migration)
-         if (legacyCount > 0 && conversionLog.length === 0) {
-             for (let i = 0; i < legacyCount; i++) {
-                 conversionLog.push({ id: 'legacy_' + i, date: window.formatDateToString(now) });
-             }
-             FocusStorage.set('mind_dump_conversions', conversionLog);
-         }
- 
-         // Seçilen zaman filtresine (Son 7 Gün vb.) göre verileri süz
-         const filteredConversions = conversionLog.filter(log => inRange(log.date));
-         const convertedCount = filteredConversions.length;
-         const activeDumpCount = mindDumps ? mindDumps.length : 0;
-         const totalFikir = convertedCount + activeDumpCount;
-         const conversionRate = totalFikir > 0 ? Math.round((convertedCount / totalFikir) * 100) : 0;
-         
-         const conversionEl = document.getElementById('stat-minddump-conversion');
-         if (conversionEl) conversionEl.textContent = `%${conversionRate}`;
- 
-         // --- Trend okları (önceki dönemle gerçek karşılaştırma) ---
-         function setTrend(id, value, suffix) {
-             const el = document.getElementById(id);
-             if (!el) return;
-             if (value === null) { el.textContent = 'Karşılaştırma yok'; el.className = 'stat-trend neutral'; return; }
-             if (value > 0) { el.textContent = `▲ +${value}${suffix}`; el.className = 'stat-trend up'; }
-             else if (value < 0) { el.textContent = `▼ ${value}${suffix}`; el.className = 'stat-trend down'; }
-             else { el.textContent = '— Değişim yok'; el.className = 'stat-trend neutral'; }
-         }
-
-         // Seçili döneme eşit uzunlukta, hemen öncesindeki dönemin istatistiklerini hesaplar
-         function statsForRange(startDate, endDate) {
-             function within(dateStr) {
-                 const [d, m, y] = dateStr.split('-').map(Number);
-                 const dt = new Date(y, m - 1, d);
-                 return dt >= startDate && dt < endDate;
-             }
-             const tasksInRange = tasks.filter(t => t.completed && within(t.date || window.formatDateToString(now)));
-             const highlightsInRange = Object.entries(highlightHistory).filter(([ds, h]) => h.completed && within(ds));
-             const completed = tasksInRange.length + highlightsInRange.length;
-             const totalInRange = tasks.filter(t => within(t.date || window.formatDateToString(now))).length
-                 + Object.keys(highlightHistory).filter(ds => within(ds)).length;
-             const rate = totalInRange === 0 ? 0 : Math.round((completed / totalInRange) * 100);
-             let focus = 0;
-             Object.entries(focusHistory).forEach(([ds, mins]) => { if (within(ds)) focus += mins; });
-             let totalTargetDays = 0, completedDays = 0;
-             habits.forEach(h => {
-                 totalTargetDays += (h.targetDays || 21);
-                 completedDays += Object.keys(h.history).filter(ds => within(ds)).length;
-             });
-             const habitR = totalTargetDays === 0 ? 0 : Math.round((completedDays / totalTargetDays) * 100);
-             return { completed, rate, focus, habitR };
-         }
-
-         // "Tüm Zamanlar" filtresinde eşit uzunlukta bir önceki dönem tanımlanamaz, bu yüzden karşılaştırma gösterilmez
-         if (filterDays > 0) {
-             const prevEnd = new Date(filterStart);
-             const prevStart = new Date(filterStart);
-             prevStart.setDate(prevStart.getDate() - filterDays);
-             const prev = statsForRange(prevStart, prevEnd);
-             setTrend('trend-tasks', completedTaskCount - prev.completed, ' görev');
-             setTrend('trend-focus', focusMinutes - prev.focus, ' dk');
-             setTrend('trend-habits', habitRate - prev.habitR, '%');
-             setTrend('trend-completion', completionRate - prev.rate, '%');
-         } else {
-             setTrend('trend-tasks', null, '');
-             setTrend('trend-focus', null, '');
-             setTrend('trend-habits', null, '');
-             setTrend('trend-completion', null, '');
-         }
- 
-         // --- Üretkenlik Skoru ---
-         const scoreRaw = Math.round((completionRate * 0.4) + (Math.min(habitRate, 100) * 0.35) + (Math.min(focusMinutes / 3, 100) * 0.25));
-         if (window.FocusAISocial && typeof window.FocusAISocial.checkPersonalRecord === 'function') {
-            window.FocusAISocial.checkPersonalRecord('focusMinutes', focusMinutes, `${focusDisplay} odak süresi`);
-            window.FocusAISocial.checkPersonalRecord('completedTasks', completedTaskCount, `${completedTaskCount} tamamlanan görev`);
-            window.FocusAISocial.checkPersonalRecord('score', scoreRaw, `${scoreRaw} puan odak skoru`);
-        }
-         const score = Math.min(scoreRaw, 100);
-         document.getElementById('productivity-score').textContent = score;
-
-         // --- Skor "Neden?" dökümü ---
-         const completionContribution = Math.round(completionRate * 0.4);
-         const habitContribution = Math.round(Math.min(habitRate, 100) * 0.35);
-         const focusContribution = Math.round(Math.min(focusMinutes / 3, 100) * 0.25);
-         const bdCompletionBar = document.getElementById('score-bd-completion');
-         const bdHabitBar = document.getElementById('score-bd-habit');
-         const bdFocusBar = document.getElementById('score-bd-focus');
-         if (bdCompletionBar) bdCompletionBar.style.width = `${Math.min(completionContribution / 0.4, 100)}%`;
-         if (bdHabitBar) bdHabitBar.style.width = `${Math.min(habitContribution / 0.35, 100)}%`;
-         if (bdFocusBar) bdFocusBar.style.width = `${Math.min(focusContribution / 0.25, 100)}%`;
-         const bdCompletionVal = document.getElementById('score-bd-completion-val');
-         const bdHabitVal = document.getElementById('score-bd-habit-val');
-         const bdFocusVal = document.getElementById('score-bd-focus-val');
-         if (bdCompletionVal) bdCompletionVal.textContent = `+${completionContribution}`;
-         if (bdHabitVal) bdHabitVal.textContent = `+${habitContribution}`;
-         if (bdFocusVal) bdFocusVal.textContent = `+${focusContribution}`;
-         const scoreWhyBtn = document.getElementById('score-why-btn');
-         const scoreBreakdownEl = document.getElementById('score-breakdown');
-         if (scoreWhyBtn && scoreBreakdownEl && !scoreWhyBtn.dataset.bound) {
-             scoreWhyBtn.dataset.bound = '1';
-             scoreWhyBtn.addEventListener('click', (e) => {
-                 e.stopPropagation();
-                 const isHidden = scoreBreakdownEl.style.display === 'none';
-                 scoreBreakdownEl.style.display = isHidden ? 'flex' : 'none';
-                 scoreWhyBtn.classList.toggle('active', isHidden);
-             });
-             // Popover dışına tıklanınca kapat — kart genişlemediği için kullanıcı başka bir yere basıp kapatabilmeli
-             document.addEventListener('click', (e) => {
-                 if (scoreBreakdownEl.style.display === 'none') return;
-                 if (!scoreBreakdownEl.contains(e.target) && e.target !== scoreWhyBtn && !scoreWhyBtn.contains(e.target)) {
-                     scoreBreakdownEl.style.display = 'none';
-                     scoreWhyBtn.classList.remove('active');
-                 }
-             });
-         }
-
-         const ring = document.getElementById('score-ring-fill');
-         if (ring) {
-             const circumference = 314;
-             const offset = circumference - (score / 100) * circumference;
-             setTimeout(() => { ring.style.strokeDashoffset = offset; }, 100);
-             const grad = ring.closest('svg').querySelector('#scoreGradient') || (() => {
-                 const defs = document.createElementNS('http://www.w3.org/2000/svg','defs');
-                 const lg = document.createElementNS('http://www.w3.org/2000/svg','linearGradient');
-                 lg.id = 'scoreGradient'; lg.setAttribute('x1','0%'); lg.setAttribute('y1','0%'); lg.setAttribute('x2','100%'); lg.setAttribute('y2','0%');
-                 const s1 = document.createElementNS('http://www.w3.org/2000/svg','stop');
-                 s1.setAttribute('offset','0%'); s1.setAttribute('stop-color','#6c5ce7');
-                 const s2 = document.createElementNS('http://www.w3.org/2000/svg','stop');
-                 s2.setAttribute('offset','100%'); s2.setAttribute('stop-color','#a29bfe');
-                 lg.appendChild(s1); lg.appendChild(s2); defs.appendChild(lg);
-                 ring.closest('svg').insertBefore(defs, ring.closest('svg').firstChild);
-                 return lg;
-             })();
-             ring.setAttribute('stroke', 'url(#scoreGradient)');
-         }
-         const scoreMsg = score >= 85 ? '🔥 Olağanüstü performans!' : score >= 65 ? '✨ Harika gidiyorsun' : score >= 40 ? '📈 İyi, daha ilerleyebilirsin' : '💪 Devam et, ivme kazanıyorsun';
-         const scoreEl = document.getElementById('score-message');
-         if (scoreEl) scoreEl.textContent = scoreMsg;
-         const badgesEl = document.getElementById('score-badges');
-         if (badgesEl) {
-             const badges = [];
-             if (completedTaskCount >= 10) badges.push(['🏆 Görev Ustası','si-purple']);
-             if (habitRate >= 70) badges.push(['🔥 Alışkanlık Çekirdeği','si-orange']);
-             if (focusMinutes >= 120) badges.push(['🎯 Derin Odak','si-blue']);
-             if (completionRate >= 80) badges.push(['⚡ Verimlilik Uzmanı','si-green']);
-             badgesEl.innerHTML = badges.map(([t,c]) => `<span class="score-badge ${c}">${t}</span>`).join('');
-         }
- 
-         // --- Isı Haritası (Gelişmiş Ay ve Gün Hizalama Motoru) ---
-         const heatmapEl = document.getElementById('focus-heatmap');
-         const monthsEl = document.getElementById('heatmap-months');
-         if (heatmapEl) {
-             const tasksByDay = {};
-             tasks.filter(t => t.completed).forEach(t => {
-                 if (t.date) tasksByDay[t.date] = (tasksByDay[t.date] || 0) + 1;
-             });
-             Object.entries(highlightHistory).filter(([,h]) => h.completed).forEach(([ds]) => {
-                 tasksByDay[ds] = (tasksByDay[ds] || 0) + 1;
-             });
-             
-             const totalDays = 140; // 20 hafta * 7 gün — kutu boyutu aynı kalsın, sağdaki boşluk daha fazla haftayla dolsun
-             const cells = [];
-             const monthLabels = [];
-             let lastMonth = -1;
- 
-             // Yedek ay isimleri listesi (Hata önleyici altyapı)
-             const fallbackMonthsShort = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
-             const activeMonthNamesShort = typeof monthNamesShort !== 'undefined' ? monthNamesShort : fallbackMonthsShort;
- 
-            // 1. ADIM: 10 sütunu dikey tarayıp ayların başlangıç koordinatlarını üst satıra hizalama
-            const numCols = totalDays / 7; // 70 / 7 = 10
-            for (let col = 0; col < numCols; col++) {
-             // Her sütunun en üstündeki günün i indeksini buluyoruz
-             const i = (totalDays - 1) - (col * 7);
-             const dCol = new Date();
-             dCol.setDate(dCol.getDate() - i);
-             const currentMonth = dCol.getMonth();
-
-             if (col === 0 || currentMonth !== lastMonth) {
-                 const mName = activeMonthNamesShort[currentMonth];
-                 const percentLeft = (col / numCols) * 100;
-                 monthLabels.push(`<span class="heatmap-month-label" style="left: ${percentLeft}%;">${mName}</span>`);
-                 lastMonth = currentMonth;
-             }
-         }
-             if (monthsEl) monthsEl.innerHTML = monthLabels.join('');
- 
-             // 2. ADIM: Isı haritası kutucuklarını (hücreleri) oluşturma
-             for (let i = totalDays - 1; i >= 0; i--) {
-                 const d = new Date(); d.setDate(d.getDate() - i); d.setHours(0,0,0,0);
-                 const ds = window.formatDateToString(d);
-                 const count = tasksByDay[ds] || 0;
-                 
-                 // Sıfır görev varsa seviye 0, diğer durumlarda yoğunluğa göre seviye ataması
-                 const level = count === 0 ? 0 : count === 1 ? 1 : count <= 2 ? 2 : count <= 4 ? 3 : count <= 6 ? 4 : 5;
-                 const label = `${d.getDate()} ${activeMonthNamesShort[d.getMonth()]}: ${count} görev`;
-                 cells.push(`<div class="hm-day" data-level="${level}" title="${label}" data-date="${ds}"></div>`);
-             }
-             heatmapEl.innerHTML = cells.join('');
- 
-             // 3. ADIM: Isı Haritası Hücrelerine Tıklama Dinleyicisi
-             heatmapEl.querySelectorAll('.hm-day').forEach(cell => {
-                 cell.addEventListener('click', () => {
-                     const clickedDate = cell.getAttribute('data-date');
-                     
-                     heatmapEl.querySelectorAll('.hm-day').forEach(c => c.classList.remove('active-heatmap-day'));
-                     cell.classList.add('active-heatmap-day');
-                     
-                     const dayTasks = tasks.filter(t => t.date === clickedDate && t.completed);
-                     
-                     let dayHighlightText = "";
-                     if (highlightHistory[clickedDate] && highlightHistory[clickedDate].completed) {
-                         dayHighlightText = highlightHistory[clickedDate].text;
-                     }
-                     
-                     const detailsPanel = document.getElementById('heatmap-day-details');
-                     const detailsDate = document.getElementById('heatmap-details-date');
-                     const detailsContent = document.getElementById('heatmap-details-content');
-                     
-                     if (detailsPanel && detailsDate && detailsContent) {
-                         const [d, m, y] = clickedDate.split('-'); // GÜNCELLEME: d, m, y sırasına alındı
-                         const fallbackMonthsFull = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
-                         const activeFullMonths = typeof monthNames !== 'undefined' ? monthNames : fallbackMonthsFull;
-                         
-                         detailsDate.innerHTML = `<i class="fa-solid fa-clock-rotate-left"></i> ${parseInt(d)} ${activeFullMonths[parseInt(m)-1]} ${y} Tarihinin Özeti`;
-                         
-                         let htmlContent = "";
-                         
-                         if (dayHighlightText) {
-                             htmlContent += `
-                                 <div class="heatmap-mini-task" style="border-left: 3px solid #ff9f43; background: rgba(255,159,67,0.03);">
-                                     <i class="fa-solid fa-star" style="color: #ff9f43;"></i>
-                                     <span style="font-weight: 600; color: #fff;">[Ana Hedef] ${dayHighlightText}</span>
-                                 </div>`;
-                         }
-                         
-                         if (dayTasks.length > 0) {
-                             dayTasks.forEach(t => {
-                                 htmlContent += `
-                                     <div class="heatmap-mini-task">
-                                         <i class="fa-solid fa-circle-check"></i>
-                                         <span>${escapeHtml(t.text)}</span>
-                                         <span class="heatmap-mini-task-time"><i class="fa-regular fa-clock"></i> ${t.timeStart || '09:00'} - ${t.timeEnd || '10:00'}</span>
-                                     </div>`;
-                             });
-                         }
-                         
-                         if (!dayHighlightText && dayTasks.length === 0) {
-                             htmlContent = `<div style="text-align: center; padding: 15px; color: var(--text-muted); font-style: italic;"><i class="fa-solid fa-mug-hot" style="margin-right: 6px;"></i> Bu tarihte tamamlanmış bir aktivite bulunmuyor.</div>`;
-                         }
-                         
-                         detailsContent.innerHTML = htmlContent;
-                         detailsPanel.style.display = 'block';
-                     }
-                 });
-             });
-         }
- 
-         // --- İlerleme Trend Grafiği ---
-        // Not: eskiden harici Chart.js CDN'ine bağımlıydı; ağ/CSP/reklam engelleyici
-        // gibi sebeplerle kütüphane yüklenemediğinde grafik sessizce hiç görünmüyordu.
-        // Artık bağımlılıksız, saf CSS/DOM tabanlı bir bar grafiği kullanıyoruz — her
-        // koşulda render olur. Ayrıca seçili periyoda (7/30 gün, tüm zamanlar) göre
-        // hem başlık hem veri çözünürlüğü uyarlanıyor.
-        const trendBarsWrap = document.getElementById('weeklyTrendBars');
-        const trendTitleEl  = document.getElementById('weeklyTrendTitle');
-        if (trendBarsWrap) {
-            const completedByDate = {};
-            tasks.forEach(t => { if (t.completed && t.date) completedByDate[t.date] = (completedByDate[t.date] || 0) + 1; });
-            Object.entries(highlightHistory).forEach(([ds, h]) => { if (h.completed) completedByDate[ds] = (completedByDate[ds] || 0) + 1; });
-            const trendFocusHistory = FocusStorage.get('focus_history', {});
-
-            let barData = [];
-
-            if (filterDays === 7 || filterDays === 30) {
-                if (trendTitleEl) trendTitleEl.textContent = `Son ${filterDays} Günlük İlerleme`;
-                for (let i = filterDays - 1; i >= 0; i--) {
-                    const d = new Date(); d.setDate(d.getDate() - i);
-                    const ds = window.formatDateToString(d);
-                    const dayNamesShortTr = ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'];
-                    const label = filterDays === 7
-                        ? `${d.getDate()} ${monthNamesShort ? monthNamesShort[d.getMonth()] : ''}`
-                        : `${d.getDate()}`;
-                    const dayNum = filterDays === 7
-                        ? `${dayNamesShortTr[d.getDay()]} ${d.getDate()}`
-                        : String(d.getDate());
-                    barData.push({ label, dayNum, full: `${d.getDate()} ${monthNamesShort ? monthNamesShort[d.getMonth()] : ''} ${dayNamesShortTr[d.getDay()]}`, value: completedByDate[ds] || 0, value2: trendFocusHistory[ds] || 0 });
-                }
-            } else {
-                // Tüm Zamanlar — günlük çözünürlük okunaksız olacağı için son 12 ay aylık toplanıyor.
-                if (trendTitleEl) trendTitleEl.textContent = 'Aylık İlerleme (Tüm Zamanlar)';
-                const nowM = new Date();
-                for (let i = 11; i >= 0; i--) {
-                    const monthDate = new Date(nowM.getFullYear(), nowM.getMonth() - i, 1);
-                    const y = monthDate.getFullYear(), m = monthDate.getMonth();
-                    const daysInMonth = new Date(y, m + 1, 0).getDate();
-                    let monthTotal = 0, monthFocusTotal = 0;
-                    for (let day = 1; day <= daysInMonth; day++) {
-                        const ds = `${String(day).padStart(2, '0')}-${String(m + 1).padStart(2, '0')}-${y}`;
-                        monthTotal += completedByDate[ds] || 0;
-                        monthFocusTotal += trendFocusHistory[ds] || 0;
-                    }
-                    const label = monthNamesShort ? monthNamesShort[m] : `${m + 1}`;
-                    barData.push({ label, dayNum: label, full: `${label} ${y}`, value: monthTotal, value2: monthFocusTotal });
-                }
-            }
-
-            const hasData = barData.some(b => b.value > 0 || b.value2 > 0);
-            if (!hasData) {
-                trendBarsWrap.innerHTML = `
-                    <div class="trend-empty-state">
-                        <i class="fa-solid fa-chart-line"></i>
-                        <p>Bu dönemde henüz tamamlanmış görev yok</p>
-                        <span>Görev tamamladıkça burada ilerlemeni göreceksin</span>
-                    </div>
-                `;
-            } else {
-
-            // İki serinin ölçekleri çok farklı (görev: 0-10, odak dk: 0-150+) —
-            // aynı Y eksenini paylaştıklarında küçük olan seri tabana yapışıp
-            // okunamıyordu. Artık her seri KENDİ eksenine sahip: solda görev
-            // sayısı, sağda odak dakikası. Gridline'ların çakışmaması için iki
-            // ölçek de aynı bölme sayısını (DIV) kullanır; adım "temiz" değere
-            // (1-2-5 × 10^k) yukarı yuvarlanır.
-            const DIV = 4;
-            const niceScaleFor = (rawMax) => {
-                const target = Math.max(1, rawMax) / DIV;
-                const pow = Math.pow(10, Math.floor(Math.log10(target)));
-                const step = [1, 2, 5, 10].map(m => m * pow).find(s => s >= target);
-                const max = step * DIV;
-                const ticks = [];
-                for (let v = 0; v <= max; v += step) ticks.push(v);
-                return { max, ticks };
-            };
-            const scaleTasks = niceScaleFor(Math.max(1, ...barData.map(b => b.value)));
-            const scaleFocus = niceScaleFor(Math.max(1, ...barData.map(b => b.value2)));
-
-            // viewBox genişliği konteynerin gerçek genişliğinden alınır; sabit 600
-            // + preserveAspectRatio="none" kombinasyonu geniş ekranlarda yazıları
-            // yatayda gerip okunmaz hale getiriyordu.
-            // Çizim fonksiyona alındı: konteyner genişliği sekme geçiş animasyonu
-            // sırasında yanlış ölçülebiliyor; ResizeObserver gerçek genişlik
-            // oturduğunda grafiği doğru oranla yeniden çizer.
-            const buildTrendChart = () => {
-            const measuredW = trendBarsWrap.clientWidth;
-            const W = measuredW > 100 ? Math.round(measuredW - 8) : 600, H = 236, padL = 34, padR = 40, padT = 20, padB = 28;
-            const innerW = W - padL - padR, innerH = H - padT - padB;
-            const n = barData.length;
-            const xFor = i => n === 1 ? padL + innerW / 2 : padL + (innerW * i) / (n - 1);
-            const yForTasks = v => padT + innerH - (v / scaleTasks.max) * innerH;
-            const yForFocus = v => padT + innerH - (v / scaleFocus.max) * innerH;
-
-            const points = barData.map((b, i) => ({ x: xFor(i), y: yForTasks(b.value), y2: yForFocus(b.value2), ...b }));
-            const points2 = points.map(p => ({ ...p, y: p.y2 }));
-
-            // Yumuşak eğri: monotonik kübik Hermite (Fritsch-Carlson).
-            // Not: eskiden Catmull-Rom kullanılıyordu; ama 0->yüksek->0 gibi keskin
-            // sıçramalarda eğri taban çizgisinin altına/üstüne taşıyordu (overshoot),
-            // bu da grafiğin "bozuk" görünmesine yol açıyordu. Monotonik Hermite eğrisi
-            // komşu noktaların değer aralığını asla aşmaz.
-            const smoothPath = (pts) => {
-                const n = pts.length;
-                if (n < 2) return n ? `M${pts[0].x},${pts[0].y}` : '';
-                if (n === 2) return `M${pts[0].x.toFixed(1)},${pts[0].y.toFixed(1)} L${pts[1].x.toFixed(1)},${pts[1].y.toFixed(1)}`;
-
-                const dx = [], slope = [];
-                for (let i = 0; i < n - 1; i++) {
-                    dx[i] = pts[i + 1].x - pts[i].x;
-                    slope[i] = dx[i] === 0 ? 0 : (pts[i + 1].y - pts[i].y) / dx[i];
-                }
-
-                const tangent = new Array(n);
-                tangent[0] = slope[0];
-                tangent[n - 1] = slope[n - 2];
-                for (let i = 1; i < n - 1; i++) {
-                    tangent[i] = (slope[i - 1] * slope[i] <= 0) ? 0 : (slope[i - 1] + slope[i]) / 2;
-                }
-                for (let i = 0; i < n - 1; i++) {
-                    if (slope[i] === 0) { tangent[i] = 0; tangent[i + 1] = 0; continue; }
-                    const a = tangent[i] / slope[i], b = tangent[i + 1] / slope[i];
-                    const s = a * a + b * b;
-                    if (s > 9) {
-                        const t = 3 / Math.sqrt(s);
-                        tangent[i] = t * a * slope[i];
-                        tangent[i + 1] = t * b * slope[i];
-                    }
-                }
-
-                let d = `M${pts[0].x.toFixed(1)},${pts[0].y.toFixed(1)}`;
-                for (let i = 0; i < n - 1; i++) {
-                    const p0 = pts[i], p1 = pts[i + 1];
-                    const cp1x = p0.x + dx[i] / 3, cp1y = p0.y + tangent[i] * dx[i] / 3;
-                    const cp2x = p1.x - dx[i] / 3, cp2y = p1.y - tangent[i + 1] * dx[i] / 3;
-                    d += ` C${cp1x.toFixed(1)},${cp1y.toFixed(1)} ${cp2x.toFixed(1)},${cp2y.toFixed(1)} ${p1.x.toFixed(1)},${p1.y.toFixed(1)}`;
-                }
-                return d;
-            };
-            const linePath = smoothPath(points);
-            const linePath2 = smoothPath(points2);
-
-            // Gridlines + çift Y ekseni etiketleri: sol = görev (turuncu),
-            // sağ = odak dakikası (mor). İki ölçek de DIV bölmeli olduğundan
-            // her gridline'ın iki ucunda kendi eksen değeri hizalı durur.
-            const gridAndYLabels = scaleTasks.ticks.map((v, ti) => {
-                const y = yForTasks(v);
-                const vFocus = scaleFocus.ticks[ti];
-                return `
-                    <line class="${v === 0 ? 'trend-baseline' : 'trend-grid-line'}" x1="${padL}" y1="${y.toFixed(1)}" x2="${W - padR}" y2="${y.toFixed(1)}"/>
-                    <text class="trend-axis-label trend-axis-label-tasks" x="${padL - 8}" y="${(y + 3).toFixed(1)}" text-anchor="end">${v}</text>
-                    <text class="trend-axis-label trend-axis-label-focus" x="${W - padR + 8}" y="${(y + 3).toFixed(1)}" text-anchor="start">${vFocus}</text>
-                `;
-            }).join('');
-
-            // X ekseni etiketleri: sade gün numarası (referans görseldeki gibi)
-            const maxXLabels = 7;
-            const xLabelStride = Math.max(1, Math.ceil(n / maxXLabels));
-            const xLabels = points.map((p, i) => {
-                const show = i === 0 || i === n - 1 || i % xLabelStride === 0;
-                if (!show) return '';
-                return `<text class="trend-x-label" x="${p.x.toFixed(1)}" y="${H - 6}" text-anchor="middle">${escapeHtml(p.dayNum)}</text>`;
-            }).join('');
-
-            const dotsFor = (pts, cls) => pts.map(p => `<circle class="${cls}" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5"/>`).join('');
-            const baseline = (padT + innerH).toFixed(1);
-            const areaFor = (linePathStr, pts) => `${linePathStr} L${pts[pts.length - 1].x.toFixed(1)},${baseline} L${pts[0].x.toFixed(1)},${baseline} Z`;
-
-            trendBarsWrap.innerHTML = `
-                <div class="trend-axis-title trend-axis-title-tasks"><span class="trend-legend-dot trend-series-tasks-dot"></span>Görev</div>
-                <div class="trend-axis-title trend-axis-title-focus">Odak (dk)<span class="trend-legend-dot trend-series-focus-dot"></span></div>
-                <svg class="trend-line-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
-                    <defs>
-                        <linearGradient id="trendGradTasks" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stop-color="var(--a, #D4900E)" stop-opacity="0.22"/>
-                            <stop offset="100%" stop-color="var(--a, #D4900E)" stop-opacity="0"/>
-                        </linearGradient>
-                        <linearGradient id="trendGradFocus" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stop-color="#a29bfe" stop-opacity="0.20"/>
-                            <stop offset="100%" stop-color="#a29bfe" stop-opacity="0"/>
-                        </linearGradient>
-                    </defs>
-                    ${gridAndYLabels}
-                    <path class="trend-line-area trend-area-focus" d="${areaFor(linePath2, points2)}"/>
-                    <path class="trend-line-area trend-area-tasks" d="${areaFor(linePath, points)}"/>
-                    <path class="trend-line-path trend-series-focus" d="${linePath2}"/>
-                    <path class="trend-line-path trend-series-tasks" d="${linePath}"/>
-                    ${dotsFor(points2, 'trend-line-dot trend-series-focus-dot')}
-                    ${dotsFor(points, 'trend-line-dot trend-series-tasks-dot')}
-                    ${xLabels}
-                    <line class="trend-crosshair" id="trendCrosshair" x1="0" y1="${padT}" x2="0" y2="${padT + innerH}"/>
-                    <circle class="trend-hover-dot trend-hover-dot-tasks" id="trendHoverDot" r="5"/>
-                    <circle class="trend-hover-dot trend-hover-dot-focus" id="trendHoverDot2" r="5"/>
-                    <rect class="trend-hover-target" id="trendHoverTarget" x="${padL}" y="0" width="${innerW}" height="${H}"/>
-                </svg>
-                <div class="trend-tooltip" id="trendTooltip"></div>
-                <div class="trend-legend">
-                    <div class="trend-legend-item"><span class="trend-legend-dot trend-series-tasks-dot"></span>Tamamlanan Görevler <span class="trend-legend-axis">sol eksen</span></div>
-                    <div class="trend-legend-item"><span class="trend-legend-dot trend-series-focus-dot"></span>Odak Süresi (dk) <span class="trend-legend-axis">sağ eksen</span></div>
-                </div>
-            `;
-
-            const svgEl = trendBarsWrap.querySelector('.trend-line-svg');
-            const hoverTarget = document.getElementById('trendHoverTarget');
-            const crosshair = document.getElementById('trendCrosshair');
-            const hoverDot = document.getElementById('trendHoverDot');
-            const hoverDot2 = document.getElementById('trendHoverDot2');
-            const tooltip = document.getElementById('trendTooltip');
-
-            const showPoint = (p) => {
-                crosshair.setAttribute('x1', p.x); crosshair.setAttribute('x2', p.x);
-                crosshair.style.opacity = '1';
-                hoverDot.setAttribute('cx', p.x); hoverDot.setAttribute('cy', p.y);
-                hoverDot.style.opacity = '1';
-                hoverDot2.setAttribute('cx', p.x); hoverDot2.setAttribute('cy', p.y2);
-                hoverDot2.style.opacity = '1';
-                tooltip.innerHTML = `
-                    <div class="trend-tooltip-label">${escapeHtml(p.full)}</div>
-                    <div class="trend-tooltip-row trend-tooltip-tasks"><span class="trend-legend-dot trend-series-tasks-dot"></span>${p.value} görev</div>
-                    <div class="trend-tooltip-row trend-tooltip-focus"><span class="trend-legend-dot trend-series-focus-dot"></span>${p.value2} dk odak</div>`;
-                tooltip.style.opacity = '1';
-                const topY = Math.min(p.y, p.y2);
-                const pctX = p.x / W, pctY = topY / H;
-                tooltip.style.left = `${pctX * trendBarsWrap.clientWidth}px`;
-                tooltip.style.top = `${pctY * trendBarsWrap.clientHeight - 8}px`;
-            };
-            const hidePoint = () => {
-                crosshair.style.opacity = '0';
-                hoverDot.style.opacity = '0';
-                hoverDot2.style.opacity = '0';
-                tooltip.style.opacity = '0';
-            };
-            if (hoverTarget) {
-                hoverTarget.addEventListener('mousemove', (e) => {
-                    const rect = svgEl.getBoundingClientRect();
-                    const relX = ((e.clientX - rect.left) / rect.width) * W;
-                    let closest = points[0], closestDist = Infinity;
-                    points.forEach(p => { const d = Math.abs(p.x - relX); if (d < closestDist) { closestDist = d; closest = p; } });
-                    showPoint(closest);
-                });
-                hoverTarget.addEventListener('mouseleave', hidePoint);
-                hoverTarget.addEventListener('touchstart', (e) => {
-                    const touch = e.touches[0]; if (!touch) return;
-                    const rect = svgEl.getBoundingClientRect();
-                    const relX = ((touch.clientX - rect.left) / rect.width) * W;
-                    let closest = points[0], closestDist = Infinity;
-                    points.forEach(p => { const d = Math.abs(p.x - relX); if (d < closestDist) { closestDist = d; closest = p; } });
-                    showPoint(closest);
-                }, { passive: true });
-            }
-            }; // buildTrendChart
-
-            buildTrendChart();
-            if (trendBarsWrap._trendResizeObs) trendBarsWrap._trendResizeObs.disconnect();
-            if (typeof ResizeObserver !== 'undefined') {
-                let lastDrawnW = trendBarsWrap.clientWidth;
-                trendBarsWrap._trendResizeObs = new ResizeObserver(() => {
-                    const w = trendBarsWrap.clientWidth;
-                    if (Math.abs(w - lastDrawnW) > 24) { lastDrawnW = w; buildTrendChart(); }
-                });
-                trendBarsWrap._trendResizeObs.observe(trendBarsWrap);
-            }
-            }
-        }
-
-        // --- Streak ---
-        todayStr = window.formatDateToString(now);
-        const taskDaySet = new Set();
-         tasks.filter(t=>t.completed).forEach(t => { if(t.date) taskDaySet.add(t.date); });
-         Object.entries(highlightHistory).filter(([,h])=>h.completed).forEach(([ds])=>taskDaySet.add(ds));
-         let streak = 0, streakBest = 0, tempStreak = 0;
-         const msDay = 86400000;
-         for (let i=0; i<365; i++) {
-             const d=new Date(now.getTime()-i*msDay); const ds=window.formatDateToString(d);
-             if (taskDaySet.has(ds)) { if(i===streak) streak++; tempStreak++; streakBest=Math.max(streakBest,tempStreak); } else { tempStreak=0; }
-         }
-         const dotsEl = document.getElementById('streak-dots');
-         if (dotsEl) {
-             let dotsHTML = '';
-             for (let i=6; i>=0; i--) {
-                 const d=new Date(now.getTime()-i*msDay); const ds=window.formatDateToString(d);
-                 dotsHTML += `<div class="streak-dot${taskDaySet.has(ds)?' active':''}" title="${ds}"></div>`;
-             }
-             dotsEl.innerHTML = dotsHTML;
-         }
- 
-         // --- Günlük Ort. Odaklanma ---
-         const activeDays = Math.max(taskDaySet.size, 1);
-         const avgFocus = Math.round(focusMinutes / activeDays);
-         document.getElementById('avg-daily-focus').textContent = avgFocus;
-         const avgBar = document.getElementById('avg-focus-bar');
-         if (avgBar) setTimeout(()=>{ avgBar.style.width = Math.min((avgFocus/60)*100,100)+'%'; },200);
- 
-         // --- Haftalık Ort. ---
-         const weekStart = new Date(now); weekStart.setDate(now.getDate()-now.getDay()); weekStart.setHours(0,0,0,0);
-         const prevStart = new Date(weekStart); prevStart.setDate(prevStart.getDate()-7);
-         const thisWeekTasks = tasks.filter(t=>{ if(!t.completed||!t.date) return false; const [d,m,y]=t.date.split('-').map(Number); const dd=new Date(y,m-1,d); return dd>=weekStart; }).length;
-         const prevWeekTasks = tasks.filter(t=>{ if(!t.completed||!t.date) return false; const [d,m,y]=t.date.split('-').map(Number); const dd=new Date(y,m-1,d); return dd>=prevStart&&dd<weekStart; }).length;
-         document.getElementById('weekly-avg-tasks').textContent = thisWeekTasks;
-         document.getElementById('prev-week-tasks').textContent = prevWeekTasks;
-         const weekBar = document.getElementById('weekly-avg-bar');
-         if (weekBar) { const maxW = Math.max(thisWeekTasks,prevWeekTasks,1); setTimeout(()=>{ weekBar.style.width = Math.min((thisWeekTasks/maxW)*100,100)+'%'; },300); }
-         setTrend('trend-peak', maxH > 0 ? 0 : 0, '');
- 
-         window.updateGlobalStreak();
-     }
  
      function renderBuddyHabits() {
          const container = document.getElementById('buddy-habits-list');
@@ -5148,432 +3518,6 @@ document.addEventListener('DOMContentLoaded', () => {
  
          container.innerHTML = html;
      }
- 
-     const weeklyBanner = document.getElementById('weekly-plan-banner');
-     const startWeeklyPlanBtn = document.getElementById('start-weekly-plan-btn');
-     const navWeeklyPlanBtn = document.getElementById('nav-weekly-plan'); 
-     
-     const wizardModal = document.getElementById('weekly-wizard-modal');
-     const closeWizardBtn = document.getElementById('close-wizard-btn');
-     const wizardPrevBtn = document.getElementById('wizard-prev-btn');
-     const wizardNextBtn = document.getElementById('wizard-next-btn');
-     const wizardFinishBtn = document.getElementById('wizard-finish-btn');
-     
-     const actionModal = document.getElementById('weekly-plan-action-modal');
-     const actionCancelBtn = document.getElementById('action-cancel-plan-btn');
-     const actionEditBtn = document.getElementById('action-edit-plan-btn');
-     const actionCloseBtn = document.getElementById('action-close-btn');
- 
-     let currentWizardStep = 1;
-     let currentWizTabIndex = 0; 
-     let wizardDates = []; 
- 
-     function checkBannerVisibility() {
-         const isPlanned = FocusStorage.getRaw('weekly_planned') === currentWeekStr;
-         if (!isPlanned) {
-             weeklyBanner.style.display = 'flex';
-         } else {
-             weeklyBanner.style.display = 'none';
-         }
-     }
-     checkBannerVisibility();
- 
-     function openPlanWizardOrAction() {
-         const isPlanned = FocusStorage.getRaw('weekly_planned') === currentWeekStr;
-         if (isPlanned) {
-             actionModal.classList.remove('hidden');
-         } else {
-             document.getElementById('w-stat-tasks').textContent = tasks.filter(t => t.completed).length;
-             let focusDisplay = totalFocusMinutes + " dk";
-             if(totalFocusMinutes >= 60) focusDisplay = `${Math.floor(totalFocusMinutes / 60)} sa ${totalFocusMinutes % 60} dk`;
-             document.getElementById('w-stat-focus').textContent = focusDisplay;
-             
-             currentWizardStep = 1; stagedTasks = []; selectedPriorities = [];
-             document.getElementById('wiz-new-task-name').value = '';
-             
-             updateWizardUI(); wizardModal.classList.remove('hidden');
-         }
-     }
- 
-     startWeeklyPlanBtn.onclick = openPlanWizardOrAction;
-     if(navWeeklyPlanBtn) navWeeklyPlanBtn.onclick = openPlanWizardOrAction;
- 
-     actionCloseBtn.onclick = () => { actionModal.classList.add('hidden'); };
- 
-     actionCancelBtn.onclick = () => {
-         tasks = tasks.filter(t => t.weekStr !== currentWeekStr);
-         for(let date in calendarEvents) {
-             calendarEvents[date] = calendarEvents[date].filter(e => e.weekStr !== currentWeekStr);
-             if(calendarEvents[date].length === 0) delete calendarEvents[date];
-         }
-         
-         FocusStorage.remove('weekly_planned');
-         saveTasks();
-         renderTasks(); renderCalendar(); renderEvents();
-         checkBannerVisibility();
-         actionModal.classList.add('hidden');
-         showPremiumModal({title: 'Plan İptal Edildi', message: 'Haftalık planınız başarıyla silindi.', type: 'info'});
-     };
- 
-     actionEditBtn.onclick = () => {
-         stagedTasks = [];
-         let tasksToEdit = tasks.filter(t => t.weekStr === currentWeekStr);
-         tasksToEdit.forEach(t => {
-             stagedTasks.push({ id: t.id, name: t.text, date: t.date, start: t.timeStart, end: t.timeEnd, parentGoal: t.parentGoal });
-         });
-         
-         actionModal.classList.add('hidden');
-         wizardModal.classList.remove('hidden');
-         currentWizardStep = 2; 
-         initDayTabs();
-         updateWizardUI();
-     };
- 
-     let stagedTasks = [];
-     let selectedPriorities = [];
- 
-     function initDayTabs() {
-         const startDayVal = parseInt(document.getElementById('wiz-start-day-select').value);
-         const today = new Date();
-         let d = new Date(today);
- 
-         while(d.getDay() !== startDayVal) {
-             d.setDate(d.getDate() + 1);
-         }
- 
-         wizardDates = [];
-         const tabsContainer = document.getElementById('wiz-7day-tabs');
-         tabsContainer.innerHTML = '';
- 
-         for(let i=0; i<7; i++) {
-             let currDate = new Date(d);
-             currDate.setDate(d.getDate() + i);
-             let dateStr = window.formatDateToString(currDate);
-             wizardDates.push(dateStr);
- 
-             let dayName = dayNames[currDate.getDay() === 0 ? 0 : currDate.getDay() ];
-             let shortDate = `${currDate.getDate()} ${monthNamesShort[currDate.getMonth()]}`;
- 
-             let tab = document.createElement('div');
-             tab.className = `wizard-day-tab ${i === 0 ? 'active' : ''}`;
-             tab.innerHTML = `<strong>${dayName}</strong><span style="font-size:10px; opacity:0.8;">${shortDate}</span>`;
-             tab.dataset.index = i;
- 
-             tab.onclick = () => { switchWizTab(i); };
-             tabsContainer.appendChild(tab);
-         }
-         switchWizTab(0);
-     }
- 
-     function resetWizardTime() {
-         document.getElementById('wiz-new-task-start').value = "09:00";
-         document.getElementById('wiz-time-start-display').textContent = "09:00";
-         document.getElementById('wiz-new-task-end').value = "10:00";
-         document.getElementById('wiz-time-end-display').textContent = "10:00";
-     }
- 
-     function switchWizTab(index) {
-         currentWizTabIndex = index;
-         document.querySelectorAll('.wizard-day-tab').forEach(t => t.classList.remove('active'));
-         const activeTab = document.querySelector(`.wizard-day-tab[data-index="${index}"]`);
-         if(activeTab) activeTab.classList.add('active');
- 
-         document.getElementById('wiz-current-selected-date').value = wizardDates[index];
-         resetWizardTime(); 
-         renderStagedTasks();
- 
-         if(currentWizTabIndex === 6) {
-             wizardNextBtn.innerHTML = 'Önceliklerini Seç <i class="fa-solid fa-arrow-right"></i>';
-         } else {
-             wizardNextBtn.innerHTML = 'Sonraki Gün <i class="fa-solid fa-arrow-right"></i>';
-         }
-     }
- 
-     function updateWizardUI() {
-         document.querySelectorAll('.wizard-step').forEach((step, i) => {
-             step.classList.toggle('hidden', i + 1 !== currentWizardStep);
-         });
-         document.querySelectorAll('.step-dot').forEach((dot, i) => {
-             dot.classList.toggle('active', i + 1 === currentWizardStep);
-             dot.style.background = i + 1 === currentWizardStep ? 'var(--primary-color)' : 'rgba(255,255,255,0.2)';
-         });
-         
-         wizardPrevBtn.classList.toggle('hidden', currentWizardStep === 1);
-         
-         if (currentWizardStep === 3) {
-             wizardNextBtn.classList.add('hidden');
-             wizardFinishBtn.classList.remove('hidden');
-             renderPrioritySelection(); 
-         } else {
-             wizardNextBtn.classList.remove('hidden');
-             wizardFinishBtn.classList.add('hidden');
-             if(currentWizardStep === 1) wizardNextBtn.innerHTML = 'İleri <i class="fa-solid fa-arrow-right"></i>';
-         }
-     }
- 
-     closeWizardBtn.onclick = () => { wizardModal.classList.add('hidden'); }
- 
-     wizardNextBtn.onclick = () => {
-         if(currentWizardStep === 1) {
-             currentWizardStep = 2;
-             initDayTabs();
-             updateWizardUI();
-         } else if (currentWizardStep === 2) {
-             if (currentWizTabIndex < 6) {
-                 switchWizTab(currentWizTabIndex + 1);
-             } else {
-                 if(stagedTasks.length === 0) {
-                     showPremiumModal({title: 'Görev Ekleyin', message: 'Lütfen haftanız için en az 1 görev planlayın.', type: 'warning'});
-                     return;
-                 }
-                 currentWizardStep = 3;
-                 updateWizardUI();
-             }
-         }
-     };
-     
-     wizardPrevBtn.onclick = () => { 
-         if (currentWizardStep === 3) {
-             currentWizardStep = 2;
-             updateWizardUI();
-             switchWizTab(6); 
-         } else if (currentWizardStep === 2) {
-             if (currentWizTabIndex > 0) {
-                 switchWizTab(currentWizTabIndex - 1);
-             } else {
-                 currentWizardStep = 1;
-                 updateWizardUI();
-             }
-         }
-     };
- 
-     const wizAddTaskBtn = document.getElementById('wiz-add-task-btn');
-     wizAddTaskBtn.onclick = () => {
-         const name = document.getElementById('wiz-new-task-name').value.trim();
-         const parentGoal = document.getElementById('wiz-parent-goal').value;
-         const date = document.getElementById('wiz-current-selected-date').value;
-         const start = document.getElementById('wiz-new-task-start').value;
-         const end = document.getElementById('wiz-new-task-end').value;
-
-         // --- YENİ: Ana Hedef Tarih Sınırı Kontrolü ---
-            if (!checkGoalDateBoundaries(parentGoal, date)) {
-                return;
-            }
- 
-         if(!name || !date || !start || !end) return;
- 
-         const startMins = window.timeToMins(start);
-         const endMins = window.timeToMins(end);
- 
-         if(startMins >= endMins) {
-             showPremiumModal({ title: 'Hatalı Zaman', message: 'Bitiş saati başlangıçtan önce olamaz.', type: 'warning' });
-             return;
-         }
- 
-         if(hasTimeConflict(date, startMins, endMins, true) || hasStagedConflict(date, startMins, endMins)) {
-             showPremiumModal({ title: 'Zaman Çakışması', message: 'Bu tarih ve saat aralığında zaten bir planınız var. Lütfen çakışmayan bir zaman seçin.', type: 'warning' });
-             return;
-         }
- 
-         // --- SİHİRBAZ ANA HEDEF TARİH SINIRLARI DENETİMİ (GÜNCEL) ---
-         if (parentGoal && !checkGoalDateBoundaries(parentGoal, date)) {
-            return; // Tarih sınır dışındaysa eklemeyi keser
-        }
-
-         let totalMins = 0;
-         stagedTasks.forEach(t => { if(t.date === date) totalMins += (window.timeToMins(t.end) - window.timeToMins(t.start)); });
-         if(calendarEvents[date]) {
-             calendarEvents[date].forEach(ev => { 
-                 if (ev.weekStr !== currentWeekStr) {
-                     totalMins += (window.timeToMins(ev.timeEnd) - window.timeToMins(ev.timeStart)); 
-                 }
-             });
-         }
-         
-         const newTaskMins = endMins - startMins;
-         if (totalMins + newTaskMins > 480) {
-             showPremiumModal({ title: 'Kapasite Doldu!', message: 'Bir güne maksimum 8 saatlik (480 dk) görev ekleyebilirsiniz. Tükenmişlik (Burnout) yaşamamak için lütfen hedeflerinizi diğer günlere dağıtın.', type: 'warning' });
-             return;
-         }
- 
-         stagedTasks.push({ id: generateId(), name, date, start, end, parentGoal });
-         document.getElementById('wiz-new-task-name').value = '';
-         document.getElementById('wiz-parent-goal').value = '';
-         
-         const nextStart = end;
-         const nextEnd = window.addOneHour(end);
-         
-         const displayStart = document.getElementById('wiz-time-start-display');
-         const inputStart = document.getElementById('wiz-new-task-start');
-         if (displayStart && inputStart) { displayStart.textContent = nextStart; inputStart.value = nextStart; }
-         
-         const displayEnd = document.getElementById('wiz-time-end-display');
-         const inputEnd = document.getElementById('wiz-new-task-end');
-         if (displayEnd && inputEnd) { displayEnd.textContent = nextEnd; inputEnd.value = nextEnd; }
- 
-         renderStagedTasks();
-     };
- 
-     function hasStagedConflict(date, startMins, endMins) {
-         for(let st of stagedTasks) {
-             if(st.date === date) {
-                 let stStart = window.timeToMins(st.start);
-                 let stEnd = window.timeToMins(st.end);
-                 if(startMins < stEnd && endMins > stStart) return true;
-             }
-         }
-         return false;
-     }
- 
-     function checkBurnout() {
-         const currentDate = document.getElementById('wiz-current-selected-date').value;
-         let totalMins = 0;
- 
-         stagedTasks.forEach(t => {
-             if(t.date === currentDate) totalMins += (window.timeToMins(t.end) - window.timeToMins(t.start));
-         });
- 
-         if(calendarEvents[currentDate]) {
-             calendarEvents[currentDate].forEach(ev => {
-                 if (ev.weekStr !== currentWeekStr) { 
-                     totalMins += (window.timeToMins(ev.timeEnd) - window.timeToMins(ev.timeStart));
-                 }
-             });
-         }
- 
-         let warningEl = document.getElementById('wiz-burnout-warning');
-         if(!warningEl) {
-             warningEl = document.createElement('div');
-             warningEl.id = 'wiz-burnout-warning';
-             warningEl.className = 'burnout-warning';
-             warningEl.innerHTML = '<i class="fa-solid fa-fire-flame-curved"></i> <span><strong>Kapasite Uyarısı:</strong> Bu güne 8 saatten fazla görev yığdınız, tükenmişlik (burnout) yaşayabilirsiniz!</span>';
-             const container = document.getElementById('wiz-staged-tasks').parentElement;
-             container.insertBefore(warningEl, container.firstChild);
-         }
- 
-         if(totalMins >= 480) warningEl.style.display = 'flex';
-         else warningEl.style.display = 'none';
-     }
- 
-     function renderStagedTasks() {
-         const list = document.getElementById('wiz-staged-tasks');
-         list.innerHTML = '';
-         const currentDate = document.getElementById('wiz-current-selected-date').value;
-         
-         const dayTasks = stagedTasks.filter(t => t.date === currentDate);
- 
-         dayTasks.forEach((t) => {
-             let badgeHTML = '';
-             if (t.parentGoal) {
-                 const pg = goals.find(g => String(g.id) === String(t.parentGoal));
-                 if (pg) {
-                     badgeHTML = `<span class="task-category-tag" style="background: rgba(108, 92, 231, 0.1); color: var(--primary-color); border: 1px solid rgba(108, 92, 231, 0.2); display:inline-flex; font-size:10px; padding:2px 6px; margin-top:4px;"><i class="fa-solid fa-bullseye"></i> ${escapeHtml(pg.title)}</span>`;
-                 }
-             }
- 
-             list.innerHTML += `
-                 <li class="staged-task-item">
-                     <div class="staged-task-info">
-                         <span class="staged-task-title">${escapeHtml(t.name)}</span>
-                         <span class="staged-task-time"><i class="fa-regular fa-clock"></i> ${t.start} - ${t.end}</span>
-                         ${badgeHTML}
-                     </div>
-                     <button class="remove-staged-btn" data-action="remove-staged-task" data-id="${t.id}"><i class="fa-solid fa-trash"></i></button>
-                 </li>
-             `;
-         });
- 
-         if (!list.dataset.delegated) {
-             list.dataset.delegated = '1';
-             list.addEventListener('click', (e) => {
-                 const el = e.target.closest('[data-action="remove-staged-task"]');
-                 if (el) window.removeStagedTask(el.dataset.id);
-             });
-         }
-         checkBurnout();
-     }
-
-     window.removeStagedTask = function(id) { stagedTasks = stagedTasks.filter(t => String(t.id) !== String(id)); renderStagedTasks(); };
- 
-     function renderPrioritySelection() {
-         const container = document.getElementById('wiz-priority-selection');
-         container.innerHTML = '';
-         selectedPriorities = []; 
-         document.getElementById('wiz-priority-warning').style.display = 'none';
- 
-         stagedTasks.forEach(t => {
-             const [d, m, y] = t.date.split('-'); // GÜNCELLEME: d, m, y sırasına alındı
-             const shortDate = `${parseInt(d)} ${monthNamesShort[parseInt(m)-1]}`;
- 
-             container.innerHTML += `
-                 <label class="priority-select-item" id="priority-label-${t.id}">
-                     <input type="checkbox" class="priority-checkbox" value="${t.id}">
-                     <div style="display:flex; flex-direction:column;">
-                         <span style="color:#fff; font-weight:500; font-size:14px;">${escapeHtml(t.name)}</span>
-                         <span style="color:var(--text-muted); font-size:12px;">${shortDate} | ${t.start} - ${t.end}</span>
-                     </div>
-                 </label>
-             `;
-         });
-         if (!container.dataset.delegated) {
-             container.dataset.delegated = '1';
-             container.addEventListener('change', (e) => {
-                 const cb = e.target.closest('.priority-checkbox');
-                 if (cb) window.handlePrioritySelection(cb);
-             });
-         }
-     }
-
-     window.handlePrioritySelection = function(cb) {
-         const warningEl = document.getElementById('wiz-priority-warning');
-         const labelEl = document.getElementById(`priority-label-${cb.value}`);
-         
-         if (cb.checked) {
-             if (selectedPriorities.length >= 3) {
-                 cb.checked = false; 
-                 warningEl.style.display = 'block';
-                 return;
-             }
-             selectedPriorities.push(String(cb.value));
-             labelEl.classList.add('selected');
-             warningEl.style.display = 'none';
-         } else {
-             selectedPriorities = selectedPriorities.filter(id => id !== String(cb.value));
-             labelEl.classList.remove('selected');
-             warningEl.style.display = 'none';
-         }
-     };
- 
-     wizardFinishBtn.onclick = () => {
-         tasks = tasks.filter(t => t.weekStr !== currentWeekStr);
-         for(let date in calendarEvents) {
-             calendarEvents[date] = calendarEvents[date].filter(e => e.weekStr !== currentWeekStr);
-             if(calendarEvents[date].length === 0) delete calendarEvents[date];
-         }
- 
-         stagedTasks.forEach(st => {
-             const isTopPriority = selectedPriorities.includes(String(st.id));
-             const taskPriority = isTopPriority ? 'high' : 'medium';
-             
-             tasks.push({ id: st.id, text: st.name, completed: false, priority: taskPriority, category: 'is', date: st.date, timeStart: st.start, timeEnd: st.end, weekStr: currentWeekStr, parentGoal: st.parentGoal });
-             
-             if(!calendarEvents[st.date]) calendarEvents[st.date] = [];
-             calendarEvents[st.date].push({ id: st.id, text: st.name, timeStart: st.start, timeEnd: st.end, priority: taskPriority, weekStr: currentWeekStr, parentGoal: st.parentGoal });
-         });
-         
-         saveTasks();
-         FocusStorage.setRaw('weekly_planned', currentWeekStr);
-         
-         wizardModal.classList.add('hidden');
-         checkBannerVisibility(); 
-         
-         renderTasks(); renderCalendar(); renderEvents();
-         if(renderStatisticsRef && document.getElementById('istatistikler').classList.contains('active')) renderStatisticsRef();
-         if(renderSocialStatsRef && document.getElementById('arkadaslar').classList.contains('active')) renderSocialStatsRef();
-         if(renderBuddyHabitsRef && document.getElementById('arkadaslar').classList.contains('active')) renderBuddyHabitsRef();
-         
-         showPremiumModal({title: 'Hafta Kilitlendi!', message: 'Tüm planlarınızı ve önceliklerinizi takvime yerleştirdik. Verimli bir hafta dileriz!', type: 'success'});
-     };
  
      function getLogicalReflectionDate() {
          let d = new Date();
@@ -6131,12 +4075,16 @@ document.addEventListener('DOMContentLoaded', () => {
  
      let currentCalView = 'monthly';
      const CAL_HOUR_START = 0;
+    window.CAL_HOUR_START = CAL_HOUR_START; // Faz 6: script-calendar-week-day-view.js için
      const CAL_HOUR_END = 23;
+    window.CAL_HOUR_END = CAL_HOUR_END; // Faz 6: script-calendar-week-day-view.js için
      const DAY_NAMES_LOCAL = ['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'];
+    window.DAY_NAMES_LOCAL = DAY_NAMES_LOCAL; // Faz 6: script-calendar-week-day-view.js için
  
      // window.getWeekStart → script-calendar-date-utils.js dosyasına taşındı.
  
-     function updateCalUnifiedTitle() {
+     window.updateCalUnifiedTitle = () => updateCalUnifiedTitle(); // Faz 6: script-calendar-week-day-view.js için
+    function updateCalUnifiedTitle() {
          const el = document.getElementById('cal-unified-title');
          const monthYearDisplay = document.getElementById('month-year-display');
          
@@ -6158,7 +4106,8 @@ document.addEventListener('DOMContentLoaded', () => {
      }
  
      // ── GÜN DETAY DRAWER ──────────────────────────────────────────
-     function openDayDrawer(dateStr) {
+     window.openDayDrawer = (dateStr) => openDayDrawer(dateStr); // Faz 6: script-calendar-month-view.js için
+    function openDayDrawer(dateStr) {
          const drawer = document.getElementById('cal-day-drawer');
          if (!drawer) return;
 
@@ -6492,7 +4441,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
          saveTasks();
          window.renderDayDrawer(dateStr);
-         renderCalendar();
+         window.renderCalendar();
          if (typeof renderTasks === 'function') renderTasks();
      }
 
@@ -6618,8 +4567,8 @@ document.addEventListener('DOMContentLoaded', () => {
          // 6. Tam senkronizasyon
          window.renderDayDrawer(ds);
          window.renderDaySummary(ds);
-         renderCalendar();
-         renderEvents();
+         window.renderCalendar();
+         window.renderEvents();
          if (typeof renderTasks  === 'function') renderTasks();
          if (typeof updateStats  === 'function') updateStats();
          if (typeof renderGoals  === 'function') renderGoals();
@@ -6636,7 +4585,8 @@ document.addEventListener('DOMContentLoaded', () => {
      if (_cddOpenDay) _cddOpenDay.addEventListener('click', () => { closeDayDrawer(); switchCalView('daily'); });
      // ──────────────────────────────────────────────────────────────
 
-     function switchCalView(view) {
+     window.switchCalView = (view) => switchCalView(view); // Faz 6: script-calendar-week-day-view.js için
+    function switchCalView(view) {
          currentCalView = view;
          document.querySelectorAll('.cal-view-btn').forEach(b => b.classList.toggle('active', b.dataset.view === view));
 
@@ -6652,9 +4602,9 @@ document.addEventListener('DOMContentLoaded', () => {
          if (!nextPanel || prevPanel === nextPanel) {
              // Aynı panel — sadece yenile
              updateCalUnifiedTitle();
-             if (view === 'monthly') { renderCalendar(); renderEvents(); }
-             else if (view === 'weekly') renderWeeklyView();
-             else renderDailyView();
+             if (view === 'monthly') { window.renderCalendar(); window.renderEvents(); }
+             else if (view === 'weekly') window.renderWeeklyView();
+             else window.renderDailyView();
              return;
          }
 
@@ -6679,28 +4629,28 @@ document.addEventListener('DOMContentLoaded', () => {
                  });
              });
              updateCalUnifiedTitle();
-             if (view === 'monthly') { renderCalendar(); renderEvents(); }
-             else if (view === 'weekly') renderWeeklyView();
-             else renderDailyView();
+             if (view === 'monthly') { window.renderCalendar(); window.renderEvents(); }
+             else if (view === 'weekly') window.renderWeeklyView();
+             else window.renderDailyView();
          }, 120);
      }
  
      function calUnifiedPrev() {
          if (currentCalView === 'monthly') { 
              currentDate.setMonth(currentDate.getMonth() - 1); 
-             renderCalendar(); 
+             window.renderCalendar(); 
          }
          else if (currentCalView === 'weekly') { 
              selectedDate = new Date(selectedDate); 
              selectedDate.setDate(selectedDate.getDate() - 7); 
              currentDate = new Date(selectedDate); // Üst tarafı senkronize etmek için
-             renderWeeklyView(); 
+             window.renderWeeklyView(); 
          }
          else { 
              selectedDate = new Date(selectedDate); 
              selectedDate.setDate(selectedDate.getDate() - 1); 
              currentDate = new Date(selectedDate); // Üst tarafı senkronize etmek için
-             renderDailyView(); 
+             window.renderDailyView(); 
          }
          updateCalUnifiedTitle();
      }
@@ -6708,19 +4658,19 @@ document.addEventListener('DOMContentLoaded', () => {
      function calUnifiedNext() {
          if (currentCalView === 'monthly') { 
              currentDate.setMonth(currentDate.getMonth() + 1); 
-             renderCalendar(); 
+             window.renderCalendar(); 
          }
          else if (currentCalView === 'weekly') { 
              selectedDate = new Date(selectedDate); 
              selectedDate.setDate(selectedDate.getDate() + 7); 
              currentDate = new Date(selectedDate); // Üst tarafı senkronize etmek için
-             renderWeeklyView(); 
+             window.renderWeeklyView(); 
          }
          else { 
              selectedDate = new Date(selectedDate); 
              selectedDate.setDate(selectedDate.getDate() + 1); 
              currentDate = new Date(selectedDate); // Üst tarafı senkronize etmek için
-             renderDailyView(); 
+             window.renderDailyView(); 
          }
          updateCalUnifiedTitle();
      }
@@ -6730,9 +4680,9 @@ document.addEventListener('DOMContentLoaded', () => {
          currentDate = new Date(t);
          selectedDate = new Date(t);
          updateCalUnifiedTitle();
-         if (currentCalView === 'monthly') { renderCalendar(); renderEvents(); }
-         else if (currentCalView === 'weekly') renderWeeklyView();
-         else renderDailyView();
+         if (currentCalView === 'monthly') { window.renderCalendar(); window.renderEvents(); }
+         else if (currentCalView === 'weekly') window.renderWeeklyView();
+         else window.renderDailyView();
      }
  
      // ── TAKVİM TAM EKRAN MODU ──
@@ -6786,8 +4736,8 @@ document.addEventListener('DOMContentLoaded', () => {
  
                      requestAnimationFrame(() => {
                          if (currentCalView === 'monthly') {
-                             if (typeof renderCalendar === 'function') renderCalendar();
-                             if (typeof renderEvents === 'function') renderEvents();
+                             if (typeof window.renderCalendar === 'function') window.renderCalendar();
+                             if (typeof window.renderEvents === 'function') window.renderEvents();
                          } else if (currentCalView === 'weekly') {
                              if (typeof window.renderWeeklyView === 'function') window.renderWeeklyView();
                          } else {
@@ -6827,681 +4777,6 @@ document.addEventListener('DOMContentLoaded', () => {
      if (_calToday) _calToday.addEventListener('click', calUnifiedToday);
  
      // ────────────────────────────────────────────
-     // HAFTALIK GÖRÜNÜM
-     // ────────────────────────────────────────────
-     window.renderWeeklyView = function() {
-         function computeChipColumns(evs) {
-             const items = evs.map(ev => ({
-                 ev,
-                 start: window.timeToMins(ev.timeStart || '0:00'),
-                 end:   window.timeToMins(ev.timeEnd   || '1:00'),
-                 col: 0
-             })).sort((a, b) => a.start - b.start);
-             const colEnds = [];
-             items.forEach(item => {
-                 let c = 0;
-                 while (colEnds[c] !== undefined && colEnds[c] > item.start) c++;
-                 item.col = c;
-                 colEnds[c] = item.end;
-             });
-             const totalCols = colEnds.length || 1;
-             return items.map(item => ({ ev: item.ev, col: item.col, totalCols }));
-         }
-         const grid = document.getElementById('weekly-grid-inner');
-         if (!grid) return;
-         const weekStart = window.getWeekStart(selectedDate);
-         const days = Array.from({ length: 7 }, (_, i) => { const d = new Date(weekStart); d.setDate(weekStart.getDate() + i); return d; });
-         const todayStr = window.formatDateToString(new Date());
-         let html = '';
- 
-         // Köşe + Gün başlıkları
-         html += `<div class="weekly-corner"></div>`;
-         days.forEach((d, i) => {
-             const ds = window.formatDateToString(d);
-             const isToday = ds === todayStr;
-            html += `<div class="weekly-day-header${isToday ? ' today-col' : ''}" data-action="weekly-day-header-click" data-date="${ds}" style="cursor:pointer;">
-                 <div class="wdh-name">${DAY_NAMES_LOCAL[i]}</div>
-                 <div class="wdh-num">${d.getDate()}</div>
-             </div>`;
-         });
- 
-         // Saat satırları
-         for (let h = CAL_HOUR_START; h <= CAL_HOUR_END; h++) {
-             html += `<div class="weekly-hour-label">${String(h).padStart(2,'0')}:00</div>`;
-             days.forEach(d => {
-                 const ds = window.formatDateToString(d);
-                 
-                 // ── GERÇEK TEK PARÇA TAŞMA MOTORU (HAFTALIK) ──
-                 let cellEvs = [];
-                 
-                 // Bugün bu saatte başlayan planlar (Aşağı doğru tek parça akar)
-                 (calendarEvents[ds] || []).filter(ev => !ev.isLessonPlanDraft).forEach(ev => {
-                     const startH = parseInt((ev.timeStart || '0:00').split(':')[0]);
-                     if (startH === h) {
-                         let startMins = window.timeToMins(ev.timeStart || '0:00');
-                         let endMins = ev.isOvernight ? 1440 : window.timeToMins(ev.timeEnd || '0:00');
-                         let duration = endMins - startMins;
-                         cellEvs.push({
-                             ...ev,
-                             _cTopPx: Math.round(((startMins % 60) / 60) * 60),
-                             _cHeightPx: Math.max(20, Math.round((duration / 60) * 60))
-                         });
-                     }
-                 });
- 
-                 // Dünden sarkan planlar (Sadece yeni günün 00:00 hücresine tek parça blok olarak enjekte edilir)
-                 if (h === 0) {
-                     let prevD = new Date(d);
-                     prevD.setDate(prevD.getDate() - 1);
-                     let prevDs = window.formatDateToString(prevD);
-                     (calendarEvents[prevDs] || []).filter(ev => !ev.isLessonPlanDraft).forEach(ev => {
-                         if (ev.isOvernight) {
-                             let endMins = window.timeToMins(ev.timeEnd || '0:00');
-                             cellEvs.push({
-                                 ...ev,
-                                 _cTopPx: 0,
-                                 _cHeightPx: Math.max(20, Math.round((endMins / 60) * 60))
-                             });
-                         }
-                     });
-                 }
- 
-                 html += `<div class="weekly-hour-cell" data-date="${ds}" data-hour="${h}"
-                   data-action="weekly-hour-cell-click" style="position: relative; overflow: visible !important;">`;
-                     
-                     const chipLayouts = computeChipColumns(cellEvs);
-                     chipLayouts.forEach(({ ev, col, totalCols }) => {
-                         const t = tasks.find(t => String(t.id) === String(ev.id));
-                         const done = t && t.completed;
-                         const cc = getTaskColor(t);
-                         const prioColor = PRIORITY_DOT_COLOR[ev.priority || 'medium'];
-                         const chipTime = [ev.timeStart, ev.timeEnd].filter(Boolean).join(' → ');
-
-                         const cTopPx     = ev._cTopPx;
-                         const cHeightPx  = ev._cHeightPx;
-                         const showActions = cHeightPx >= 52;
-                         const colW    = 100 / totalCols;
-                         const colLeft = col * colW;
-                         const GAP     = totalCols > 1 ? 1 : 0;
-
-                         const isTall = cHeightPx >= 52;
-                         const chipBorderColor = done ? '#2ed573' : cc.border;
-                         const chipBg          = done ? 'rgba(46,213,115,0.18)' : cc.bg;
-                         const chipGlow        = done ? 'rgba(46,213,115,0.15)' : cc.glow;
-                         html += `<div class="weekly-event-chip${done?' completed':''}"
-                             draggable="true"
-                             data-drag-id="${ev.id}" data-drag-date="${ds}"
-                            data-action="weekly-chip-noop"
-                             title="${ev.text}${chipTime?' · '+chipTime:''}${cc.isGoal?' 🎯 '+cc.label:''}"
-                             style="position:absolute;z-index:10;top:${cTopPx}px;height:${cHeightPx}px;min-height:18px;left:calc(${colLeft}% + ${GAP}px);width:calc(${colW}% - ${GAP*2}px);background:${chipBg};border-left-color:${chipBorderColor};box-shadow:0 3px 10px ${chipGlow};${(cc.isGoal&&!done)?'border-left-width:5px;':''}"
-                             >
-                             ${done
-                                 ? `<span class="wec-done-badge"><i class="fa-solid fa-check"></i></span>`
-                                 : `<span class="wec-cat-dot" style="background:${prioColor};" title="${cc.label} · ${ev.priority || 'medium'}"></span>`}
-                             ${cc.isGoal && !done ? `<span class="wec-goal-badge" title="${cc.label}"><i class="fa-solid fa-mountain-sun"></i></span>` : ''}
-                             ${isTall && chipTime ? `<span class="wec-time${done?' wec-time-done':''}">${done?'':' <i class="fa-regular fa-clock"></i>'} ${chipTime}</span>` : ''}
-                             <span class="wec-title" style="${!isTall && chipTime ? 'font-size:9px;' : ''}">${!isTall && chipTime ? chipTime + ' · ' : ''}${ev.text}</span>
-                             ${showActions ? `<div class="wec-actions">
-                                <button class="wec-btn${done?' wec-done':''}" data-action="weekly-chip-toggle" data-id="${ev.id}">
-                                     <i class="fa-solid fa-${done?'rotate-left':'check'}"></i> ${done?'Geri Al':'Tamam'}
-                                 </button>
-                                <button class="wec-btn" data-action="weekly-chip-edit" data-id="${ev.id}">
-                                     <i class="fa-solid fa-pen"></i> Düzenle
-                                 </button>
-                             </div>` : ''}
-                         </div>`;
-                     });
-                 html += `</div>`;
-             });
-         }
-         grid.innerHTML = html;
- 
-         // Şimdiki zaman çizgisi — sadece bugünün kolonunda
-         const now = new Date();
-         const nowDateStr = window.formatDateToString(now);
-         const nowH = now.getHours();
-         if (nowH >= CAL_HOUR_START && nowH <= CAL_HOUR_END) {
-             const nowMinPx = Math.round((now.getMinutes() / 60) * 60);
-             const todayCell = grid.querySelector(`.weekly-hour-cell[data-date="${nowDateStr}"][data-hour="${nowH}"]`);
-             if (todayCell) {
-                 const line = document.createElement('div');
-                 line.className = 'weekly-now-line';
-                 line.style.top = `${nowMinPx}px`;
-                 const timeLabel = document.createElement('span');
-                 timeLabel.className = 'weekly-now-time';
-                 timeLabel.textContent = `${String(nowH).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-                 line.appendChild(timeLabel);
-                 todayCell.appendChild(line);
-             }
-
-             // Haftalık grid açılınca mevcut saate scroll et
-             const labelH = 44;
-             const hourH  = 60;
-             const scrollTop = labelH + nowH * hourH - grid.clientHeight / 3;
-             grid.scrollTo({ top: Math.max(0, scrollTop), behavior: 'smooth' });
-         }
-         updateCalUnifiedTitle();
-     };
- 
-     window.weeklyDayHeaderClick = function(ds) {
-         const [d,m,y] = ds.split('-').map(Number);
-         selectedDate = new Date(y, m-1, d);
-         currentDate = new Date(y, m-1, d);
-         switchCalView('daily');
-     };
-
-     // ──────────────────────────────────────────────
-     // INLINE QUICK ADD — hücreye tıklayınca popup
-     // ──────────────────────────────────────────────
-     let _iqaEl = null;
-     let _iqaDs = null, _iqaH = null;
-     let _iqaCloseTimer = null;
-     let _iqaJustOpened = false; // mousedown/click sırası race condition koruması
-     let _iqaTimePopoverEl = null;
-     function iqaCloseTimePopover() {
-         if (_iqaTimePopoverEl) {
-             _iqaTimePopoverEl.remove();
-             _iqaTimePopoverEl = null;
-             document.removeEventListener('mousedown', iqaTimePopoverOutsideClick, true);
-         }
-     }
-     function iqaTimePopoverOutsideClick(e) {
-         if (_iqaTimePopoverEl && !_iqaTimePopoverEl.contains(e.target) && e.target.id !== 'iqa-start' && e.target.id !== 'iqa-end') {
-             iqaCloseTimePopover();
-         }
-     }
-
-     function buildIqaEl() {
-         if (_iqaEl) return;
-         _iqaEl = document.createElement('div');
-         _iqaEl.id = 'cal-iqa';
-         _iqaEl.innerHTML = `
-             <div class="iqa-header">
-                 <span class="iqa-time-badge" id="iqa-time-badge"></span>
-                 <button class="iqa-close" id="iqa-close">×</button>
-             </div>
-             <input type="text" id="iqa-input" class="iqa-input" placeholder="Görev adını yaz…">
-             <div class="iqa-row">
-                 <div class="iqa-time-range">
-                     <input type="text" id="iqa-start" class="iqa-time-inp" readonly autocomplete="off">
-                     <span class="iqa-arr">→</span>
-                     <input type="text" id="iqa-end" class="iqa-time-inp" readonly autocomplete="off">
-                 </div>
-             </div>
-             <div class="iqa-row">
-                 <select id="iqa-priority" class="iqa-select">
-                     <option value="high">🔴 Yüksek</option>
-                     <option value="medium" selected>🟡 Orta</option>
-                     <option value="low">🟢 Düşük</option>
-                 </select>
-                 <select id="iqa-category" class="iqa-select"></select>
-             </div>
-             <button id="iqa-save" class="iqa-save-btn"><i class="fa-solid fa-plus"></i> Ekle</button>`;
-         document.body.appendChild(_iqaEl);
-
-         // Kategori seçeneklerini doldur
-         function fillIqaCats() {
-             const sel = document.getElementById('iqa-category');
-             if (!sel) return;
-             sel.innerHTML = '';
-             const cats = [
-                 { id: 'kisisel', name: 'Kişisel' }, { id: 'is', name: 'İş' },
-                 { id: 'egitim', name: 'Eğitim' }, { id: 'saglik', name: 'Sağlık' }
-             ];
-             cats.forEach(c => { const o = document.createElement('option'); o.value = c.id; o.textContent = c.name; sel.appendChild(o); });
-         }
-         fillIqaCats();
-
-         // Saat kutuları: aylık görünümdeki gün detay panelindeki (cdd-time-*)
-         // ile aynı görsel dilde, tıklayınca açılan 15dk aralıklı özel liste.
-         function iqaOpenTimePopover(inputEl) {
-             iqaCloseTimePopover();
-             const pop = document.createElement('div');
-             pop.className = 'cdd-time-popover';
-             const currentVal = inputEl.value;
-             for (let h = 0; h < 24; h++) {
-                 for (let m = 0; m < 60; m += 15) {
-                     const t = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-                     const item = document.createElement('div');
-                     item.className = 'cdd-time-popover-item' + (t === currentVal ? ' active' : '');
-                     item.textContent = t;
-                     item.addEventListener('mousedown', (e) => {
-                         e.preventDefault();
-                         inputEl.value = t;
-                         inputEl.dispatchEvent(new Event('change'));
-                         iqaCloseTimePopover();
-                     });
-                     pop.appendChild(item);
-                 }
-             }
-             document.body.appendChild(pop);
-             const r = inputEl.getBoundingClientRect();
-             let popLeft = r.left;
-             if (popLeft + 88 > window.innerWidth - 8) popLeft = window.innerWidth - 96;
-             pop.style.left = popLeft + 'px';
-             pop.style.top = (r.bottom + 4) + 'px';
-             _iqaTimePopoverEl = pop;
-             const activeItem = pop.querySelector('.cdd-time-popover-item.active');
-             if (activeItem) activeItem.scrollIntoView({ block: 'center' });
-             setTimeout(() => document.addEventListener('mousedown', iqaTimePopoverOutsideClick, true), 0);
-         }
-         document.getElementById('iqa-start').addEventListener('click', function() { iqaOpenTimePopover(this); });
-         document.getElementById('iqa-end').addEventListener('click', function() { iqaOpenTimePopover(this); });
-
-         // Bitiş saati otomatik +1h, zaman rozetini güncelle
-         document.getElementById('iqa-start').addEventListener('change', function() {
-             document.getElementById('iqa-end').value = window.addOneHour(this.value);
-             document.getElementById('iqa-time-badge').textContent = `${this.value} – ${document.getElementById('iqa-end').value}`;
-         });
-         document.getElementById('iqa-end').addEventListener('change', function() {
-             document.getElementById('iqa-time-badge').textContent = `${document.getElementById('iqa-start').value} – ${this.value}`;
-         });
-
-         // Kaydet
-         function saveIqa() {
-             const text = document.getElementById('iqa-input').value.trim();
-             if (!text) { document.getElementById('iqa-input').focus(); return; }
-             const start = document.getElementById('iqa-start').value || `${String(_iqaH).padStart(2,'0')}:00`;
-             const end   = document.getElementById('iqa-end').value   || window.addOneHour(start);
-             const prio  = document.getElementById('iqa-priority').value;
-             const cat   = document.getElementById('iqa-category').value;
-             addGlobalTask(text, prio, cat, _iqaDs, start, end, '', '');
-             closeCalInlineAdd();
-             if (currentCalView === 'weekly') window.renderWeeklyView();
-             else if (currentCalView === 'daily') window.renderDailyView();
-             renderCalendar();
-         }
-
-         document.getElementById('iqa-save').addEventListener('click', saveIqa);
-         document.getElementById('iqa-close').addEventListener('click', closeCalInlineAdd);
-         document.getElementById('iqa-input').addEventListener('keydown', function(e) {
-             if (e.key === 'Enter') { e.preventDefault(); saveIqa(); }
-             if (e.key === 'Escape') closeCalInlineAdd();
-         });
-
-         // Dışarı tıklayınca kapat — ama aynı tıklamanın açtığı popup'ı hemen kapatma
-         // Not: saat popover'ı document.body'ye eklendiği (iqaEl'in dışında olduğu)
-         // için onu da hariç tutuyoruz, yoksa saat seçince tüm kutu kapanıyordu.
-         document.addEventListener('mousedown', function(e) {
-             if (_iqaJustOpened) return; // bu mousedown, popup'ı açan tıklamanın kendisi
-             if (_iqaTimePopoverEl && _iqaTimePopoverEl.contains(e.target)) return;
-             if (_iqaEl && _iqaEl.style.display === 'flex' && !_iqaEl.contains(e.target)) {
-                 closeCalInlineAdd();
-             }
-         }, true);
-     }
-
-     function openCalInlineAdd(ds, h, anchorEl, clickEvent) {
-         // Bekleyen close-timeout'u iptal et (mousedown→click race condition)
-         if (_iqaCloseTimer) { clearTimeout(_iqaCloseTimer); _iqaCloseTimer = null; }
-         // Bu tıklamanın mousedown'ının popup'ı kapatmasını engelle
-         _iqaJustOpened = true;
-         setTimeout(() => { _iqaJustOpened = false; }, 0);
-
-         buildIqaEl();
-         _iqaDs = ds;
-         _iqaH  = h;
-
-         const hStr = String(h).padStart(2, '0');
-         const startVal = `${hStr}:00`;
-         const endVal   = window.addOneHour(startVal);
-         document.getElementById('iqa-time-badge').textContent = `${hStr}:00 – ${endVal}`;
-         document.getElementById('iqa-start').value = startVal;
-         document.getElementById('iqa-end').value   = endVal;
-         document.getElementById('iqa-input').value = '';
-         document.getElementById('iqa-priority').value = 'medium';
-
-         // Pozisyonla: anchor'ın altına veya üstüne
-         _iqaEl.style.display = 'flex';
-         _iqaEl.style.opacity = '0';
-         _iqaEl.style.transform = 'scale(0.95) translateY(-6px)';
-
-         if (anchorEl) {
-             const rect = anchorEl.getBoundingClientRect();
-             const popW = 370, popH = 210;
-             // Hücrenin (özellikle günlük görünümde tek geniş sütun olduğu için)
-             // sol kenarına değil, tıklanan noktanın etrafına ortalanır.
-             const clickX = (clickEvent && typeof clickEvent.clientX === 'number' && clickEvent.clientX > 0)
-                 ? clickEvent.clientX
-                 : (rect.left + rect.width / 2);
-             let top  = rect.bottom + 6;
-             let left = clickX - popW / 2;
-             if (top + popH > window.innerHeight - 12) top = rect.top - popH - 6;
-             if (left + popW > window.innerWidth  - 12) left = window.innerWidth - popW - 12;
-             if (left < 8) left = 8;
-             _iqaEl.style.top  = `${top + window.scrollY}px`;
-             _iqaEl.style.left = `${left}px`;
-         } else {
-             _iqaEl.style.top  = '50%';
-             _iqaEl.style.left = '50%';
-             _iqaEl.style.transform = 'translate(-50%,-50%) scale(0.95)';
-         }
-
-         requestAnimationFrame(() => {
-             _iqaEl.style.transition = 'opacity 0.18s, transform 0.18s';
-             _iqaEl.style.opacity = '1';
-             _iqaEl.style.transform = anchorEl ? 'scale(1) translateY(0)' : 'translate(-50%,-50%) scale(1)';
-             document.getElementById('iqa-input').focus();
-         });
-     }
-
-     function closeCalInlineAdd() {
-         if (!_iqaEl) return;
-         iqaCloseTimePopover();
-         if (_iqaCloseTimer) clearTimeout(_iqaCloseTimer);
-         _iqaEl.style.transition = 'opacity 0.15s, transform 0.15s';
-         _iqaEl.style.opacity = '0';
-         _iqaEl.style.transform = 'scale(0.95) translateY(-4px)';
-         _iqaCloseTimer = setTimeout(() => {
-             if (_iqaEl) _iqaEl.style.display = 'none';
-             _iqaCloseTimer = null;
-         }, 160);
-     }
-
-     window.weeklyHourCellClick = function(ds, h, event) {
-         if (event) event.stopPropagation();
-         // currentTarget inline onclick'te null gelebilir, target güvenli fallback
-         const cell = (event && (event.currentTarget || event.target)) || null;
-         openCalInlineAdd(ds, h, cell, event);
-     };
- 
-     // — Premium Drag Ghost Oluşturucu —
-     function createCalDragGhost(text, timeStart, timeEnd, priority) {
-         const ghost = document.createElement('div');
-         ghost.className = `cal-drag-ghost ghost-${priority || 'medium'}`;
-         const timeStr = timeStart ? `⏱ ${timeStart}${timeEnd ? ' → ' + timeEnd : ''}` : '';
-         ghost.innerHTML = `
-             <div class="ghost-bar"></div>
-             <div class="ghost-time">${timeStr}</div>
-             <div class="ghost-title">${escapeHtml(text)}</div>
-             <i class="fa-solid fa-grip-dots-vertical ghost-icon"></i>`;
-         document.body.appendChild(ghost);
-         setTimeout(() => ghost.remove(), 0);
-         return ghost;
-     }
- 
-     // ── Drag-and-Drop: global durum & yardımcılar ──
-     let _calDragId = null;
-
-     // window.snap15 → script-calendar-date-utils.js dosyasına taşındı.
-
-     // Hücre üzerinde sürüklerken 15dk-snap önizlemesi
-     window.calDragOver = function(e, cellEl, h, hourPx) {
-         e.preventDefault();
-         e.dataTransfer.dropEffect = 'move';
-         cellEl.classList.add('drag-over');
-         if (!_calDragId) return;
-
-         const snapMins = window.snap15((e.offsetY / hourPx) * 60);
-         const task = tasks.find(t => String(t.id) === String(_calDragId));
-         if (!task) return;
-
-         const durMins = Math.max(30, window.timeToMins(task.timeEnd || '13:00') - window.timeToMins(task.timeStart || '12:00'));
-         const startTotal = h * 60 + snapMins;
-         const endTotal   = Math.min(24 * 60, startTotal + durMins);
-         const endH = Math.floor(endTotal / 60), endM = endTotal % 60;
-         const timeStr = `${String(h).padStart(2,'0')}:${String(snapMins).padStart(2,'0')} → ${String(endH).padStart(2,'0')}:${String(endM).padStart(2,'0')}`;
-
-         document.querySelectorAll('.cal-drop-preview').forEach(p => {
-             if (p.parentElement !== cellEl) p.remove();
-         });
-
-         let preview = cellEl.querySelector('.cal-drop-preview');
-         if (!preview) {
-             preview = document.createElement('div');
-             preview.className = 'cal-drop-preview';
-             cellEl.appendChild(preview);
-         }
-         if (preview._leaveTimer) { clearTimeout(preview._leaveTimer); preview._leaveTimer = null; }
-
-         const cc = getTaskColor(task);
-         const previewH = Math.max(20, Math.min((durMins / 60) * hourPx, hourPx * 4));
-         preview.style.top    = `${(snapMins / 60) * hourPx}px`;
-         preview.style.height = `${previewH}px`;
-         preview.style.borderColor  = cc.border;
-         preview.style.background   = cc.bg.replace(/[\d.]+\)$/, '0.22)');
-         preview.textContent = timeStr;
-     };
-
-     window.calDragLeave = function(cellEl) {
-         cellEl.classList.remove('drag-over');
-         const p = cellEl.querySelector('.cal-drop-preview');
-         if (p) p._leaveTimer = setTimeout(() => { if (p.parentElement === cellEl) p.remove(); }, 80);
-     };
-
-     window.calDragEnd = function() {
-         _calDragId = null;
-         document.querySelectorAll('.cal-drop-preview').forEach(p => p.remove());
-         document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
-     };
-
-     window.weeklyChipDragStart = function(e, id, ds) {
-         e.dataTransfer.setData('taskId', id);
-         e.dataTransfer.setData('sourceDate', ds);
-         e.stopPropagation();
-         _calDragId = id;
-         const ev = (calendarEvents[ds] || []).find(x => String(x.id) === String(id));
-         if (ev) {
-             const ghost = createCalDragGhost(ev.text, ev.timeStart, ev.timeEnd, ev.priority);
-             e.dataTransfer.setDragImage(ghost, 110, 28);
-         }
-     };
-
-     window.weeklyChipToggle = function(id) {
-         toggleTask(id);
-         setTimeout(window.renderWeeklyView, 120);
-     };
-
-     window.weeklyDropHandler = function(e, targetDate, targetHour) {
-         const id = e.dataTransfer.getData('taskId');
-         const srcDate = e.dataTransfer.getData('sourceDate');
-         calDragEnd();
-         if (id) {
-             const snapMins = window.snap15((e.offsetY / 60) * 60);
-             premiumMoveTask(id, srcDate, targetDate, targetHour, snapMins);
-         }
-     };
- 
-     // ────────────────────────────────────────────
-     // GÜNLÜK GÖRÜNÜM
-     // ────────────────────────────────────────────
-     window.renderDailyView = function() {
-         const grid = document.getElementById('daily-timeline-grid');
-         const titleEl = document.getElementById('daily-view-date-title');
-         const countEl = document.getElementById('daily-event-count');
-         if (!grid) return;
- 
-         const dateStr = window.formatDateToString(selectedDate);
-         const todayStr = window.formatDateToString(new Date());
-         const now = new Date();
-         const dayEvs = (calendarEvents[dateStr] || []).filter(e => !e.isLessonPlanDraft);
- 
-         if (titleEl) titleEl.textContent = selectedDate.toLocaleDateString('tr-TR', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
-         if (countEl) countEl.textContent = `${dayEvs.length} Plan`;
- 
-         // İlerleme halkası
-         const ringWrap = document.getElementById('daily-ring-wrap');
-         const ringCircle = document.getElementById('daily-ring-circle');
-         const ringText = document.getElementById('daily-ring-text');
-         if (ringWrap) {
-             if (dayEvs.length > 0) {
-                 ringWrap.style.display = 'block';
-                 const done = dayEvs.filter(ev => { const t = tasks.find(t => String(t.id) === String(ev.id)); return t && t.completed; }).length;
-                 const pct = Math.round((done / dayEvs.length) * 100);
-                 if (ringCircle) { ringCircle.style.strokeDashoffset = 113.1 - (pct / 100) * 113.1; ringCircle.style.stroke = pct === 100 ? '#2ed573' : '#ff9f43'; }
-                 if (ringText) ringText.textContent = pct + '%';
-             } else { ringWrap.style.display = 'none'; }
-         }
- 
-         let html = '';
-         for (let h = 0; h <= 23; h++) {
-             const hLabel = String(h).padStart(2,'0') + ':00';
-             const isNowHour = (dateStr === todayStr && h === now.getHours());
-             const nowPct = isNowHour ? (now.getMinutes() / 60) * 100 : -1;
-             
-             // ── GERÇEK TEK PARÇA TAŞMA MOTORU (GÜNLÜK) ──
-             let cellEvs = [];
-             
-             // Bugün bu saatte başlayan planlar
-             dayEvs.forEach(ev => {
-                 const startH = parseInt((ev.timeStart || '0:00').split(':')[0]);
-                 if (startH === h) {
-                     let startMins = window.timeToMins(ev.timeStart || '0:00');
-                     let endMins = ev.isOvernight ? 1440 : window.timeToMins(ev.timeEnd || '0:00');
-                     let duration = endMins - startMins;
-                     cellEvs.push({
-                         ...ev,
-                         _cTopPx: Math.round(((startMins % 60) / 60) * 76),
-                         _cHeightPx: Math.max(28, Math.round((duration / 60) * 76))
-                     });
-                 }
-             });
- 
-             // Dünden sarkan planlar (Sadece gece yarısı 00:00 hücresine tek parça olarak çizilir)
-             if (h === 0) {
-                 let prevDate = new Date(selectedDate);
-                 prevDate.setDate(prevDate.getDate() - 1);
-                 const prevCheck = window.formatDateToString(prevDate);
-                 (calendarEvents[prevCheck] || []).filter(ev => !ev.isLessonPlanDraft).forEach(ev => {
-                     if (ev.isOvernight) {
-                         let endMins = window.timeToMins(ev.timeEnd || '0:00');
-                         cellEvs.push({
-                             ...ev,
-                             _cTopPx: 0,
-                             _cHeightPx: Math.max(28, Math.round((endMins / 60) * 76))
-                         });
-                     }
-                 });
-             }
- 
-             html += `<div class="daily-hour-label">${hLabel}</div>`;
-             html += `<div class="daily-hour-cell${isNowHour?' is-now':''}" data-date="${dateStr}" data-hour="${h}"
-                data-action="daily-hour-cell-click" style="position: relative; overflow: visible !important;">`;
- 
-             if (isNowHour) html += `<div class="daily-now-indicator" style="top:${nowPct}%"><span class="daily-now-time">${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}</span></div>`;
- 
-             cellEvs.forEach(ev => {
-                 const t = tasks.find(t => String(t.id) === String(ev.id));
-                 const done = t && t.completed;
-                 const cc = getTaskColor(t);
-                 const prioColor = PRIORITY_DOT_COLOR[ev.priority || 'medium'];
-                 const tStart = ev.timeStart || hLabel;
-                 const tEnd = ev.timeEnd || '';
-
-                 const topPx = ev._cTopPx;
-                 const hPx = ev._cHeightPx;
-
-                 const debBg     = done ? 'rgba(46,213,115,0.15)' : cc.bg;
-                 const debBorder = done ? '#2ed573' : cc.border;
-                 const debGlow   = done ? 'rgba(46,213,115,0.12)' : cc.glow;
-
-                 html += `<div class="daily-event-block${done?' completed':''}"
-                     draggable="true"
-                     data-drag-id="${ev.id}" data-drag-date="${dateStr}"
-                     data-action="daily-block-noop"
-                     title="${ev.text}${cc.isGoal?' · 🎯 '+cc.label:''}"
-                     style="position:absolute;z-index:10;left:8px;right:8px;width:auto;top:${topPx}px;height:${hPx}px;background:${debBg};border-left-color:${debBorder};box-shadow:0 4px 14px ${debGlow};${(cc.isGoal&&!done)?'border-left-width:5px;':''}">
-                     ${done
-                         ? `<span class="deb-done-badge"><i class="fa-solid fa-check-double"></i></span>`
-                         : `<span class="deb-prio-dot" style="background:${prioColor};" title="${cc.label}"></span>`}
-                     ${cc.isGoal && !done ? `<span class="deb-goal-badge" title="${cc.label}"><i class="fa-solid fa-mountain-sun"></i></span>` : ''}
-                     <div class="deb-inner">
-                         <div class="deb-header">
-                              <div class="deb-check${done?' done':''}" data-action="daily-toggle-task" data-id="${ev.id}">
-                                 ${done?'<i class="fa-solid fa-check"></i>':''}
-                             </div>
-                             <div class="deb-title">${ev.text}</div>
-                         </div>
-                         ${hPx > 44 ? `<div class="deb-time${done?' deb-time-done':''}"><i class="fa-regular fa-clock"></i> ${tStart}${tEnd?' → '+tEnd:''}</div>` : ''}
-                     </div>
-                    <button class="deb-edit" data-action="daily-edit-task" data-id="${ev.id}" title="Düzenle">
-                         <i class="fa-solid fa-pen"></i>
-                     </button>
-                    <button class="deb-del" data-action="daily-delete-task" data-id="${ev.id}" data-date="${dateStr}" title="Sil">
-                         <i class="fa-solid fa-xmark"></i>
-                     </button>
-                 </div>`;
-             });
-             html += `</div>`;
-         }
- 
-         grid.innerHTML = html;
- 
-         // İlk etkinliğe veya şimdiki saate kaydır
-         setTimeout(() => {
-             const target = grid.querySelector('.daily-event-block') || grid.querySelector('.daily-hour-cell.is-now');
-             if (target) target.scrollIntoView({ behavior:'smooth', block:'center' });
-         }, 100);
- 
-         updateCalUnifiedTitle();
-     };
- 
-     window.dailyHourCellClick = function(h, event) {
-         if (event) event.stopPropagation();
-         const ds = window.formatDateToString(selectedDate);
-         const cell = (event && (event.currentTarget || event.target)) || null;
-         openCalInlineAdd(ds, h, cell, event);
-     };
- 
-     window.dailyChipDragStart = function(e, id, ds) {
-         e.dataTransfer.setData('taskId', id);
-         e.dataTransfer.setData('sourceDate', ds);
-         e.stopPropagation();
-         _calDragId = id;
-         const ev = (calendarEvents[ds] || []).find(x => String(x.id) === String(id));
-         if (ev) {
-             const ghost = createCalDragGhost(ev.text, ev.timeStart, ev.timeEnd, ev.priority);
-             e.dataTransfer.setDragImage(ghost, 110, 28);
-         }
-     };
-
-     window.dailyDropHandler = function(e, targetDate, targetHour) {
-         const id = e.dataTransfer.getData('taskId');
-         const srcDate = e.dataTransfer.getData('sourceDate');
-         calDragEnd();
-         if (id) {
-             const snapMins = window.snap15((e.offsetY / 64) * 60);
-             premiumMoveTask(id, srcDate, targetDate, targetHour, snapMins);
-         }
-     };
- 
-     // Görevi yeni tarih+saate taşı
-     function premiumMoveTask(id, oldDate, newDate, newHour, snapMins) {
-         const task = tasks.find(t => String(t.id) === String(id));
-         if (!task) return;
-         const oldDateStr = oldDate || task.date;
-         snapMins = snapMins || 0;
-
-         // Aynı konuma bırakıldıysa işlem yapma
-         const oldStartM = window.timeToMins(task.timeStart || '12:00');
-         if (oldDateStr === newDate && Math.floor(oldStartM / 60) === newHour && (oldStartM % 60) === snapMins) return;
-
-         const newStartTotal = newHour * 60 + snapMins;
-         const newStart = `${String(newHour).padStart(2,'0')}:${String(snapMins).padStart(2,'0')}`;
-         const oldEndM = window.timeToMins(task.timeEnd || '13:00');
-         const durMins = Math.max(30, oldEndM - oldStartM);
-         const newEndTotal = Math.min(23 * 60 + 59, newStartTotal + durMins);
-         const newEnd = `${String(Math.floor(newEndTotal / 60)).padStart(2,'0')}:${String(newEndTotal % 60).padStart(2,'0')}`;
-
-         task.date = newDate;
-         task.timeStart = newStart;
-         task.timeEnd = newEnd;
-
-         if (calendarEvents[oldDateStr]) {
-             calendarEvents[oldDateStr] = calendarEvents[oldDateStr].filter(e => String(e.id) !== String(id));
-             if (!calendarEvents[oldDateStr].length) delete calendarEvents[oldDateStr];
-         }
-         if (!calendarEvents[newDate]) calendarEvents[newDate] = [];
-         calendarEvents[newDate] = calendarEvents[newDate].filter(e => String(e.id) !== String(id));
-         calendarEvents[newDate].push({ id: task.id, text: task.text, timeStart: newStart, timeEnd: newEnd, priority: task.priority, parentHabit: task.parentHabit || '' });
-
-         saveTasks();
-         renderCalendar();
-         if (currentCalView === 'weekly') window.renderWeeklyView();
-         else if (currentCalView === 'daily') window.renderDailyView();
-
-         showPremiumModal({ title: 'Plan Taşındı 🗓️', message: `"${escapeHtml(task.text)}" → ${newDate} ${newStart} – ${newEnd}`, type: 'success' });
-     }
  
  
      // İlk yükleme: unified title güncelle
@@ -7510,7 +4785,7 @@ document.addEventListener('DOMContentLoaded', () => {
      // ════════════════════════════════════════════════════════════
  
  
-     renderCalendarRef = renderCalendar;
+     renderCalendarRef = window.renderCalendar;
      window.renderCalendarRef = renderCalendarRef; // script-milestone-goal-actions.js gibi ayrı modüllerden erişim için
 
      // Sayfa yenilendiyse ve takvim sekmesi aktifse içeriği render et.
@@ -7523,7 +4798,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
      // renderEventsRef: gizli compat elementi + açık drawer'ı birlikte güncelle
      renderEventsRef = function() {
-         renderEvents();
+         window.renderEvents();
          const drawer = document.getElementById('cal-day-drawer');
          if (drawer && drawer.classList.contains('open')) {
              const ds = window.formatDateToString(selectedDate);
@@ -7540,7 +4815,7 @@ document.addEventListener('DOMContentLoaded', () => {
              document.querySelectorAll('.stats-filter-btn').forEach(b => b.classList.remove('active'));
              btn.classList.add('active');
              statsActiveFilter = parseInt(btn.dataset.filter);
-             renderStatistics();
+             window.renderStatistics();
          });
      });
      renderJournalRef = buildMassiveLibraryRows;
@@ -7551,7 +4826,7 @@ document.addEventListener('DOMContentLoaded', () => {
  
      populateParentHabitSelects();
      renderTasks();
-     renderEvents();
+     window.renderEvents();
 
      // İlk yüklemede ekranda GÖRÜNEN sekmenin (yenileme sonrası geri yüklenen
      // sekme) render'ı hemen, senkron çalışır; görünmeyen diğer sekmelerin
@@ -7568,13 +4843,13 @@ document.addEventListener('DOMContentLoaded', () => {
          if (_restoredTab === tabId) fn();
          else requestAnimationFrame(fn);
      };
-     _runOrDefer('takvim', renderCalendar);
+     _runOrDefer('takvim', window.renderCalendar);
      // Sınıf ödevleri (social.js window.FocusAssignments) yüklendikçe/değiştikçe
      // Bugün listesi ve Takvim'i tazele — ilk render sırasında ödev verisi henüz
      // Supabase'den gelmemiş olabilir, bu event geldiğinde ikisi de güncellenir.
      window.addEventListener('focusai:assignments-updated', () => {
          if (typeof renderTasks === 'function') renderTasks();
-         if (typeof renderCalendar === 'function') renderCalendar();
+         if (typeof window.renderCalendar === 'function') window.renderCalendar();
      });
      _runOrDefer('aliskanliklar', () => {
          renderHabitCategories();
@@ -7949,7 +5224,7 @@ document.addEventListener('DOMContentLoaded', () => {
                  deleteGlobalTask(el.dataset.id, el.dataset.taskDate);
                  setTimeout(() => updateGoalDetailsUI(goalId), 50);
              } else if (action === 'gd-toggle-habit') {
-                 toggleHabitFromToday(el.dataset.id, el.dataset.date);
+                 window.toggleHabitFromToday(el.dataset.id, el.dataset.date);
                  setTimeout(() => updateGoalDetailsUI(goalId), 100);
              } else if (action === 'gd-edit-milestone') {
                  editMilestone(goalId, el.dataset.id);
@@ -7970,7 +5245,7 @@ document.addEventListener('DOMContentLoaded', () => {
                  window.weeklyDayHeaderClick(el.dataset.date);
              } else if (action === 'weekly-hour-cell-click') {
                  const h = parseInt(el.dataset.hour, 10);
-                 openCalInlineAdd(el.dataset.date, h, el, e);
+                 window.openCalInlineAdd(el.dataset.date, h, el, e);
              } else if (action === 'weekly-chip-toggle') {
                  window.weeklyChipToggle(el.dataset.id);
              } else if (action === 'weekly-chip-edit') {
@@ -8011,7 +5286,7 @@ document.addEventListener('DOMContentLoaded', () => {
              if (action === 'daily-hour-cell-click') {
                  const h = parseInt(el.dataset.hour, 10);
                  const ds = window.formatDateToString(selectedDate);
-                 openCalInlineAdd(ds, h, el, e);
+                 window.openCalInlineAdd(ds, h, el, e);
              } else if (action === 'daily-toggle-task') {
                  window.toggleTask(el.dataset.id);
                  setTimeout(window.renderDailyView, 120);
@@ -9217,101 +6492,6 @@ document.addEventListener('DOMContentLoaded', () => {
  }
  // ---------------------------------------------------------------------
  
- // script.js içindeki o çekmece bloğunu bul ve KESİNLİKLE sadece bununla değiştir:
-
- 
- // Zihin Çöplüğü Verilerini Güvenle Getirme ve Render Etme
- window.renderCalMindDump = function() {
-    if(!calMindDumpList) return;
-    calMindDumpList.innerHTML = '';
-    // DÜZELTME: 'mind_dump' yerine 'mind_dumps' kullanıldı
-    let currentDumps = typeof FocusStorage !== 'undefined' ? Store.mind_dumps.get() : [];
-    if(currentDumps.length === 0) {
-        calMindDumpList.innerHTML = '<li style="color:var(--text-muted); font-size:12px; text-align:center; padding: 10px 0;">Çöplük boş. Harika!</li>';
-        return;
-    }
-    currentDumps.forEach(item => {
-        const li = document.createElement('li');
-        li.className = 'cal-dump-drag-item';
-        li.draggable = true;
-        li.innerHTML = `<i class="fa-solid fa-grip-vertical" style="color: var(--text-muted);"></i> <span style="flex:1;">${escapeHtml(item.text)}</span>`;
-        // Sürükleme (Drag) olayını başlat
-        li.addEventListener('dragstart', (e) => {
-            // GÜNCELLEME: Takvim ana drop motoruyla tam uyum için hem 'taskId' hem de 'dumpId' olarak kaydet
-            e.dataTransfer.setData('taskId', item.id);
-            e.dataTransfer.setData('dumpId', item.id);
-        });
-        calMindDumpList.appendChild(li);
-    });
-};
- 
- window.convertDumpToTaskForDate = function(dumpId, dateStr) {
-     let currentDumps = typeof FocusStorage !== 'undefined' ? Store.mind_dumps.get() : [];
-     const dumpIndex = currentDumps.findIndex(d => String(d.id) === String(dumpId));
-     if (dumpIndex === -1) return;
-     
-     const dumpItem = currentDumps[dumpIndex];
-     
-     // YENİ: Müsait zamanı otomatik bul
-     const slot = findFirstAvailableSlot(dateStr);
-     
-     // Görevi bulduğu müsait saate ekle
-     addGlobalTask(
-         dumpItem.text,
-         "medium",
-         "kisisel",
-         dateStr,
-         slot.start,
-         slot.end
-     );
-     
-     currentDumps.splice(dumpIndex, 1);
-     
-     // Fikir dönüşüm günlüğünü takvim tarihiyle veritabanına işle
-     let conversionLog = FocusStorage.get('mind_dump_conversions', []);
-     conversionLog.push({ id: dumpId, date: dateStr });
-     FocusStorage.set('mind_dump_conversions', conversionLog);
-     
-     if(typeof FocusStorage !== 'undefined') {
-         Store.mind_dumps.set(currentDumps);
-         mindDumps = currentDumps;
-     }
-     
-     if (typeof renderCalendar === 'function') renderCalendar();
-     if (typeof renderEvents === 'function') renderEvents();
-     if (typeof window.renderCalMindDump === 'function') window.renderCalMindDump();
-     if (typeof window.renderMindDumps === 'function') window.renderMindDumps(); 
-     
-     if (typeof showPremiumModal === 'function') {
-         showPremiumModal({
-             title: 'Planlandı!',
-             message: `Fikriniz ${dateStr} günü en uygun saat olan ${slot.start} - ${slot.end} arasına yerleştirildi.`,
-             type: 'success'
-         });
-     }
-     if (window.FocusAISocial && typeof window.FocusAISocial.postActivity === 'function') {
-         window.FocusAISocial.postActivity(`"${dumpItem.text}" fikrini göreve dönüştürdü 💡`);
-     }
- };
- 
- // Bu fonksiyon, belirli bir gün için sabah 09:00'dan başlayarak 
- // ilk boş 1 saatlik aralığı bulur.
- function findFirstAvailableSlot(dateStr) {
-     // 09:00 - 18:00 arasını (9 saat) tarıyoruz
-     for (let hour = 9; hour < 18; hour++) {
-         let start = `${String(hour).padStart(2, '0')}:00`;
-         let end = `${String(hour + 1).padStart(2, '0')}:00`;
-         
-         let startMins = window.timeToMins(start);
-         let endMins = window.timeToMins(end);
-         
-         // hasTimeConflict zaten çakışma olup olmadığını kontrol ediyor
-         if (!hasTimeConflict(dateStr, startMins, endMins)) {
-             return { start, end }; // İlk boş aralığı döndür
-         }
-     }
-     return { start: "18:00", end: "19:00" }; // Eğer gün tamamen doluysa mesai sonuna at
- }
  
  
  
