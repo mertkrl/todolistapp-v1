@@ -388,98 +388,98 @@ script-timer.js:847  ${timerSettings.targetCycles}
 script-timer.js:902  ${p.focus}
 script-timer.js:903  ${p.shortBreak}
 script-timer.js:904  ${p.longBreak}
-script.js:1576  ${completedTasks}
-script.js:1576  ${totalTasks}
-script.js:1644  ${icon}
-script.js:1649  ${tagColor}
-script.js:1649  ${tagText}
-script.js:1723  ${todayStr}
-script.js:1725  ${todayStr}
-script.js:1728  ${parentBadgeHTML}
-script.js:1755  ${asgColor}
-script.js:1756  ${asgColor}
-script.js:1760  ${asgColor}
-script.js:1919  ${tStart}
-script.js:1920  ${tEnd}
-script.js:1924  ${dotColor}
-script.js:1929  ${task.id}
-script.js:1931  ${task.id}
-script.js:1933  ${isHabitTask ? `<span class="task-category-tag tag-habit"><i class="fa-solid fa-leaf" style="margi...}
-script.js:1937  ${dotColor}
-script.js:1937  ${task.priority === 'high' ? 'Y\u00fcksek' : task.priority === 'low' ? 'D\u00fc\u015f\u00fck' : 'Orta'}
-script.js:1939  ${tStart}
-script.js:1939  ${tEnd}
-script.js:1940  ${task.recurring ? `<span class="task-time-badge" style="color:#a29bfe; border-color:rgba(162,155,2...}
-script.js:1942  ${breadcrumbHTML}
-script.js:1945  ${task.id}
-script.js:1946  ${goalOptionsHTML}
-script.js:1949  ${!task.completed ? `<button class="edit-btn" data-action="edit-task" data-id="${task.id}" title="G...}
-script.js:1950  ${!task.completed ? `<button class="focus-btn" data-action="focus-task" data-id="${task.id}" title=...}
-script.js:1951  ${task.id}
-script.js:1951  ${task.date}
-script.js:2051  ${clickAttr}
-script.js:2052  ${clickAttr}
-script.js:2055  ${habit.category || 'kisisel'}
-script.js:2055  ${catDisplay}
-script.js:2057  ${buddyBadge}
-script.js:2058  ${goalBadgesHTML}
-script.js:2059  ${autoBadge}
-script.js:2530  ${currentHabitFilter === 'all' ? 'active' : ''}
-script.js:2532  ${currentHabitFilter === cat.id ? 'active' : ''}
-script.js:2532  ${cat.id}
-script.js:2687  ${MAX_ACTIVE_HABITS}
-script.js:2735  ${buddyBadge}
-script.js:2736  ${linkedGoalBadges}
-script.js:2740  ${targetDays}
-script.js:2741  ${dateRangeText}
-script.js:2744  ${progressPercentage}
-script.js:2745  ${progressPercentage}
-script.js:2745  ${completedDays}
-script.js:2745  ${targetDays}
-script.js:2747  ${trackerHTML}
-script.js:2750  ${habit.history[todayStr] ? 'done' : ''}
-script.js:2750  ${todayStr}
-script.js:2751  ${habit.history[todayStr] ? 'fa-check' : 'fa-bolt'}
-script.js:2751  ${habit.history[todayStr] ? 'Tamamlandı' : 'Bugünü Tamamla'}
-script.js:2754  ${habit.id}
-script.js:3781  ${emptyMsg}
-script.js:5270  ${_todayStrAP}
-script.js:5270  ${goalId}
-script.js:5271  ${t.completed ? '<i class="fa-solid fa-check" style="font-size:11px; color:white;"></i>' : ''}
-script.js:5277  ${t.date}
-script.js:5283  ${pClass}
-script.js:5284  ${t.id}
-script.js:5284  ${goalId}
-script.js:5285  ${t.completed ? '<i class="fa-solid fa-check" style="font-size:11px; color:white;"></i>' : ''}
-script.js:5290  ${t.timeStart || '09:00'}
-script.js:5291  ${t.priority==='high' ? 'color:#ff4757; background:rgba(255,71,87,0.1); border:1px solid rgba(255,7...}
-script.js:5291  ${pLabel}
-script.js:5292  ${t.date ? `<span style="font-size:10px; background:rgba(255,255,255,0.05); padding:2px 8px; border...}
-script.js:5295  ${t.id}
-script.js:5295  ${t.date}
-script.js:5295  ${goalId}
-script.js:5324  ${groupKey}
-script.js:5328  ${msDateRange}
-script.js:5329  ${msCompleted}
-script.js:5329  ${msTotal}
-script.js:5334  ${groupKey}
-script.js:5386  ${h.icon || 'fa-leaf'}
-script.js:5392  ${h.id}
-script.js:5392  ${todayStr}
-script.js:5392  ${goalId}
-script.js:5400  ${hCompleted}
-script.js:5400  ${hTarget}
-script.js:5401  ${hProgress}
-script.js:5404  ${hProgress}
-script.js:5472  ${m.completed ? 'Tamamlandı' : `Adım ${index + 1}`}
-script.js:5473  ${m.completed ? '<i class="fa-solid fa-check" style="font-size:10px; color:#fff;"></i>' : `<span cl...}
-script.js:5481  ${m.completed ? '<i class="fa-solid fa-circle-check" style="font-size:10px;"></i> Tamamlandı' : `<i...}
-script.js:5485  ${dateBadge}
-script.js:5486  ${taskBadge}
-script.js:5490  ${goal.id}
-script.js:5490  ${m.id}
-script.js:5491  ${goal.id}
-script.js:5491  ${m.id}
+script.js:1512  ${completedTasks}
+script.js:1512  ${totalTasks}
+script.js:1580  ${icon}
+script.js:1585  ${tagColor}
+script.js:1585  ${tagText}
+script.js:1659  ${todayStr}
+script.js:1661  ${todayStr}
+script.js:1664  ${parentBadgeHTML}
+script.js:1691  ${asgColor}
+script.js:1692  ${asgColor}
+script.js:1696  ${asgColor}
+script.js:1855  ${tStart}
+script.js:1856  ${tEnd}
+script.js:1860  ${dotColor}
+script.js:1865  ${task.id}
+script.js:1867  ${task.id}
+script.js:1869  ${isHabitTask ? `<span class="task-category-tag tag-habit"><i class="fa-solid fa-leaf" style="margi...}
+script.js:1873  ${dotColor}
+script.js:1873  ${task.priority === 'high' ? 'Y\u00fcksek' : task.priority === 'low' ? 'D\u00fc\u015f\u00fck' : 'Orta'}
+script.js:1875  ${tStart}
+script.js:1875  ${tEnd}
+script.js:1876  ${task.recurring ? `<span class="task-time-badge" style="color:#a29bfe; border-color:rgba(162,155,2...}
+script.js:1878  ${breadcrumbHTML}
+script.js:1881  ${task.id}
+script.js:1882  ${goalOptionsHTML}
+script.js:1885  ${!task.completed ? `<button class="edit-btn" data-action="edit-task" data-id="${task.id}" title="G...}
+script.js:1886  ${!task.completed ? `<button class="focus-btn" data-action="focus-task" data-id="${task.id}" title=...}
+script.js:1887  ${task.id}
+script.js:1887  ${task.date}
+script.js:1987  ${clickAttr}
+script.js:1988  ${clickAttr}
+script.js:1991  ${habit.category || 'kisisel'}
+script.js:1991  ${catDisplay}
+script.js:1993  ${buddyBadge}
+script.js:1994  ${goalBadgesHTML}
+script.js:1995  ${autoBadge}
+script.js:2466  ${currentHabitFilter === 'all' ? 'active' : ''}
+script.js:2468  ${currentHabitFilter === cat.id ? 'active' : ''}
+script.js:2468  ${cat.id}
+script.js:2596  ${MAX_ACTIVE_HABITS}
+script.js:2644  ${buddyBadge}
+script.js:2645  ${linkedGoalBadges}
+script.js:2649  ${targetDays}
+script.js:2650  ${dateRangeText}
+script.js:2653  ${progressPercentage}
+script.js:2654  ${progressPercentage}
+script.js:2654  ${completedDays}
+script.js:2654  ${targetDays}
+script.js:2656  ${trackerHTML}
+script.js:2659  ${habit.history[todayStr] ? 'done' : ''}
+script.js:2659  ${todayStr}
+script.js:2660  ${habit.history[todayStr] ? 'fa-check' : 'fa-bolt'}
+script.js:2660  ${habit.history[todayStr] ? 'Tamamlandı' : 'Bugünü Tamamla'}
+script.js:2663  ${habit.id}
+script.js:3679  ${emptyMsg}
+script.js:5168  ${_todayStrAP}
+script.js:5168  ${goalId}
+script.js:5169  ${t.completed ? '<i class="fa-solid fa-check" style="font-size:11px; color:white;"></i>' : ''}
+script.js:5175  ${t.date}
+script.js:5181  ${pClass}
+script.js:5182  ${t.id}
+script.js:5182  ${goalId}
+script.js:5183  ${t.completed ? '<i class="fa-solid fa-check" style="font-size:11px; color:white;"></i>' : ''}
+script.js:5188  ${t.timeStart || '09:00'}
+script.js:5189  ${t.priority==='high' ? 'color:#ff4757; background:rgba(255,71,87,0.1); border:1px solid rgba(255,7...}
+script.js:5189  ${pLabel}
+script.js:5190  ${t.date ? `<span style="font-size:10px; background:rgba(255,255,255,0.05); padding:2px 8px; border...}
+script.js:5193  ${t.id}
+script.js:5193  ${t.date}
+script.js:5193  ${goalId}
+script.js:5222  ${groupKey}
+script.js:5226  ${msDateRange}
+script.js:5227  ${msCompleted}
+script.js:5227  ${msTotal}
+script.js:5232  ${groupKey}
+script.js:5284  ${h.icon || 'fa-leaf'}
+script.js:5290  ${h.id}
+script.js:5290  ${todayStr}
+script.js:5290  ${goalId}
+script.js:5298  ${hCompleted}
+script.js:5298  ${hTarget}
+script.js:5299  ${hProgress}
+script.js:5302  ${hProgress}
+script.js:5370  ${m.completed ? 'Tamamlandı' : `Adım ${index + 1}`}
+script.js:5371  ${m.completed ? '<i class="fa-solid fa-check" style="font-size:10px; color:#fff;"></i>' : `<span cl...}
+script.js:5379  ${m.completed ? '<i class="fa-solid fa-circle-check" style="font-size:10px;"></i> Tamamlandı' : `<i...}
+script.js:5383  ${dateBadge}
+script.js:5384  ${taskBadge}
+script.js:5388  ${goal.id}
+script.js:5388  ${m.id}
+script.js:5389  ${goal.id}
+script.js:5389  ${m.id}
 social-buddy-habits.js:447  ${hasFriends ? 'Henüz ortak bir alışkanlık oluşturmadın. "Alışkanlıklar" sekmesinden yeni bir hedef...}
 social-buddy-habits.js:473  ${habit.icon || 'fa-star'}
 social-buddy-habits.js:474  ${window.avatarImgHtml(currentUser, 28)}

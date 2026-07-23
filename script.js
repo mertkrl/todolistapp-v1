@@ -731,71 +731,7 @@ document.addEventListener('DOMContentLoaded', () => {
          });
      }
  
-     function checkSynergy(parentHabitId, dateStr, isCompleted) {
-         if (!parentHabitId) return;
-         const habit = habits.find(h => String(h.id) === String(parentHabitId));
-         if (habit) {
-             // Görev tamamlandıysa ve alışkanlık henüz tiklenmemişse tikle
-             if (isCompleted && !habit.history[dateStr]) {
-                 habit.history[dateStr] = true;
-                 saveHabits();
-                 if(typeof renderHabitsRef === 'function') renderHabitsRef();
-                 
-                 setTimeout(() => {
-                     showPremiumModal({ 
-                         title: 'Sinerji Aktif! ⚡', 
-                         message: `Harika! Bağlantılı görevi tamamladığın için "${escapeHtml(habit.name)}" alışkanlığının bugünkü adımı da otomatik tamamlandı.`,
-                         type: 'success' 
-                     });
-                 }, 1420);
-             }
-             // Görevdeki tik kaldırıldıysa (Acaba başka bitmiş görev var mı diye bak)
-             else if (!isCompleted) {
-                 const otherTasksDone = tasks.some(t => String(t.parentHabit) === String(parentHabitId) && t.date === dateStr && t.completed);
-                 if (!otherTasksDone) {
-                     delete habit.history[dateStr];
-                     saveHabits();
-                     if(typeof renderHabitsRef === 'function') renderHabitsRef();
-                 }
-             }
-         }
-     }
- 
-     function checkGoalSynergy(parentGoalId, dateStr, isCompleted) {
-         if (!parentGoalId) return;
- 
-         // Bu hedefe (parentGoal) bağlı olan tüm alışkanlıkları bul
-         const linkedHabits = habits.filter(h => h.parentGoals && h.parentGoals.includes(parentGoalId));
- 
-         let habitUpdated = false;
-         linkedHabits.forEach(habit => {
-             if (isCompleted && !habit.history[dateStr]) {
-                 habit.history[dateStr] = true;
-                 habitUpdated = true;
-                 
-                 showPremiumModal({ 
-                     title: 'Hedef Sinerjisi! 🎯', 
-                     message: `Ana hedefin için bir adım attın! Buna bağlı olan "${escapeHtml(habit.name)}" alışkanlığın da bugünlük otomatik tamamlandı.`,
-                     type: 'success' 
-                 });
-             } else if (!isCompleted) {
-                 // Eğer görevin tiki kaldırıldıysa ve o hedefe/alışkanlığa bağlı BAŞKA tamamlanmış görev yoksa tiki geri al
-                 const otherTasksDoneForGoal = tasks.some(t => t.parentGoal === parentGoalId && t.date === dateStr && t.completed);
-                 const otherTasksDoneForHabit = tasks.some(t => t.parentHabit === habit.id && t.date === dateStr && t.completed);
-                 
-                 if (!otherTasksDoneForGoal && !otherTasksDoneForHabit) {
-                     delete habit.history[dateStr];
-                     habitUpdated = true;
-                 }
-             }
-         });
- 
-         if (habitUpdated) {
-             saveHabits();
-             if(renderHabitsRef) renderHabitsRef();
-             if(renderGoals) renderGoals();
-         }
-     }
+    // Faz F: checkSynergy/checkGoalSynergy(habit) -> script-habit-goal-synergy.js (window.checkSynergy / window.__checkGoalHabitSynergy)
  
      function populateParentHabitSelects() {
        // 1. Görevler İçin Eski Alışkanlık Menüleri (Takvim, Odak vb.)
@@ -1087,7 +1023,7 @@ document.addEventListener('DOMContentLoaded', () => {
              FocusStorage.set('highlight_history', highlightHistory); if(window.FocusSync) window.FocusSync.pushKey('highlight_history', highlightHistory);
              
              // Yeni Ana Hedef Sinerjisi
-             checkGoalSynergy(highlightHistory[targetDate].parentGoal, targetDate, willComplete);
+             window.__checkGoalHabitSynergy(highlightHistory[targetDate].parentGoal, targetDate, willComplete);
  
              if (targetDate === window.formatDateToString(new Date())) {
                  loadDailyHighlight(); 
@@ -2105,7 +2041,7 @@ document.addEventListener('DOMContentLoaded', () => {
              // (willComplete=false için de çağrılmalı, yoksa görev geri alındığında
              // bağlı alışkanlığın tiki hiç kalkmıyordu — kalıcı desync.)
              if (task.parentHabit) {
-                 checkSynergy(task.parentHabit, task.date, willComplete);
+                 window.checkSynergy(task.parentHabit, task.date, willComplete);
              }
      
              // 2. YENİ HEDEF SİNERJİSİ: Görev bir Ana Hedef'e bağlıysa
@@ -2640,34 +2576,7 @@ document.addEventListener('DOMContentLoaded', () => {
          });
      });
  
-     function getChallengeDays(habit) {
-         const days = [];
-         const todayStr = window.formatDateToString(new Date());
-         const todayDate = new Date();
-         todayDate.setHours(0,0,0,0);
-         
-         // GÜNCELLEME: Gün-Ay-Yıl formatını güvenli parçalayarak nesneye dönüştürüyoruz
-         const [sd, sm, sy] = habit.startDate.split('-').map(Number);
-         let currentDate = new Date(sy, sm - 1, sd); 
-         currentDate.setHours(0,0,0,0);
-         
-         for (let i = 0; i < habit.targetDays; i++) {
-             const dateStr = window.formatDateToString(currentDate);
-             const isCompleted = !!habit.history[dateStr];
-             const isToday = dateStr === todayStr;
-             const isFuture = currentDate > todayDate; 
-             
-             let status = '';
-             if (isCompleted) status = 'completed';
-             else if (isToday) status = 'today';
-             else if (!isFuture && !isCompleted) status = 'missed';
-             
-             const lockedClass = isFuture ? 'locked' : '';
-             days.push({ dayNumber: i + 1, dateStr: dateStr, status: status, locked: lockedClass });
-             currentDate.setDate(currentDate.getDate() + 1);
-         }
-         return days;
-     }
+    // Faz F: getChallengeDays -> script-challenge-days.js
  
      function saveHabits() {
          Store.habits.set(habits);
@@ -2707,7 +2616,7 @@ document.addEventListener('DOMContentLoaded', () => {
              const catObj = habitCategories.find(c => c.id === catId);
              const progressPercentage = Math.min(Math.round((completedDays / targetDays) * 100), 100);
              
-             const challengeDays = getChallengeDays(habit);
+             const challengeDays = window.getChallengeDays(habit);
              let trackerHTML = '';
              challengeDays.forEach(day => { trackerHTML += `<div class="tracker-dot ${day.status} ${day.locked}" data-date="${day.dateStr}">${day.status === 'completed' ? '' : day.dayNumber}</div>`; });
  
@@ -3340,32 +3249,21 @@ document.addEventListener('DOMContentLoaded', () => {
          container.innerHTML = html;
      }
  
-     function getLogicalReflectionDate() {
-         let d = new Date();
-         if (d.getHours() < 3) {
-             d.setDate(d.getDate() - 1);
-         }
-         return window.formatDateToString(d);
-     }
- 
-     function isReflectionTime() {
-         const h = new Date().getHours();
-         return (h >= 20 || h < 3); 
-     }
+    // Faz F: getLogicalReflectionDate/isReflectionTime -> script-reflection-date-utils.js
  
      // Sidebar/dock "Akşam Yansıması" butonları kaldırıldı (giriş noktası artık
      // Zihin Kütüphanesi'ndeki "Günü Değerlendir"). Bu fonksiyon sadece akşam
      // saatinde o günün kaydı hiç yoksa modalı bir kez otomatik açar.
      function checkEveningReflection() {
-         if (!isReflectionTime()) return;
-         const logDate = window.toInputDate(getLogicalReflectionDate());
+         if (!window.isReflectionTime()) return;
+         const logDate = window.toInputDate(window.getLogicalReflectionDate());
          const journalEntries = FocusStorage.get('focusai_journal_entries', []);
          const todayEntry = journalEntries.find(e => e.date === logDate);
          if (!todayEntry) openReflectionModal();
      }
  
      function openReflectionModal() {
-         const logDate = window.toInputDate(getLogicalReflectionDate());
+         const logDate = window.toInputDate(window.getLogicalReflectionDate());
          const journalEntries = FocusStorage.get('focusai_journal_entries', []);
          const todayRef = journalEntries.find(e => e.date === logDate);
 
@@ -3434,7 +3332,7 @@ document.addEventListener('DOMContentLoaded', () => {
      const skipReflectionBtn = document.getElementById('skip-reflection-btn');
      if (skipReflectionBtn) {
          skipReflectionBtn.addEventListener('click', () => {
-             const logDate = window.toInputDate(getLogicalReflectionDate());
+             const logDate = window.toInputDate(window.getLogicalReflectionDate());
              let journalEntries = FocusStorage.get('focusai_journal_entries', []);
 
              if (!journalEntries.find(e => e.date === logDate)) {
@@ -3459,7 +3357,7 @@ document.addEventListener('DOMContentLoaded', () => {
      if (saveReflectionBtn) {
          saveReflectionBtn._mainListenerAdded = true;
          saveReflectionBtn.addEventListener('click', () => {
-             const logDate = window.toInputDate(getLogicalReflectionDate()); // yyyy-mm-dd — kütüphane renderer ile eşleşir
+             const logDate = window.toInputDate(window.getLogicalReflectionDate()); // yyyy-mm-dd — kütüphane renderer ile eşleşir
              const achieve = document.getElementById('reflection-achieve').value.trim();
              const improve = document.getElementById('reflection-improve').value.trim();
 
