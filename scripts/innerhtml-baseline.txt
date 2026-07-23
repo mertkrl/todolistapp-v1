@@ -268,6 +268,15 @@ script-command-palette.js:243  ${iconColor}
 script-command-palette.js:244  ${icon}
 script-command-palette.js:247  ${title}
 script-command-palette.js:250  ${badge ? `<span class="cmd-item-badge" style="color:${badgeColor};background:${badgeBg||'rgba(255,...}
+script-coworking-groups.js:175  ${group.members}
+script-coworking-groups.js:179  ${Math.round((group.weeklyGoalCurrent / group.weeklyGoalMax) * 100)}
+script-coworking-groups.js:222  ${encodeURIComponent(member.name)}
+script-coworking-groups.js:222  ${member.color.replace('#','')}
+script-coworking-groups.js:222  ${borderStyle}
+script-coworking-groups.js:225  ${member.status}
+script-coworking-groups.js:252  ${rankIcon}
+script-coworking-groups.js:253  ${encodeURIComponent(user.name)}
+script-coworking-groups.js:256  ${user.score}
 script-day-summary-card.js:95  ${statusIcon}
 script-day-summary-card.js:96  ${statusColor}
 script-day-summary-card.js:96  ${statusLabel}
@@ -347,6 +356,10 @@ script-plan-wizard.js:381  ${t.id}
 script-plan-wizard.js:384  ${shortDate}
 script-plan-wizard.js:384  ${t.start}
 script-plan-wizard.js:384  ${t.end}
+script-spotlight-search.js:99  ${res.icon}
+script-spotlight-search.js:101  ${shortDate}
+script-spotlight-search.js:102  ${res.time || 'Tüm Gün'}
+script-spotlight-search.js:103  ${res.type}
 script-statistics.js:287  ${c}
 script-statistics.js:287  ${t}
 script-statistics.js:366  ${parseInt(d)}
@@ -429,57 +442,44 @@ script.js:2820  ${todayStr}
 script.js:2821  ${habit.history[todayStr] ? 'fa-check' : 'fa-bolt'}
 script.js:2821  ${habit.history[todayStr] ? 'Tamamlandı' : 'Bugünü Tamamla'}
 script.js:2824  ${habit.id}
-script.js:3408  ${res.icon}
-script.js:3410  ${shortDate}
-script.js:3411  ${res.time || 'Tüm Gün'}
-script.js:3412  ${res.type}
-script.js:3984  ${group.members}
-script.js:3988  ${Math.round((group.weeklyGoalCurrent / group.weeklyGoalMax) * 100)}
-script.js:4030  ${encodeURIComponent(member.name)}
-script.js:4030  ${member.color.replace('#','')}
-script.js:4030  ${borderStyle}
-script.js:4033  ${member.status}
-script.js:4060  ${rankIcon}
-script.js:4061  ${encodeURIComponent(user.name)}
-script.js:4064  ${user.score}
-script.js:4215  ${emptyMsg}
-script.js:5700  ${_todayStrAP}
-script.js:5700  ${goalId}
-script.js:5701  ${t.completed ? '<i class="fa-solid fa-check" style="font-size:11px; color:white;"></i>' : ''}
-script.js:5707  ${t.date}
-script.js:5713  ${pClass}
-script.js:5714  ${t.id}
-script.js:5714  ${goalId}
-script.js:5715  ${t.completed ? '<i class="fa-solid fa-check" style="font-size:11px; color:white;"></i>' : ''}
-script.js:5720  ${t.timeStart || '09:00'}
-script.js:5721  ${t.priority==='high' ? 'color:#ff4757; background:rgba(255,71,87,0.1); border:1px solid rgba(255,7...}
-script.js:5721  ${pLabel}
-script.js:5722  ${t.date ? `<span style="font-size:10px; background:rgba(255,255,255,0.05); padding:2px 8px; border...}
-script.js:5725  ${t.id}
-script.js:5725  ${t.date}
-script.js:5725  ${goalId}
-script.js:5754  ${groupKey}
-script.js:5758  ${msDateRange}
-script.js:5759  ${msCompleted}
-script.js:5759  ${msTotal}
-script.js:5764  ${groupKey}
-script.js:5816  ${h.icon || 'fa-leaf'}
-script.js:5822  ${h.id}
-script.js:5822  ${todayStr}
-script.js:5822  ${goalId}
-script.js:5830  ${hCompleted}
-script.js:5830  ${hTarget}
-script.js:5831  ${hProgress}
-script.js:5834  ${hProgress}
-script.js:5902  ${m.completed ? 'Tamamlandı' : `Adım ${index + 1}`}
-script.js:5903  ${m.completed ? '<i class="fa-solid fa-check" style="font-size:10px; color:#fff;"></i>' : `<span cl...}
-script.js:5911  ${m.completed ? '<i class="fa-solid fa-circle-check" style="font-size:10px;"></i> Tamamlandı' : `<i...}
-script.js:5915  ${dateBadge}
-script.js:5916  ${taskBadge}
-script.js:5920  ${goal.id}
-script.js:5920  ${m.id}
-script.js:5921  ${goal.id}
-script.js:5921  ${m.id}
+script.js:3851  ${emptyMsg}
+script.js:5340  ${_todayStrAP}
+script.js:5340  ${goalId}
+script.js:5341  ${t.completed ? '<i class="fa-solid fa-check" style="font-size:11px; color:white;"></i>' : ''}
+script.js:5347  ${t.date}
+script.js:5353  ${pClass}
+script.js:5354  ${t.id}
+script.js:5354  ${goalId}
+script.js:5355  ${t.completed ? '<i class="fa-solid fa-check" style="font-size:11px; color:white;"></i>' : ''}
+script.js:5360  ${t.timeStart || '09:00'}
+script.js:5361  ${t.priority==='high' ? 'color:#ff4757; background:rgba(255,71,87,0.1); border:1px solid rgba(255,7...}
+script.js:5361  ${pLabel}
+script.js:5362  ${t.date ? `<span style="font-size:10px; background:rgba(255,255,255,0.05); padding:2px 8px; border...}
+script.js:5365  ${t.id}
+script.js:5365  ${t.date}
+script.js:5365  ${goalId}
+script.js:5394  ${groupKey}
+script.js:5398  ${msDateRange}
+script.js:5399  ${msCompleted}
+script.js:5399  ${msTotal}
+script.js:5404  ${groupKey}
+script.js:5456  ${h.icon || 'fa-leaf'}
+script.js:5462  ${h.id}
+script.js:5462  ${todayStr}
+script.js:5462  ${goalId}
+script.js:5470  ${hCompleted}
+script.js:5470  ${hTarget}
+script.js:5471  ${hProgress}
+script.js:5474  ${hProgress}
+script.js:5542  ${m.completed ? 'Tamamlandı' : `Adım ${index + 1}`}
+script.js:5543  ${m.completed ? '<i class="fa-solid fa-check" style="font-size:10px; color:#fff;"></i>' : `<span cl...}
+script.js:5551  ${m.completed ? '<i class="fa-solid fa-circle-check" style="font-size:10px;"></i> Tamamlandı' : `<i...}
+script.js:5555  ${dateBadge}
+script.js:5556  ${taskBadge}
+script.js:5560  ${goal.id}
+script.js:5560  ${m.id}
+script.js:5561  ${goal.id}
+script.js:5561  ${m.id}
 social-buddy-habits.js:447  ${hasFriends ? 'Henüz ortak bir alışkanlık oluşturmadın. "Alışkanlıklar" sekmesinden yeni bir hedef...}
 social-buddy-habits.js:473  ${habit.icon || 'fa-star'}
 social-buddy-habits.js:474  ${window.avatarImgHtml(currentUser, 28)}
@@ -814,8 +814,6 @@ social-institution-panel.js:1423  ${newSectionId ? `<option value="__unassigned_
 social-institution-panel.js:1493  ${info.program.id}
 social-institution-panel.js:1494  ${info.program.id}
 social-institution-panel.js:1502  ${info.draftProgram.id}
-917 potentially-unescaped interpolation(s) found.
-
 social-institution-panel.js:1503  ${info.draftProgram.id}
 social-institution-panel.js:3108  ${hasStudentPerfTab ? `<button class="cp-subtab-btn${isActive('performansim')}" data-cpsub="perform...}
 social-institution-panel.js:3109  ${hasPerfTab ? `<button class="cp-subtab-btn${isActive('performans')}" data-cpsub="performans"><i c...}
