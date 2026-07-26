@@ -3,8 +3,9 @@
 // Bağımsız — sadece FocusStorage (global) ve Web Audio API kullanıyor.
 // Not: script.js içinde şu an hiçbir çağrı noktası bulunamadı (ölü kod
 // olabilir), yine de geriye dönük uyumluluk için window köprüsü bırakıldı.
+// Faz G (2026-07-26): gerçek export eklendi (window köprüsü korunuyor).
 
-function playTaskCompleteSound() {
+export function playTaskCompleteSound() {
     const cfg = FocusStorage.get('system_settings', { tasksound: true });
     if (cfg.tasksound === false) return;
     try {

@@ -21,7 +21,7 @@ function getProgressColor(pct) {
 }
 window.getProgressColor = getProgressColor;
 
-function formatDateToString(date) {
+export function formatDateToString(date) {
     return `${String(date.getDate()).padStart(2, '0')}-${String(date.getMonth() + 1).padStart(2, '0')}-${date.getFullYear()}`; // GÜNCELLEME: Sıralama gün-ay-yıl yapıldı
 }
 window.formatDateToString = formatDateToString;
