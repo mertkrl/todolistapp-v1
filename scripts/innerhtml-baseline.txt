@@ -684,76 +684,30 @@ social-gamification.js:482  ${finished ? 'Bitti' : `${daysLeft} gün kaldı`}
 social-gamification.js:485  ${rowsHtml}
 social-gamification.js:486  ${joinBtn}
 social-gamification.js:487  ${finished && canStart ? `<button class="control-btn secondary btn-md" data-gt-start="3" style="mar...}
-social-group-details.js:98  ${window.groupAvatarHtml(code, data.name, 54)}
-social-group-details.js:137  ${_showOverviewTab ? ` <button class="group-detail-tab-btn${_gtabActiveCls('overview')}" data-gtab=...}
-social-group-details.js:139  ${(data.classroomType === 'classroom' || data.classroomType === 'workplace') ? ` <button class="gro...}
-social-group-details.js:141  ${_gtabActiveCls('calendar')}
-social-group-details.js:142  ${(data.classroomType === 'classroom' || data.classroomType === 'workplace') ? '' : ` <button class...}
-social-group-details.js:144  ${_gtabActiveCls('history')}
-social-group-details.js:150  ${_showOverviewTab ? ` <div id="group-gtab-overview" class="group-detail-tab-content${_gtabActiveCl...}
-social-group-details.js:232  ${_gtabActiveCls('leaderboard')}
-social-group-details.js:252  ${_gtabActiveCls('calendar')}
-social-group-details.js:301  ${_gtabActiveCls('history')}
-social-group-details.js:306  ${_gtabActiveCls('classroom')}
-social-group-details.js:708  ${avatarImgHtml({ ...uData, displayName: uData.displayName || memberUsername }, 30)}
-social-group-details.js:848  ${formatFocusMinutes(me.focusMin)}
-social-group-details.js:862  ${rankLabel}
-social-group-details.js:864  ${myIdx + 1}
-social-group-details.js:865  ${subText}
-social-group-details.js:867  ${formatFocusMinutes(me.focusMin)}
-social-group-details.js:913  ${summaryHtml}
-social-group-details.js:937  ${idx + 1}
-social-group-details.js:942  ${idx < 3 ? ' top-rank' : ''}
-social-group-details.js:943  ${rankLabel}
-social-group-details.js:944  ${avatarImgHtml({ ...m.uData, displayName }, 34)}
-social-group-details.js:948  ${m.uData.online ? '<span class="glb-online-dot" title="Çevrimiçi"></span>' : ''}
-social-group-details.js:953  ${formatFocusMinutes(m.focusMin)}
-social-group-details.js:1386  ${subTxt}
-social-group-details.js:1387  ${listHtml}
-social-group-details.js:1389  ${isAuthorized ? '<button id="gsc-waiting-start-btn" class="control-btn primary-btn"><i class="fa-s...}
-social-group-details.js:1564  ${GROUP_THEME_COLORS.map(c => ` <button class="grp-theme-swatch${c.hex === current ? ' active' : ''...}
-social-group-details.js:1666  ${ev.color}
-social-group-details.js:1668  ${ev.text}
-social-group-details.js:1669  ${ev.sub ? `<div style="font-size:10px; color:var(--text-muted); margin-top:1px;">${ev.sub}</div>` ...}
-social-group-details.js:1671  ${fmtTs(ev.ts)}
-social-group-details.js:1706  ${d}
-social-group-details.js:1706  ${months[parseInt(m)-1]}
-social-group-details.js:1706  ${y}
-social-group-details.js:1708  ${s.time}
-social-group-details.js:1708  ${gscAddMinutes(s.time, durationMin)}
-social-group-details.js:1716  ${shownCount-5}
-social-group-details.js:1723  ${dateLabel}
-social-group-details.js:1725  ${timeRange}
-social-group-details.js:1727  ${durationMin}
-social-group-details.js:1728  ${!isTeacherView ? `<span style="color:#74b9ff; margin-left:6px;"><i class="fa-solid fa-circle-chec...}
-social-group-details.js:1732  ${shownCount > 0 ? `<div style="display:flex; align-items:center; gap:-4px;">${avatarsHtml}${overfl...}
-social-group-details.js:1733  ${isTeacherView ? `<span style="font-size:11px; color:rgba(255,255,255,0.5);">${checkedIn.length}/$...}
-social-group-details.js:1903  ${GSC_DAYS_TR[i]}
-social-group-details.js:1904  ${day.getDate()}
-social-group-details.js:1905  ${dotsHtml}
-social-group-details.js:1905  ${dotsOverflow}
-social-group-details.js:1958  ${dayLabel}
-social-group-details.js:1958  ${daySessions.length > 0 ? ` · ${daySessions.length} seans` : ''}
-social-group-details.js:1959  ${gscCanManageSessions ? `<button id="gsc-day-detail-add" class="control-btn secondary" style="padd...}
-social-group-details.js:1961  ${daySessions.length > 0 ? `<div class="gsc-day-detail-list">${rowsHtml}</div>` : `<div class="gsc-...}
-social-group-details.js:2013  ${today}
-social-group-details.js:2013  ${gscDateKey(new Date())}
-social-group-details.js:2018  ${startTime}
-social-group-details.js:2022  ${endTime}
-social-group-details.js:2030  ${isEdit ? (es.recurrenceGroupId ? `<p style="font-size:11px; color:var(--text-muted); margin:0;"><...}
-social-group-details.js:2084  ${msg}
-social-group-details.js:2224  ${dateLabel}
-social-group-details.js:2225  ${s.time ? `${s.time}–${gscAddMinutes(s.time, s.duration || 60)}` : '--:--'}
-social-group-details.js:2226  ${s.recurrenceGroupId ? '<span class="gsc-detail-badge"><i class="fa-solid fa-repeat"></i> Her haft...}
-social-group-details.js:2227  ${focusingNowCount > 0 ? `<span class="gsc-detail-badge live"><span class="gsc-live-dot"></span> ${...}
-social-group-details.js:2228  ${isPast ? '<span class="gsc-detail-badge green"><i class="fa-solid fa-check"></i> Tamamlandı</span...}
-social-group-details.js:2234  ${recapHtml}
-social-group-details.js:2241  ${attendees.length === 0 ? '<span style="color:var(--text-muted);font-size:12px;">Henüz kimse katıl...}
-social-group-details.js:2244  ${canStartNow ? `<button id="gsc-start-now-btn" class="primary-btn" style="width:100%; padding:11px...}
-social-group-details.js:2245  ${!isPast && !canManage ? `<button id="gsc-rsvp-btn" class="gsc-rsvp-btn ${isMine ? 'leave' : 'join...}
-social-group-details.js:2250  ${canManage && !isPast ? `<button id="gsc-dm-edit" class="control-btn secondary" style="width:100%;...}
-social-group-details.js:2251  ${canManage ? `<button id="gsc-dm-delete" class="gsc-delete-btn"><i class="fa-solid fa-trash-can"><...}
-social-group-details.js:2252  ${canManage && s.recurrenceGroupId ? `<button id="gsc-dm-delete-series" class="gsc-delete-btn" styl...}
+social-group-details.js:114  ${window.groupAvatarHtml(code, data.name, 54)}
+social-group-details.js:153  ${_showOverviewTab ? ` <button class="group-detail-tab-btn${_gtabActiveCls('overview')}" data-gtab=...}
+social-group-details.js:155  ${(data.classroomType === 'classroom' || data.classroomType === 'workplace') ? ` <button class="gro...}
+social-group-details.js:157  ${_gtabActiveCls('calendar')}
+social-group-details.js:158  ${(data.classroomType === 'classroom' || data.classroomType === 'workplace') ? '' : ` <button class...}
+social-group-details.js:160  ${_gtabActiveCls('history')}
+social-group-details.js:166  ${_showOverviewTab ? ` <div id="group-gtab-overview" class="group-detail-tab-content${_gtabActiveCl...}
+social-group-details.js:248  ${_gtabActiveCls('leaderboard')}
+social-group-details.js:268  ${_gtabActiveCls('calendar')}
+social-group-details.js:317  ${_gtabActiveCls('history')}
+social-group-details.js:322  ${_gtabActiveCls('classroom')}
+social-group-details.js:724  ${avatarImgHtml({ ...uData, displayName: uData.displayName || memberUsername }, 30)}
+social-group-details.js:865  ${formatFocusMinutes(me.focusMin)}
+social-group-details.js:879  ${rankLabel}
+social-group-details.js:881  ${myIdx + 1}
+social-group-details.js:882  ${subText}
+social-group-details.js:884  ${formatFocusMinutes(me.focusMin)}
+social-group-details.js:930  ${summaryHtml}
+social-group-details.js:954  ${idx + 1}
+social-group-details.js:959  ${idx < 3 ? ' top-rank' : ''}
+social-group-details.js:960  ${rankLabel}
+social-group-details.js:961  ${avatarImgHtml({ ...m.uData, displayName }, 34)}
+social-group-details.js:965  ${m.uData.online ? '<span class="glb-online-dot" title="Çevrimiçi"></span>' : ''}
+social-group-details.js:970  ${formatFocusMinutes(m.focusMin)}
 social-group-discover.js:313  ${groupData.weeklyGoal || 0}
 social-group-discover.js:316  ${categoryTag ? ` <div class="glass-panel si-flex1-pad"> <div class="si-header-title">${categoryTag...}
 social-group-discover.js:399  ${categoryTag ? `<span class="discover-category-tag">${categoryTag}</span>` : ''}
@@ -774,6 +728,52 @@ social-group-discover.js:487  ${activeNowHtml}
 social-group-discover.js:491  ${groupCode}
 social-group-discover.js:494  ${isFull ? `<button class="primary-btn" disabled style="padding: 5px 12px; font-size: 11px; backgro...}
 social-group-discover.js:707  ${(discoverFilterHasSlot || discoverFilterActiveOnly) ? "Filtrelere uyan grup bulunamadı." : "Katıl...}
+social-group-session-calendar.js:327  ${subTxt}
+social-group-session-calendar.js:328  ${listHtml}
+social-group-session-calendar.js:330  ${isAuthorized ? '<button id="gsc-waiting-start-btn" class="control-btn primary-btn"><i class="fa-s...}
+social-group-session-calendar.js:505  ${GROUP_THEME_COLORS.map(c => ` <button class="grp-theme-swatch${c.hex === current ? ' active' : ''...}
+social-group-session-calendar.js:607  ${ev.color}
+social-group-session-calendar.js:609  ${ev.text}
+social-group-session-calendar.js:610  ${ev.sub ? `<div style="font-size:10px; color:var(--text-muted); margin-top:1px;">${ev.sub}</div>` ...}
+social-group-session-calendar.js:612  ${fmtTs(ev.ts)}
+social-group-session-calendar.js:647  ${d}
+social-group-session-calendar.js:647  ${months[parseInt(m)-1]}
+social-group-session-calendar.js:647  ${y}
+social-group-session-calendar.js:649  ${s.time}
+social-group-session-calendar.js:649  ${gscAddMinutes(s.time, durationMin)}
+social-group-session-calendar.js:657  ${shownCount-5}
+social-group-session-calendar.js:664  ${dateLabel}
+social-group-session-calendar.js:666  ${timeRange}
+social-group-session-calendar.js:668  ${durationMin}
+social-group-session-calendar.js:669  ${!isTeacherView ? `<span style="color:#74b9ff; margin-left:6px;"><i class="fa-solid fa-circle-chec...}
+social-group-session-calendar.js:673  ${shownCount > 0 ? `<div style="display:flex; align-items:center; gap:-4px;">${avatarsHtml}${overfl...}
+social-group-session-calendar.js:674  ${isTeacherView ? `<span style="font-size:11px; color:rgba(255,255,255,0.5);">${checkedIn.length}/$...}
+social-group-session-calendar.js:844  ${GSC_DAYS_TR[i]}
+social-group-session-calendar.js:845  ${day.getDate()}
+social-group-session-calendar.js:846  ${dotsHtml}
+social-group-session-calendar.js:846  ${dotsOverflow}
+social-group-session-calendar.js:899  ${dayLabel}
+social-group-session-calendar.js:899  ${daySessions.length > 0 ? ` · ${daySessions.length} seans` : ''}
+social-group-session-calendar.js:900  ${gscCanManageSessions ? `<button id="gsc-day-detail-add" class="control-btn secondary" style="padd...}
+social-group-session-calendar.js:902  ${daySessions.length > 0 ? `<div class="gsc-day-detail-list">${rowsHtml}</div>` : `<div class="gsc-...}
+social-group-session-calendar.js:954  ${today}
+social-group-session-calendar.js:954  ${gscDateKey(new Date())}
+social-group-session-calendar.js:959  ${startTime}
+social-group-session-calendar.js:963  ${endTime}
+social-group-session-calendar.js:971  ${isEdit ? (es.recurrenceGroupId ? `<p style="font-size:11px; color:var(--text-muted); margin:0;"><...}
+social-group-session-calendar.js:1025  ${msg}
+social-group-session-calendar.js:1165  ${dateLabel}
+social-group-session-calendar.js:1166  ${s.time ? `${s.time}–${gscAddMinutes(s.time, s.duration || 60)}` : '--:--'}
+social-group-session-calendar.js:1167  ${s.recurrenceGroupId ? '<span class="gsc-detail-badge"><i class="fa-solid fa-repeat"></i> Her haft...}
+social-group-session-calendar.js:1168  ${focusingNowCount > 0 ? `<span class="gsc-detail-badge live"><span class="gsc-live-dot"></span> ${...}
+social-group-session-calendar.js:1169  ${isPast ? '<span class="gsc-detail-badge green"><i class="fa-solid fa-check"></i> Tamamlandı</span...}
+social-group-session-calendar.js:1175  ${recapHtml}
+social-group-session-calendar.js:1182  ${attendees.length === 0 ? '<span style="color:var(--text-muted);font-size:12px;">Henüz kimse katıl...}
+social-group-session-calendar.js:1185  ${canStartNow ? `<button id="gsc-start-now-btn" class="primary-btn" style="width:100%; padding:11px...}
+social-group-session-calendar.js:1186  ${!isPast && !canManage ? `<button id="gsc-rsvp-btn" class="gsc-rsvp-btn ${isMine ? 'leave' : 'join...}
+social-group-session-calendar.js:1191  ${canManage && !isPast ? `<button id="gsc-dm-edit" class="control-btn secondary" style="width:100%;...}
+social-group-session-calendar.js:1192  ${canManage ? `<button id="gsc-dm-delete" class="gsc-delete-btn"><i class="fa-solid fa-trash-can"><...}
+social-group-session-calendar.js:1193  ${canManage && s.recurrenceGroupId ? `<button id="gsc-dm-delete-series" class="gsc-delete-btn" styl...}
 social-home-summary.js:114  ${greet}
 social-home-summary.js:116  ${suggestion.sub}
 social-home-summary.js:117  ${suggestion.cta ? `<button id="dhs-greeting-cta" class="dhs-greeting-cta" type="button">${suggesti...}
@@ -802,6 +802,8 @@ social-institution-class-modals.js:265  ${t.id}
 social-institution-class-modals.js:266  ${t.id}
 social-institution-class-modals.js:267  ${t.id}
 social-institution-class-modals.js:280  ${c.id}
+917 potentially-unescaped interpolation(s) found.
+
 social-institution-class-modals.js:345  ${dayName}
 social-institution-class-modals.js:404  ${badge}
 social-institution-class-modals.js:447  ${dayName}
