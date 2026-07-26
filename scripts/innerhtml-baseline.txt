@@ -754,26 +754,26 @@ social-group-details.js:2245  ${!isPast && !canManage ? `<button id="gsc-rsvp-bt
 social-group-details.js:2250  ${canManage && !isPast ? `<button id="gsc-dm-edit" class="control-btn secondary" style="width:100%;...}
 social-group-details.js:2251  ${canManage ? `<button id="gsc-dm-delete" class="gsc-delete-btn"><i class="fa-solid fa-trash-can"><...}
 social-group-details.js:2252  ${canManage && s.recurrenceGroupId ? `<button id="gsc-dm-delete-series" class="gsc-delete-btn" styl...}
-social-group-discover.js:304  ${groupData.weeklyGoal || 0}
-social-group-discover.js:307  ${categoryTag ? ` <div class="glass-panel si-flex1-pad"> <div class="si-header-title">${categoryTag...}
-social-group-discover.js:390  ${categoryTag ? `<span class="discover-category-tag">${categoryTag}</span>` : ''}
-social-group-discover.js:391  ${isNew ? `<span class="discover-new-badge">Yeni</span>` : ''}
-social-group-discover.js:392  ${groupData.requireApproval ? `<span style="font-size:11px; padding:2px 8px; border-radius:6px; bac...}
-social-group-discover.js:393  ${activeNow > 0 ? `<span style="font-size:11px; padding:2px 8px; border-radius:6px; background:rgba...}
-social-group-discover.js:401  ${window.GROUP_LIMITS.MAX_MEMBERS_PER_GROUP}
-social-group-discover.js:405  ${groupData.weeklyGoal || 0}
-social-group-discover.js:414  ${memberCount > 0 ? ` <div style="display:flex; align-items:center; margin-bottom:6px; padding-left...}
-social-group-discover.js:418  ${createdAgoText ? `<div style="font-size:11px; color:var(--text-muted); margin-bottom:18px;"><i cl...}
-social-group-discover.js:420  ${footerBtnHtml}
-social-group-discover.js:470  ${groupAvatarHtml(groupCode, groupData.name, 40)}
-social-group-discover.js:474  ${categoryTag}
-social-group-discover.js:475  ${newBadge}
-social-group-discover.js:478  ${window.GROUP_LIMITS.MAX_MEMBERS_PER_GROUP}
-social-group-discover.js:478  ${groupData.weeklyGoal}
-social-group-discover.js:478  ${activeNowHtml}
-social-group-discover.js:482  ${groupCode}
-social-group-discover.js:485  ${isFull ? `<button class="primary-btn" disabled style="padding: 5px 12px; font-size: 11px; backgro...}
-social-group-discover.js:696  ${(discoverFilterHasSlot || discoverFilterActiveOnly) ? "Filtrelere uyan grup bulunamadı." : "Katıl...}
+social-group-discover.js:313  ${groupData.weeklyGoal || 0}
+social-group-discover.js:316  ${categoryTag ? ` <div class="glass-panel si-flex1-pad"> <div class="si-header-title">${categoryTag...}
+social-group-discover.js:399  ${categoryTag ? `<span class="discover-category-tag">${categoryTag}</span>` : ''}
+social-group-discover.js:400  ${isNew ? `<span class="discover-new-badge">Yeni</span>` : ''}
+social-group-discover.js:401  ${groupData.requireApproval ? `<span style="font-size:11px; padding:2px 8px; border-radius:6px; bac...}
+social-group-discover.js:402  ${activeNow > 0 ? `<span style="font-size:11px; padding:2px 8px; border-radius:6px; background:rgba...}
+social-group-discover.js:410  ${window.GROUP_LIMITS.MAX_MEMBERS_PER_GROUP}
+social-group-discover.js:414  ${groupData.weeklyGoal || 0}
+social-group-discover.js:423  ${memberCount > 0 ? ` <div style="display:flex; align-items:center; margin-bottom:6px; padding-left...}
+social-group-discover.js:427  ${createdAgoText ? `<div style="font-size:11px; color:var(--text-muted); margin-bottom:18px;"><i cl...}
+social-group-discover.js:429  ${footerBtnHtml}
+social-group-discover.js:479  ${groupAvatarHtml(groupCode, groupData.name, 40)}
+social-group-discover.js:483  ${categoryTag}
+social-group-discover.js:484  ${newBadge}
+social-group-discover.js:487  ${window.GROUP_LIMITS.MAX_MEMBERS_PER_GROUP}
+social-group-discover.js:487  ${groupData.weeklyGoal}
+social-group-discover.js:487  ${activeNowHtml}
+social-group-discover.js:491  ${groupCode}
+social-group-discover.js:494  ${isFull ? `<button class="primary-btn" disabled style="padding: 5px 12px; font-size: 11px; backgro...}
+social-group-discover.js:707  ${(discoverFilterHasSlot || discoverFilterActiveOnly) ? "Filtrelere uyan grup bulunamadı." : "Katıl...}
 social-home-summary.js:114  ${greet}
 social-home-summary.js:116  ${suggestion.sub}
 social-home-summary.js:117  ${suggestion.cta ? `<button id="dhs-greeting-cta" class="dhs-greeting-cta" type="button">${suggesti...}
@@ -808,46 +808,44 @@ social-institution-class-modals.js:447  ${dayName}
 social-institution-class-modals.js:706  ${newSectionId ? `<option value="__unassigned__">— Sınıfsız yap —</option>` : ''}
 social-institution-class-modals.js:776  ${info.program.id}
 social-institution-class-modals.js:777  ${info.program.id}
-917 potentially-unescaped interpolation(s) found.
-
 social-institution-class-modals.js:785  ${info.draftProgram.id}
 social-institution-class-modals.js:786  ${info.draftProgram.id}
-social-institution-panel.js:320  ${groupAvatarHtml(groupCode, groupData.name, 30)}
-social-institution-panel.js:322  ${ownerBadge}
-social-institution-panel.js:325  ${groupCode}
-social-institution-panel.js:325  ${activeNowMiniHtml}
-social-institution-panel.js:481  ${avatarImgHtml(uData, 28)}
-social-institution-panel.js:2216  ${hasStudentPerfTab ? `<button class="cp-subtab-btn${isActive('performansim')}" data-cpsub="perform...}
-social-institution-panel.js:2217  ${hasPerfTab ? `<button class="cp-subtab-btn${isActive('performans')}" data-cpsub="performans"><i c...}
-social-institution-panel.js:2218  ${isActive('odevler')}
-social-institution-panel.js:2218  ${asgLabel}
-social-institution-panel.js:2219  ${isActive('program')}
-social-institution-panel.js:2220  ${isClassAdmin ? `<button class="cp-subtab-btn${isActive('roster')}" data-cpsub="roster"><i class="...}
-social-institution-panel.js:2221  ${isActive('rapor')}
-social-institution-panel.js:2223  ${hasStudentPerfTab ? `<div class="cp-subtab-panel${isActive('performansim')}" data-cpsubpanel="per...}
-social-institution-panel.js:2224  ${hasPerfTab ? `<div class="cp-subtab-panel${isActive('performans')}" data-cpsubpanel="performans">...}
-social-institution-panel.js:2225  ${isActive('odevler')}
-social-institution-panel.js:2225  ${asgHtml}
-social-institution-panel.js:2226  ${isActive('program')}
-social-institution-panel.js:2226  ${scheduleHtml}
-social-institution-panel.js:2227  ${isClassAdmin ? `<div class="cp-subtab-panel${isActive('roster')}" data-cpsubpanel="roster">${rost...}
-social-institution-panel.js:2228  ${isActive('rapor')}
-social-institution-panel.js:2228  ${reportHtml}
-social-institution-panel.js:2825  ${s.userId}
-social-institution-panel.js:3202  ${onboardingHtml}
-social-institution-panel.js:3202  ${weekTodoHtml}
-social-institution-panel.js:3202  ${kpiHtml}
-social-institution-panel.js:3378  ${nextMineHtml}
-social-institution-panel.js:3378  ${myStreakHtml}
-social-institution-panel.js:3378  ${myActiveStatusHtml}
-social-institution-panel.js:3378  ${myCompletionHtml}
-social-institution-panel.js:3378  ${privacyHtml}
-social-institution-panel.js:3402  ${checked ? `<i class="fa-solid fa-eye-slash"></i> Şu an <b>gizli</b>: haftalık odak süren ve aktif...}
-social-institution-panel.js:3451  ${statTilesHtml}
-social-institution-panel.js:3452  ${isClassAdmin ? `<div id="grp-intro-insights" class="cp-skeleton" style="margin-bottom:14px;"><div...}
-social-institution-panel.js:3453  ${isClassAdmin ? `<div id="grp-intro-shortcuts-wrap"></div>` : ` <button type="button" class="contr...}
-social-institution-panel.js:3536  ${ids.map(tileHtml).join('')}
-social-institution-panel.js:3561  ${Object.keys(SHORTCUT_DEFS).map(galleryRowHtml).join('')}
+social-institution-my-groups.js:340  ${window.groupAvatarHtml(groupCode, groupData.name, 30)}
+social-institution-my-groups.js:342  ${ownerBadge}
+social-institution-my-groups.js:345  ${groupCode}
+social-institution-my-groups.js:345  ${activeNowMiniHtml}
+social-institution-my-groups.js:501  ${window.avatarImgHtml(uData, 28)}
+social-institution-panel.js:1563  ${hasStudentPerfTab ? `<button class="cp-subtab-btn${isActive('performansim')}" data-cpsub="perform...}
+social-institution-panel.js:1564  ${hasPerfTab ? `<button class="cp-subtab-btn${isActive('performans')}" data-cpsub="performans"><i c...}
+social-institution-panel.js:1565  ${isActive('odevler')}
+social-institution-panel.js:1565  ${asgLabel}
+social-institution-panel.js:1566  ${isActive('program')}
+social-institution-panel.js:1567  ${isClassAdmin ? `<button class="cp-subtab-btn${isActive('roster')}" data-cpsub="roster"><i class="...}
+social-institution-panel.js:1568  ${isActive('rapor')}
+social-institution-panel.js:1570  ${hasStudentPerfTab ? `<div class="cp-subtab-panel${isActive('performansim')}" data-cpsubpanel="per...}
+social-institution-panel.js:1571  ${hasPerfTab ? `<div class="cp-subtab-panel${isActive('performans')}" data-cpsubpanel="performans">...}
+social-institution-panel.js:1572  ${isActive('odevler')}
+social-institution-panel.js:1572  ${asgHtml}
+social-institution-panel.js:1573  ${isActive('program')}
+social-institution-panel.js:1573  ${scheduleHtml}
+social-institution-panel.js:1574  ${isClassAdmin ? `<div class="cp-subtab-panel${isActive('roster')}" data-cpsubpanel="roster">${rost...}
+social-institution-panel.js:1575  ${isActive('rapor')}
+social-institution-panel.js:1575  ${reportHtml}
+social-institution-panel.js:2172  ${s.userId}
+social-institution-panel.js:2549  ${onboardingHtml}
+social-institution-panel.js:2549  ${weekTodoHtml}
+social-institution-panel.js:2549  ${kpiHtml}
+social-institution-panel.js:2725  ${nextMineHtml}
+social-institution-panel.js:2725  ${myStreakHtml}
+social-institution-panel.js:2725  ${myActiveStatusHtml}
+social-institution-panel.js:2725  ${myCompletionHtml}
+social-institution-panel.js:2725  ${privacyHtml}
+social-institution-panel.js:2749  ${checked ? `<i class="fa-solid fa-eye-slash"></i> Şu an <b>gizli</b>: haftalık odak süren ve aktif...}
+social-institution-panel.js:2798  ${statTilesHtml}
+social-institution-panel.js:2799  ${isClassAdmin ? `<div id="grp-intro-insights" class="cp-skeleton" style="margin-bottom:14px;"><div...}
+social-institution-panel.js:2800  ${isClassAdmin ? `<div id="grp-intro-shortcuts-wrap"></div>` : ` <button type="button" class="contr...}
+social-institution-panel.js:2883  ${ids.map(tileHtml).join('')}
+social-institution-panel.js:2908  ${Object.keys(SHORTCUT_DEFS).map(galleryRowHtml).join('')}
 social-message-pins.js:269  ${keys.length > 1 ? `Sabitlenmiş mesaj (${_dcPinnedIndex + 1}/${keys.length})` : 'Sabitlenmiş mesaj'}
 social-message-pins.js:272  ${keys.length > 1 ? `<button class="dc-pinned-nav-btn" data-action="next-pin" title="Sonraki sabitl...}
 social-message-pins.js:273  ${canUnpin ? `<button class="dc-pinned-unpin-btn" data-action="unpin" title="Sabitlemeyi kaldır"><i...}
