@@ -40,7 +40,7 @@ function microBurst(originX, originY) {
 window.microBurst = microBurst;
 
 // Görsel Şölen: Konfeti Animasyonu
-function fireConfetti() {
+export function fireConfetti() {
     const canvas = document.getElementById('confetti-canvas');
     if(!canvas) return;
     const ctx = canvas.getContext('2d');

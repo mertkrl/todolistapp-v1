@@ -5865,3 +5865,10 @@ export function setMindDumpsRef(...args) { return window.__setMindDumpsRef(...ar
 export function getRenderCalendarRef(...args) { return window.__getRenderCalendarRef(...args); }
 export function getRenderEventsRef(...args) { return window.__getRenderEventsRef(...args); }
 export function getRenderStatisticsRef(...args) { return window.__getRenderStatisticsRef(...args); }
+export function getHabitsForDate(...args) { return window.getHabitsForDate(...args); }
+export function addGlobalTask(...args) { return window.addGlobalTask(...args); }
+export function getActiveFocusTaskRef(...args) { return window.__getActiveFocusTaskRef(...args); }
+export function getNextBreakMode() { return window.__nextBreakMode; }
+export function toggleHighlightTask(...args) { return window.toggleHighlightTask(...args); }
+export function toggleTask(...args) { return window.toggleTask(...args); }
+export function clearFocusMode(...args) { return window.clearFocusMode(...args); }

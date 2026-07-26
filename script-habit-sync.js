@@ -173,3 +173,5 @@
          }
      };
 
+
+export function toggleHabitFromToday(...args) { return window.toggleHabitFromToday(...args); }

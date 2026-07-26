@@ -9,6 +9,10 @@
 // script.js'ten SONRA, orijinal DOMContentLoaded zamanlamasını korumak
 // için kendi DOMContentLoaded sarmalayıcısında yüklenir.
 // ============================================================
+import { getTasksRef, getCalendarEventsRef, getHabitsForDate } from './script.js';
+import { formatDateToString, timeToMins } from './script-date-time-utils.js';
+import { FocusStorage, escapeHtml } from './storage-manager.js';
+
 (function () {
 'use strict';
 document.addEventListener('DOMContentLoaded', () => {
@@ -18,17 +22,17 @@ document.addEventListener('DOMContentLoaded', () => {
          const el = document.getElementById('cdd-summary');
          if (!el) return;
 
-         const tasks = window.__getTasksRef();
-         const calendarEvents = window.__getCalendarEventsRef();
+         const tasks = getTasksRef();
+         const calendarEvents = getCalendarEventsRef();
 
-         const todayStr  = window.formatDateToString(new Date());
+         const todayStr  = formatDateToString(new Date());
          const isPast    = dateStr < todayStr;
          const isFuture  = dateStr > todayStr;
          const isToday   = dateStr === todayStr;
 
          // Veriler (isLessonPlanDraft: öğretmenin ders planı taslağı — burada gizli kalmalı)
          const dayEvs    = (calendarEvents[dateStr] || []).filter(e => !e.isLessonPlanDraft);
-         const dayHabits = window.getHabitsForDate(dateStr);
+         const dayHabits = getHabitsForDate(dateStr);
          const hlHistory = FocusStorage.get('highlight_history', {});
          const highlight = hlHistory[dateStr] || null;
 
@@ -39,8 +43,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
          // Toplam görev süresi (dk)
          const totalMins = dayEvs.reduce((s, ev) => {
-             const sm = window.timeToMins(ev.timeStart || '09:00');
-             const em = window.timeToMins(ev.timeEnd   || '10:00');
+             const sm = timeToMins(ev.timeStart || '09:00');
+             const em = timeToMins(ev.timeEnd   || '10:00');
              return s + Math.max(0, em - sm);
          }, 0);
          const durH = Math.floor(totalMins / 60);
@@ -79,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
          }
 
          // Sınıf ödevleri (window.FocusAssignments, social.js) — bu tarihte teslim tarihi olanlar
-         const dayAssignments = (window.FocusAssignments?.items || []).filter(a => a.due_date && window.formatDateToString(new Date(a.due_date)) === dateStr);
+         const dayAssignments = (window.FocusAssignments?.items || []).filter(a => a.due_date && formatDateToString(new Date(a.due_date)) === dateStr);
 
          // Pill'ler
          const pills = [];
@@ -112,18 +116,18 @@ document.addEventListener('DOMContentLoaded', () => {
                          <div class="task-left">
                              <i class="fa-solid fa-clipboard-list" style="color: ${asgColor}; margin-right: 5px;" title="Sınıf Ödevi"></i>
                              <div class="task-checkbox" style="border-color: ${asgColor};"></div>
-                             <span class="task-text">${window.escapeHtml(a.title)}</span>
+                             <span class="task-text">${escapeHtml(a.title)}</span>
                              <div style="flex-basis: 100%; height: 0;"></div>
                              <div class="task-meta">
                                  <span class="task-category-tag" style="background: ${asgColor}26; color: ${asgColor}; border: 1px solid ${asgColor}4D;">${statusText.toUpperCase()}</span>
-                                 ${a.groupName ? `<span class="task-category-tag" style="background: rgba(108, 92, 231, 0.1); color: var(--primary-color); border: 1px solid rgba(108, 92, 231, 0.2); margin-left: 5px;">${window.escapeHtml(a.groupName)}</span>` : ''}
+                                 ${a.groupName ? `<span class="task-category-tag" style="background: rgba(108, 92, 231, 0.1); color: var(--primary-color); border: 1px solid rgba(108, 92, 231, 0.2); margin-left: 5px;">${escapeHtml(a.groupName)}</span>` : ''}
                              </div>
                          </div>
                      </li>`;
                  }).join('')}
              </ul>` : ''}
              <div class="cdd-sum-note-area" id="cdd-note-area" style="display:none;">
-                 <textarea class="cdd-note-input" id="cdd-note-input" placeholder="Bu gün için not veya hatırlatıcı…" maxlength="200">${window.escapeHtml(note)}</textarea>
+                 <textarea class="cdd-note-input" id="cdd-note-input" placeholder="Bu gün için not veya hatırlatıcı…" maxlength="200">${escapeHtml(note)}</textarea>
                  <div class="cdd-note-actions">
                      <span class="cdd-note-chars" id="cdd-note-chars">${note.length}/200</span>
                      <button class="cdd-note-save" id="cdd-note-save">Kaydet</button>
