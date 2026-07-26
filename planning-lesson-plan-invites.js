@@ -7,31 +7,32 @@
 //
 // Dış bağımlılıklar (hepsi planning.js'te kalıyor, window.* köprüsüyle
 // açıldı):
-// - goals → window._pgGetGoals() / window._pgSetGoals() (reassign edildiği
+// - goals → getPgGoals() / setPgGoals() (reassign edildiği
 //   için salt-okunur referans yetmiyor, setter da gerekli)
 // - persistGoals, render, toast, esc, openPlanView → window.*
 // - _lpaStatusRowHTML, _pvAddHour, _acceptLessonPlanInvite → window.*
 //   (planning.js'te kalan, birbirine bağımlı fonksiyonlar)
 // - pvReadOnly / pvReadOnlyTempId (planning.js modül-içi state, doğrudan
-//   yazılamıyor) → window._pgSetPvReadOnlyPreview(val, tempId)
+//   yazılamıyor) → setPvReadOnlyPreview(val, tempId)
 // - window.FocusSupabase / window.currentUser / window.fmtDate /
 //   FocusStorage / window.showFocusaiConfirm → zaten global
+import { getPgGoals, setPgGoals, persistGoals, toast, esc, openPlanView, acceptLessonPlanInvite, setPvReadOnlyPreview, pvAddHour } from './planning.js';
 
 // Bir davet kartının HTML'i — Planlama sayfasındaki (artık gizli) genel kutu VE
 // Sınıf Paneli > Ders Planı sekmesindeki gruba-özel liste aynı işaretlemeyi (ve
 // aynı kabul/revize/red fonksiyonlarını) paylaşır.
 function _lpaInviteCardHTML(inv) {
-    const groupName = window.esc(inv.groups?.name || 'sınıfın');
+    const groupName = esc(inv.groups?.name || 'sınıfın');
     const metaParts = [groupName];
     if (inv.deadline) metaParts.push(`Son tarih: ${window.fmtDate(inv.deadline)}`);
     return `
-        <div class="pg-lpa-invite-card" data-lpa-id="${inv.id}" data-goal-id="${inv.goal_id}" data-group-code="${window.esc(inv.groups?.code || '')}">
+        <div class="pg-lpa-invite-card" data-lpa-id="${inv.id}" data-goal-id="${inv.goal_id}" data-group-code="${esc(inv.groups?.code || '')}">
             <div class="pg-lpa-invite-top">
                 <i class="ti ti-school"></i>
                 <div class="pg-lpa-invite-body">
-                    <div class="pg-lpa-invite-title">${window.esc(inv.goal_title || 'Ders Planı')}</div>
+                    <div class="pg-lpa-invite-title">${esc(inv.goal_title || 'Ders Planı')}</div>
                     <div class="pg-lpa-invite-meta">${metaParts.join(' · ')}</div>
-                    ${inv.teacher_note ? `<div class="pg-lpa-teacher-note"><i class="ti ti-message-circle"></i> ${window.esc(inv.teacher_note)}</div>` : ''}
+                    ${inv.teacher_note ? `<div class="pg-lpa-teacher-note"><i class="ti ti-message-circle"></i> ${esc(inv.teacher_note)}</div>` : ''}
                 </div>
             </div>
             <div class="pg-lpa-invite-actions">
@@ -48,7 +49,7 @@ window._lpaInviteCardHTML = _lpaInviteCardHTML;
 
 function _bindLpaInviteCard(box) {
     box.querySelectorAll('.pg-lpa-review').forEach(btn => btn.onclick = () => _toggleLessonPlanPreview(btn.dataset.id, btn.dataset.goalId));
-    box.querySelectorAll('.pg-lpa-accept').forEach(btn => btn.onclick = () => window._acceptLessonPlanInvite(btn.closest('.pg-lpa-invite-card')));
+    box.querySelectorAll('.pg-lpa-accept').forEach(btn => btn.onclick = () => acceptLessonPlanInvite(btn.closest('.pg-lpa-invite-card')));
     box.querySelectorAll('.pg-lpa-revise').forEach(btn => btn.onclick = () => _promptLessonPlanNote(btn.dataset.id, btn.closest('.pg-lpa-invite-card'), 'revise'));
     box.querySelectorAll('.pg-lpa-reject').forEach(btn => btn.onclick = () => _promptLessonPlanNote(btn.dataset.id, btn.closest('.pg-lpa-invite-card'), 'reject'));
 }
@@ -121,9 +122,9 @@ async function _toggleLessonPlanPreview(lpaId, goalId) {
         ({ data: preview, error } = await sb.rpc('lesson_plan_preview', { p_goal_id: goalId }));
     } catch (e) {
         console.warn('[FocusAI] lesson_plan_preview:', e);
-        window.toast('Plan yüklenemedi.'); return;
+        toast('Plan yüklenemedi.'); return;
     }
-    if (error || !preview) { window.toast('Plan yüklenemedi.'); return; }
+    if (error || !preview) { toast('Plan yüklenemedi.'); return; }
     const tGoal = preview, tMs = preview.milestones || [];
 
     const previewMs = (tMs || []).map(m => ({
@@ -134,14 +135,14 @@ async function _toggleLessonPlanPreview(lpaId, goalId) {
     }));
     const tempId = 'lpa_preview_' + lpaId;
     // Önceki önizleme kalıntısı varsa temizle
-    let goals = window._pgGetGoals().filter(x => x.id !== tempId);
+    let goals = getPgGoals().filter(x => x.id !== tempId);
     goals.unshift({
         id: tempId, title: tGoal.title, description: tGoal.description || '',
         category: tGoal.category, color: tGoal.color, deadline: tGoal.deadline || null,
         priority: tGoal.priority || 2, status: 'active', progress_pct: tGoal.progress_pct || 0,
         milestones: previewMs, plan_mode: 'lesson-plan', context: { lessonPlanReadOnly: true },
     });
-    window._pgSetGoals(goals);
+    setPgGoals(goals);
 
     // "Günün Görevleri" paneli ve ısı/gün renklendirmesi milestone değil `tasks`
     // dizisini okuyor — önizleme için saatli aşamaları geçici (kalıcı olmayan,
@@ -151,14 +152,14 @@ async function _toggleLessonPlanPreview(lpaId, goalId) {
         const [y, mo, dd] = m.due_date.split('-');
         return {
             id: 'lpa_prev_task_' + m.id, text: m.title, completed: !!m.done,
-            date: `${dd}-${mo}-${y}`, timeStart: m.start_time, timeEnd: m.end_time || window._pvAddHour(m.start_time),
+            date: `${dd}-${mo}-${y}`, timeStart: m.start_time, timeEnd: m.end_time || pvAddHour(m.start_time),
             priority: tGoal.priority || 2, category: tGoal.category || '', parentGoal: tempId,
         };
     });
     FocusStorage.set('tasks', [...allTasks, ...previewTasks]);
 
-    window._pgSetPvReadOnlyPreview(true, tempId);
-    window.openPlanView(tempId);
+    setPvReadOnlyPreview(true, tempId);
+    openPlanView(tempId);
     localStorage.removeItem('pg_pv_last_goal'); // önizleme kalıcı değil, sayfa yenilenince tekrar açılmasın
 }
 window._toggleLessonPlanPreview = _toggleLessonPlanPreview;
@@ -193,11 +194,11 @@ window._promptLessonPlanNote = _promptLessonPlanNote;
 // varsa — öğrenci revize istedi/reddetti — o taslağı ve aynalanmış görevlerini
 // temizler, aksi halde kabul edilmemiş bir hedef yereldeki listede takılı kalır.
 function _lpaDiscardDraft(lpaId) {
-    const goals = window._pgGetGoals();
+    const goals = getPgGoals();
     const draft = goals.find(x => x.lpa_id === lpaId && x.pending_accept);
     if (!draft) return;
-    window._pgSetGoals(goals.filter(x => x.id !== draft.id));
-    window.persistGoals();
+    setPgGoals(goals.filter(x => x.id !== draft.id));
+    persistGoals();
     const remainingTasks = FocusStorage.get('tasks', []).filter(t => String(t.parentGoal) !== String(draft.id));
     FocusStorage.set('tasks', remainingTasks);
     if (typeof window.syncTasksFromStorage === 'function') window.syncTasksFromStorage();
@@ -223,12 +224,12 @@ async function _requestLessonPlanRevision(lpaId, card, note) {
     } catch (e) {
         console.warn('[FocusAI] _requestLessonPlanRevision:', e);
         card.style.opacity = ''; card.style.pointerEvents = '';
-        window.toast('Revize isteği gönderilemedi, tekrar dene.');
+        toast('Revize isteği gönderilemedi, tekrar dene.');
         return;
     }
     card.remove();
     if (!document.querySelectorAll('.pg-lpa-invite-card').length) document.getElementById('pg-lpa-invites')?.style.setProperty('display', 'none');
-    window.toast('Revize isteğin öğretmenine gönderildi.');
+    toast('Revize isteğin öğretmenine gönderildi.');
 }
 window._requestLessonPlanRevision = _requestLessonPlanRevision;
 
@@ -250,7 +251,7 @@ async function _rejectLessonPlanInvite(lpaId, card, note) {
     } catch (e) {
         console.warn('[FocusAI] _rejectLessonPlanInvite:', e);
         card.style.opacity = ''; card.style.pointerEvents = '';
-        window.toast('İşlem gönderilemedi, tekrar dene.');
+        toast('İşlem gönderilemedi, tekrar dene.');
         return;
     }
     card.remove();

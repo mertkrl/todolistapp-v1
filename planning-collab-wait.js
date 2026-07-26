@@ -5,7 +5,7 @@
 //
 // Dış bağımlılıklar (hepsi planning.js'te kalıyor, window.* köprüsüyle
 // açıldı/zaten açıktı):
-// - goals → window._pgGetGoals() (referans — findIndex/splice/delete
+// - goals → getPgGoals() (referans — findIndex/splice/delete
 //   çalışır)
 // - persistGoals, render, toast, openPlanView, esc, uid (kullanılmıyor
 //   burada — DOM dataset "uid" değişkeni farklı, planning.js'in uid()
@@ -13,6 +13,8 @@
 // - window.getFriendsForFilter / window.getCommunityPresenceState /
 //   window.FocusSupabase / window.PlanningCollab / window.currentUser →
 //   zaten global
+import { getPgGoals, persistGoals, toast, esc, openPlanView } from './planning.js';
+
 let _collabWaitPollTimer = null;
 let _collabWaitGoal      = null;
 let _collabInviteStatus  = {};
@@ -54,10 +56,10 @@ function _openCollabWaitOverlay(goal) {
                 window.PlanningCollab?.disableCollab?.(g.id, g.collab_room_id);
             }
             // Pending hedefi listeden sil
-            const goals = window._pgGetGoals();
+            const goals = getPgGoals();
             const idx = goals.findIndex(x => x.id === g.id);
             if (idx !== -1) goals.splice(idx, 1);
-            window.persistGoals();
+            persistGoals();
         }
         _closeCollabWaitOverlay();
     };
@@ -135,18 +137,18 @@ async function _collabWaitLoadFriends(goal) {
         const hasCustomAvatar = !!p.custom_avatar;
 
         return `
-        <div class="pg-cw-friend-row" data-username="${window.esc(username)}" data-uid="${window.esc(uid)}">
+        <div class="pg-cw-friend-row" data-username="${esc(username)}" data-uid="${esc(uid)}">
             <div class="pg-cw-friend-avatar-wrap">
                 ${hasCustomAvatar
-                    ? `<img src="${window.esc(p.custom_avatar)}" class="pg-cw-friend-avatar-img" alt="${window.esc(displayName)}">`
-                    : `<div class="pg-cw-friend-avatar" style="background:${window.esc(color)};">${window.esc(initials)}</div>`}
+                    ? `<img src="${esc(p.custom_avatar)}" class="pg-cw-friend-avatar-img" alt="${esc(displayName)}">`
+                    : `<div class="pg-cw-friend-avatar" style="background:${esc(color)};">${esc(initials)}</div>`}
                 ${isOnline ? '<span class="pg-cw-online-dot"></span>' : ''}
             </div>
             <div class="pg-cw-friend-info">
-                <span class="pg-cw-friend-name">${window.esc(displayName)}</span>
-                <span class="pg-cw-friend-username">@${window.esc(username)}</span>
+                <span class="pg-cw-friend-name">${esc(displayName)}</span>
+                <span class="pg-cw-friend-username">@${esc(username)}</span>
             </div>
-            <button class="pg-cw-invite-btn secondary-btn" data-username="${window.esc(username)}" data-uid="${window.esc(uid)}">
+            <button class="pg-cw-invite-btn secondary-btn" data-username="${esc(username)}" data-uid="${esc(uid)}">
                 <i class="ti ti-send"></i> Davet Et
             </button>
         </div>`;
@@ -178,7 +180,7 @@ window._collabWaitLoadFriends = _collabWaitLoadFriends;
 
 async function _collabWaitSendInvite(username, userId, goal) {
     if (!window.FocusSupabase) {
-        window.toast('Davet göndermek için giriş yapman gerekiyor.');
+        toast('Davet göndermek için giriş yapman gerekiyor.');
         return false;
     }
     try {
@@ -191,7 +193,7 @@ async function _collabWaitSendInvite(username, userId, goal) {
             targetId = p?.id || null;
         }
         if (!targetId) {
-            window.toast('Kullanıcı bulunamadı: @' + username);
+            toast('Kullanıcı bulunamadı: @' + username);
             return false;
         }
 
@@ -214,14 +216,14 @@ async function _collabWaitSendInvite(username, userId, goal) {
 
         if (error) {
             console.error('[Collab Invite] insert error:', error);
-            window.toast('Davet gönderilemedi: ' + (error.message || 'Bilinmeyen hata'));
+            toast('Davet gönderilemedi: ' + (error.message || 'Bilinmeyen hata'));
             return false;
         }
 
         return true;
     } catch(e) {
         console.error('[Collab Invite] exception:', e);
-        window.toast('Davet gönderilemedi: ' + (e.message || ''));
+        toast('Davet gönderilemedi: ' + (e.message || ''));
         return false;
     }
 }
@@ -250,8 +252,8 @@ function _collabWaitRefreshWaitingList() {
                 ${status === 'accepted' ? '<span class="pg-cw-online-dot"></span>' : ''}
             </div>
             <div class="pg-cw-friend-info">
-                <span class="pg-cw-friend-name" style="font-size:13px;">${window.esc(displayName)}</span>
-                <span class="pg-cw-friend-username">@${window.esc(uname)}</span>
+                <span class="pg-cw-friend-name" style="font-size:13px;">${esc(displayName)}</span>
+                <span class="pg-cw-friend-username">@${esc(uname)}</span>
             </div>
             ${status === 'accepted'
                 ? '<span class="pg-cw-member-joined">✓ Katıldı</span>'
@@ -298,11 +300,11 @@ async function _collabWaitRefreshAccepted(goal) {
                 </button>`;
             document.getElementById('pg-cw-proceed-btn')?.addEventListener('click', () => {
                 // _pending_collab flag'ini kaldır → hedef artık görünür
-                const goals = window._pgGetGoals();
+                const goals = getPgGoals();
                 const gIdx = goals.findIndex(x => x.id === goal.id);
                 if (gIdx !== -1) {
                     delete goals[gIdx]._pending_collab;
-                    window.persistGoals();
+                    persistGoals();
                     window.render();
                 }
                 // Broadcast: kabul eden kişilere "şimdi başlıyoruz" sinyali
@@ -310,8 +312,8 @@ async function _collabWaitRefreshAccepted(goal) {
                     window.PlanningCollab.broadcast('start_planning', { goalId: goal.id });
                 }
                 _closeCollabWaitOverlay();
-                window.toast('Planlamaya başlayalım! 🎉', '#06d6a0');
-                setTimeout(() => window.openPlanView(goal.id), 300);
+                toast('Planlamaya başlayalım! 🎉', '#06d6a0');
+                setTimeout(() => openPlanView(goal.id), 300);
             });
         }
     }

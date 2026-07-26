@@ -4,13 +4,15 @@
 //
 // _qcSave, çekirdek `goals` dizisine yazıyor (goals.unshift) — bu dizi
 // planning.js'te kalıyor (yüzlerce başka yerde okunup yazılıyor), sadece
-// window._pgGetGoals() ile referans olarak alınıyor (dizi referans tipi
+// getPgGoals() ile referans olarak alınıyor (dizi referans tipi
 // olduğu için unshift/find gibi mutasyon metodları normal çalışıyor).
 //
 // Diğer bağımlılıklar (hepsi planning.js'te kalıyor, window.* köprüsüyle
 // açıldı): uid, persistGoals, render, openPlanView (zaten açıktı), toast,
 // openWizard, _qcStartCollab (Collab akışı — Collab Wait Overlay'e kadar
 // uzandığı için kapsam dışı bırakıldı, sadece köprülendi).
+import { getPgGoals, persistGoals, qcStartCollab, toast, uid, openPlanView } from './planning.js';
+
 const QC_CATEGORIES = [
     { id: 'egitim',  label: 'Eğitim',  icon: '🧠', color: '#7c6eff' },
     { id: 'saglik',  label: 'Sağlık',  icon: '💪', color: '#ef476f' },
@@ -197,13 +199,13 @@ function _qcSave() {
         titleInp?.classList.add('error');
         titleInp?.focus();
         setTimeout(() => titleInp?.classList.remove('error'), 500);
-        window.toast('Hedef başlığı zorunludur');
+        toast('Hedef başlığı zorunludur');
         return;
     }
 
     const cat     = QC_CATEGORIES.find(c => c.id === _qcState.category) || QC_CATEGORIES[0];
     const newGoal = {
-        id: window.uid(), title,
+        id: uid(), title,
         description: '',
         category: cat.id, color: cat.color,
         deadline: _qcState.deadline || '', priority: 2,
@@ -216,17 +218,17 @@ function _qcSave() {
         // Collab modda hedef _pending_collab ile kaydedilir — DB FK'si sağlanır
         // ama render()'da gösterilmez; davet kabul edilince aktif hale gelir
         newGoal._pending_collab = true;
-        window._pgGetGoals().unshift(newGoal);
-        window.persistGoals();
+        getPgGoals().unshift(newGoal);
+        persistGoals();
         closeQuickCreate();
-        window._qcStartCollab(newGoal);
+        qcStartCollab(newGoal);
     } else {
-        window._pgGetGoals().unshift(newGoal);
-        window.persistGoals();
+        getPgGoals().unshift(newGoal);
+        persistGoals();
         window.render();
         closeQuickCreate();
-        window.toast('Hedef oluşturuldu! 🎯');
-        setTimeout(() => window.openPlanView(newGoal.id), 250);
+        toast('Hedef oluşturuldu! 🎯');
+        setTimeout(() => openPlanView(newGoal.id), 250);
     }
 }
 window._qcSave = _qcSave;

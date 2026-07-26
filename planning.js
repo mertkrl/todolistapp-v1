@@ -4,85 +4,12 @@
 (function () {
     'use strict';
 
-    // ── Sabitler ──────────────────────────────
-    // ── Milestone Şablonları (kategori bazlı) ─
-    const MILESTONE_TEMPLATES = {
-        egitim: [
-            { title: 'A1 Başlangıç',      icon: '📖', weeks: 8 },
-            { title: 'A2 Temel Seviye',   icon: '📚', weeks: 8 },
-            { title: 'B1 Orta Seviye',    icon: '🎯', weeks: 12 },
-            { title: 'B2 İleri Seviye',   icon: '🚀', weeks: 16 },
-            { title: 'Kurs Tamamla',       icon: '🎓', weeks: 10 },
-            { title: 'Sertifika Sınavı',  icon: '📜', weeks: 4 },
-            { title: 'Proje Yap',          icon: '🛠️', weeks: 8 },
-            { title: 'Mentor Bul',         icon: '🤝', weeks: 2 },
-        ],
-        saglik: [
-            { title: 'Doktor Muayenesi',      icon: '🏥', weeks: 1 },
-            { title: 'Beslenme Planı Hazırla', icon: '🥗', weeks: 2 },
-            { title: 'İlk 5K Koş',            icon: '🏃', weeks: 8 },
-            { title: '10K Hedefine Ulaş',      icon: '🏅', weeks: 16 },
-            { title: 'Hedef Kiloya Ulaş',      icon: '⚖️', weeks: 20 },
-            { title: 'Yoga Rutini Kur',        icon: '🧘', weeks: 4 },
-            { title: 'Uyku Düzeni Oluştur',   icon: '😴', weeks: 3 },
-            { title: 'Spor Alışkanlığı Edin',  icon: '💪', weeks: 12 },
-        ],
-        kariyer: [
-            { title: 'CV Güncelle',        icon: '📄', weeks: 1 },
-            { title: 'Profesyonel Ağ Kur', icon: '🤝', weeks: 8 },
-            { title: 'Yeni Beceri Öğren',  icon: '💡', weeks: 12 },
-            { title: 'Portföy Hazırla',    icon: '🗂️', weeks: 6 },
-            { title: 'İş Başvuruları',     icon: '📮', weeks: 8 },
-            { title: 'Mülakat Hazırlığı',  icon: '💼', weeks: 4 },
-            { title: 'Terfi Hedefle',      icon: '📈', weeks: 24 },
-            { title: 'Freelance Başla',    icon: '🖥️', weeks: 12 },
-        ],
-        finans: [
-            { title: 'Bütçe Planı Yap',    icon: '📊', weeks: 1 },
-            { title: 'Acil Fon Oluştur',   icon: '🏦', weeks: 24 },
-            { title: 'Borç Öde',           icon: '💳', weeks: 16 },
-            { title: 'İlk Yatırım Yap',    icon: '📈', weeks: 12 },
-            { title: '%10 Tasarruf Hedefi', icon: '💰', weeks: 8 },
-            { title: 'Ek Gelir Kaynağı',   icon: '💹', weeks: 20 },
-        ],
-        kisisel: [
-            { title: 'Yeni Hobi Başlat',     icon: '🎨', weeks: 4 },
-            { title: 'Meditasyon Alışkanlığı',icon: '🧘', weeks: 4 },
-            { title: 'Seyahat Planla',       icon: '✈️', weeks: 12 },
-            { title: '12 Kitap Oku',         icon: '📚', weeks: 52 },
-            { title: 'Sosyal Çevre Genişlet',icon: '👥', weeks: 8 },
-            { title: 'Dijital Detoks',       icon: '📵', weeks: 2 },
-        ],
-        diger: [
-            { title: 'Araştırma Yap',  icon: '🔍', weeks: 2 },
-            { title: 'Plan Oluştur',   icon: '📋', weeks: 1 },
-            { title: 'Kaynak Topla',   icon: '📦', weeks: 3 },
-            { title: 'Uygula',         icon: '⚡', weeks: 8 },
-            { title: 'Değerlendir',    icon: '📊', weeks: 2 },
-            { title: 'Sonuçlandır',    icon: '🏁', weeks: 2 },
-        ],
-    };
-
-    const SUBTASK_SUGGESTIONS = {
-        egitim: ['Ders programı oluştur', 'Kaynak listesi hazırla', 'Çalışma ortamı düzenle', 'İlerlemeyi takip et', 'Pratik yap'],
-        saglik: ['Doktora danış', 'Beslenme günlüğü tut', 'Egzersiz programı oluştur', 'Haftalık ölçüm al'],
-        kariyer: ['Araştırma yap', 'Mentor bul', 'Network oluştur', 'Günlük hedef belirle', 'Geri bildirim al'],
-        finans: ['Mevcut durumu analiz et', 'Bütçe oluştur', 'Tasarruf hesabı aç', 'Harcamaları takip et'],
-        kisisel: ['Motivasyon kaynağı bul', 'Haftalık plan yap', 'İlerleme günlüğü tut', 'Destek al'],
-        diger:   ['Araştırma yap', 'Plan oluştur', 'Adım adım ilerle', 'Değerlendir'],
-    };
-
-    // CATEGORIES → planning-utils.js dosyasına taşındı.
-    const STATUS_META = {
-        active:    { label: 'Aktif',        color: '#4ade80' },
-        paused:    { label: 'Duraklatıldı', color: '#ffd166' },
-        completed: { label: 'Tamamlandı',   color: '#60a5fa' },
-        archived:  { label: 'Arşivlendi',   color: '#555'    },
-    };
-
     // ── State ─────────────────────────────────
     const _pgLoadedAt = Date.now();
     let _pgRenderCount = 0;
+    window.__getPgLoadedAtRef = () => _pgLoadedAt;
+    window.__getPgRenderCountRef = () => _pgRenderCount;
+    window.__incPgRenderCountRef = () => { _pgRenderCount++; };
     let goals        = [];
     let dependencies  = [];  // [{from:goalId, to:goalId}]
     // planning-dependency-graph.js modülüne taşınan fonksiyonların bu diziyi
@@ -91,6 +18,9 @@
     window._pgGetDependencies = () => dependencies;
     window._pgSetDependencies = (arr) => { dependencies = arr; };
     let activeFilters = new Set(['all']); // çoklu seçim — 'all' ve '__archived__' birbirini dışlar, diğerleri serbestçe birleşir
+    // planning-misc-widgets.js'in GridView render()'ının okuyabilmesi için köprü
+    // (activeFilters yeniden atanabildiği için referans değil getter gerekiyor).
+    window._pgGetActiveFilters = () => activeFilters;
     const CATEGORY_KEYS = ['egitim','saglik','kariyer','finans','kisisel','diger'];
     let editingId    = null;
     let detailGoalId = null;
@@ -276,6 +206,7 @@
     }
 
     // Üst bardaki "çakışan saatler var" rozetini günceller — çözülünce otomatik kaybolur.
+    window._pvUpdateConflictBanner = _pvUpdateConflictBanner; // planning-plan-header.js için
     function _pvUpdateConflictBanner(g) {
         const banner = document.getElementById('pg-pv-conflict-banner');
         if (!banner) return;
@@ -306,6 +237,7 @@
         return conflicts;
     }
 
+    window._pvHasUnresolvedConflicts = _pvHasUnresolvedConflicts; // planning-plan-header.js için
     function _pvHasUnresolvedConflicts(g) { return _pvRecomputeUnresolvedConflicts(g).length > 0; }
 
     // Bir tarih, o gün için hâlâ çözülmemiş bir çakışma varsa "kilitli" sayılır —
@@ -327,6 +259,7 @@
     }
 
     // Çakışma çözülmeden kaydet/çık denendiğinde gösterilen uyarı.
+    window._pvShowUnresolvedConflictModal = _pvShowUnresolvedConflictModal; // planning-plan-header.js için
     function _pvShowUnresolvedConflictModal({ onLeave }) {
         const overlay = document.createElement('div');
         overlay.className = 'pg-pv-conflict-overlay';
@@ -673,7 +606,7 @@
         const doDelete = () => {
             const deletedGoal = goals.find(g=>g.id===id);
             const msIds = (deletedGoal?.milestones||[]).map(m=>m.id);
-            goals = goals.filter(g=>g.id!==id);
+            window._pgSetGoals(goals.filter(g=>g.id!==id));
             persistGoals(); render();
             _purgeGoalTasks(id, msIds);
             if (typeof window.syncAllMilestonesToCalendar === 'function')
@@ -695,6 +628,7 @@
         }
     }
 
+    window.toggleArchive = (id) => toggleArchive(id); // Faz 6: planning-misc-widgets.js için
     function toggleArchive(id) {
         const g = goals.find(g=>g.id===id);
         if (!g) return;
@@ -756,8 +690,8 @@
         if (ms.subtasks.length > 0 && ms.subtasks.every(s=>s.done)) {
             ms.done = true; _recalcProgress(g);
             toast('Milestone tamamlandı! 🎉');
-            _sparkle(document.querySelector(`[data-msid="${msId}"] .pg-ms-check`));
-            if (g.progress_pct === 100) setTimeout(() => _goalComplete(g), 300);
+            window._sparkle(document.querySelector(`[data-msid="${msId}"] .pg-ms-check`));
+            if (g.progress_pct === 100) setTimeout(() => window._goalComplete(g), 300);
         } else if (ms.done && ms.subtasks.some(s=>!s.done)) {
             ms.done = false; _recalcProgress(g);
         }
@@ -812,8 +746,8 @@
         refreshDetailSummary(g);
         if (ms.done) {
             toast('Milestone tamamlandı! 🎉');
-            _sparkle(document.querySelector(`[data-msid="${msId}"] .pg-ms-check`));
-            if (g.progress_pct === 100) setTimeout(() => _goalComplete(g), 300);
+            window._sparkle(document.querySelector(`[data-msid="${msId}"] .pg-ms-check`));
+            if (g.progress_pct === 100) setTimeout(() => window._goalComplete(g), 300);
         }
         // Broadcast
         if (window.PlanningCollab?.channel) {
@@ -870,177 +804,8 @@
     }
 
 
-    // ── GRID VIEW ────────────────────────────
-    function _deadlineUrgency(dl) {
-        if (!dl) return '';
-        const diff = Math.ceil((new Date(dl) - new Date()) / 86400000);
-        if (diff < 0)  return 'overdue';
-        if (diff <= 7) return 'urgent';
-        return '';
-    }
-
-    function cardHTML(g) {
-        const cat=window.getCat(g.category), st=STATUS_META[g.status]||STATUS_META.active;
-        const pct=g.progress_pct||0, ms=g.milestones||[];
-        const msDone=ms.filter(m=>m.done).length, archived=g.status==='archived';
-        const dl=window.deadlineLabel(g.deadline);
-        const urgency  = archived ? '' : _deadlineUrgency(g.deadline);
-        const blocked  = !archived && window.isPlanningGoalBlocked(g.id);
-        const priLabel=['','🔴 Yüksek','🟡 Orta','🟢 Düşük'][g.priority]||'';
-        return `
-        <div class="pg-card${archived?' pg-card-archived':''}${urgency?' pg-card-'+urgency:''}${blocked?' pg-card-blocked':''}" data-id="${g.id}">
-            <div class="pg-card-stripe" style="background:${cat.color};"></div>
-            <div class="pg-card-body">
-                <div class="pg-card-top-row">
-                    <div class="pg-card-badges">
-                        <span class="pg-cat-badge" style="background:${cat.color}22;color:${cat.color};border-color:${cat.color}44;">${cat.icon} ${cat.label}</span>
-                        <span class="pg-status-dot" style="color:${st.color};">● ${st.label}</span>
-                        ${blocked?'<span class="pg-blocked-badge"><i class="ti ti-lock"></i> Bekliyor</span>':''}
-                        ${g.context?.isTemplate?'<span class="pg-teacher-plan-badge" title="Bu bir ders planı şablonudur"><i class="ti ti-copy"></i> Şablon</span>':''}
-                        ${(g.plan_mode==='lesson-plan' && !g.context?.isTemplate && !g.lpa_id)?(()=>{ const gName=(_wzLessonPlanGroups||[]).find(x=>x.id===g.context?.lessonPlanGroupId)?.name || 'Sınıf'; return g.context?.lessonPlanStudentId ? `<span class="pg-teacher-plan-badge" title="Kişiye özel ders planı"><i class="ti ti-user"></i> ${esc(gName)} — Kişiye Özel</span>` : `<span class="pg-teacher-plan-badge" title="Sınıfa özel ders planı"><i class="ti ti-users-group"></i> ${esc(gName)}</span>`; })():''}
-                        ${g.pending_accept?'<span class="pg-teacher-plan-badge" title="Saatleri düzenliyorsun — henüz kabul etmedin, Ders Planları listesinden Kabul Et\'e basman gerekiyor" style="color:#FF9F1C;border-color:rgba(255,159,28,.35);background:rgba(255,159,28,.1);"><i class="ti ti-clock-pause"></i> Taslak — Kabul Bekliyor</span>':((g.lpa_id || (g.collab_room_id && g.my_role && g.my_role!=='owner'))?'<span class="pg-teacher-plan-badge" title="Bu plan sana atandı"><i class="ti ti-school"></i> Öğretmen Planı</span>':'')}
-                        ${(()=>{ if (!g.collab_room_id) return ''; const online=window.PlanningCollab?.isActive()&&window.PlanningCollab.goalId===g.id ? Object.keys(window.PlanningCollab.onlineUsers||{}).length : 0; return `<span class="pg-collab-chip" title="Ortak Planlama Aktif">${online>0?`<span class="pg-collab-online-dot"></span> ${online} çevrimiçi`:'<i class="ti ti-users"></i> İşbirliği'}</span>`; })()}
-                    </div>
-                    ${window.progressRing(pct, cat.color)}
-                </div>
-                <h3 class="pg-card-title pg-card-open" data-id="${g.id}" style="cursor:pointer;" title="Detayları aç">${esc(g.title)}</h3>
-                ${g.description?`<p class="pg-card-desc">${esc(g.description)}</p>`:''}
-                <div class="pg-card-meta-row">
-                    ${dl?`<span class="pg-meta-chip"><i class="ti ti-calendar-due"></i> ${dl}</span>`:''}
-                    ${ms.length>0
-                        ?`<span class="pg-meta-chip"><i class="ti ti-flag-3"></i> ${msDone}/${ms.length} milestone</span>`
-                        :`<span class="pg-meta-chip" style="opacity:.3;"><i class="ti ti-flag-3"></i> Milestone yok</span>`}
-                    ${priLabel?`<span class="pg-meta-chip">${priLabel}</span>`:''}
-                </div>
-                <div class="pg-card-footer">
-                    <button class="pg-act-btn pg-plan-btn" data-id="${g.id}" style="background:${cat.color}18;border-color:${cat.color}44;color:${cat.color};">
-                        <i class="ti ti-layout-board-split"></i> Planla
-                    </button>
-                    <div class="pg-act-right">
-                        <button class="pg-icon-btn pg-edit-btn"    data-id="${g.id}" title="Düzenle"><i class="ti ti-pencil"></i></button>
-                        <button class="pg-icon-btn pg-archive-btn" data-id="${g.id}" title="${archived?'Aktife Al':'Arşivle'}">
-                            <i class="ti ti-${archived?'refresh':'archive'}"></i>
-                        </button>
-                        <button class="pg-icon-btn pg-delete-btn"  data-id="${g.id}" title="Sil"><i class="ti ti-trash"></i></button>
-                    </div>
-                </div>
-            </div>
-        </div>`;
-    }
-
-    function render() {
-        const grid=document.getElementById('pg-cards-grid');
-        const empty=document.getElementById('pg-empty-state');
-        const statsEl=document.getElementById('pg-stats-bar');
-        if (!grid) return;
-
-        const statGoals=goals.filter(g=>g.plan_mode!=='lesson-plan');
-        const activeCount=statGoals.filter(g=>g.status==='active').length;
-        const doneCount=statGoals.filter(g=>g.status==='completed').length;
-        const avgPct=statGoals.length ? Math.round(statGoals.reduce((s,g)=>s+(g.progress_pct||0),0)/statGoals.length) : 0;
-        if (statsEl) statsEl.innerHTML=`
-            <div class="pg-stat"><span class="pg-stat-n" style="color:#4ade80;">${activeCount}</span><span class="pg-stat-l">Aktif Hedef</span></div>
-            <div class="pg-stat-sep"></div>
-            <div class="pg-stat"><span class="pg-stat-n" style="color:var(--a,#D4900E);">${avgPct}%</span><span class="pg-stat-l">Ort. İlerleme</span></div>
-            <div class="pg-stat-sep"></div>
-            <div class="pg-stat"><span class="pg-stat-n" style="color:#60a5fa;">${doneCount}</span><span class="pg-stat-l">Tamamlandı</span></div>`;
-
-        let list = goals.filter(g => !g._pending_collab && g.plan_mode !== 'lesson-plan');
-        const now = new Date();
-        const isArchiveMode = activeFilters.has('__archived__');
-        const isCompletedMode = activeFilters.has('__completed__');
-        const isAllMode = !isArchiveMode && !isCompletedMode && activeFilters.size===1 && activeFilters.has('all');
-
-        const matches = (g, filt) => {
-            if (filt === '__overdue__') return g.status !== 'archived' && g.deadline &&
-                Math.ceil((new Date(g.deadline) - now) / 86400000) < 0;
-            if (filt === '__thisweek__') {
-                if (g.status === 'archived' || !g.deadline) return false;
-                const diff = Math.ceil((new Date(g.deadline) - now) / 86400000);
-                return diff >= 0 && diff <= 7;
-            }
-            return g.category === filt; // kategori filtresi
-        };
-
-        if (isArchiveMode) {
-            // Arşiv sadece manuel arşivlenmiş hedefleri gösterir — tamamlanmış (ama arşivlenmemiş)
-            // hedefler normal listede kalır, ikisi ayrı kavramlardır.
-            list = list.filter(g => g.status === 'archived');
-        } else if (isCompletedMode) {
-            // Başardıklarım — sadece tamamlanmış (ve arşivlenmemiş) hedefler
-            list = list.filter(g => g.status === 'completed');
-        } else {
-            list = list.filter(g => g.status !== 'archived');
-            if (!isAllMode) list = list.filter(g => [...activeFilters].some(f => matches(g, f)));
-        }
-
-        list.sort((a,b)=>{
-            if (a.status==='completed'&&b.status!=='completed') return 1;
-            if (b.status==='completed'&&a.status!=='completed') return -1;
-            return (a.priority||2)-(b.priority||2);
-        });
-
-        // Arşiv / Başardıklarım başlığı
-        let archiveBanner = '';
-        if (isArchiveMode) {
-            const total = list.length;
-            archiveBanner = `<div class="pg-archive-banner">
-                <span class="pg-archive-banner-icon">🗄️</span>
-                <div><div class="pg-archive-banner-title">Arşiv</div>
-                <div class="pg-archive-banner-sub">${total} hedef arşivlendi</div></div>
-            </div>`;
-        } else if (isCompletedMode) {
-            const total = list.length;
-            archiveBanner = `<div class="pg-archive-banner">
-                <span class="pg-archive-banner-icon">🏆</span>
-                <div><div class="pg-archive-banner-title">Başardıklarım</div>
-                <div class="pg-archive-banner-sub">${total} hedef tamamlandı</div></div>
-            </div>`;
-        }
-
-        if (list.length===0) {
-            grid.innerHTML = isArchiveMode
-                ? `${archiveBanner}<div class="pg-ms-empty" style="padding:40px;"><i class="ti ti-archive"></i><br>Henüz arşivlenen hedef yok.</div>`
-                : isCompletedMode
-                    ? `${archiveBanner}<div class="pg-ms-empty" style="padding:40px;"><i class="ti ti-trophy"></i><br>Henüz tamamlanan hedef yok.</div>`
-                    : '';
-            if (empty) empty.style.display = list.length===0 && isAllMode ? 'flex' : 'none';
-        } else {
-            if (empty) empty.style.display='none';
-            grid.innerHTML = archiveBanner + list.map(cardHTML).join('');
-            _bindCardEvents(grid);
-            // NOT: sayfa açılışında localden bir kez, ~600ms sonra sunucu birleştirmesinden
-            // ve ~1200ms sonra realtime abonelikten olmak üzere render() birkaç kez daha
-            // otomatik çağrılıyor. Her çağrı grid.innerHTML'i TAMAMEN yeniden kurduğu için
-            // kartlar yeni DOM elemanı oluyor ve .pg-card'ın giriş animasyonu (opacity:0'dan
-            // başlayan) her seferinde yeniden oynuyordu — kullanıcı bunu "kart kayboluyor,
-            // sonra geri geliyor" olarak görüyordu. İlk yüklemeden sonraki birkaç saniye
-            // içindeki bu otomatik yeniden çizimlerde animasyonu bastırıyoruz.
-            grid.classList.toggle('pg-no-card-anim', (Date.now() - _pgLoadedAt) < 2500 && _pgRenderCount > 0);
-            _pgRenderCount++;
-        }
-    }
-    window.render = render;
-
-    function _bindCardEvents(grid) {
-        // Event delegation — tüm kart butonları tek listener ile
-        if (grid._pgBound) return; // Sadece bir kez bağla
-        grid._pgBound = true;
-        grid.addEventListener('click', e => {
-            const plan    = e.target.closest('.pg-plan-btn');
-            const open    = e.target.closest('.pg-open-detail,.pg-card-open');
-            const edit    = e.target.closest('.pg-edit-btn');
-            const archive = e.target.closest('.pg-archive-btn');
-            const del     = e.target.closest('.pg-delete-btn');
-            if (plan)    { e.stopPropagation(); openPlanView(plan.dataset.id); }
-            if (open)    { e.stopPropagation(); openDetailPanel(open.dataset.id); }
-            if (edit)    { e.stopPropagation(); openGoalModal(edit.dataset.id); }
-            if (archive) { e.stopPropagation(); toggleArchive(archive.dataset.id); }
-            if (del)     { e.stopPropagation(); _deleteGoalWithUndo(del.dataset.id); }
-        });
-    }
-
     // ── DETAIL PANEL ─────────────────────────
+    window.openDetailPanel = (goalId) => openDetailPanel(goalId); // Faz 6: planning-misc-widgets.js için
     function openDetailPanel(goalId) {
         const g=goals.find(g=>g.id===goalId); if (!g) return;
         detailGoalId=goalId;
@@ -1114,7 +879,7 @@
 
     function refreshDetailSummary(g) {
         const el=document.getElementById('pg-dp-summary'); if (!el) return;
-        const cat=window.getCat(g.category), st=STATUS_META[g.status]||STATUS_META.active, pct=g.progress_pct||0;
+        const cat=window.getCat(g.category), st=window.STATUS_META[g.status]||window.STATUS_META.active, pct=g.progress_pct||0;
         const ms=g.milestones||[];
         el.innerHTML=`
         <div class="pg-dp-goal-top">
@@ -1335,42 +1100,6 @@
         hideMsForm();
     }
 
-    // ── İstatistik Kartı ──────────────────────
-    function renderStatsCard() {
-        const el = document.getElementById('pg-stats-card-body');
-        if (!el) return;
-        if (goals.length===0) {
-            el.innerHTML='<p style="color:var(--t2,#888);font-size:13px;">Henüz hedef yok.</p>'; return;
-        }
-        const active=goals.filter(g=>g.status==='active').length;
-        const done=goals.filter(g=>g.status==='completed').length;
-        const archived=goals.filter(g=>g.status==='archived').length;
-        const totalMs=goals.reduce((s,g)=>(s+(g.milestones||[]).length),0);
-        const doneMs=goals.reduce((s,g)=>(s+(g.milestones||[]).filter(m=>m.done).length),0);
-        const avgPct=goals.length ? Math.round(goals.reduce((s,g)=>s+(g.progress_pct||0),0)/goals.length) : 0;
-
-        const topGoals = goals.filter(g=>g.status!=='archived').sort((a,b)=>(b.progress_pct||0)-(a.progress_pct||0)).slice(0,5);
-
-        el.innerHTML=`
-        <div class="pg-stats-overview">
-            <div class="pg-stats-mini"><div class="pg-stats-mini-n" style="color:#4ade80;">${active}</div><div class="pg-stats-mini-l">Aktif</div></div>
-            <div class="pg-stats-mini"><div class="pg-stats-mini-n" style="color:#60a5fa;">${done}</div><div class="pg-stats-mini-l">Bitti</div></div>
-            <div class="pg-stats-mini"><div class="pg-stats-mini-n" style="color:var(--a,#D4900E);">${avgPct}%</div><div class="pg-stats-mini-l">Ort. İlerleme</div></div>
-            <div class="pg-stats-mini"><div class="pg-stats-mini-n" style="color:#a78bfa;">${doneMs}/${totalMs}</div><div class="pg-stats-mini-l">Milestone</div></div>
-        </div>
-        ${topGoals.length>0?`
-        <div style="font-size:11px;font-weight:700;color:var(--t2,#888);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">En İlerli Hedefler</div>
-        ${topGoals.map(g=>{
-            const cat=window.getCat(g.category);
-            return `<div class="pg-stats-goal-row">
-                <div class="pg-stats-goal-dot" style="background:${cat.color};"></div>
-                <span class="pg-stats-goal-name">${esc(g.title)}</span>
-                <div class="pg-stats-goal-bar-wrap"><div class="pg-stats-goal-bar" style="width:${g.progress_pct||0}%;background:${cat.color};"></div></div>
-                <span class="pg-stats-goal-pct">${g.progress_pct||0}%</span>
-            </div>`;
-        }).join('')}` : ''}`;
-    }
-
     // ══════════════════════════════════════════
     // HIZLI HEDEF OLUŞTUR — planning-quick-create.js dosyasına taşındı
     // (Faz 2, 2026-07-19). window._pgGetGoals() üzerinden goals dizisine
@@ -1433,478 +1162,6 @@
     // _collabInviteStatus/_cwFriendCache) → planning-collab-wait.js
     // dosyasına taşındı.
 
-    // ── Sınıfa / Öğrenciye Ata (lesson_plan_assignments) ──────
-    async function openAssignModal(goalId) {
-        const goal = goals.find(g => g.id === goalId);
-        if (!goal || !window.FocusSupabase || !window.currentUser) return;
-        const sb = window.FocusSupabase, uid = window.currentUser.id;
-
-        document.getElementById('pg-assign-modal')?.remove();
-        const overlay = document.createElement('div');
-        overlay.id = 'pg-assign-modal';
-        overlay.className = 'modal-overlay';
-        const today = new Date().toISOString().split('T')[0];
-        overlay.innerHTML = `
-            <div class="modal-content glass-panel pg-assign-modal-content">
-                <header class="modal-header">
-                    <h2><i class="ti ti-school"></i> Ders Planını Ata</h2>
-                    <button id="pg-assign-close" class="icon-btn"><i class="fa-solid fa-xmark"></i></button>
-                </header>
-                <div class="modal-body">
-                    <p class="pg-hint" style="margin-bottom:14px;">"${esc(goal.title)}" planını bir sınıfa veya öğrenciye ata.</p>
-                    <div id="pg-assign-loading" class="pg-cw-loading"><span class="pg-cw-pulse-dot"></span> Sınıflar yükleniyor…</div>
-                    <div id="pg-assign-body" style="display:none;">
-                        <div class="form-group">
-                            <label class="form-label">Sınıf</label>
-                            <select id="pg-assign-group" class="premium-input modern-select pg-assign-select"></select>
-                        </div>
-                        <label class="pg-assign-all-row" for="pg-assign-all">
-                            <input type="checkbox" id="pg-assign-all">
-                            <span class="pg-assign-checkbox"></span>
-                            <span class="pg-assign-all-label">Tüm sınıfa ata</span>
-                        </label>
-                        <div id="pg-assign-students" class="pg-assign-students"></div>
-                        <div class="form-group" style="margin-top:14px;">
-                            <label class="form-label">Son tarih (opsiyonel)</label>
-                            <input id="pg-assign-deadline" type="date" class="premium-input pg-assign-select" value="${today}">
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" id="pg-assign-confirm" class="pg-assign-confirm-btn" disabled><i class="ti ti-send"></i> Ata</button>
-                </div>
-            </div>`;
-        document.body.appendChild(overlay);
-
-        const close = () => overlay.remove();
-        overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
-        overlay.querySelector('#pg-assign-close').onclick = close;
-
-        const loading = overlay.querySelector('#pg-assign-loading');
-        const body    = overlay.querySelector('#pg-assign-body');
-        let memberships;
-        try {
-            ({ data: memberships } = await sb
-                .from('group_members').select('group_id, role, groups(id, name, classroom_type, code)')
-                .eq('user_id', uid).eq('role', 'admin'));
-        } catch (e) {
-            console.warn('[FocusAI] openAssignModal:', e);
-            loading.textContent = 'Sınıflar yüklenemedi. Bağlantını kontrol edip tekrar dene.';
-            return;
-        }
-        const classGroups = (memberships || [])
-            .map(m => m.groups).filter(g => g && (g.classroom_type === 'classroom' || g.classroom_type === 'workplace'));
-
-        if (!classGroups.length) {
-            loading.textContent = 'Yönettiğin bir sınıf/ekip grubu bulunamadı.';
-            return;
-        }
-        loading.style.display = 'none';
-        body.style.display = '';
-
-        const groupSel = overlay.querySelector('#pg-assign-group');
-        groupSel.innerHTML = classGroups.map(g => `<option value="${g.id}">${esc(g.name)}</option>`).join('');
-
-        const allBox     = overlay.querySelector('#pg-assign-all');
-        const studentsEl = overlay.querySelector('#pg-assign-students');
-        const confirmBtn = overlay.querySelector('#pg-assign-confirm');
-
-        let members = [];
-        const loadMembers = async () => {
-            studentsEl.innerHTML = '<div class="pg-cw-loading"><span class="pg-cw-pulse-dot"></span> Öğrenciler yükleniyor…</div>';
-            let rows;
-            try {
-                ({ data: rows } = await sb
-                    .from('group_members').select('user_id, profiles(id, display_name, username)')
-                    .eq('group_id', groupSel.value));
-            } catch (e) {
-                console.warn('[FocusAI] loadMembers:', e);
-                studentsEl.innerHTML = '<p class="pg-cw-empty">Öğrenciler yüklenemedi. Tekrar dene.</p>';
-                return;
-            }
-            members = (rows || []).map(r => r.profiles).filter(p => p && p.id !== uid);
-            studentsEl.innerHTML = members.length
-                ? members.map(m => `
-                    <label class="pg-assign-student-row" for="pg-assign-student-${m.id}">
-                        <input type="checkbox" class="pg-assign-student" id="pg-assign-student-${m.id}" value="${m.id}">
-                        <span class="pg-assign-checkbox"></span>
-                        <span class="pg-assign-student-name">${esc(m.display_name || m.username)}</span>
-                    </label>`).join('')
-                : '<p class="pg-cw-empty">Bu grupta henüz öğrenci yok.</p>';
-            _refreshAssignConfirm();
-        };
-        groupSel.onchange = loadMembers;
-        await loadMembers();
-
-        function _refreshAssignConfirm() {
-            const anyChecked = allBox.checked || overlay.querySelectorAll('.pg-assign-student:checked').length > 0;
-            confirmBtn.disabled = !anyChecked;
-        }
-        allBox.onchange = () => {
-            studentsEl.querySelectorAll('.pg-assign-student').forEach(cb => { cb.checked = false; cb.disabled = allBox.checked; });
-            _refreshAssignConfirm();
-        };
-        studentsEl.addEventListener('change', _refreshAssignConfirm);
-
-        confirmBtn.onclick = async () => {
-            confirmBtn.disabled = true;
-            confirmBtn.innerHTML = '<i class="ti ti-loader-2 pg-sync-spin"></i> Atanıyor…';
-            const groupId = groupSel.value;
-            const targetIds = allBox.checked
-                ? members.map(m => m.id)
-                : Array.from(overlay.querySelectorAll('.pg-assign-student:checked')).map(cb => cb.value);
-            const deadline = overlay.querySelector('#pg-assign-deadline').value || null;
-            if (!targetIds.length) return;
-
-            const rows = targetIds.map(studentId => ({
-                goal_id: goal.id, group_id: groupId, teacher_id: uid, student_id: studentId,
-                status: 'invited', deadline: deadline ? new Date(deadline + 'T23:59:59').toISOString() : null,
-                goal_title: goal.title,
-            }));
-            const { error } = await sb.from('lesson_plan_assignments').upsert(rows, { onConflict: 'goal_id,student_id' });
-            if (error) {
-                window.dcShowToast?.('Atama başarısız: ' + error.message, 'error');
-                confirmBtn.disabled = false;
-                confirmBtn.innerHTML = '<i class="ti ti-send"></i> Ata';
-                return;
-            }
-            const groupCode = classGroups.find(cg => cg.id === groupId)?.code || null;
-            try {
-                await sb.from('notifications').insert(targetIds.map(userId => ({
-                    user_id: userId,
-                    type: 'lesson_plan_new',
-                    payload: { fromName: window.currentUser.displayName || window.currentUser.username, goalTitle: goal.title, groupId, groupCode },
-                })));
-            } catch (e) {
-                console.warn('[FocusAI] lesson_plan_new bildirimi gönderilemedi:', e);
-            }
-            window.dcShowToast?.('Plan ' + targetIds.length + ' kişiye atandı.', 'success');
-            close();
-            // Atama, öğretmenin "kaydetmesi gereken" bir değişiklik değil — atama zaten
-            // ayrı bir tabloya (lesson_plan_assignments) yazıldı. Yine de pvUnsaved açık
-            // kalmışsa (atamadan önce plan üzerinde başka bir düzenleme yapılmışsa) hedefi
-            // burada kaydedip bayrağı temizliyoruz ki çıkarken gereksiz "kaydedilmemiş
-            // değişiklikler" uyarısı çıkmasın — atadıktan sonra tekrar Kaydet'e basmaya gerek yok.
-            const liveGoal = goals.find(x => x.id === goal.id);
-            if (liveGoal) { liveGoal._dirty = true; persistGoals(); }
-            pvUnsaved = false;
-            _pvRenderAssignmentStatus(goal);
-        };
-    }
-
-    // ── Öğretmen tarafı: bu ders planının öğrencilere atanma durumu ──────
-    // "Bekliyor / Onaylandı / Revize İstendi / Reddedildi / Tamamlandı" —
-    // revize isteyen ve reddeden öğrenciler için not + tekrar gönder aksiyonu.
-    // Reddedilenler 7 gün sonra (expires_at geçince) bir sonraki açılışta
-    // otomatik temizlenir (cron yok, client-side lazy cleanup).
-    const PVLPA_STATUS_META = {
-        invited:            { label: 'Bekliyor',        cls: 'wait' },
-        accepted:           { label: 'Onaylandı',       cls: 'ok' },
-        revision_requested: { label: 'Revize İstendi',  cls: 'warn' },
-        rejected:           { label: 'Reddedildi',      cls: 'bad' },
-        completed:          { label: 'Tamamlandı',      cls: 'ok' },
-    };
-    async function _pvRenderAssignmentStatus(g) {
-        const box = document.getElementById('pg-pv-assign-status');
-        if (!box || !window.FocusSupabase || !window.currentUser) return;
-        if (g.context?.isTemplate) { box.classList.add('hidden'); return; }
-        const sb = window.FocusSupabase, myId = window.currentUser.id;
-
-        let rows;
-        try {
-            // Süresi dolmuş reddedilenleri sessizce temizle (7 gün, migration 097)
-            await sb.from('lesson_plan_assignments').delete()
-                .eq('teacher_id', myId).eq('status', 'rejected').lt('expires_at', new Date().toISOString());
-
-            ({ data: rows } = await sb.from('lesson_plan_assignments')
-                .select('id, student_id, status, student_note, teacher_note, expires_at, progress_pct, profiles!lesson_plan_assignments_student_id_fkey(display_name, username)')
-                .eq('goal_id', g.id).eq('teacher_id', myId));
-        } catch (e) {
-            console.warn('[FocusAI] _pvRenderAssignmentStatus:', e);
-            box.classList.add('hidden');
-            return;
-        }
-        if (!rows || !rows.length) { box.classList.add('hidden'); return; }
-
-        box.classList.remove('hidden');
-        box.innerHTML = `
-            <div class="pg-pv-assign-status-title"><i class="ti ti-users"></i> Atama Durumu</div>
-            <div class="pg-pv-assign-status-list">${rows.map(r => _lpaStatusRowHTML(r, false)).join('')}</div>`;
-
-        box.querySelectorAll('.pg-pv-assign-resend-btn').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader-2 pg-sync-spin"></i> Gönderiliyor…';
-                const lpaId = btn.dataset.lpaId, studentId = btn.dataset.studentId;
-                try {
-                    await sb.from('lesson_plan_assignments').update({
-                        status: 'invited', student_note: null, responded_at: null, expires_at: null,
-                    }).eq('id', lpaId);
-                    const groupCode = await _lpaGetGroupCode(sb, g.context?.lessonPlanGroupId);
-                    await sb.from('notifications').insert([{
-                        user_id: studentId, type: 'lesson_plan_new',
-                        payload: { fromName: window.currentUser.displayName || window.currentUser.username, goalTitle: g.title, resent: true, groupCode },
-                    }]);
-                    window.dcShowToast?.('Plan tekrar gönderildi.', 'success');
-                    _pvRenderAssignmentStatus(g);
-                } catch (e) {
-                    console.warn('[FocusAI] plan tekrar gönderme hatası:', e);
-                    window.dcShowToast?.('Gönderilemedi, tekrar dene.', 'error');
-                    btn.disabled = false; btn.innerHTML = 'Tekrar Gönder';
-                }
-            });
-        });
-    }
-    window._pvRenderAssignmentStatus = _pvRenderAssignmentStatus;
-
-    // Tek bir atama satırının HTML'i — hem tek-plan (yukarıdaki) hem gruba-özel
-    // (Sınıf Paneli > Ders Planı) görünümde paylaşılır. `showGoalTitle` gruba-özel
-    // görünümde birden fazla plan karışabileceği için başlığı da gösterir.
-    // `opts.deleteStatuses`: hangi durumlarda "Sil" butonu gösterilsin (öğrenci sadece
-    // rejected'ı silebilir — RLS öyle izin veriyor; öğretmen kendi kaydı olduğu için
-    // hem revision_requested hem rejected'ı silebilir).
-    function _lpaStatusRowHTML(r, showGoalTitle, showResendBtn, opts) {
-        showResendBtn = showResendBtn !== false;
-        opts = opts || {};
-        const deleteStatuses = opts.deleteStatuses || [];
-        const meta = PVLPA_STATUS_META[r.status] || { label: r.status, cls: '' };
-        const name = esc(r.profiles?.display_name || r.profiles?.username || '?');
-        const daysLeft = r.status === 'rejected' && r.expires_at ? Math.max(0, Math.ceil((new Date(r.expires_at) - Date.now()) / 86400000)) : null;
-        return `
-        <div class="pg-pv-assign-row${opts.isStudentView ? ' pg-pv-assign-row--premium' : ''}" data-lpa-id="${r.id}" data-goal-id="${r.goal_id || ''}">
-            ${!opts.isStudentView ? `<span class="pg-pv-assign-name">${name}</span>` : ''}
-            ${showGoalTitle ? `<span class="pg-pv-assign-goal">${esc(r.goal_title || '')}</span>` : ''}
-            <span class="pg-pv-assign-badge ${meta.cls}${opts.isStudentView ? ' pg-pv-assign-badge--end' : ''}">${meta.label}</span>
-            ${r.status === 'accepted' || r.status === 'completed' ? `<span class="pg-pv-assign-progress">%${r.progress_pct || 0}</span>` : ''}
-            ${r.student_note ? `<div class="pg-pv-assign-note"><i class="ti ti-message-circle"></i> ${esc(r.student_note)}</div>` : ''}
-            ${daysLeft !== null ? `<span class="pg-pv-assign-expiry">${daysLeft} gün sonra otomatik silinir</span>` : ''}
-            ${(opts.showEditBtn && r.status === 'revision_requested') ? `
-            <button class="pg-lpa-mini-btn pg-pv-assign-edit-btn" data-goal-id="${r.goal_id}" title="Planı düzenle">
-                <i class="ti ti-pencil"></i> Düzenle
-            </button>` : ''}
-            ${(showResendBtn && (r.status === 'revision_requested' || r.status === 'rejected')) ? `
-            <button class="control-btn secondary pg-pv-assign-resend-btn" data-lpa-id="${r.id}" data-student-id="${r.student_id}" data-goal-title="${esc(r.goal_title || '')}">
-                <i class="ti ti-send"></i> Planı Düzenledim, Tekrar Gönder
-            </button>` : ''}
-            ${deleteStatuses.includes(r.status) ? `
-            <button class="pg-lpa-mini-btn pg-pv-assign-delete-btn" data-lpa-id="${r.id}" title="Şimdi sil">
-                <i class="ti ti-trash"></i> Sil
-            </button>` : ''}
-        </div>`;
-    }
-    // planning-lesson-plan-invites.js modülünün öğrenci davet listesinde
-    // kullanabilmesi için köprü.
-    window._lpaStatusRowHTML = _lpaStatusRowHTML;
-
-    // Bir grubun kısa katılım kodunu (bildirim onClick'inde Sınıf Paneli'ni doğrudan
-    // açabilmek için) uuid'sinden bulur — küçük bir önbellekle tekrar sorgulamayı önler.
-    const _lpaGroupCodeCache = {};
-    async function _lpaGetGroupCode(sb, groupId) {
-        if (!groupId) return null;
-        if (_lpaGroupCodeCache[groupId] !== undefined) return _lpaGroupCodeCache[groupId];
-        try {
-            const { data } = await sb.from('groups').select('code').eq('id', groupId).maybeSingle();
-            return (_lpaGroupCodeCache[groupId] = data?.code || null);
-        } catch (e) {
-            console.warn('[FocusAI] _lpaGetGroupCode:', e);
-            return null;
-        }
-    }
-
-    // Sınıf Paneli > Ders Planı sekmesi — öğretmen tarafı: bu gruptaki TÜM ders planı
-    // atamalarının durumu. Kategoriler (Aktif / Revize / Reddedilenler) ayrı sekmeler
-    // halinde — hepsi aynı anda listelense çok yer kaplıyordu, artık sadece seçili
-    // kategori render ediliyor (bkz. kullanıcı geri bildirimi).
-    // "Aktif" sadece kabul edilmeyi BEKLEYEN atamaları gösterir — öğrenci kabul edince
-    // (veya tamamlayınca) buradan düşer, yoksa zamanla çok fazla veri birikip liste
-    // kullanılamaz hale geliyordu (bkz. kullanıcı geri bildirimi).
-    const LPA_GROUP_TABS = [
-        { key: 'active',   label: 'Aktif',        statuses: ['invited'] },
-        { key: 'revision', label: 'Revize',        statuses: ['revision_requested'] },
-        { key: 'rejected', label: 'Reddedilenler', statuses: ['rejected'] },
-    ];
-    // "Yeni Ders Planı Oluştur" butonu, sekme çubuğuyla aynı satırda (sağda) —
-    // Planlama modülünü açıp ders planı oluşturma akışını başlatır.
-    const _lpaCreateBtnHtml = `
-        <button id="cp-asg-goto-lessonplan-btn" class="control-btn secondary pg-lpa-create-btn">
-            <i class="fa-solid fa-book-open-reader"></i> Yeni Ders Planı Oluştur
-        </button>`;
-    function _lpaBindCreateBtn(containerEl) {
-        containerEl.querySelector('#cp-asg-goto-lessonplan-btn')?.addEventListener('click', () => {
-            if (typeof window.switchTab === 'function') window.switchTab('planlama');
-            setTimeout(() => { if (typeof window.openLessonPlanModal === 'function') window.openLessonPlanModal(); }, 150);
-        });
-    }
-
-    // Sekme değişiminde ağdan tekrar veri çekmek (fetch+delete round-trip'i) buton
-    // tıklamasından geçişe kadar gözle görülür bir gecikmeye yol açıyordu (bkz.
-    // kullanıcı geri bildirimi) — bu yüzden sekmeler arası geçiş, ilk yüklemede
-    // önbelleğe alınan satırlar üzerinden anında (senkron) render edilir; veri
-    // ancak groupId değiştiğinde veya bir aksiyon (sil/tekrar gönder) sonrası
-    // sunucudan yeniden çekilir.
-    function _lpaRenderTabs(groupId, containerEl, rows) {
-        containerEl._lpaRows = rows;
-        const buckets = {};
-        LPA_GROUP_TABS.forEach(t => { buckets[t.key] = rows.filter(r => t.statuses.includes(r.status)); });
-        let activeTab = containerEl.dataset.lpaActiveTab;
-        if (!activeTab || !buckets[activeTab]) activeTab = LPA_GROUP_TABS.find(t => buckets[t.key].length)?.key || 'active';
-        containerEl.dataset.lpaActiveTab = activeTab;
-
-        containerEl.innerHTML = `
-            <div class="pg-lpa-tabs-row">
-                <div class="pg-lpa-tabs">
-                    ${LPA_GROUP_TABS.map(t => `
-                    <button class="pg-lpa-tab-btn${t.key === activeTab ? ' active' : ''}" data-tab="${t.key}">
-                        ${esc(t.label)}${buckets[t.key].length ? ` <span class="pg-lpa-tab-count">${buckets[t.key].length}</span>` : ''}
-                    </button>`).join('')}
-                </div>
-                ${_lpaCreateBtnHtml}
-            </div>
-            <div class="pg-pv-assign-status-list">${buckets[activeTab].length
-                ? buckets[activeTab].map(r => _lpaStatusRowHTML(r, true, true, { showEditBtn: true, deleteStatuses: ['revision_requested', 'rejected'] })).join('')
-                : '<p class="cp-hint">Bu kategoride kayıt yok.</p>'}</div>`;
-
-        _lpaBindCreateBtn(containerEl);
-        containerEl.querySelectorAll('.pg-lpa-tab-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                if (btn.dataset.tab === containerEl.dataset.lpaActiveTab) return;
-                containerEl.dataset.lpaActiveTab = btn.dataset.tab;
-                _lpaRenderTabs(groupId, containerEl, containerEl._lpaRows || []);
-            });
-        });
-        containerEl.querySelectorAll('.pg-pv-assign-edit-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                if (btn.dataset.goalId && typeof window.openPlanView === 'function') window.openPlanView(btn.dataset.goalId);
-            });
-        });
-        containerEl.querySelectorAll('.pg-pv-assign-delete-btn').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                let ok;
-                try {
-                    ok = await window.showFocusaiConfirm({
-                        title: 'Ders Planı Kaydını Sil',
-                        desc: 'Bu atama kaydı kalıcı olarak silinsin mi? Bu işlem geri alınamaz.',
-                        type: 'danger', icon: 'fa-trash-can', confirmText: 'Sil', cancelText: 'Vazgeç',
-                    });
-                } catch (e) { console.warn('[FocusAI] sessiz hata:', e); return; }
-                if (!ok) return;
-                btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader-2 pg-sync-spin"></i>';
-                try {
-                    await window.FocusSupabase.from('lesson_plan_assignments').delete().eq('id', btn.dataset.lpaId);
-                    renderGroupLessonPlanStatus(groupId, containerEl);
-                } catch (e) {
-                    console.warn('[FocusAI] lesson_plan_assignments silme hatası:', e);
-                    btn.disabled = false; btn.innerHTML = 'Sil';
-                }
-            });
-        });
-        containerEl.querySelectorAll('.pg-pv-assign-resend-btn').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                const sb = window.FocusSupabase;
-                btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader-2 pg-sync-spin"></i> Gönderiliyor…';
-                const lpaId = btn.dataset.lpaId, studentId = btn.dataset.studentId, goalTitle = btn.dataset.goalTitle;
-                try {
-                    await sb.from('lesson_plan_assignments').update({
-                        status: 'invited', student_note: null, responded_at: null, expires_at: null,
-                    }).eq('id', lpaId);
-                    const groupCode = await _lpaGetGroupCode(sb, groupId);
-                    await sb.from('notifications').insert([{
-                        user_id: studentId, type: 'lesson_plan_new',
-                        payload: { fromName: window.currentUser.displayName || window.currentUser.username, goalTitle, resent: true, groupCode },
-                    }]);
-                    window.dcShowToast?.('Plan tekrar gönderildi.', 'success');
-                    containerEl.dataset.lpaActiveTab = 'active';
-                    renderGroupLessonPlanStatus(groupId, containerEl);
-                } catch (e) {
-                    console.warn('[FocusAI] plan tekrar gönderme hatası:', e);
-                    window.dcShowToast?.('Gönderilemedi, tekrar dene.', 'error');
-                    btn.disabled = false; btn.innerHTML = 'Tekrar Gönder';
-                }
-            });
-        });
-    }
-
-    async function renderGroupLessonPlanStatus(groupId, containerEl) {
-        if (!containerEl || !window.FocusSupabase || !window.currentUser) return;
-        const sb = window.FocusSupabase, myId = window.currentUser.id;
-
-        let rows;
-        try {
-            await sb.from('lesson_plan_assignments').delete()
-                .eq('teacher_id', myId).eq('status', 'rejected').lt('expires_at', new Date().toISOString());
-
-            ({ data: rows } = await sb.from('lesson_plan_assignments')
-                .select('id, goal_id, student_id, status, student_note, teacher_note, expires_at, progress_pct, goal_title, profiles!lesson_plan_assignments_student_id_fkey(display_name, username)')
-                .eq('group_id', groupId).eq('teacher_id', myId)
-                .order('assigned_at', { ascending: false }));
-        } catch (e) {
-            console.warn('[FocusAI] renderGroupLessonPlanStatus:', e);
-            containerEl.innerHTML = '<p class="cp-hint">Ders planı durumu yüklenemedi. Tekrar dene.</p>';
-            return;
-        }
-        if (!rows || !rows.length) {
-            containerEl.innerHTML = `
-                <div class="pg-lpa-tabs-row">
-                    <p class="cp-hint" style="margin:0;">Bu sınıf için henüz atanmış bir ders planı yok.</p>
-                    ${_lpaCreateBtnHtml}
-                </div>`;
-            _lpaBindCreateBtn(containerEl);
-            return;
-        }
-        _lpaRenderTabs(groupId, containerEl, rows);
-    }
-    window.renderGroupLessonPlanStatus = renderGroupLessonPlanStatus;
-
-    // _openCollabWaitOverlay/_closeCollabWaitOverlay/_cwAvatarColor/
-    // _collabWaitLoadFriends/_collabWaitSendInvite/_collabWaitShowWaitingSection/
-    // _collabWaitRefreshWaitingList/_collabWaitRefreshAccepted →
-    // planning-collab-wait.js dosyasına taşındı (Faz 2, 2026-07-19).
-
-    // openModeSelect, closeModeSelect, openLessonPlanModal, _lpHideAllSteps,
-    // _lpShowChoiceStep, _lpUpdateBrowseCounts, _lpRenderListStep,
-    // _lpShowTemplatesListStep, _lpShowInstancesListStep, _lpBindExistingListEvents,
-    // _lpShowTemplateStep, _lpShowFormStep, _lpSetTarget, _cloneMilestonesForTemplate,
-    // _cloneTasksForTemplate, _applyTemplateTasksToGoal, _pvSaveGoalAsTemplate,
-    // _lpSaveTemplate, _lpLoadStudents, _lpRenderStudentPicker, closeLessonPlanModal,
-    // _lpSave -> planning-lesson-plan-modal.js dosyasına taşındı (Faz 2, 2026-07-20).
-    // window.* köprüsüyle erişilir. Bu modül planning.js'ten ÖNCE yüklenmeli
-    // (init() içinde bu fonksiyonlar senkron addEventListener'a bağlanıyor).
-
-    // Öğretmen/kurum yöneticisi bir sınıf/ders grubunda admin ise "Ders Planı" modu açılır
-    let _wzLessonPlanGroups = null; // cache: [{id, name, classroom_type}] | []
-    // planning-lesson-plan-modal.js modülünün önbelleği okuyabilmesi için köprü
-    // (kendisi burada kalıyor çünkü cardHTML de kullanıyor).
-    window._wzGetLessonPlanGroups = () => _wzLessonPlanGroups;
-    async function _wzCheckLessonPlanGroups() {
-        // FocusSupabase/currentUser henüz hazır değilse sonucu ÖNBELLEKLEME —
-        // aksi halde erken (login tamamlanmadan) çağrılan init() bu boş sonucu
-        // kalıcı olarak önbelleğe alır ve "Ders Planı" hiç görünmez.
-        if (!window.FocusSupabase || !window.currentUser) return [];
-        const sb = window.FocusSupabase, uid = window.currentUser.id;
-        try {
-            const { data: memberships } = await sb
-                .from('group_members').select('group_id, role, groups(id, name, classroom_type)')
-                .eq('user_id', uid).eq('role', 'admin');
-            _wzLessonPlanGroups = (memberships || [])
-                .map(m => m.groups).filter(g => g && (g.classroom_type === 'classroom' || g.classroom_type === 'workplace'));
-            return _wzLessonPlanGroups;
-        } catch (e) {
-            console.warn('[FocusAI] _wzCheckLessonPlanGroups:', e);
-            return []; // önbelleğe alınmaz (_wzLessonPlanGroups null kalır) — bir sonraki çağrıda tekrar denenir
-        }
-    }
-    window._wzCheckLessonPlanGroups = _wzCheckLessonPlanGroups;
-
-    // openWizard, closeWizard, _wzRenderStep, _wzValidate, _wzNext, _wzBack ve tüm
-    // 5-adımlı Hedef Oluşturma Sihirbazı (_wz* — ~2150 satır: adım render'ları,
-    // booking takvimi, mini gantt, akordeon, günlük/haftalık/aylık takvim ızgarası,
-    // _wzSave) -> planning-milestone-wizard.js dosyasına taşındı (Faz 2, 2026-07-20).
-    // wizardState/_wzCalYear/_wzCalMonth state'i de o dosyaya taşındı (planning.js'in
-    // başka hiçbir yerinde kullanılmıyordu). window.openWizard/closeWizard/_wzNext/
-    // _wzBack köprüleriyle erişilir.
-    // ÖNEMLİ: init() closeWizard/_wzNext/_wzBack'i SENKRON addEventListener'a
-    // bağladığı için bu modül planning.js'ten ÖNCE yüklenmeli.
-
-
     // ── Goal Modal ────────────────────────────
     function openGoalModal(editId) {
         editingId=editId||null;
@@ -1946,28 +1203,6 @@
         };
         if (editingId) updateGoal(editingId, data); else addGoal(data);
         closeGoalModal();
-    }
-
-    // ── Animasyonlar ──────────────────────────
-    function _sparkle(el) {
-        if (!el) return;
-        const rect = el.getBoundingClientRect();
-        const cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
-        for (let i = 0; i < 8; i++) {
-            const p = document.createElement('div');
-            p.className = 'pg-sparkle';
-            const angle = (i / 8) * 360;
-            const dist  = 24 + Math.random() * 16;
-            p.style.cssText = `left:${cx}px;top:${cy}px;--angle:${angle}deg;--dist:${dist}px;
-                background:${['#ffd166','#4ade80','#7c6eff','#ef476f','#60a5fa'][i%5]};`;
-            document.body.appendChild(p);
-            setTimeout(() => p.remove(), 600);
-        }
-    }
-    function _goalComplete(g) {
-        const card = document.querySelector(`.pg-card[data-id="${g.id}"]`);
-        if (card) { card.classList.add('pg-card-celebrate'); setTimeout(()=>card.classList.remove('pg-card-celebrate'),1200); }
-        toast(`🏆 "${g.title}" tamamlandı! Harika iş!`, { duration: 4000 });
     }
 
     // ── Collab bridge fonksiyonları ───────────
@@ -2092,7 +1327,7 @@
                     if (payload.goalId !== result.goalId) return;
                     pvWiz = payload.wiz;
                     const gLive = goals.find(x => x.id === result.goalId);
-                    if (gLive) { _pvRenderStepper(gLive); _pvRenderMainCal(gLive); }
+                    if (gLive) { window._pvRenderStepper(gLive); _pvRenderMainCal(gLive); }
                 },
             });
         }
@@ -2299,7 +1534,7 @@
         // 4.2 — Realtime subscription
         setTimeout(window._subscribeRealtime, 1200);
         // 4.3 — Bildirim izni + deadline taraması
-        setTimeout(_requestNotificationPermission, 3000);
+        setTimeout(window._requestNotificationPermission, 3000);
         setTimeout(window._checkDeadlineNotifications, 4000);
         setInterval(window._checkDeadlineNotifications, 3600000); // Saatte bir kontrol
 
@@ -2515,58 +1750,36 @@
         if (typeof window.syncAllMilestonesToCalendar==='function')
             setTimeout(window.syncAllMilestonesToCalendar, 800);
 
-        render();
+        // render() artık planning-misc-widgets.js'te tanımlı ve planning.js'ten
+        // SONRA yükleniyor (bkz. inline-module-loader.js) — init() senkron
+        // çalıştığı için bare render() burada henüz tanımsız olabilir. Faz G
+        // köprü dönüşümünde ortaya çıkan pre-existing bir yükleme-sırası
+        // hatasıydı (bu satır planning.js'i modül olarak "errored" işaretleyip
+        // ondan `import` eden TÜM planning-*.js dosyalarını da bozuyordu).
+        if (typeof window.render === 'function') window.render();
     }
-
-    // ── 5.3 Dependency Graph ──────────────────
-    // loadDependencies/saveDependencies/isBlocked/addDependency/removeDependency/
-    // _wouldCreateCycle/_drawDependencyArrows planning-dependency-graph.js'e taşındı
-    // (Faz 2, 2026-07-20) — window.loadDependencies/saveDependencies/
-    // addPlanningDependency/removePlanningDependency/getPlanningDependencies/
-    // isPlanningGoalBlocked köprüleriyle erişilir. Bu modül planning.js'ten ÖNCE
-    // yüklenmeli (bkz. inline-module-loader.js) çünkü init() içinde
-    // window.loadDependencies() senkron çağrılıyor.
-
-    // ── 4.3 Push & Local Notifications ─────────
-    window._notifyLocal = function _notifyLocal(title, body, tag) {
-        if (Notification.permission !== 'granted') return;
-        const icon = './icon-192.png';
-        if (navigator.serviceWorker?.controller) {
-            navigator.serviceWorker.ready.then(reg => {
-                reg.showNotification(title, { body, icon, tag: tag || 'focusai-planning' });
-            });
-        } else {
-            new Notification(title, { body, icon });
-        }
-    }
-
-    window._requestNotificationPermission = async function _requestNotificationPermission() {
-        if (!('Notification' in window) || Notification.permission === 'granted') return;
-        if (Notification.permission !== 'denied') {
-            try { await Notification.requestPermission(); }
-            catch (e) { console.warn('[FocusAI] Notification.requestPermission:', e); }
-        }
-    }
-
-    // _checkDeadlineNotifications, _debouncedRealtimeToast, _subscribeRealtime,
-    // _handleGoalChange, _handleMilestoneChange -> planning-realtime.js dosyasına
-    // taşındı (Faz 2, 2026-07-20). window._checkDeadlineNotifications/
-    // _subscribeRealtime köprüleriyle erişilir.
-    // ÖNEMLİ: init() bunları setTimeout/setInterval'e SENKRON referans olarak
-    // veriyor, bu yüzden bu modül planning.js'ten ÖNCE yüklenmeli.
 
     // ══════════════════════════════════════════
     // BİRLEŞİK PLAN GÖRÜNÜMÜ — Faz 3
     // ══════════════════════════════════════════
 
     let pvGoalId   = null;
+    // planning-wizard.js ile paylaşımlı (salt-okunur)
+    window.__getPvGoalId = () => pvGoalId;
     let pvActiveMsId = null;
+    // planning-plan-header.js ile paylaşımlı (o modül de bu değeri reassign ediyor)
+    window.__getPvActiveMsId = () => pvActiveMsId;
+    window.__setPvActiveMsId = (v) => { pvActiveMsId = v; };
     let pvSeqMode  = false;
+    // planning-plan-header.js ile paylaşımlı (salt-okunur)
+    window.__getPvSeqMode = () => pvSeqMode;
     // Öğrenci, öğretmenin kendisine atadığı planı "İncele" ile açtığında salt okunur
     // önizleme modu — aynı takvim/aşama arayüzü kullanılır, sadece düzenleme/kaydetme/
     // atama aksiyonları gizlenir. `pvReadOnlyTempId` önizleme için `goals`'a geçici
     // (persist edilmeyen) olarak eklenen sahte hedefin id'sidir; kapatılınca silinir.
     let pvReadOnly = false;
+    // planning-plan-header.js ile paylaşımlı (salt-okunur)
+    window.__getPvReadOnly = () => pvReadOnly;
     let pvReadOnlyTempId = null;
     // planning-lesson-plan-invites.js'teki önizleme açma akışının bu iki
     // değişkeni ayarlayabilmesi için köprü (doğrudan yazılamıyorlar, modül
@@ -2575,8 +1788,16 @@
     // "Mevcut Görevlerimi Gör" — salt okunur önizlemede öğrencinin kendi (öğretmenin
     // planı dışındaki) görevlerini gün panelinde ek olarak gösterip çakışanları işaretler.
     let pvReadOnlyShowOwnTasks = false;
+    // planning-plan-header.js ile paylaşımlı (o modül de bu değeri reassign ediyor)
+    window.__getPvReadOnlyShowOwnTasks = () => pvReadOnlyShowOwnTasks;
+    window.__setPvReadOnlyShowOwnTasks = (v) => { pvReadOnlyShowOwnTasks = v; };
     let pvCalYear  = new Date().getFullYear();
     let pvCalMonth = new Date().getMonth();
+    // planning-plan-header.js ile paylaşımlı (o modül de bu ikisini reassign ediyor)
+    window.__getPvCalYear = () => pvCalYear;
+    window.__setPvCalYear = (v) => { pvCalYear = v; };
+    window.__getPvCalMonth = () => pvCalMonth;
+    window.__setPvCalMonth = (v) => { pvCalMonth = v; };
     let pvCalView  = 'month'; // 'month' | 'week' | 'day' — sadece ders planı için
     let pvWeekCursor = null;
     let pvDayCursor  = null;
@@ -2737,12 +1958,13 @@
     }
 
     // Ders planında "Kaydet" butonuna basınca: dirty senkronu zorla + görsel geri bildirim
+    window._pvExplicitSave = _pvExplicitSave; // planning-plan-header.js için
     function _pvExplicitSave(g) {
         const live = goals.find(x => x.id === g.id);
         if (live) live._dirty = true;
         persistGoals();
         pvUnsaved = false;
-        _pvRenderHeader(live || g);
+        window._pvRenderHeader(live || g);
         toast('Plan kaydedildi ✓', '#06d6a0');
     }
 
@@ -2793,7 +2015,7 @@
             }
         });
         if (eventsChanged) FocusStorage.set('events', events);
-        goals = goals.filter(x => x.id !== goalId);
+        window._pgSetGoals(goals.filter(x => x.id !== goalId));
         persistGoals();
         if (typeof window.syncTasksFromStorage === 'function') window.syncTasksFromStorage();
         if (typeof window.renderTasksGlobal === 'function') window.renderTasksGlobal();
@@ -2854,6 +2076,9 @@
 
     // ── Milestone Wizard State ────────────────
     let pvWiz = null; // { step:'welcome'|'count'|'names'|'dates'|'done', count:0, names:[], dateIdx:0 }
+    // planning-wizard.js ile paylaşımlı (o modül de bu değeri reassign ediyor)
+    window.__getPvWiz = () => pvWiz;
+    window.__setPvWiz = (v) => { pvWiz = v; };
 
     const PV_MOTIVATION = {
         egitim:  ['Her uzman bir zamanlar acemiydi.', 'Öğrenmek zihnin en büyük macerasıdır.', 'Bilgi, taşıması en hafif yüktür.'],
@@ -2863,6 +2088,7 @@
         kisisel: ['En önemli proje kendinizsiniz.', 'Büyüme konfor alanınızın dışında başlar.', 'Her gün daha iyi bir versiyon mümkün.'],
         diger:   ['Büyük hedefler cesur kalplerle başlar.', 'Planlamak başarının yarısıdır.', 'Her harika sonuç net bir niyetle başlar.'],
     };
+    window.PV_MOTIVATION = PV_MOTIVATION; // planning-wizard.js için (önceki bir çıkarmada gözden kaçmış bare referans)
 
     function openPlanView(goalId) {
         const g = goals.find(x => x.id === goalId);
@@ -3038,7 +2264,7 @@
                     gLive.progress_pct = payload.pct;
                     gLive._dirty = true;
                     persistGoals();
-                    _pvRenderHeader(gLive);
+                    window._pvRenderHeader(gLive);
                     _pvUpdateOverallProgress(gLive);
                     render();
                 },
@@ -3056,7 +2282,7 @@
                     pvWiz = payload.wiz;
                     const gLive = goals.find(x => x.id === pvGoalId);
                     if (gLive) {
-                        _pvRenderStepper(gLive);
+                        window._pvRenderStepper(gLive);
                         _pvRenderMainCal(gLive);
                     }
                 },
@@ -3080,7 +2306,7 @@
         // geçici görevleri (bkz. _toggleLessonPlanPreview) temizle — kalıcı değiller.
         if (pvReadOnly) {
             if (pvReadOnlyTempId) {
-                goals = goals.filter(x => x.id !== pvReadOnlyTempId);
+                window._pgSetGoals(goals.filter(x => x.id !== pvReadOnlyTempId));
                 const remainingTasks = FocusStorage.get('tasks', []).filter(t => t.parentGoal !== pvReadOnlyTempId);
                 FocusStorage.set('tasks', remainingTasks);
                 if (typeof window.syncTasksFromStorage === 'function') window.syncTasksFromStorage();
@@ -3093,292 +2319,20 @@
     }
 
     let pvSelectedDate = null; // 'YYYY-MM-DD'
+    // planning-plan-header.js ile paylaşımlı (o modül de bu değeri reassign ediyor)
+    window.__getPvSelectedDate = () => pvSelectedDate;
+    window.__setPvSelectedDate = (v) => { pvSelectedDate = v; };
 
     function _pvRender(g) {
         document.getElementById('pg-plan-view')?.classList.toggle('pg-pv-readonly', pvReadOnly);
-        _pvRenderHeader(g);
-        _pvRenderStepper(g);
+        window._pvRenderHeader(g);
+        window._pvRenderStepper(g);
         _pvRenderMainCal(g);
         _pvRenderDayPanel(g, pvSelectedDate);
         _pvUpdateOverallProgress(g);
     }
 
-    // ── Header ────────────────────────────────
-    function _pvRenderHeader(g) {
-        _pvUpdateConflictBanner(g);
-        const cat = window.getCat(g.category);
-        const pct = g.progress_pct || 0;
-        const el  = document.getElementById('pg-pv-goal-info');
-        if (!el) return;
-        el.innerHTML = `
-            <div class="pg-pv-goal-cat-dot" style="background:${cat.color};color:${cat.color};"></div>
-            <div>
-                <div class="pg-pv-goal-title-text">${esc(g.title)}</div>
-                <div class="pg-pv-goal-meta">
-                    <span>${cat.icon} ${cat.label}</span>
-                    ${g.deadline ? `<span>·</span><span><i class="ti ti-calendar-due"></i> ${window.fmtDate(g.deadline)}</span>` : ''}
-                </div>
-            </div>
-            <div class="pg-pv-goal-progress-wrap">
-                <div class="pg-pv-goal-progress-bar">
-                    <div class="pg-pv-goal-progress-fill" style="width:${pct}%;background:${cat.color};"></div>
-                </div>
-                <span class="pg-pv-goal-pct" style="color:${cat.color};">${pct}%</span>
-            </div>`;
-
-        // Seq toggle sync — ders planında anlamsız (aşamalar öğretmen tarafından serbestçe eklenir), gizle
-        const seqCheck = document.getElementById('pg-pv-seq-check');
-        if (seqCheck) seqCheck.checked = pvSeqMode;
-        document.querySelector('.pg-pv-seq-wrap')?.classList.toggle('hidden', _pvIsLessonPlan(g));
-
-        // Ders planı (Uygulama Planı + Şablon) — sağ üstte açık "Kaydet" butonu
-        const saveBtn = document.getElementById('pg-pv-save-btn');
-        if (saveBtn) {
-            saveBtn.classList.toggle('hidden', !_pvIsLessonPlan(g) || pvReadOnly);
-            saveBtn.onclick = () => {
-                if (_pvHasUnresolvedConflicts(g)) {
-                    _pvShowUnresolvedConflictModal({ onLeave: () => { _pvExplicitSave(g); closePlanView(); } });
-                    return;
-                }
-                _pvExplicitSave(g);
-            };
-        }
-
-        // Öğretmenin sana atadığı planı "İncele" ile salt okunur açtığında: düzenleme/
-        // atama butonları yerine sadece bir bilgi rozeti göster, aşama-ekleme/görev
-        // düzenleme aksiyonları da _pvRenderStepper/_pvRenderDayPanel'de gizlenir.
-        document.getElementById('pg-pv-edit-goal')?.classList.toggle('hidden', pvReadOnly || _pvHasUnresolvedConflicts(g));
-        const invLaterWrap = document.getElementById('pg-pv-invite-later-wrap');
-        if (pvReadOnly) {
-            document.getElementById('pg-pv-assign-status')?.classList.add('hidden');
-            if (invLaterWrap) {
-                invLaterWrap.innerHTML = `
-                    <span class="pg-pv-readonly-badge"><i class="ti ti-eye"></i> Öğretmen Planı — Salt Okunur Önizleme</span>
-                    <button class="pg-pv-own-tasks-toggle-btn${pvReadOnlyShowOwnTasks ? ' active' : ''}" id="pg-pv-own-tasks-toggle">
-                        <i class="ti ti-calendar-user"></i> ${pvReadOnlyShowOwnTasks ? 'Mevcut Görevlerimi Gizle' : 'Mevcut Görevlerimi Gör'}
-                    </button>`;
-                document.getElementById('pg-pv-own-tasks-toggle')?.addEventListener('click', () => {
-                    pvReadOnlyShowOwnTasks = !pvReadOnlyShowOwnTasks;
-                    _pvRenderHeader(g);
-                    _pvRenderDayPanel(g, pvSelectedDate);
-                });
-            }
-            return;
-        }
-        if (invLaterWrap) {
-            if (g.lpa_id) {
-                // Öğretmenden kabul edilmiş ders planı kopyası: atama/şablon
-                // aksiyonları öğretmene özeldir, öğrenciye gösterilmez.
-                document.getElementById('pg-pv-assign-status')?.classList.add('hidden');
-                invLaterWrap.innerHTML = '';
-            } else if (_pvIsLessonPlan(g)) {
-                const isTpl = !!g.context?.isTemplate;
-                invLaterWrap.innerHTML = `
-                    ${!isTpl ? `<button class="pg-pv-save-template-btn" id="pg-pv-save-template-btn" title="Bu planın aşama/görev yapısını yeni dönemlerde tekrar kullanabileceğin bir şablon olarak kaydet">
-                        <i class="ti ti-copy"></i> Şablon Olarak Kaydet
-                    </button>` : ''}
-                    ${!isTpl ? `<button class="pg-pv-assign-class-btn" id="pg-pv-assign-class-btn">
-                        <i class="ti ti-send"></i> Öğrencilere Ata
-                    </button>` : ''}`;
-                document.getElementById('pg-pv-save-template-btn')?.addEventListener('click', () => window._pvSaveGoalAsTemplate(g));
-                if (!isTpl) _pvRenderAssignmentStatus(g);
-                else document.getElementById('pg-pv-assign-status')?.classList.add('hidden');
-                document.getElementById('pg-pv-assign-class-btn')?.addEventListener('click', async () => {
-                    const groupId = g.context?.lessonPlanGroupId;
-                    await openAssignModal(g.id);
-                    if (groupId) {
-                        const sel = document.getElementById('pg-assign-group');
-                        if (sel) { sel.value = groupId; sel.dispatchEvent(new Event('change')); }
-                    }
-                });
-            } else if (!g.collab_room_id) {
-                document.getElementById('pg-pv-assign-status')?.classList.add('hidden');
-                invLaterWrap.innerHTML = `
-                    <button class="pg-pv-invite-later-btn" id="pg-pv-invite-later-btn">
-                        <i class="ti ti-user-plus"></i> Arkadaşını bu plana davet et
-                    </button>`;
-                document.getElementById('pg-pv-invite-later-btn')?.addEventListener('click', async () => {
-                    const btn = document.getElementById('pg-pv-invite-later-btn');
-                    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader" style="animation:spin .8s linear infinite;display:inline-block;"></i>'; }
-                    try {
-                        const { roomId, inviteCode } = await window.PlanningCollab.enableCollab(g.id, g.title);
-                        window._updateGoalCollabState?.(g.id, { collab_room_id: roomId, invite_code: inviteCode, is_collaborative: true });
-                        await window.PlanningCollab.joinRoom(roomId, g.id, 'owner');
-                        // Reload plan view header to remove button
-                        const freshGoal = FocusStorage.get('goals', []).find(x => x.id === g.id) || { ...g, collab_room_id: roomId, invite_code: inviteCode };
-                        _pvRenderHeader(freshGoal);
-                        // Show invite modal
-                        _pvOpenCollabInviteModal(inviteCode);
-                    } catch(e) {
-                        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ti ti-user-plus"></i> Arkadaşını bu plana davet et'; }
-                    }
-                });
-            } else {
-                document.getElementById('pg-pv-assign-status')?.classList.add('hidden');
-                invLaterWrap.innerHTML = '';
-            }
-        }
-    }
-
-    // ── Plan view collab invite modal ─────────
-    function _pvOpenCollabInviteModal(inviteCode) {
-        const modal = document.getElementById('pg-pv-collab-invite-modal');
-        if (!modal) return;
-        const codeEl = document.getElementById('pg-pv-collab-invite-code');
-        if (codeEl) codeEl.textContent = inviteCode || '—';
-
-        const membersEl = document.getElementById('pg-pv-collab-members');
-        if (membersEl) membersEl.innerHTML = '<p style="font-size:12px;color:var(--text-muted);">Henüz katılan yok. Kodu paylaştıktan sonra arkadaşın <strong>Odaya Katıl</strong> seçeneğinden bu kodu girince burada görünür.</p>';
-
-        const copyBtn = document.getElementById('pg-pv-collab-copy-btn');
-        if (copyBtn && !copyBtn._pvBound) {
-            copyBtn._pvBound = true;
-            copyBtn.addEventListener('click', () => {
-                navigator.clipboard?.writeText(inviteCode).catch(()=>{});
-                copyBtn.innerHTML = '<i class="ti ti-check"></i> Kopyalandı';
-                setTimeout(() => { copyBtn.innerHTML = '<i class="ti ti-copy"></i> Kopyala'; }, 2000);
-            });
-        }
-
-        const closeBtn = document.getElementById('pg-pv-collab-invite-close');
-        if (closeBtn && !closeBtn._pvBound) {
-            closeBtn._pvBound = true;
-            closeBtn.addEventListener('click', () => modal.classList.add('hidden'));
-        }
-        modal.addEventListener('click', e => { if (e.target === modal) modal.classList.add('hidden'); });
-        modal.classList.remove('hidden');
-    }
-
-    // ── Left: Stepper ─────────────────────────
-    function _pvRenderStepper(g) {
-        document.getElementById('pg-pv-body')?.classList.toggle('pg-pv-no-stages', _pvIsLessonPlan(g));
-        const el  = document.getElementById('pg-pv-stepper');
-        if (!el) return;
-        // Takvimden saat saat eklenen görevlerin aynası olan milestone'lar burada da
-        // hariç tutulur — gerçek bir "aşama" değiller, sol listede aşama gibi görünüp
-        // kafa karıştırmasınlar diye (bkz. _pvIsMirrorMs).
-        const ms  = (g.milestones || []).filter(m => !_pvIsMirrorMs(m));
-        const cat = window.getCat(g.category);
-
-        // Wizard active and in dates step → keep showing chat even with milestones
-        const wizActive = pvWiz && pvWiz.step !== 'done' && pvWiz.step !== null;
-
-        // Ders planı: "kaç aşamaya bölmek istersiniz" sohbet sihirbazı hiç gösterilmez —
-        // öğretmen aşamaları doğrudan, tamamen opsiyonel olarak ekler.
-        if (_pvIsLessonPlan(g)) {
-            document.querySelector('.pg-pv-panel-header')?.style.removeProperty('display');
-            document.getElementById('pg-pv-overall-progress')?.style.removeProperty('display');
-            pvWiz = null;
-        } else if (!ms.length || wizActive) {
-            // Show wizard if not already in wizard flow
-            if (!pvWiz) pvWiz = { step: 'welcome' };
-            _pvRenderWizard(g, el);
-            // Hide normal panel chrome while in wizard
-            document.querySelector('.pg-pv-panel-header')?.style.setProperty('display','none');
-            document.getElementById('pg-pv-quick-add-ms')?.style.setProperty('display','none');
-            document.getElementById('pg-pv-overall-progress')?.style.setProperty('display','none');
-            return;
-        }
-        // Milestones exist & wizard done — restore normal chrome
-        document.querySelector('.pg-pv-panel-header')?.style.removeProperty('display');
-        document.getElementById('pg-pv-overall-progress')?.style.removeProperty('display');
-        pvWiz = null;
-
-        const allTasks = FocusStorage.get('tasks', []).filter(t => String(t.parentGoal) === String(g.id));
-        const today    = _localToday();
-
-        el.innerHTML = ms.map((m, i) => {
-            const isActive = m.id === pvActiveMsId;
-            const isLocked = pvSeqMode && i > 0 && !ms[i - 1].done && !m.done;
-            const stsDone  = (m.subtasks || []).filter(s => s.done).length;
-            const stTotal  = (m.subtasks || []).length;
-            const stPct    = stTotal ? Math.round(stsDone / stTotal * 100) : (m.done ? 100 : 0);
-
-            // Task count in this milestone's date range — only this goal's tasks
-            const mTasks   = m.start_date && m.due_date
-                ? allTasks.filter(t => { const d = _normYMD(t.date); return d >= m.start_date && d <= m.due_date && String(t.parentGoal) === String(g.id); })
-                : [];
-            const mDone    = mTasks.filter(t => t.completed).length;
-
-            // Days remaining / elapsed
-            let daysInfo = '';
-            if (!m.done && m.due_date) {
-                const diff = Math.round((new Date(m.due_date + 'T00:00:00') - new Date(today + 'T00:00:00')) / 86400000);
-                if (diff > 0)       daysInfo = `${diff} gün kaldı`;
-                else if (diff === 0) daysInfo = 'Bugün bitiyor';
-                else                daysInfo = `${-diff} gün geçti`;
-            }
-
-            // Duration (planned time)
-            const mMins = _pvWeekTotalMins(allTasks, m.start_date || '', m.due_date || '');
-            const mDur  = _pvFmtDuration(mMins);
-
-            // Status badge
-            let statusBadge = '';
-            if (m.done)        statusBadge = `<span class="pg-pv-ms-badge done">✓ Tamamlandı</span>`;
-            else if (isLocked) statusBadge = `<span class="pg-pv-ms-badge locked"><i class="ti ti-lock"></i> Kilitli</span>`;
-            else if (isActive) statusBadge = `<span class="pg-pv-ms-badge active" style="--ms-color:${cat.color};">▶ Aktif</span>`;
-
-            // Date range label
-            const timeLabel = (m.start_time || m.end_time) ? ` · ${m.start_time || ''}${m.end_time ? '–'+m.end_time : ''}` : '';
-            const dateRange = (m.start_date && m.due_date)
-                ? `${window.fmtShort(m.start_date)} → ${window.fmtShort(m.due_date)}${timeLabel}`
-                : m.due_date ? `Bitiş: ${window.fmtShort(m.due_date)}${timeLabel}` : '';
-
-            return `
-            ${i > 0 ? `<div class="pg-pv-step-connector${ms[i-1].done?' done':''}"></div>` : ''}
-            <div class="pg-pv-step-item${isActive?' active':''}${m.done?' done':''}${isLocked?' locked':''}"
-                data-pvms="${m.id}" style="${isActive?`--ms-color:${cat.color};`:''}"
-                ${isLocked ? 'title="Sıralı modda önceki aşama tamamlanmadan açılamaz"' : ''}>
-
-                <div class="pg-pv-step-top">
-                    <div class="pg-pv-step-num" style="${isActive||m.done?`background:${cat.color};color:#000;`:''}">
-                        ${m.done ? '✓' : i + 1}
-                    </div>
-                    <div class="pg-pv-step-body">
-                        <div class="pg-pv-step-title">${esc(m.title)}</div>
-                        ${statusBadge}
-                    </div>
-                </div>
-
-                ${dateRange ? `<div class="pg-pv-step-daterange"><i class="ti ti-calendar-event"></i> ${dateRange}</div>` : ''}
-
-                ${(stTotal || mTasks.length) ? `
-                <div class="pg-pv-step-progress-row">
-                    <div class="pg-pv-step-progress-bar">
-                        <div class="pg-pv-step-progress-fill" style="width:${stPct}%;background:${cat.color};"></div>
-                    </div>
-                    <span class="pg-pv-step-progress-pct">${stPct}%</span>
-                </div>` : ''}
-
-                <div class="pg-pv-step-stats">
-                    ${mTasks.length ? `<span class="pg-pv-step-stat"><i class="ti ti-checkbox"></i> ${mDone}/${mTasks.length} görev</span>` : ''}
-                    ${stTotal ? `<span class="pg-pv-step-stat"><i class="ti ti-list-check"></i> ${stsDone}/${stTotal} alt görev</span>` : ''}
-                    ${mDur ? `<span class="pg-pv-step-stat"><i class="ti ti-clock"></i> ${mDur}</span>` : ''}
-                    ${daysInfo ? `<span class="pg-pv-step-stat${m.due_date < today && !m.done ? ' overdue' : ''}"><i class="ti ti-hourglass"></i> ${daysInfo}</span>` : ''}
-                </div>
-            </div>`;
-        }).join('');
-
-        // Click to highlight milestone date on calendar
-        el.querySelectorAll('[data-pvms]').forEach(item => {
-            item.addEventListener('click', () => {
-                if (item.classList.contains('locked')) return;
-                pvActiveMsId = item.dataset.pvms;
-                _pvRenderStepper(g);
-                // Jump to milestone's month on calendar
-                const ms = (g.milestones || []).find(m => m.id === pvActiveMsId);
-                if (ms?.due_date) {
-                    const d = new Date(ms.due_date);
-                    pvCalYear  = d.getFullYear();
-                    pvCalMonth = d.getMonth();
-                    pvSelectedDate = ms.due_date;
-                }
-                _pvRenderMainCal(g);
-                _pvRenderDayPanel(g, pvSelectedDate);
-            });
-        });
-    }
+    // PLANVIEW: HEADER / STEPPER → planning-plan-header.js dosyasına taşındı (Faz 6)
 
     // ── Center: MS Detail (legacy — artık kullanılmıyor) ─
     function _pvRenderCenterLegacy(g) {
@@ -3492,8 +2446,8 @@
                     ms.title = newTitle;
                     g._dirty = true;
                     persistGoals();
-                    _pvRenderStepper(g);
-                    _pvRenderHeader(g);
+                    window._pvRenderStepper(g);
+                    window._pvRenderHeader(g);
                 }
             });
             titleEdit.addEventListener('keydown', e => {
@@ -3508,7 +2462,7 @@
                 ms.due_date = dateInp.value;
                 g._dirty = true;
                 persistGoals();
-                _pvRenderStepper(g);
+                window._pvRenderStepper(g);
                 _pvRenderMainCal(g);
             });
         }
@@ -3521,8 +2475,8 @@
                 st.done = !st.done;
                 _recalcProgress(g); g._dirty = true;
                 persistGoals(); render();
-                _pvRenderStepper(g); _pvUpdateOverallProgress(g);
-                _pvRenderHeader(g);
+                window._pvRenderStepper(g); _pvUpdateOverallProgress(g);
+                window._pvRenderHeader(g);
                 if (g.progress_pct === 100) _pvCelebrate();
             });
         });
@@ -3549,7 +2503,7 @@
                 stInp.value = '';
                 _recalcProgress(g); g._dirty = true;
                 persistGoals(); render();
-                _pvRenderStepper(g);
+                window._pvRenderStepper(g);
             });
         }
 
@@ -3582,19 +2536,19 @@
                     if (nextIdx < (g.milestones || []).length) {
                         setTimeout(() => {
                             pvActiveMsId = g.milestones[nextIdx].id;
-                            _pvRenderStepper(g);
+                            window._pvRenderStepper(g);
                             ;
-                            _pvRenderHeader(g);
+                            window._pvRenderHeader(g);
                             _pvUpdateOverallProgress(g);
                         }, 600);
                     } else {
-                        _pvRenderStepper(g); ;
-                        _pvRenderHeader(g); _pvUpdateOverallProgress(g);
+                        window._pvRenderStepper(g); ;
+                        window._pvRenderHeader(g); _pvUpdateOverallProgress(g);
                         if (g.progress_pct === 100) _pvCelebrate(true);
                     }
                 } else {
-                    _pvRenderStepper(g); ;
-                    _pvRenderHeader(g); _pvUpdateOverallProgress(g);
+                    window._pvRenderStepper(g); ;
+                    window._pvRenderHeader(g); _pvUpdateOverallProgress(g);
                 }
                 if (window.PlanningCollab?.channel) {
                     window.PlanningCollab.broadcast('ms_toggle', { goalId: g.id, msId: ms.id, done: ms.done });
@@ -3608,7 +2562,7 @@
         if (prevBtn) {
             prevBtn.addEventListener('click', () => {
                 const idx = _pvGetMsIndex(g, pvActiveMsId);
-                if (idx > 0) { pvActiveMsId = g.milestones[idx - 1].id; _pvRenderStepper(g); ; }
+                if (idx > 0) { pvActiveMsId = g.milestones[idx - 1].id; window._pvRenderStepper(g); ; }
             });
         }
         if (nextBtn) {
@@ -3616,371 +2570,13 @@
                 const idx = _pvGetMsIndex(g, pvActiveMsId);
                 if (idx < (g.milestones || []).length - 1) {
                     pvActiveMsId = g.milestones[idx + 1].id;
-                    _pvRenderStepper(g); ;
+                    window._pvRenderStepper(g); ;
                 }
             });
         }
     }
 
-    // ══════════════════════════════════════════
-    // MİLESTONE WİZARD
-    // ══════════════════════════════════════════
-
-    function _pvBroadcastWizState() {
-        if (window.PlanningCollab?.channel && pvWiz)
-            window.PlanningCollab.broadcast('wiz_state', { goalId: pvGoalId, wiz: JSON.parse(JSON.stringify(pvWiz)) });
-    }
-
-    function _pvRenderWizard(g, container) {
-        // Always prefer live goal from goals array to avoid stale closure issues
-        const _liveG = () => goals.find(x => x.id === pvGoalId) || g;
-        const cat    = window.getCat(g.category);
-        const quotes = PV_MOTIVATION[g.category] || PV_MOTIVATION.diger;
-        const quote  = quotes[Math.floor(Date.now() / 86400000) % quotes.length];
-
-        // ── Welcome ─────────────────────────────
-        if (pvWiz.step === 'welcome') {
-            container.innerHTML = `
-            <div class="pvwiz-welcome">
-                <div class="pvwiz-welcome-glow" style="background:${cat.color};"></div>
-                <div class="pvwiz-welcome-icon" style="color:${cat.color};">${cat.icon}</div>
-                <div class="pvwiz-welcome-goal">${esc(g.title)}</div>
-                <div class="pvwiz-welcome-quote">"${esc(quote)}"</div>
-                <div class="pvwiz-welcome-hint">Hedefine giden yolu birlikte çizelim</div>
-                <button class="pvwiz-start-btn" id="pvwiz-start" style="--wiz-color:${cat.color};">
-                    <i class="ti ti-rocket"></i> Planlamaya Başla
-                </button>
-            </div>`;
-            document.getElementById('pvwiz-start')?.addEventListener('click', () => {
-                if (!pvWiz) pvWiz = { step: 'welcome' };
-                pvWiz.step = 'count';
-                _pvBroadcastWizState();
-                const _g = _liveG();
-                _pvRenderStepper(_g);
-                _pvRenderMainCal(_g);
-            });
-            return;
-        }
-
-        // Chat container
-        container.innerHTML = `<div class="pvwiz-chat" id="pvwiz-chat"></div>`;
-        const chat = container.querySelector('#pvwiz-chat');
-
-        // ── Count ────────────────────────────────
-        if (pvWiz.step === 'count') {
-            _pvWizAddBubble(chat, '👋', 'Merhaba! Hedefinizi kaç aşamaya bölmek istersiniz?', 0, () => {
-                const row = document.createElement('div');
-                row.className = 'pvwiz-count-cards';
-                row.innerHTML = [3,4,5,6].map(n => `
-                    <button class="pvwiz-count-card" data-n="${n}">
-                        <span class="pvwiz-count-num">${n}</span>
-                        <span class="pvwiz-count-lbl">aşama</span>
-                    </button>`).join('');
-                chat.appendChild(row);
-                setTimeout(() => row.classList.add('visible'), 50);
-                row.querySelectorAll('.pvwiz-count-card').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        row.querySelectorAll('.pvwiz-count-card').forEach(b => b.classList.remove('selected'));
-                        btn.classList.add('selected');
-                        const n = parseInt(btn.dataset.n);
-                        setTimeout(() => {
-                            pvWiz.step    = 'names';
-                            pvWiz.count   = n;
-                            pvWiz.names   = Array(n).fill('');
-                            pvWiz.nameIdx = 0;
-                            _pvBroadcastWizState();
-                            _pvRenderStepper(_liveG());
-                            _pvRenderMainCal(_liveG());
-                        }, 350);
-                    });
-                });
-            });
-            return;
-        }
-
-        // ── Names — card navigator ───────────────
-        if (pvWiz.step === 'names') {
-            const idx   = pvWiz.nameIdx || 0;
-            const count = pvWiz.count;
-
-            _pvWizAddBubble(chat, '🤖',
-                `Harika! ${count} aşama seçildi.\nŞimdi her birine isim verelim 📝`,
-                0, () => {
-                    const card = document.createElement('div');
-                    card.className = 'pvwiz-name-card pvwiz-name-wrap';
-                    card.innerHTML = `
-                        <div class="pvwiz-name-card-header">
-                            <span class="pvwiz-name-card-pos" id="pvwiz-pos">${idx + 1} / ${count}</span>
-                            <span class="pvwiz-name-card-label">Aşama <span id="pvwiz-num">${idx + 1}</span></span>
-                        </div>
-                        <input class="pvwiz-name-inp" id="pvwiz-name-inp" type="text"
-                            placeholder="Aşama adı…" maxlength="40" autocomplete="off"
-                            value="${esc(pvWiz.names[idx] || '')}">
-                        <div class="pvwiz-name-card-nav">
-                            <button class="pvwiz-nav-btn pvwiz-nav-back" id="pvwiz-back"
-                                ${idx === 0 ? 'disabled' : ''} style="--wiz-color:${cat.color};">
-                                <i class="ti ti-arrow-left"></i> Geri
-                            </button>
-                            <div class="pvwiz-name-progress" id="pvwiz-dots">
-                                ${Array(count).fill(0).map((_,i) =>
-                                    `<div class="pvwiz-name-dot${i < idx ? ' done' : i === idx ? ' active' : ''}"
-                                        style="${i <= idx ? `--wiz-color:${cat.color}` : ''}"></div>`
-                                ).join('')}
-                            </div>
-                            <button class="pvwiz-nav-btn pvwiz-nav-fwd" id="pvwiz-fwd"
-                                style="--wiz-color:${cat.color};">
-                                ${idx < count - 1 ? 'İleri <i class="ti ti-arrow-right"></i>' : 'Tarihler <i class="ti ti-calendar"></i>'}
-                            </button>
-                        </div>`;
-                    chat.appendChild(card);
-                    setTimeout(() => card.classList.add('visible'), 30);
-
-                    const inp  = card.querySelector('#pvwiz-name-inp');
-                    const fwd  = card.querySelector('#pvwiz-fwd');
-                    const back = card.querySelector('#pvwiz-back');
-                    setTimeout(() => inp?.focus(), 150);
-
-                    const goTo = (newIdx) => {
-                        // Save current
-                        pvWiz.names[pvWiz.nameIdx] = inp.value.trim();
-                        if (newIdx < 0) {
-                            // Back to count step
-                            pvWiz.step = 'count';
-                            _pvBroadcastWizState();
-                            _pvRenderStepper(_liveG());
-                            return;
-                        }
-                        pvWiz.nameIdx = newIdx;
-                        _pvBroadcastWizState();
-
-                        // Update card inline (no full re-render = smoother)
-                        const curIdx = pvWiz.nameIdx;
-                        card.querySelector('#pvwiz-pos').textContent  = `${curIdx + 1} / ${count}`;
-                        card.querySelector('#pvwiz-num').textContent  = curIdx + 1;
-                        inp.value       = pvWiz.names[curIdx] || '';
-                        inp.placeholder = `Aşama ${curIdx + 1} adı…`;
-                        back.disabled   = curIdx === 0;
-                        fwd.innerHTML   = curIdx < count - 1
-                            ? 'İleri <i class="ti ti-arrow-right"></i>'
-                            : 'Tarihler <i class="ti ti-calendar"></i>';
-
-                        // Animate dots
-                        card.querySelectorAll('.pvwiz-name-dot').forEach((dot, i) => {
-                            dot.className = 'pvwiz-name-dot' + (i < curIdx ? ' done' : i === curIdx ? ' active' : '');
-                            if (i <= curIdx) dot.style.setProperty('--wiz-color', cat.color);
-                        });
-                        setTimeout(() => inp?.focus(), 80);
-                    };
-
-                    fwd.addEventListener('click', () => {
-                        const val = inp.value.trim();
-                        if (!val) {
-                            inp.classList.add('pvwiz-shake');
-                            setTimeout(() => inp.classList.remove('pvwiz-shake'), 500);
-                            return;
-                        }
-                        pvWiz.names[pvWiz.nameIdx] = val;
-                        if (pvWiz.nameIdx >= count - 1) {
-                            // All named → create milestones & go to dates
-                            const g2 = goals.find(x => x.id === pvGoalId);
-                            if (g2) {
-                                const todayIso = _localToday();
-                                g2.milestones = pvWiz.names.map((name, i) => ({
-                                    id: uid(), title: name.trim() || `Aşama ${i+1}`,
-                                    due_date: '', start_date: i === 0 ? todayIso : '',
-                                    done: false, order: i, subtasks: [],
-                                    created_at: new Date().toISOString(),
-                                }));
-                                persistGoals();
-                                if (window.PlanningCollab?.channel)
-                                    window.PlanningCollab.broadcast('ms_batch_set', { goalId: pvGoalId, milestones: g2.milestones });
-                            }
-                            pvWiz.step    = 'dates';
-                            pvWiz.dateIdx = 0;
-                            _pvBroadcastWizState();
-                            _pvRenderStepper(_liveG());
-                            _pvRenderMainCal(_liveG());
-                        } else {
-                            goTo(pvWiz.nameIdx + 1);
-                        }
-                    });
-                    back.addEventListener('click', () => {
-                        if (pvWiz.nameIdx === 0) goTo(-1);
-                        else goTo(pvWiz.nameIdx - 1);
-                    });
-                    inp.addEventListener('keydown', e => {
-                        if (e.key === 'Enter') fwd.click();
-                        if (e.key === 'Backspace' && inp.value === '') back.click();
-                    });
-                });
-            return;
-        }
-
-        // ── Dates ────────────────────────────────
-        if (pvWiz.step === 'dates') {
-            const g2     = goals.find(x => x.id === pvGoalId) || g;
-            const msList  = g2.milestones || [];
-            const total   = msList.length;
-            const askUpto = total - 1; // user picks dates for all except last
-            const idx     = pvWiz.dateIdx || 0;
-
-            // History: already-picked dates
-            msList.slice(0, idx).forEach((m, i) => {
-                _pvWizAddBubble(chat, '🤖', i === 0
-                    ? `Süper! Şimdi her aşamanın bitiş tarihini takvimden seçin 👇\n"${esc(m.title)}" ne zaman bitmeli?`
-                    : `"${esc(m.title)}" ne zaman bitmeli?`, i * 50, null, false);
-                _pvWizAddUserBubble(chat, `📅 ${window.fmtDate(m.due_date)}`, i * 50 + 25);
-            });
-
-            if (idx >= askUpto) {
-                // Only the last milestone remains — auto-assign
-                _pvWizAutoFinish(g2);
-                return;
-            }
-
-            const cur = msList[idx];
-            const minDate = idx === 0
-                ? new Date().toISOString().split('T')[0]
-                : _pvDayAfter(msList[idx - 1].due_date);
-
-            const delay = idx * 50;
-            _pvWizAddBubble(chat, '🤖',
-                idx === 0
-                    ? `Süper! Takvimde her aşamanın bitiş tarihini seçin 👇\n"${esc(cur.title)}" ne zaman bitmeli?`
-                    : `"${esc(cur.title)}" ne zaman bitmeli?`,
-                delay, () => {
-                    const hint = document.createElement('div');
-                    hint.className = 'pvwiz-cal-hint';
-                    hint.innerHTML = `<i class="ti ti-hand-click"></i> Takvimde bir güne tıklayın
-                        ${minDate ? `<span class="pvwiz-min-hint">(${window.fmtDate(minDate)} ve sonrası)</span>` : ''}`;
-                    chat.appendChild(hint);
-                    setTimeout(() => hint.classList.add('visible'), 30);
-                });
-            return;
-        }
-
-        if (pvWiz.step === 'summary') {
-            _pvRenderPlanSummary(g, container);
-            return;
-        }
-    }
-
-    // Auto-assign last milestone's date = goal deadline
-    function _pvWizAutoFinish(g2) {
-        const msList = g2.milestones || [];
-        const last   = msList[msList.length - 1];
-        if (!last) return;
-        const deadline = g2.deadline || _pvDayAfter(msList[msList.length - 2]?.due_date || _localToday());
-        last.due_date   = deadline;
-        last.start_date = _pvDayAfter(msList[msList.length - 2]?.due_date || _localToday());
-        g2._dirty = true;   // sadece tüm tarihler atandığında Supabase'e sync et
-        persistGoals();
-        if (window.PlanningCollab?.channel)
-            window.PlanningCollab.broadcast('ms_batch_set', { goalId: pvGoalId, milestones: g2.milestones });
-        pvWiz.step = 'summary';
-        _pvBroadcastWizState();
-        _pvRenderStepper(g2);
-        _pvRenderMainCal(g2);
-        toast('🎉 Aşamalar planlandı!');
-    }
-
-    function _pvWizAddBubble(container, avatar, text, delay, afterCb, animated = true) {
-        const typing = document.createElement('div');
-        typing.className = 'pvwiz-typing';
-        typing.innerHTML = `<div class="pvwiz-avatar">${avatar}</div><div class="pvwiz-typing-dots"><span></span><span></span><span></span></div>`;
-        container.appendChild(typing);
-        const showTime = animated ? 380 : 0;
-        setTimeout(() => {
-            typing.remove();
-            const bubble = document.createElement('div');
-            bubble.className = 'pvwiz-bubble pvwiz-bubble-bot';
-            bubble.innerHTML = `<div class="pvwiz-avatar">${avatar}</div><div class="pvwiz-bubble-text">${esc(text).replace(/\n/g,'<br>')}</div>`;
-            container.appendChild(bubble);
-            requestAnimationFrame(() => bubble.classList.add('in'));
-            container.scrollTop = container.scrollHeight;
-            if (afterCb) setTimeout(afterCb, animated ? 280 : 0);
-        }, animated ? delay + showTime : delay);
-        if (animated) setTimeout(() => typing.classList.add('visible'), delay);
-    }
-
-    function _pvWizAddUserBubble(container, text, delay) {
-        setTimeout(() => {
-            const bubble = document.createElement('div');
-            bubble.className = 'pvwiz-bubble pvwiz-bubble-user';
-            bubble.innerHTML = `<div class="pvwiz-bubble-text">${esc(text)}</div>`;
-            container.appendChild(bubble);
-            requestAnimationFrame(() => bubble.classList.add('in'));
-            container.scrollTop = container.scrollHeight;
-        }, delay);
-    }
-
-    function _pvDayAfter(dateStr) {
-        if (!dateStr) return _localToday();
-        const d = new Date(dateStr + 'T00:00:00');
-        d.setDate(d.getDate() + 1);
-        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    }
-
-    function _localToday() {
-        const d = new Date();
-        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    }
-
-    // Normalize any date to YYYY-MM-DD (handles DD-MM-YYYY from the main app)
-    function _normYMD(d) {
-        if (!d) return '';
-        const p = d.split('-');
-        if (p.length !== 3) return d;
-        return p[0].length === 2 ? `${p[2]}-${p[1]}-${p[0]}` : d;
-    }
-    window._normYMD = _normYMD;
-
-    // Called from calendar when wizard dates step is active
-    function _pvWizAssignDate(g, dateStr) {
-        if (!pvWiz || pvWiz.step !== 'dates') return false;
-        const g2    = goals.find(x => x.id === pvGoalId) || g;
-        const msList = g2.milestones;
-        const idx   = pvWiz.dateIdx;
-        const total = msList.length;
-        const askUpto = total - 1;
-
-        // Validate: must be after previous milestone's end
-        if (idx > 0 && dateStr <= msList[idx - 1].due_date) {
-            toast(`⚠️ Tarih önceki aşamanın bitişinden sonra olmalı`);
-            return false;
-        }
-
-        const ms = msList[idx];
-        if (!ms) return false;
-        ms.due_date   = dateStr;
-        ms.start_date = idx === 0
-            ? _localToday()
-            : _pvDayAfter(msList[idx - 1].due_date);
-
-        // Set next milestone's start_date immediately
-        if (idx + 1 < total) {
-            msList[idx + 1].start_date = _pvDayAfter(dateStr);
-        }
-
-        pvWiz.dateIdx++;
-        persistGoals();
-        if (window.PlanningCollab?.channel) {
-            window.PlanningCollab.broadcast('ms_update', { goalId: pvGoalId, msId: ms.id, fields: { due_date: ms.due_date, start_date: ms.start_date } });
-            if (idx + 1 < total)
-                window.PlanningCollab.broadcast('ms_update', { goalId: pvGoalId, msId: msList[idx+1].id, fields: { start_date: msList[idx+1].start_date } });
-        }
-        _pvBroadcastWizState();
-
-        if (pvWiz.dateIdx >= askUpto) {
-            // Auto-finish last milestone
-            _pvWizAutoFinish(g2);
-        } else {
-            _pvRenderStepper(g2);
-            _pvRenderMainCal(g2);
-        }
-        _pvRenderDayPanel(g2, dateStr);
-        return true;
-    }
+    // MİLESTONE WİZARD (PlanView içi) → planning-wizard.js dosyasına taşındı (Faz 6)
 
     // ── Center: Ana Takvim ───────────────────
     // Ders planı — Aylık/Haftalık/Günlük görünüm anahtarı — "Bugün" butonuyla aynı sırada, aynı stilde
@@ -4003,7 +2599,7 @@
             m.start_date && m.due_date && dateStr >= m.start_date && dateStr <= m.due_date);
         if (msForDate) pvActiveMsId = msForDate.id;
         _pvRenderDayPanel(g, dateStr);
-        _pvRenderStepper(g);
+        window._pvRenderStepper(g);
     }
 
     // Takvim sekmesindeki saat-gridi görünümüyle aynı mantık — bu goal'a ait
@@ -4089,6 +2685,7 @@
     // kaydedilmemiş/taze) set edilir; `is_task_mirror` Supabase'e giden kalıcı
     // bayrak (bkz. 100_milestone_task_mirror_flag.sql) — ikisi birden kontrol
     // edilmeli ki hem yerel hem sunucudan/önizlemeden gelen veri doğru tanınsın.
+    window._pvIsMirrorMs = _pvIsMirrorMs; // planning-plan-header.js için
     function _pvIsMirrorMs(m) { return !!(m && (m.task_mirror_id || m.is_task_mirror)); }
 
     function _pvMirrorTaskToMilestone(g, taskId, title, dateStr, timeStart, timeEnd) {
@@ -4374,6 +2971,7 @@
         _pvSelectDay(g, dateStr);
     }
 
+    window._pvRenderMainCal = _pvRenderMainCal; // planning-wizard.js için
     function _pvRenderMainCal(g) {
         const el = document.getElementById('pg-pv-main-cal');
         if (!el) return;
@@ -4620,7 +3218,7 @@
                 const dateStr = cell.dataset.calDate;
                 // If wizard is in dates step, route click there
                 if (pvWiz?.step === 'dates') {
-                    _pvWizAssignDate(g, dateStr);
+                    window._pvWizAssignDate(g, dateStr);
                     return;
                 }
                 pvSelectedDate = dateStr;
@@ -4633,7 +3231,7 @@
                 );
                 if (msForDate) pvActiveMsId = msForDate.id;
                 _pvRenderDayPanel(g, pvSelectedDate);
-                _pvRenderStepper(g);
+                window._pvRenderStepper(g);
                 // ── Öneri 1: Kursor günü broadcast ──────────────
                 if (window.PlanningCollab?.isActive()) {
                     const me = window.PlanningCollab._me();
@@ -4657,6 +3255,7 @@
         });
     }
 
+    window._pvWeekTotalMins = _pvWeekTotalMins; // planning-plan-header.js için
     function _pvWeekTotalMins(tasks, wStart, wEnd) {
         let mins = 0;
         tasks.forEach(t => {
@@ -4671,6 +3270,7 @@
         return mins;
     }
 
+    window._pvFmtDuration = _pvFmtDuration; // planning-plan-header.js için
     function _pvFmtDuration(mins) {
         if (mins <= 0) return null;
         const h = Math.floor(mins / 60);
@@ -4682,10 +3282,11 @@
 
     function _pvPlanFinish(g) {
         pvWiz.step = 'summary';
-        _pvRenderStepper(g);
+        window._pvRenderStepper(g);
         _pvRenderMainCal(g);
     }
 
+    window._pvRenderPlanSummary = _pvRenderPlanSummary; // planning-wizard.js için
     function _pvRenderPlanSummary(g, container) {
         const cat    = window.getCat(g.category);
         const msList = g.milestones || [];
@@ -4748,15 +3349,16 @@
             const gFinal = goals.find(x => x.id === pvGoalId);
             if (gFinal) gFinal._dirty = true;
             persistGoals();
-            _pvBroadcastWizState();
+            window._pvBroadcastWizState();
             const gDone = gFinal || g;
-            _pvRenderStepper(gDone);
+            window._pvRenderStepper(gDone);
             _pvRenderMainCal(gDone);
             toast('🚀 Haydi başlayalım!');
         });
     }
 
     // ── Right: Gün Detayı ────────────────────
+    window._pvRenderDayPanel = _pvRenderDayPanel; // planning-wizard.js için
     function _pvRenderDayPanel(g, dateStr) {
         const el = document.getElementById('pg-pv-day-panel');
         if (!el) return;
@@ -5413,7 +4015,7 @@
         document.getElementById('pg-pv-seq-check')?.addEventListener('change', e => {
             pvSeqMode = e.target.checked;
             const g = goals.find(x => x.id === pvGoalId);
-            if (g) _pvRenderStepper(g);
+            if (g) window._pvRenderStepper(g);
         });
         document.addEventListener('keydown', e => {
             if (e.key === 'Escape' && pvGoalId) _pvHandleExitClick();
@@ -5424,7 +4026,6 @@
     // ── Public API ────────────────────────────
     window.openPlanView = openPlanView;
     window.closePlanView = closePlanView;
-    window.openAssignModal = openAssignModal;
 
     // ── Public ────────────────────────────────
     // 5.4 — "Bugün" sekmesi sprint widget
@@ -5503,7 +4104,7 @@
     // addPlanningDependency/removePlanningDependency/getPlanningDependencies/
     // isPlanningGoalBlocked artık planning-dependency-graph.js'te tanımlanıyor.
     window.initPlanningModule  = init;
-    window.renderPlanningStats = renderStatsCard;
+    window.renderPlanningStats = (...args) => window.renderStatsCard(...args);
     // openLessonPlanModal artık planning-lesson-plan-modal.js'te tanımlanıyor
     // (sınıf paneli/social.js gibi dış yerlerden window.openLessonPlanModal ile açılır).
     // social.js'in collab_goal_deleted bildiriminde çağırdığı API
@@ -5554,3 +4155,26 @@
     if (document.readyState==='loading') document.addEventListener('DOMContentLoaded', init);
     else init();
 })();
+
+// ── Faz G: planning-*.js tüketicileri için ince export sarmalayıcılar ──
+// (Yukarıdaki IIFE içindeki fonksiyonlara doğrudan erişilemediği için
+//  window köprüsü üzerinden ince sarmalayıcılar dışa aktarılıyor.
+//  Mevcut window.fn = fn; atamaları SİLİNMEDİ, geriye dönük uyumluluk korunuyor.)
+export function getPgGoals(...args) { return window._pgGetGoals(...args); }
+export function getPgActiveFilters(...args) { return window._pgGetActiveFilters(...args); }
+export function setPgGoals(...args) { return window._pgSetGoals(...args); }
+export function qcStartCollab(...args) { return window._qcStartCollab(...args); }
+export function openPlanView(...args) { return window.openPlanView(...args); }
+export function persistGoals(...args) { return window.persistGoals(...args); }
+export function toast(...args) { return window.toast(...args); }
+export function esc(...args) { return window.esc(...args); }
+export function uid(...args) { return window.uid(...args); }
+export function acceptLessonPlanInvite(...args) { return window._acceptLessonPlanInvite(...args); }
+export function setPvReadOnlyPreview(...args) { return window._pgSetPvReadOnlyPreview(...args); }
+export function pvAddHour(...args) { return window._pvAddHour(...args); }
+export function deleteGoalWithUndo(...args) { return window._deleteGoalWithUndo(...args); }
+export function openDetailPanel(...args) { return window.openDetailPanel(...args); }
+export function toggleArchive(...args) { return window.toggleArchive(...args); }
+export function getPgLoadedAtRef(...args) { return window.__getPgLoadedAtRef(...args); }
+export function getPgRenderCountRef(...args) { return window.__getPgRenderCountRef(...args); }
+export function incPgRenderCountRef(...args) { return window.__incPgRenderCountRef(...args); }
