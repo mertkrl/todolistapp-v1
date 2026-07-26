@@ -3,12 +3,13 @@
 // ECDH (P-256) ile her iki kullanıcı için ortak bir AES-GCM anahtarı türetilir.
 // Özel anahtar yalnızca bu cihazda (localStorage) tutulur; bu yüzden mesajlar
 // sadece anahtarın oluşturulduğu cihazda çözülebilir.
-// NOT: getUser/getDB/currentUser social.js'te tanımlı — window.getUser/
-// window.getDB/window.currentUser köprüsü üzerinden erişiliyor (social.js'in
-// kendisi de bu köprüleri zaten her yerde tutarlı tutuyor).
-// DİKKAT: social.js bu dosyadan SONRA yükleniyor (inline-module-loader.js sırası),
-// bu yüzden statik import'a ÇEVRİLMEDİ — statik import social.js'i erken
-// yükleyip modül init sırasını bozardı. window köprüsü BİLİNÇLİ OLARAK bırakıldı.
+// NOT: currentUser social.js'te tanımlı, mutable (login/logout'ta
+// yeniden atanıyor) — window.currentUser köprüsü BİLİNÇLİ OLARAK bırakıldı.
+// Faz G Kategori 3: getUser/getDB artık social.js'ten gerçek import ile
+// alınıyor. Bunun güvenli olması için inline-module-loader.js'te bu dosya
+// social.js'ten SONRAYA taşındı (önceden ÖNCE yükleniyordu, statik import
+// social.js'i erken yükleyip modül init sırasını bozardı).
+import { getUser, getDB } from './social.js';
 (function () {
 'use strict';
 
@@ -73,9 +74,9 @@ async function _e2eIdbPutPair(username, pair) {
 async function getOrCreateE2EKeyPair() {
     if (_e2eKeyPair) return _e2eKeyPair;
     if (!isE2ESupported()) return null;
-    const user = window.getUser();
+    const user = getUser();
     if (!user) return null;
-    const database = window.getDB();
+    const database = getDB();
     const legacyStorageKey = E2E_PRIVKEY_STORAGE_PREFIX + user.username;
     try {
         let pair, jwkPublic;

@@ -18,9 +18,45 @@
     async function start() {
         const steps = [
             () => import('./social-toast.js'),
-            () => import('./social-e2e.js'),
             () => import('./social-productivity-share.js'),
+            () => import('./social-groups.js'),
+            () => import('./social-presence.js'),
+            () => import('./social-server-tree.js'),
+            () => import('./social-room-presence.js'),
+            () => import('./social-typing-read-receipts.js'),
+            () => import('./social-dm-notifications.js'),
             () => import('./social.js'),
+            // Faz G Kategori 3: social-e2e.js buraya, social.js'ten SONRAYA
+            // taşındı — getUser/getDB'yi artık gerçek import ile alıyor
+            // (önceden social.js'ten ÖNCE yüklendiği için sadece window.*
+            // köprüsü kullanabiliyordu). window.decryptDmText'i runtime'da
+            // tüketen social-dm-notifications.js (yukarıda, ÖNCE yüklenir)
+            // bunu sadece fonksiyon gövdesi içinde çağırıyor, sıra değişikliği
+            // onu etkilemiyor.
+            () => import('./social-e2e.js'),
+            () => import('./social-conn-status.js'),
+            () => import('./social-dc-confirm-toasts.js'),
+            () => import('./social-dc-msg-selection.js'),
+            () => import('./social-friend-search.js'),
+            () => import('./social-arena-chips.js'),
+            () => import('./social-dc-profile-resolve.js'),
+            () => import('./social-dc-message-cards.js'),
+            () => import('./social-cw-invites.js'),
+            () => import('./social-profile-header.js'),
+            () => import('./social-home-summary.js'),
+            () => import('./social-dc-online-status.js'),
+            () => import('./social-dc-mentions.js'),
+            () => import('./social-dc-draft.js'),
+            () => import('./social-avatar-utils.js'),
+            () => import('./social-dc-chat-theme.js'),
+            () => import('./social-settings-modal.js'),
+            () => import('./social-dc-contacts.js'),
+            () => import('./social-dc-init.js'),
+            () => import('./social-group-details.js'),
+            () => import('./social-dm-limit-notice.js'),
+            () => import('./social-friends-notifications.js'),
+            () => import('./social-group-discover.js'),
+            () => import('./social-institution-panel.js'),
             () => import('./social-emoji-picker.js'),
             () => import('./social-group-focus-render.js'),
             () => import('./social-focus-quote-rotation.js'),
@@ -55,11 +91,15 @@
             () => import('./planning-lesson-plan-modal.js'),
             () => import('./planning-realtime.js'),
             () => import('./planning-milestone-wizard.js'),
+            () => import('./planning-wizard.js'),
+            () => import('./planning-plan-header.js'),
             () => import('./planning.js'),
             () => import('./planning-utils.js'),
             () => import('./planning-quick-create.js'),
             () => import('./planning-collab-wait.js'),
             () => import('./planning-lesson-plan-invites.js'),
+            () => import('./planning-misc-widgets.js'),
+            () => import('./planning-lesson-plan-assign.js'),
             () => import('./collab.js'),
         ];
         for (const step of steps) {
