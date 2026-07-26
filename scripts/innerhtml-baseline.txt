@@ -810,6 +810,8 @@ social-institution-panel.js:997  ${c.id}
 social-institution-panel.js:1062  ${dayName}
 social-institution-panel.js:1121  ${badge}
 social-institution-panel.js:1164  ${dayName}
+917 potentially-unescaped interpolation(s) found.
+
 social-institution-panel.js:1423  ${newSectionId ? `<option value="__unassigned__">— Sınıfsız yap —</option>` : ''}
 social-institution-panel.js:1493  ${info.program.id}
 social-institution-panel.js:1494  ${info.program.id}

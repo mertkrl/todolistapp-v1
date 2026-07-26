@@ -1,13 +1,16 @@
 // script-color-utils.js
 // script.js'ten çıkarıldı (Faz F, 3. tur): Kategori/hedef/görev renk yardımcıları
-// (getCatColor/getGoalColor/getTaskColor/getHabitCategoryLabel). Tamamen
-// window.getCatColor/getGoalColor/getTaskColor köprüleri üzerinden çağrılıyordu
-// zaten (script.js içindeki bare çağrılar da global scope üzerinden bu
-// dosyadaki tanımlara ulaşır).
+// (getCatColor/getGoalColor/getTaskColor/getHabitCategoryLabel). script.js
+// içindeki bare çağrılar (getHabitCategoryLabel/getGoalColor) hâlâ global
+// scope üzerinden bu dosyadaki window.* tanımlarına ulaşır (bilinçli olarak
+// bırakıldı) — ama bu dosyanın script.js'e olan OKUMA bağımlılığı (Faz G,
+// 2026-07-23) artık gerçek ES import ile.
 //
 // Bağımlılıklar:
-//  - goals → window.__getGoalsRef() (script.js'te tanımlı, salt-okunur referans)
-//  - habitCategories → window.__getHabitCategoriesRef() (script.js'te tanımlı)
+//  - goals → getGoalsRef() (script.js'ten import, salt-okunur referans)
+//  - habitCategories → getHabitCategoriesRef() (script.js'ten import)
+
+import { getGoalsRef, getHabitCategoriesRef } from './script.js';
 
 // Kategori renk paleti — takvim chip/blok renklendirmesi için
 const TASK_CAT_COLORS = {
@@ -20,7 +23,7 @@ const TASK_CAT_COLORS = {
 const PRIORITY_DOT_COLOR = { high: '#ff4757', medium: '#D4900E', low: '#2ed573' };
 window.PRIORITY_DOT_COLOR = PRIORITY_DOT_COLOR;
 
-function getCatColor(catId) {
+export function getCatColor(catId) {
     if (TASK_CAT_COLORS[catId]) return TASK_CAT_COLORS[catId];
     // Dinamik kategoriler için hash renk üret
     let hash = 0;
@@ -45,9 +48,9 @@ const GOAL_COLOR_PALETTE = [
 ];
 
 window.getGoalColor = (goalId) => getGoalColor(goalId);
-function getGoalColor(goalId) {
+export function getGoalColor(goalId) {
     if (!goalId) return null;
-    const goals = window.__getGoalsRef();
+    const goals = getGoalsRef();
     const goal = goals.find(g => String(g.id) === String(goalId));
     if (!goal) return null;
     const idx = goals.indexOf(goal) % GOAL_COLOR_PALETTE.length;
@@ -55,7 +58,7 @@ function getGoalColor(goalId) {
 }
 
 // Görev için renk: parentGoal varsa hedef rengi, yoksa kategori rengi
-function getTaskColor(task) {
+export function getTaskColor(task) {
     if (!task) return getCatColor('kisisel');
     if (task.parentGoal) {
         const gc = getGoalColor(task.parentGoal);
@@ -65,8 +68,8 @@ function getTaskColor(task) {
 }
 window.getTaskColor = getTaskColor;
 
-function getHabitCategoryLabel(catId) {
-    const cat = window.__getHabitCategoriesRef().find(c => c.id === catId);
+export function getHabitCategoryLabel(catId) {
+    const cat = getHabitCategoriesRef().find(c => c.id === catId);
     return cat ? cat.name : 'Alışkanlık';
 }
 window.getHabitCategoryLabel = getHabitCategoryLabel;

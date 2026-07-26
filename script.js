@@ -5847,4 +5847,5 @@ export function getMindDumpsRef(...args) { return window.__getMindDumpsRef(...ar
 export function getTasksRef(...args) { return window.__getTasksRef(...args); }
 export function getGoalsRef(...args) { return window.__getGoalsRef(...args); }
 export function getHabitsRef(...args) { return window.__getHabitsRef(...args); }
+export function getHabitCategoriesRef(...args) { return window.__getHabitCategoriesRef(...args); }
 export function switchTab(...args) { return window.switchTab(...args); }
