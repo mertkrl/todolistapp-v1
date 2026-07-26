@@ -242,7 +242,7 @@ if (goalSortSelect) {
     });
 }
 
-window.renderGoals = function() {
+export function renderGoals() {
     if(!goalsContainer) return;
     goalsContainer.innerHTML = '';
 
@@ -603,3 +603,4 @@ window.renderGoals = function() {
         }
     }
 }
+window.renderGoals = renderGoals;

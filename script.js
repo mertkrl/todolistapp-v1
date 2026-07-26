@@ -5849,3 +5849,7 @@ export function getGoalsRef(...args) { return window.__getGoalsRef(...args); }
 export function getHabitsRef(...args) { return window.__getHabitsRef(...args); }
 export function getHabitCategoriesRef(...args) { return window.__getHabitCategoriesRef(...args); }
 export function switchTab(...args) { return window.switchTab(...args); }
+export function showPremiumModal(...args) { return window.showPremiumModal(...args); }
+export function updateGoalDetailsUI(...args) { return window.updateGoalDetailsUI(...args); }
+export function saveHabits(...args) { return window.saveHabits(...args); }
+export function getRenderHabitsRef(...args) { return window.__getRenderHabitsRef(...args); }

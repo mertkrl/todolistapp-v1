@@ -9,6 +9,9 @@
 // script.js'ten SONRA, orijinal DOMContentLoaded zamanlamasını korumak
 // için kendi DOMContentLoaded sarmalayıcısında yüklenir.
 // ============================================================
+import { getGoalsRef, getTasksRef } from './script.js';
+import { renderGoals } from './script-goal-modal.js';
+
 (function () {
 'use strict';
 document.addEventListener('DOMContentLoaded', () => {
@@ -16,8 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- OTOMATİK ZAMANLAYICI ARŞİV KONTROLÜ MOTORU ---
     // Bu fonksiyon sistemdeki tüm hedefleri tarar; süre dolduğunda başarı durumuna göre arşive kaldırır, ilerleme %100 olsa bile süresi dolana kadar kontrolü kullanıcıda bırakır.
     function runAutomaticGoalArchiver() {
-        const goals = window.__getGoalsRef();
-        const tasks = window.__getTasksRef();
+        const goals = getGoalsRef();
+        const tasks = getTasksRef();
         const today = new Date();
         let goalsUpdated = false;
 
@@ -61,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (goalsUpdated) {
             window.Store.goals.set(goals);
-            if (typeof window.renderGoals === 'function') window.renderGoals();
+            if (typeof renderGoals === 'function') renderGoals();
         }
     }
     // Her dakika arka planda zamanı kontrol etmesi için tetikleyici

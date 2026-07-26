@@ -10,6 +10,9 @@
 // script.js'ten SONRA, orijinal DOMContentLoaded zamanlamasını korumak
 // için kendi DOMContentLoaded sarmalayıcısında yüklenir.
 // ============================================================
+import { getGoalsRef, showPremiumModal, updateGoalDetailsUI } from './script.js';
+import { generateId } from './storage-manager.js';
+
 (function () {
 'use strict';
 document.addEventListener('DOMContentLoaded', () => {
@@ -68,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const detailAiMilestoneBtn = document.getElementById('detail-ai-milestone-btn');
     if (detailAiMilestoneBtn) {
         detailAiMilestoneBtn.addEventListener('click', () => {
-            const goals = window.__getGoalsRef();
+            const goals = getGoalsRef();
             const goalId = document.getElementById('detail-active-goal-id').value;
             const goal = goals.find(g => String(g.id) === String(goalId));
             if(!goal) return;
@@ -112,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                    // GÜVENLİK KONTROLÜ (1. MADDE)
                    if (totalDays < targetCount) {
-                       window.showPremiumModal({
+                       showPremiumModal({
                            title: 'Zaman Aralığı Çok Kısa! ⚠️',
                            message: `Bu ana hedefin toplam süresi (${totalDays} gün), seçtiğiniz dönüm noktası sayısından (${targetCount}) daha azdır. Çakışmaları önlemek için otomatik oluşturma iptal edildi. Lütfen elinizle ekleyin.`,
                            type: 'info'
@@ -188,8 +191,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                        if (!isCovered) {
                            let mText = aiTexts[(i-1) % aiTexts.length];
-                           let uniqueMilestoneId = (typeof window.generateId === 'function')
-                               ? window.generateId()
+                           let uniqueMilestoneId = (typeof generateId === 'function')
+                               ? generateId()
                                : 'ms-' + Math.random().toString(36).substr(2, 9);
 
                            goal.milestones.push({
@@ -211,17 +214,17 @@ document.addEventListener('DOMContentLoaded', () => {
                            localStorage.setItem('goals', JSON.stringify(goals));
                        }
 
-                       if (typeof window.updateGoalDetailsUI === 'function') {
-                           window.updateGoalDetailsUI(goalId);
+                       if (typeof updateGoalDetailsUI === 'function') {
+                           updateGoalDetailsUI(goalId);
                        }
 
-                       window.showPremiumModal({
+                       showPremiumModal({
                            title: 'Tam Otomatik Bölüştürme! ✨',
                            message: `FocusAI, zaman çizelgeni analiz etti ve boşlukları zekice doldurarak ${addedCount} yeni aşama ekledi.`,
                            type: 'success'
                        });
                    } else {
-                       window.showPremiumModal({
+                       showPremiumModal({
                            title: 'Her Şey Yolunda',
                            message: 'Mevcut dönüm noktaların, hedefin geneline zaten harika bir şekilde dağılmış durumda. Ekstra bir boşluk bulunamadı.',
                            type: 'info'

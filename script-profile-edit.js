@@ -1,4 +1,6 @@
 // ── PROFİL DÜZENLE → script.js'ten taşındı ──────────────────────────────
+import { escapeHtml } from './storage-manager.js';
+
 document.addEventListener('DOMContentLoaded', () => {
 
     const profileEditModal = document.getElementById('profile-edit-modal');
@@ -48,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 if (profile.avatar_url) {
                     _peAvatarUrl = profile.avatar_url;
-                    if (avatarPreview) avatarPreview.innerHTML = `<img src="${window.escapeHtml(profile.avatar_url)}" alt="avatar">`;
+                    if (avatarPreview) avatarPreview.innerHTML = `<img src="${escapeHtml(profile.avatar_url)}" alt="avatar">`;
                 } else {
                     const initials = (profile.display_name || profile.username || user?.email || 'U')
                         .split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
@@ -118,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const reader = new FileReader();
         reader.onload = e => {
             const prev = document.getElementById('pe-avatar-preview');
-            if (prev) prev.innerHTML = `<img src="${window.escapeHtml(e.target.result)}" alt="avatar">`;
+            if (prev) prev.innerHTML = `<img src="${escapeHtml(e.target.result)}" alt="avatar">`;
             _peAvatarUrl = 'pending'; // Kaydet sırasında yüklenecek
         };
         reader.readAsDataURL(file);
@@ -211,7 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (emailEl && email) emailEl.textContent = email;
             if (avEl)  { avEl.textContent = initials; avEl.style.background = _peAvatarColor; }
             if (topAvEl) { topAvEl.textContent = initials; topAvEl.style.background = _peAvatarColor; }
-            if (finalAvatarUrl && avEl) avEl.innerHTML = `<img src="${window.escapeHtml(finalAvatarUrl)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="av">`;
+            if (finalAvatarUrl && avEl) avEl.innerHTML = `<img src="${escapeHtml(finalAvatarUrl)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="av">`;
 
             if (peStatus) { peStatus.textContent = '✓ Profil başarıyla güncellendi.'; peStatus.style.color = '#2ed573'; }
             document.getElementById('pe-password').value        = '';

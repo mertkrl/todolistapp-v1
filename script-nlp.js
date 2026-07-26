@@ -1,7 +1,7 @@
 // --- GELİŞMİŞ AKILLI METİN ALGILAMA (NLP) MOTORU → script.js'ten taşındı ---
-document.addEventListener('DOMContentLoaded', () => {
+import { formatDateToString } from './script-date-time-utils.js';
 
-function parseSmartText(text) {
+export function parseSmartText(text) {
     let parsedDate = null;
     let parsedTime = null;
     let cleanText = text;
@@ -48,7 +48,7 @@ function parseSmartText(text) {
     }
 
     if(dateFound) {
-        parsedDate = window.formatDateToString(targetDate);
+        parsedDate = formatDateToString(targetDate);
     }
 
     // Fazla kelimeleri ve boşlukları temizle
@@ -57,5 +57,3 @@ function parseSmartText(text) {
     return { cleanText, parsedDate, parsedTime };
 }
 window.parseSmartText = parseSmartText;
-
-});

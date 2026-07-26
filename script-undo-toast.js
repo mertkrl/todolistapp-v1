@@ -1,4 +1,6 @@
 // ── UNDO (GERİ AL) SİSTEMİ → script.js'ten taşındı ──
+import { escapeHtml } from './storage-manager.js';
+
 document.addEventListener('DOMContentLoaded', () => {
 
 let _undoTimer = null;
@@ -10,7 +12,7 @@ function showUndoToast(message, undoFn) {
     const toast = document.createElement('div');
     toast.id = 'undo-toast';
     toast.innerHTML = `
-        <span class="undo-msg">${window.escapeHtml(message)}</span>
+        <span class="undo-msg">${escapeHtml(message)}</span>
         <button class="undo-btn-action">↩ Geri Al</button>
         <div class="undo-bar"></div>`;
     document.body.appendChild(toast);

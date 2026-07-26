@@ -10,23 +10,27 @@
 // - window.saveHabits, window.showPremiumModal, window.escapeHtml, window.renderGoals
 // - window.__getRenderHabitsRef() (renderHabitsRef closure değişkeni, script.js)
 
-window.checkSynergy = function checkSynergy(parentHabitId, dateStr, isCompleted) {
+import { getHabitsRef, getTasksRef, saveHabits, showPremiumModal, getRenderHabitsRef } from './script.js';
+import { escapeHtml } from './storage-manager.js';
+import { renderGoals } from './script-goal-modal.js';
+
+export function checkSynergy(parentHabitId, dateStr, isCompleted) {
     if (!parentHabitId) return;
-    const habits = window.__getHabitsRef();
-    const tasks = window.__getTasksRef();
+    const habits = getHabitsRef();
+    const tasks = getTasksRef();
     const habit = habits.find(h => String(h.id) === String(parentHabitId));
     if (habit) {
-        const renderHabitsRef = window.__getRenderHabitsRef ? window.__getRenderHabitsRef() : null;
+        const renderHabitsRef = getRenderHabitsRef ? getRenderHabitsRef() : null;
         // Görev tamamlandıysa ve alışkanlık henüz tiklenmemişse tikle
         if (isCompleted && !habit.history[dateStr]) {
             habit.history[dateStr] = true;
-            window.saveHabits();
+            saveHabits();
             if (typeof renderHabitsRef === 'function') renderHabitsRef();
 
             setTimeout(() => {
-                window.showPremiumModal({
+                showPremiumModal({
                     title: 'Sinerji Aktif! ⚡',
-                    message: `Harika! Bağlantılı görevi tamamladığın için "${window.escapeHtml(habit.name)}" alışkanlığının bugünkü adımı da otomatik tamamlandı.`,
+                    message: `Harika! Bağlantılı görevi tamamladığın için "${escapeHtml(habit.name)}" alışkanlığının bugünkü adımı da otomatik tamamlandı.`,
                     type: 'success'
                 });
             }, 1420);
@@ -36,17 +40,18 @@ window.checkSynergy = function checkSynergy(parentHabitId, dateStr, isCompleted)
             const otherTasksDone = tasks.some(t => String(t.parentHabit) === String(parentHabitId) && t.date === dateStr && t.completed);
             if (!otherTasksDone) {
                 delete habit.history[dateStr];
-                window.saveHabits();
+                saveHabits();
                 if (typeof renderHabitsRef === 'function') renderHabitsRef();
             }
         }
     }
-};
+}
+window.checkSynergy = checkSynergy;
 
-window.__checkGoalHabitSynergy = function __checkGoalHabitSynergy(parentGoalId, dateStr, isCompleted) {
+export function __checkGoalHabitSynergy(parentGoalId, dateStr, isCompleted) {
     if (!parentGoalId) return;
-    const habits = window.__getHabitsRef();
-    const tasks = window.__getTasksRef();
+    const habits = getHabitsRef();
+    const tasks = getTasksRef();
 
     // Bu hedefe (parentGoal) bağlı olan tüm alışkanlıkları bul
     const linkedHabits = habits.filter(h => h.parentGoals && h.parentGoals.includes(parentGoalId));
@@ -57,9 +62,9 @@ window.__checkGoalHabitSynergy = function __checkGoalHabitSynergy(parentGoalId, 
             habit.history[dateStr] = true;
             habitUpdated = true;
 
-            window.showPremiumModal({
+            showPremiumModal({
                 title: 'Hedef Sinerjisi! 🎯',
-                message: `Ana hedefin için bir adım attın! Buna bağlı olan "${window.escapeHtml(habit.name)}" alışkanlığın da bugünlük otomatik tamamlandı.`,
+                message: `Ana hedefin için bir adım attın! Buna bağlı olan "${escapeHtml(habit.name)}" alışkanlığın da bugünlük otomatik tamamlandı.`,
                 type: 'success'
             });
         } else if (!isCompleted) {
@@ -75,9 +80,10 @@ window.__checkGoalHabitSynergy = function __checkGoalHabitSynergy(parentGoalId, 
     });
 
     if (habitUpdated) {
-        window.saveHabits();
-        const renderHabitsRef = window.__getRenderHabitsRef ? window.__getRenderHabitsRef() : null;
+        saveHabits();
+        const renderHabitsRef = getRenderHabitsRef ? getRenderHabitsRef() : null;
         if (renderHabitsRef) renderHabitsRef();
-        if (typeof window.renderGoals === 'function') window.renderGoals();
+        if (typeof renderGoals === 'function') renderGoals();
     }
-};
+}
+window.__checkGoalHabitSynergy = __checkGoalHabitSynergy;
