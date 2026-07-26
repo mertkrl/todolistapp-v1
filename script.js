@@ -5875,3 +5875,12 @@ export function getNextBreakMode() { return window.__nextBreakMode; }
 export function toggleHighlightTask(...args) { return window.toggleHighlightTask(...args); }
 export function toggleTask(...args) { return window.toggleTask(...args); }
 export function clearFocusMode(...args) { return window.clearFocusMode(...args); }
+// Faz G Kategori 4: script-calendar-month-view.js için eklendi (lazy proxy,
+// script.js diğer script-*.js dosyalarından ÖNCE yüklendiği için bu yön
+// güvenli — çağrı zamanı window.* değerini okur, import zamanı değil).
+export function getCurrentDateRef(...args) { return window.__getCurrentDateRef(...args); }
+export function setCurrentDateRef(...args) { return window.__setCurrentDateRef(...args); }
+export function getSelectedDateRef(...args) { return window.__getSelectedDateRef(...args); }
+export function setSelectedDateRef(...args) { return window.__setSelectedDateRef(...args); }
+export function initCalEventListDnD(...args) { return window.initCalEventListDnD(...args); }
+export function openDayDrawer(...args) { return window.openDayDrawer(...args); }

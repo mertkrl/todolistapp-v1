@@ -15,11 +15,24 @@
 //  - window.initCalEventListDnD: burada tanımlı, dışa açıldı (renderEvents
 //    kendi içinden çağırıyordu, blok dışına taşınmadı ama dosya SIRASI
 //    içinde tanım DAHA SONRA geliyordu — hoisting'e dayanan bağımlılık).
+//
+// Faz G Kategori 4: script.js'ten tüketilen köprülerin bir kısmı gerçek
+// import'a çevrildi — script.js index.html'de bu dosyadan ÖNCE yüklendiği
+// için bu yön güvenli (script.js'in kendisi renderCalendar/renderEvents/
+// switchCalView'ı BU dosyadan tüketiyor, o yön window.* köprüsü olarak
+// KALDI — script.js önce yüklendiği için ters yönde statik import güvenli
+// değil).
+import {
+    getCalendarEventsRef, getMindDumpsRef, getTasksRef, getGoalsRef, getHabitsRef,
+    setMindDumpsRef, moveTaskToDate, renderCalMindDump, updateStats, renderTasks,
+    getCurrentDateRef, setCurrentDateRef, getSelectedDateRef, setSelectedDateRef,
+    initCalEventListDnD as _initCalEventListDnD, openDayDrawer as _openDayDrawer
+} from './script.js';
 
      window.renderCalendar = () => renderCalendar(); // Faz 6: script-convert-modal.js için
     function renderCalendar() {
-         const year = window.__getCurrentDateRef().getFullYear(); 
-         const month = window.__getCurrentDateRef().getMonth();
+         const year = getCurrentDateRef().getFullYear(); 
+         const month = getCurrentDateRef().getMonth();
          window.monthYearDisplay.textContent = `${monthNames[month]} ${year}`; 
          window.calendarDays.innerHTML = '';
          
@@ -39,16 +52,16 @@
              const check = window.formatDateToString(new Date(year, month, i));
              d.setAttribute('data-date', check); // YENİ EKLENEN SATIR: Sürükle-bırak için tarihi hücreye işliyoruz
              if (check === window.formatDateToString(new Date())) d.classList.add('today');
-             if (check === window.formatDateToString(window.__getSelectedDateRef())) d.classList.add('selected');
+             if (check === window.formatDateToString(getSelectedDateRef())) d.classList.add('selected');
              
              // Dünden sarkan (gece kuşu) görev var mı kontrolü
              let prevD = new Date(year, month, i - 1);
              const prevCheck = window.formatDateToString(prevD);
-             const overnightEvents = (window.__getCalendarEventsRef()[prevCheck] || []).filter(e => e.isOvernight && !e.isLessonPlanDraft);
+             const overnightEvents = (getCalendarEventsRef()[prevCheck] || []).filter(e => e.isOvernight && !e.isLessonPlanDraft);
 
              // Bugünün tüm etkinlikleri (isLessonPlanDraft: öğretmenin başka bir öğrenci için
              // henüz atamadığı ders planı taslağı — sadece planlama arayüzünde görünmeli)
-             const todaysEvents = (window.__getCalendarEventsRef()[check] || []).filter(e => !e.isLessonPlanDraft);
+             const todaysEvents = (getCalendarEventsRef()[check] || []).filter(e => !e.isLessonPlanDraft);
              const todaysHabits = getHabitsForDate(check);
              let highlightHistory = FocusStorage.get('highlight_history', {});
              const hasHighlight = !!highlightHistory[check];
@@ -88,7 +101,7 @@
                      dotSeen.add(key); dotColors.push(cc2);
                  }
                  allDayItems.forEach(ev => {
-                     const globalTask = window.__getTasksRef().find(t => String(t.id) === String(ev.id));
+                     const globalTask = getTasksRef().find(t => String(t.id) === String(ev.id));
                      if (globalTask && globalTask.parentGoal) {
                          const gc = window.getGoalColor(globalTask.parentGoal);
                          if (gc) { addDot('goal_' + globalTask.parentGoal, gc); return; }
@@ -124,11 +137,11 @@
              }
              
              d.onclick = () => {
-                 window.__setSelectedDateRef(new Date(year, month, i));
-                 window.__setCurrentDateRef(new Date(window.__getSelectedDateRef()));
+                 setSelectedDateRef(new Date(year, month, i));
+                 setCurrentDateRef(new Date(getSelectedDateRef()));
                  renderCalendar();
                  renderEvents(); // gizli elementler için uyumluluk
-                 window.openDayDrawer(check);
+                 _openDayDrawer(check);
              };
 
              // Hover popup
@@ -144,24 +157,24 @@
                 const draggedTaskId = e.dataTransfer.getData('taskId') || e.dataTransfer.getData('dumpId'); // Bırakılan görevin veya fikrin ID'sini al
                 if(draggedTaskId) {
                     // Sürüklenen şey bir zihin çöplüğü fikri mi kontrol et
-                    const dumpItem = typeof window.__getMindDumpsRef() !== 'undefined' && window.__getMindDumpsRef().find(x => String(x.id) === String(draggedTaskId));
+                    const dumpItem = typeof getMindDumpsRef() !== 'undefined' && getMindDumpsRef().find(x => String(x.id) === String(draggedTaskId));
                     if (dumpItem) {
                         // Fikri otomatik olarak o güne orta öncelikli varsayılan görev olarak planla
                         addSmartTask(dumpItem.text, 'medium', 'is', check, '09:00', '10:00', '', '', '');
-                        window.__setMindDumpsRef(window.__getMindDumpsRef().filter(x => String(x.id) !== String(draggedTaskId)));
+                        setMindDumpsRef(getMindDumpsRef().filter(x => String(x.id) !== String(draggedTaskId)));
                         window.saveMindDumps();
                     } else {
-                        window.moveTaskToDate(draggedTaskId, check); // Normal görevi bu yeni güne taşı
+                        moveTaskToDate(draggedTaskId, check); // Normal görevi bu yeni güne taşı
                     }
                     
                     // ANLIK GÖRÜNÜM SENKRONİZASYONU
                     setTimeout(() => {
                         if (typeof renderCalendar === 'function') renderCalendar();
                         if (typeof renderEvents === 'function') renderEvents();
-                        if (typeof window.renderCalMindDump === 'function') window.renderCalMindDump();
+                        if (typeof renderCalMindDump === 'function') renderCalMindDump();
                         if (typeof window.renderMindDumps === 'function') window.renderMindDumps();
-                        if (typeof window.renderTasks === 'function') window.renderTasks();
-                        if (typeof window.updateStats === 'function') window.updateStats();
+                        if (typeof renderTasks === 'function') renderTasks();
+                        if (typeof updateStats === 'function') updateStats();
                     }, 100);
                 }
             });
@@ -173,7 +186,7 @@
  
      window.renderEvents = () => renderEvents(); // Faz 6: script-convert-modal.js için
     function renderEvents() {
-         const check = window.formatDateToString(window.__getSelectedDateRef());
+         const check = window.formatDateToString(getSelectedDateRef());
          
          // Arama ve Filtreleme Değerlerini Al
          const searchQuery = document.getElementById('calendar-search-input') ? document.getElementById('calendar-search-input').value.toLowerCase().trim() : '';
@@ -187,10 +200,10 @@
          if (searchQuery !== '') {
              window.selectedDateTitle.textContent = `Arama Sonuçları: "${searchQuery}"`;
              
-             // 1. Tüm Takvim Planlarını Ara (window.__getCalendarEventsRef() üzerinden)
+             // 1. Tüm Takvim Planlarını Ara (getCalendarEventsRef() üzerinden)
              let allCalendarItems = [];
-             for (let date in window.__getCalendarEventsRef()) {
-                 window.__getCalendarEventsRef()[date].forEach(ev => {
+             for (let date in getCalendarEventsRef()) {
+                 getCalendarEventsRef()[date].forEach(ev => {
                      allCalendarItems.push(Object.assign({}, ev, { _searchDate: date }));
                  });
              }
@@ -201,7 +214,7 @@
  
              // 2. Tüm Alışkanlıkları Ara
              if (filterValue === 'all' || filterValue === 'habit') {
-                 dayHabits = window.__getHabitsRef().filter(h => h.name.toLowerCase().includes(searchQuery));
+                 dayHabits = getHabitsRef().filter(h => h.name.toLowerCase().includes(searchQuery));
              }
  
              // 3. Tüm Ana Hedefleri (Highlight) Ara
@@ -217,18 +230,18 @@
          // EĞER ARAMA BOŞSA (SADECE TAKVİMDE SEÇİLİ OLAN GÜNÜ GÖSTER)
          else {
              const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-             window.selectedDateTitle.textContent = window.__getSelectedDateRef().toLocaleDateString('tr-TR', options);
+             window.selectedDateTitle.textContent = getSelectedDateRef().toLocaleDateString('tr-TR', options);
              
              // Seçili Günün Görevleri (isLessonPlanDraft: öğretmenin başka bir öğrenci için
              // henüz atamadığı ders planı taslağı — bu görünümde gizli kalmalı)
-             if (window.__getCalendarEventsRef()[check]) dayEvents.push(...calendarEvents[check].filter(e => !e.isLessonPlanDraft));
+             if (getCalendarEventsRef()[check]) dayEvents.push(...calendarEvents[check].filter(e => !e.isLessonPlanDraft));
 
              // Dünden sarkan (gece kuşu) görevler
-             let prevDate = new Date(window.__getSelectedDateRef());
+             let prevDate = new Date(getSelectedDateRef());
              prevDate.setDate(prevDate.getDate() - 1);
              const prevCheck = window.formatDateToString(prevDate);
-             if (window.__getCalendarEventsRef()[prevCheck]) {
-                 const overnightEvents = window.__getCalendarEventsRef()[prevCheck].filter(e => e.isOvernight && !e.isLessonPlanDraft);
+             if (getCalendarEventsRef()[prevCheck]) {
+                 const overnightEvents = getCalendarEventsRef()[prevCheck].filter(e => e.isOvernight && !e.isLessonPlanDraft);
                  dayEvents.push(...overnightEvents);
              }
  
@@ -264,7 +277,7 @@
          let completedItemsForSelectedDay = 0;
          
          dayEvents.forEach(ev => {
-             const globalTask = window.__getTasksRef().find(t => String(t.id) === String(ev.id));
+             const globalTask = getTasksRef().find(t => String(t.id) === String(ev.id));
              if (globalTask && globalTask.completed) completedItemsForSelectedDay++;
          });
          dayHabits.forEach(habit => { if (habit.history[check]) completedItemsForSelectedDay++; });
@@ -315,7 +328,7 @@
 
          let parentBadgeHTML = '';
          if (hl.data.parentGoal) {
-             const pg = window.__getGoalsRef().find(g => String(g.id) === String(hl.data.parentGoal));
+             const pg = getGoalsRef().find(g => String(g.id) === String(hl.data.parentGoal));
              if (pg) {
                  parentBadgeHTML = `<span style="font-size:10px; background:rgba(108,92,231,0.15); color:#a29bfe; padding:3px 10px; border-radius:20px; border:1px solid rgba(108,92,231,0.3); display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-mountain-sun"></i> ${escapeHtml(pg.title)}</span>`;
              }
@@ -414,7 +427,7 @@
                  </li>`;
              }
 
-             const globalTask = window.__getTasksRef().find(t => String(t.id) === String(ev.id));
+             const globalTask = getTasksRef().find(t => String(t.id) === String(ev.id));
              const isCompleted = globalTask ? globalTask.completed : false;
 
              const evTimeStart = ev.timeStart || ev.time || "12:00";
@@ -428,7 +441,7 @@
 
              let parentBadgeHTML = '';
              if (ev.parentHabit) {
-                 const ph = window.__getHabitsRef().find(h => String(h.id) === String(ev.parentHabit));
+                 const ph = getHabitsRef().find(h => String(h.id) === String(ev.parentHabit));
                  if (ph) parentBadgeHTML = `<span class="parent-habit-badge" style="font-size:10px; padding:2px 8px;"><i class="fa-solid fa-bullseye"></i> ${escapeHtml(ph.name)}</span>`;
              }
 
@@ -451,7 +464,7 @@
                              <div class="tc-meta">
                                  <span class="tc-badge tc-prio-${evPriority}"><i class="fa-solid fa-circle-dot"></i> ${priorityLabel}</span>
                                  <span class="tc-badge tc-badge-date"><i class="fa-regular fa-calendar"></i> ${shortDate}</span>
-                                 ${ev.parentHabit ? (() => { const ph = window.__getHabitsRef().find(h => String(h.id) === String(ev.parentHabit)); return ph ? `<span class="tc-badge tc-badge-goal"><i class="fa-solid fa-bullseye"></i> ${escapeHtml(ph.name)}</span>` : ''; })() : ''}
+                                 ${ev.parentHabit ? (() => { const ph = getHabitsRef().find(h => String(h.id) === String(ev.parentHabit)); return ph ? `<span class="tc-badge tc-badge-goal"><i class="fa-solid fa-bullseye"></i> ${escapeHtml(ph.name)}</span>` : ''; })() : ''}
                              </div>
                          </div>
                          <div class="tc-actions">
@@ -465,5 +478,5 @@
          }).join('');
  
          window.eventList.innerHTML = html;
-         window.initCalEventListDnD(check);
+         _initCalEventListDnD(check);
      }
