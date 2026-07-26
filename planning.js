@@ -10,6 +10,8 @@ import {
     _lpShowTemplatesListStep, _lpShowInstancesListStep, _lpSaveTemplate, _lpSetTarget,
     _lpLoadStudents, _lpSave, _lpRenderStudentPicker
 } from './planning-lesson-plan-modal.js';
+// planning-plan-header.js de aynı zincirde planning.js'ten ÖNCE yüklenir.
+import { _pvRenderHeader, _pvRenderStepper } from './planning-plan-header.js';
 (function () {
     'use strict';
 
@@ -1336,7 +1338,7 @@ import {
                     if (payload.goalId !== result.goalId) return;
                     pvWiz = payload.wiz;
                     const gLive = goals.find(x => x.id === result.goalId);
-                    if (gLive) { window._pvRenderStepper(gLive); _pvRenderMainCal(gLive); }
+                    if (gLive) { _pvRenderStepper(gLive); _pvRenderMainCal(gLive); }
                 },
             });
         }
@@ -1973,7 +1975,7 @@ import {
         if (live) live._dirty = true;
         persistGoals();
         pvUnsaved = false;
-        window._pvRenderHeader(live || g);
+        _pvRenderHeader(live || g);
         toast('Plan kaydedildi ✓', '#06d6a0');
     }
 
@@ -2273,7 +2275,7 @@ import {
                     gLive.progress_pct = payload.pct;
                     gLive._dirty = true;
                     persistGoals();
-                    window._pvRenderHeader(gLive);
+                    _pvRenderHeader(gLive);
                     _pvUpdateOverallProgress(gLive);
                     render();
                 },
@@ -2291,7 +2293,7 @@ import {
                     pvWiz = payload.wiz;
                     const gLive = goals.find(x => x.id === pvGoalId);
                     if (gLive) {
-                        window._pvRenderStepper(gLive);
+                        _pvRenderStepper(gLive);
                         _pvRenderMainCal(gLive);
                     }
                 },
@@ -2334,8 +2336,8 @@ import {
 
     function _pvRender(g) {
         document.getElementById('pg-plan-view')?.classList.toggle('pg-pv-readonly', pvReadOnly);
-        window._pvRenderHeader(g);
-        window._pvRenderStepper(g);
+        _pvRenderHeader(g);
+        _pvRenderStepper(g);
         _pvRenderMainCal(g);
         _pvRenderDayPanel(g, pvSelectedDate);
         _pvUpdateOverallProgress(g);
@@ -2455,8 +2457,8 @@ import {
                     ms.title = newTitle;
                     g._dirty = true;
                     persistGoals();
-                    window._pvRenderStepper(g);
-                    window._pvRenderHeader(g);
+                    _pvRenderStepper(g);
+                    _pvRenderHeader(g);
                 }
             });
             titleEdit.addEventListener('keydown', e => {
@@ -2471,7 +2473,7 @@ import {
                 ms.due_date = dateInp.value;
                 g._dirty = true;
                 persistGoals();
-                window._pvRenderStepper(g);
+                _pvRenderStepper(g);
                 _pvRenderMainCal(g);
             });
         }
@@ -2484,8 +2486,8 @@ import {
                 st.done = !st.done;
                 _recalcProgress(g); g._dirty = true;
                 persistGoals(); render();
-                window._pvRenderStepper(g); _pvUpdateOverallProgress(g);
-                window._pvRenderHeader(g);
+                _pvRenderStepper(g); _pvUpdateOverallProgress(g);
+                _pvRenderHeader(g);
                 if (g.progress_pct === 100) _pvCelebrate();
             });
         });
@@ -2512,7 +2514,7 @@ import {
                 stInp.value = '';
                 _recalcProgress(g); g._dirty = true;
                 persistGoals(); render();
-                window._pvRenderStepper(g);
+                _pvRenderStepper(g);
             });
         }
 
@@ -2545,19 +2547,19 @@ import {
                     if (nextIdx < (g.milestones || []).length) {
                         setTimeout(() => {
                             pvActiveMsId = g.milestones[nextIdx].id;
-                            window._pvRenderStepper(g);
+                            _pvRenderStepper(g);
                             ;
-                            window._pvRenderHeader(g);
+                            _pvRenderHeader(g);
                             _pvUpdateOverallProgress(g);
                         }, 600);
                     } else {
-                        window._pvRenderStepper(g); ;
-                        window._pvRenderHeader(g); _pvUpdateOverallProgress(g);
+                        _pvRenderStepper(g); ;
+                        _pvRenderHeader(g); _pvUpdateOverallProgress(g);
                         if (g.progress_pct === 100) _pvCelebrate(true);
                     }
                 } else {
-                    window._pvRenderStepper(g); ;
-                    window._pvRenderHeader(g); _pvUpdateOverallProgress(g);
+                    _pvRenderStepper(g); ;
+                    _pvRenderHeader(g); _pvUpdateOverallProgress(g);
                 }
                 if (window.PlanningCollab?.channel) {
                     window.PlanningCollab.broadcast('ms_toggle', { goalId: g.id, msId: ms.id, done: ms.done });
@@ -2571,7 +2573,7 @@ import {
         if (prevBtn) {
             prevBtn.addEventListener('click', () => {
                 const idx = _pvGetMsIndex(g, pvActiveMsId);
-                if (idx > 0) { pvActiveMsId = g.milestones[idx - 1].id; window._pvRenderStepper(g); ; }
+                if (idx > 0) { pvActiveMsId = g.milestones[idx - 1].id; _pvRenderStepper(g); ; }
             });
         }
         if (nextBtn) {
@@ -2579,7 +2581,7 @@ import {
                 const idx = _pvGetMsIndex(g, pvActiveMsId);
                 if (idx < (g.milestones || []).length - 1) {
                     pvActiveMsId = g.milestones[idx + 1].id;
-                    window._pvRenderStepper(g); ;
+                    _pvRenderStepper(g); ;
                 }
             });
         }
@@ -2608,7 +2610,7 @@ import {
             m.start_date && m.due_date && dateStr >= m.start_date && dateStr <= m.due_date);
         if (msForDate) pvActiveMsId = msForDate.id;
         _pvRenderDayPanel(g, dateStr);
-        window._pvRenderStepper(g);
+        _pvRenderStepper(g);
     }
 
     // Takvim sekmesindeki saat-gridi görünümüyle aynı mantık — bu goal'a ait
@@ -3240,7 +3242,7 @@ import {
                 );
                 if (msForDate) pvActiveMsId = msForDate.id;
                 _pvRenderDayPanel(g, pvSelectedDate);
-                window._pvRenderStepper(g);
+                _pvRenderStepper(g);
                 // ── Öneri 1: Kursor günü broadcast ──────────────
                 if (window.PlanningCollab?.isActive()) {
                     const me = window.PlanningCollab._me();
@@ -3291,7 +3293,7 @@ import {
 
     function _pvPlanFinish(g) {
         pvWiz.step = 'summary';
-        window._pvRenderStepper(g);
+        _pvRenderStepper(g);
         _pvRenderMainCal(g);
     }
 
@@ -3360,7 +3362,7 @@ import {
             persistGoals();
             window._pvBroadcastWizState();
             const gDone = gFinal || g;
-            window._pvRenderStepper(gDone);
+            _pvRenderStepper(gDone);
             _pvRenderMainCal(gDone);
             toast('🚀 Haydi başlayalım!');
         });
@@ -4024,7 +4026,7 @@ import {
         document.getElementById('pg-pv-seq-check')?.addEventListener('change', e => {
             pvSeqMode = e.target.checked;
             const g = goals.find(x => x.id === pvGoalId);
-            if (g) window._pvRenderStepper(g);
+            if (g) _pvRenderStepper(g);
         });
         document.addEventListener('keydown', e => {
             if (e.key === 'Escape' && pvGoalId) _pvHandleExitClick();
