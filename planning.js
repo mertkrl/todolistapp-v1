@@ -1,6 +1,15 @@
 /* ════════════════════════════════════════════
    FocusAI — Planlama Modülü  (Faz 1 + 2 + 3)
    ════════════════════════════════════════════ */
+// Faz G: planning-lesson-plan-modal.js sıralı-yükleme zincirinde planning.js'ten
+// ÖNCE yüklendiği için (bkz. inline-module-loader.js), bu yöndeki statik import
+// GÜVENLİ (üretici → tüketici sırası korunuyor).
+import {
+    openModeSelect, closeModeSelect, openLessonPlanModal, closeLessonPlanModal,
+    _lpBindExistingListEvents, _lpShowTemplateStep, _lpShowFormStep, _lpShowChoiceStep,
+    _lpShowTemplatesListStep, _lpShowInstancesListStep, _lpSaveTemplate, _lpSetTarget,
+    _lpLoadStudents, _lpSave, _lpRenderStudentPicker
+} from './planning-lesson-plan-modal.js';
 (function () {
     'use strict';
 
@@ -1622,54 +1631,54 @@
 
 
         // New goal — mod seçimi açar
-        document.getElementById('pg-new-goal-btn')?.addEventListener('click', ()=>window.openModeSelect());
-        document.getElementById('pg-empty-add-btn')?.addEventListener('click', ()=>window.openModeSelect());
+        document.getElementById('pg-new-goal-btn')?.addEventListener('click', ()=>openModeSelect());
+        document.getElementById('pg-empty-add-btn')?.addEventListener('click', ()=>openModeSelect());
 
         // Mode select modal
-        document.getElementById('pg-mode-select-close')?.addEventListener('click', window.closeModeSelect);
+        document.getElementById('pg-mode-select-close')?.addEventListener('click', closeModeSelect);
         document.getElementById('pg-mode-select-overlay')?.addEventListener('click', e => {
-            if (e.target.id === 'pg-mode-select-overlay') window.closeModeSelect();
+            if (e.target.id === 'pg-mode-select-overlay') closeModeSelect();
         });
         document.getElementById('pg-mode-solo-btn')?.addEventListener('click', () => {
-            window.closeModeSelect();
+            closeModeSelect();
             window.openQuickCreate('solo');
         });
         document.getElementById('pg-mode-collab-btn')?.addEventListener('click', () => {
-            window.closeModeSelect();
+            closeModeSelect();
             window.openQuickCreate('collab');
         });
         document.getElementById('pg-mode-lesson-plan-btn')?.addEventListener('click', () => {
-            window.closeModeSelect();
-            window.openLessonPlanModal();
+            closeModeSelect();
+            openLessonPlanModal();
         });
 
         // Ders Planı oluşturma (minimal: sınıf + açıklama)
-        document.getElementById('pg-lp-modal-close')?.addEventListener('click', window.closeLessonPlanModal);
+        document.getElementById('pg-lp-modal-close')?.addEventListener('click', closeLessonPlanModal);
         document.getElementById('pg-lp-modal')?.addEventListener('click', e => {
-            if (e.target.id === 'pg-lp-modal') window.closeLessonPlanModal();
+            if (e.target.id === 'pg-lp-modal') closeLessonPlanModal();
         });
-        window._lpBindExistingListEvents();
-        document.getElementById('pg-lp-choice-template')?.addEventListener('click', window._lpShowTemplateStep);
-        document.getElementById('pg-lp-choice-instance')?.addEventListener('click', () => window._lpShowFormStep());
-        document.getElementById('pg-lp-template-back-btn')?.addEventListener('click', window._lpShowChoiceStep);
-        document.getElementById('pg-lp-browse-templates')?.addEventListener('click', window._lpShowTemplatesListStep);
-        document.getElementById('pg-lp-browse-instances')?.addEventListener('click', window._lpShowInstancesListStep);
-        document.getElementById('pg-lp-templates-back-btn')?.addEventListener('click', window._lpShowChoiceStep);
-        document.getElementById('pg-lp-instances-back-btn')?.addEventListener('click', window._lpShowChoiceStep);
-        document.getElementById('pg-lp-template-save-btn')?.addEventListener('click', window._lpSaveTemplate);
-        document.getElementById('pg-lp-back-btn')?.addEventListener('click', window._lpShowChoiceStep);
-        document.getElementById('pg-lp-target-class')?.addEventListener('click', () => window._lpSetTarget('class'));
-        document.getElementById('pg-lp-target-student')?.addEventListener('click', () => window._lpSetTarget('student'));
-        document.getElementById('pg-lp-group')?.addEventListener('change', window._lpLoadStudents);
-        document.getElementById('pg-lp-save-btn')?.addEventListener('click', window._lpSave);
+        _lpBindExistingListEvents();
+        document.getElementById('pg-lp-choice-template')?.addEventListener('click', _lpShowTemplateStep);
+        document.getElementById('pg-lp-choice-instance')?.addEventListener('click', () => _lpShowFormStep());
+        document.getElementById('pg-lp-template-back-btn')?.addEventListener('click', _lpShowChoiceStep);
+        document.getElementById('pg-lp-browse-templates')?.addEventListener('click', _lpShowTemplatesListStep);
+        document.getElementById('pg-lp-browse-instances')?.addEventListener('click', _lpShowInstancesListStep);
+        document.getElementById('pg-lp-templates-back-btn')?.addEventListener('click', _lpShowChoiceStep);
+        document.getElementById('pg-lp-instances-back-btn')?.addEventListener('click', _lpShowChoiceStep);
+        document.getElementById('pg-lp-template-save-btn')?.addEventListener('click', _lpSaveTemplate);
+        document.getElementById('pg-lp-back-btn')?.addEventListener('click', _lpShowChoiceStep);
+        document.getElementById('pg-lp-target-class')?.addEventListener('click', () => _lpSetTarget('class'));
+        document.getElementById('pg-lp-target-student')?.addEventListener('click', () => _lpSetTarget('student'));
+        document.getElementById('pg-lp-group')?.addEventListener('change', _lpLoadStudents);
+        document.getElementById('pg-lp-save-btn')?.addEventListener('click', _lpSave);
         document.getElementById('pg-lp-students')?.addEventListener('change', e => {
-            if (e.target.classList.contains('pg-lp-student-cb')) window._lpRenderStudentPicker(document.getElementById('pg-lp-student-search')?.value);
+            if (e.target.classList.contains('pg-lp-student-cb')) _lpRenderStudentPicker(document.getElementById('pg-lp-student-search')?.value);
         });
         document.getElementById('pg-lp-student-chips')?.addEventListener('click', e => {
             const chip = e.target.closest('.pg-lp-student-chip');
             if (!chip) return;
             const cb = document.getElementById(`pg-lp-student-${chip.dataset.id}`);
-            if (cb) { cb.checked = false; window._lpRenderStudentPicker(document.getElementById('pg-lp-student-search')?.value); }
+            if (cb) { cb.checked = false; _lpRenderStudentPicker(document.getElementById('pg-lp-student-search')?.value); }
         });
 
         // Wizard event bindings
@@ -4106,7 +4115,7 @@
     window.initPlanningModule  = init;
     window.renderPlanningStats = (...args) => window.renderStatsCard(...args);
     // openLessonPlanModal artık planning-lesson-plan-modal.js'te tanımlanıyor
-    // (sınıf paneli/social.js gibi dış yerlerden window.openLessonPlanModal ile açılır).
+    // (sınıf paneli/social.js gibi dış yerlerden openLessonPlanModal ile açılır).
     // social.js'in collab_goal_deleted bildiriminde çağırdığı API
     window._convertGoalToSoloById = _convertGoalToSolo;
     window._deleteGoalSilently    = deleteGoal;

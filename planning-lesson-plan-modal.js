@@ -21,7 +21,7 @@
 // - window.addGlobalTask / FocusStorage / window.FocusSupabase /
 //   window.currentUser → zaten global
 
-function openModeSelect() {
+export function openModeSelect() {
     document.getElementById('pg-mode-select-overlay')?.classList.remove('hidden');
     const lpBtn = document.getElementById('pg-mode-lesson-plan-btn');
     if (lpBtn) {
@@ -32,7 +32,7 @@ function openModeSelect() {
 }
 window.openModeSelect = openModeSelect;
 
-function closeModeSelect() {
+export function closeModeSelect() {
     document.getElementById('pg-mode-select-overlay')?.classList.add('hidden');
 }
 window.closeModeSelect = closeModeSelect;
@@ -45,7 +45,7 @@ window.closeModeSelect = closeModeSelect;
 let _lpStudents = [];   // seçili sınıfın üyeleri: [{id, display_name, username}]
 let _lpTarget = 'class'; // 'class' | 'student' — Uygulama Planı'nda hedef türü
 
-function openLessonPlanModal() {
+export function openLessonPlanModal() {
     const modal = document.getElementById('pg-lp-modal');
     if (!modal) return;
     document.getElementById('pg-lp-desc').value = '';
@@ -70,7 +70,7 @@ function _lpHideAllSteps() {
 }
 window._lpHideAllSteps = _lpHideAllSteps;
 
-function _lpShowChoiceStep() {
+export function _lpShowChoiceStep() {
     _lpHideAllSteps();
     document.getElementById('pg-lp-choice-step')?.classList.remove('hidden');
     _lpUpdateBrowseCounts();
@@ -127,7 +127,7 @@ function _lpRenderListStep(kind) {
 }
 window._lpRenderListStep = _lpRenderListStep;
 
-function _lpShowTemplatesListStep() {
+export function _lpShowTemplatesListStep() {
     _lpHideAllSteps();
     document.getElementById('pg-lp-templates-step')?.classList.remove('hidden');
     document.getElementById('pg-lp-templates-footer')?.classList.remove('hidden');
@@ -135,7 +135,7 @@ function _lpShowTemplatesListStep() {
 }
 window._lpShowTemplatesListStep = _lpShowTemplatesListStep;
 
-function _lpShowInstancesListStep() {
+export function _lpShowInstancesListStep() {
     _lpHideAllSteps();
     document.getElementById('pg-lp-instances-step')?.classList.remove('hidden');
     document.getElementById('pg-lp-instances-footer')?.classList.remove('hidden');
@@ -143,7 +143,7 @@ function _lpShowInstancesListStep() {
 }
 window._lpShowInstancesListStep = _lpShowInstancesListStep;
 
-function _lpBindExistingListEvents() {
+export function _lpBindExistingListEvents() {
     const modal = document.getElementById('pg-lp-modal');
     if (!modal || modal._lpListBound) return;
     modal._lpListBound = true;
@@ -173,7 +173,7 @@ function _lpBindExistingListEvents() {
 }
 window._lpBindExistingListEvents = _lpBindExistingListEvents;
 
-function _lpShowTemplateStep() {
+export function _lpShowTemplateStep() {
     _lpHideAllSteps();
     document.getElementById('pg-lp-template-step')?.classList.remove('hidden');
     document.getElementById('pg-lp-template-footer')?.classList.remove('hidden');
@@ -181,7 +181,7 @@ function _lpShowTemplateStep() {
 }
 window._lpShowTemplateStep = _lpShowTemplateStep;
 
-async function _lpShowFormStep(presetTemplateId) {
+export async function _lpShowFormStep(presetTemplateId) {
     _lpHideAllSteps();
     document.getElementById('pg-lp-form-step')?.classList.remove('hidden');
     document.getElementById('pg-lp-form-footer')?.classList.remove('hidden');
@@ -210,7 +210,7 @@ async function _lpShowFormStep(presetTemplateId) {
 }
 window._lpShowFormStep = _lpShowFormStep;
 
-function _lpSetTarget(target) {
+export function _lpSetTarget(target) {
     _lpTarget = target;
     document.getElementById('pg-lp-target-class')?.classList.toggle('active', target === 'class');
     document.getElementById('pg-lp-target-student')?.classList.toggle('active', target === 'student');
@@ -316,7 +316,7 @@ function _pvSaveGoalAsTemplate(g) {
 window._pvSaveGoalAsTemplate = _pvSaveGoalAsTemplate;
 
 // "Şablon Oluştur" — sınıf/öğrenci seçimi olmadan, ad+açıklama girilip doğrudan planlama arayüzüne geçilir
-function _lpSaveTemplate() {
+export function _lpSaveTemplate() {
     const name = document.getElementById('pg-lp-template-name')?.value.trim();
     const desc = document.getElementById('pg-lp-template-desc')?.value.trim();
     if (!name) { window.toast('Şablona bir ad verin 📋'); return; }
@@ -340,7 +340,7 @@ function _lpSaveTemplate() {
 }
 window._lpSaveTemplate = _lpSaveTemplate;
 
-async function _lpLoadStudents() {
+export async function _lpLoadStudents() {
     const groupId = document.getElementById('pg-lp-group')?.value;
     const box = document.getElementById('pg-lp-students');
     if (!groupId || !box || !window.FocusSupabase) { _lpStudents = []; return; }
@@ -370,7 +370,7 @@ window._lpLoadStudents = _lpLoadStudents;
 // Minimalist öğrenci seçici: arama kutusu + seçilenler üstte "chip" olarak,
 // altta filtrelenebilir kompakt bir liste — büyük sınıflarda (çok öğrenci)
 // uzun checkbox listesi yerine ölçeklenebilir bir arayüz sağlar.
-function _lpRenderStudentPicker(query) {
+export function _lpRenderStudentPicker(query) {
     const box = document.getElementById('pg-lp-students');
     const chipsBox = document.getElementById('pg-lp-student-chips');
     if (!box) return;
@@ -396,12 +396,12 @@ function _lpRenderStudentPicker(query) {
 }
 window._lpRenderStudentPicker = _lpRenderStudentPicker;
 
-function closeLessonPlanModal() {
+export function closeLessonPlanModal() {
     document.getElementById('pg-lp-modal')?.classList.add('hidden');
 }
 window.closeLessonPlanModal = closeLessonPlanModal;
 
-function _lpSave() {
+export function _lpSave() {
     const groupId = document.getElementById('pg-lp-group')?.value;
     const planName = document.getElementById('pg-lp-name')?.value.trim();
     const desc = document.getElementById('pg-lp-desc')?.value.trim();
