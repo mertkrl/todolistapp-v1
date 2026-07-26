@@ -6,6 +6,10 @@
 // window.escapeHtml gibi social.js/storage-manager.js globallerine
 // bağımlı — onlardan SONRA yüklenmeli.
 // ============================================================
+// Faz G: dcShowToast social-toast.js'te tanımlı (bu dosyadan çok önce
+// yükleniyor) — statik import'a çevrildi.
+import { dcShowToast } from './social-toast.js';
+
 (function () {
 'use strict';
 
@@ -61,11 +65,11 @@ window.FocusChat.submitPoll = async function() {
     if (!scope || !scope.id || !window.FocusSupabase || !window.currentUser?.id) return;
 
     const question = document.getElementById('poll-question-input')?.value.trim();
-    if (!question) { window.dcShowToast('Soru boş olamaz.'); return; }
+    if (!question) { dcShowToast('Soru boş olamaz.'); return; }
 
     const optInputs = document.querySelectorAll('.poll-option-input');
     const options = Array.from(optInputs).map(i => i.value.trim()).filter(Boolean);
-    if (options.length < 2) { window.dcShowToast('En az 2 seçenek girin.'); return; }
+    if (options.length < 2) { dcShowToast('En az 2 seçenek girin.'); return; }
 
     const isAnonymous = document.getElementById('poll-anonymous')?.checked || false;
     const isMultiple  = document.getElementById('poll-multiple')?.checked  || false;
@@ -92,7 +96,7 @@ window.FocusChat.submitPoll = async function() {
 
         document.getElementById('poll-create-modal')?.classList.add('hidden');
     } catch(e) {
-        window.dcShowToast('Anket gönderilemedi: ' + e.message);
+        dcShowToast('Anket gönderilemedi: ' + e.message);
     } finally {
         if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Anketi Gönder'; }
     }

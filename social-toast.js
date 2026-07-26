@@ -73,3 +73,7 @@ function _escapeHtml(str) {
 }
 
 })();
+
+// Diğer social-*.js modüllerinin import edebilmesi için ince sarmalayıcı export'lar.
+export const dcShowToast = window.dcShowToast;
+export const showFocusaiConfirm = window.showFocusaiConfirm;
