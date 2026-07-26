@@ -10,6 +10,15 @@
 // - showGenericNotifToast / _dhsDateKey → social.js'te zaten window.*
 //   köprülüydü
 // - _escapeHtml → window.escapeHtml
+//
+// Faz G: showGenericNotifToast/_dhsDateKey gerçekten social-dm-notifications.js /
+// social-home-summary.js'te tanımlı (bu dosyadan önce yükleniyorlar) — statik
+// import'a çevrildi. playNotificationSound/maybeShowDesktopNotification (social-
+// notif-sounds.js) bu dosyadan SONRA yüklendiği için window köprüsü olarak
+// bırakıldı (erken statik import modül init sırasını bozardı).
+import { showGenericNotifToast } from './social-dm-notifications.js';
+import { _dhsDateKey } from './social-home-summary.js';
+
 let _focusRemindersScheduled = false;
 async function scheduleFocusReminders() {
     const currentUser = window._dcGetChatContext().currentUser;
@@ -22,7 +31,7 @@ async function scheduleFocusReminders() {
     const notify = (title, body) => {
         window.playNotificationSound('alert');
         window.maybeShowDesktopNotification(title, body);
-        window.showGenericNotifToast({ icon: 'fa-bolt', accent: '#D4900E', title, body: window.escapeHtml(body) });
+        showGenericNotifToast({ icon: 'fa-bolt', accent: '#D4900E', title, body: window.escapeHtml(body) });
     };
 
     // 1. Bugünkü grup seansları
@@ -62,9 +71,9 @@ async function scheduleFocusReminders() {
             setTimeout(() => {
                 try {
                     const fh = typeof FocusStorage !== 'undefined' ? (FocusStorage.get('focus_history', {}) || {}) : {};
-                    const today = window._dhsDateKey(new Date());
+                    const today = _dhsDateKey(new Date());
                     const y = new Date(); y.setDate(y.getDate() - 1);
-                    const hadStreak = Number(fh[window._dhsDateKey(y)]) > 0;
+                    const hadStreak = Number(fh[_dhsDateKey(y)]) > 0;
                     if (hadStreak && !(Number(fh[today]) > 0)) {
                         notify('Serin risk altında 🔥', 'Bugün henüz odaklanmadın — kısa bir seans zinciri kurtarır.');
                     }
