@@ -7,7 +7,11 @@
 // escapeHtml, FocusStorage) kullanır.
 // script.js'ten SONRA, orijinal DOMContentLoaded zamanlamasını korumak
 // için kendi DOMContentLoaded sarmalayıcısında yüklenir.
+// Faz G: getTasksRef/getTaskColor/getCatColor gerçek import'a çevrildi
+// (escapeHtml/FocusStorage export edilmediği için window/bare olarak kaldı).
 // ============================================================
+import { getTasksRef } from './script.js';
+import { getCatColor, getTaskColor } from './script-color-utils.js';
 (function () {
 'use strict';
 document.addEventListener('DOMContentLoaded', () => {
@@ -34,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
          const dateObj = new Date(y2, m2 - 1, d2);
          const dayName = dateObj.toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long' });
 
-         const tasks = window.__getTasksRef ? window.__getTasksRef() : [];
+         const tasks = getTasksRef ? getTasksRef() : [];
 
          let rows = '';
          if (hasHighlight) {
@@ -45,13 +49,13 @@ document.addEventListener('DOMContentLoaded', () => {
          dayEvents.slice(0, 6).forEach(ev => {
              const t = tasks.find(t => String(t.id) === String(ev.id));
              const done = t && t.completed;
-             const cc = window.getTaskColor(t);
+             const cc = getTaskColor(t);
              const timeStr = ev.timeStart ? `${ev.timeStart}${ev.timeEnd ? ' → ' + ev.timeEnd : ''}` : '';
              rows += `<div class="chp-row${done ? ' chp-done' : ''}"><span class="chp-dot" style="background:${cc.border};box-shadow:0 0 4px ${cc.glow};${cc.isGoal ? 'border-radius:3px;' : ''}"></span><span class="chp-text">${done ? '<i class="fa-solid fa-check chp-check"></i> ' : ''}${escapeHtml(ev.text)}${timeStr ? '<span class="chp-time"> · ' + timeStr + '</span>' : ''}</span></div>`;
          });
          if (dayEvents.length > 6) rows += `<div class="chp-more">+${dayEvents.length - 6} görev daha</div>`;
          dayHabits.slice(0, 3).forEach(h => {
-             const cc = window.getCatColor(h.category || 'kisisel');
+             const cc = getCatColor(h.category || 'kisisel');
              rows += `<div class="chp-row"><span class="chp-dot" style="background:${cc.border};opacity:0.7;"></span><span class="chp-text chp-habit"><i class="fa-solid fa-leaf"></i> ${escapeHtml(h.name)}</span></div>`;
          });
          if (dayHabits.length > 3) rows += `<div class="chp-more">+${dayHabits.length - 3} alışkanlık daha</div>`;
