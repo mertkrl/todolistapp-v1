@@ -12,6 +12,8 @@ import {
 } from './planning-lesson-plan-modal.js';
 // planning-plan-header.js de aynı zincirde planning.js'ten ÖNCE yüklenir.
 import { _pvRenderHeader, _pvRenderStepper } from './planning-plan-header.js';
+// planning-wizard.js de aynı zincirde planning.js'ten ÖNCE yüklenir.
+import { _pvWizAssignDate, _pvBroadcastWizState } from './planning-wizard.js';
 (function () {
     'use strict';
 
@@ -3229,7 +3231,7 @@ import { _pvRenderHeader, _pvRenderStepper } from './planning-plan-header.js';
                 const dateStr = cell.dataset.calDate;
                 // If wizard is in dates step, route click there
                 if (pvWiz?.step === 'dates') {
-                    window._pvWizAssignDate(g, dateStr);
+                    _pvWizAssignDate(g, dateStr);
                     return;
                 }
                 pvSelectedDate = dateStr;
@@ -3360,7 +3362,7 @@ import { _pvRenderHeader, _pvRenderStepper } from './planning-plan-header.js';
             const gFinal = goals.find(x => x.id === pvGoalId);
             if (gFinal) gFinal._dirty = true;
             persistGoals();
-            window._pvBroadcastWizState();
+            _pvBroadcastWizState();
             const gDone = gFinal || g;
             _pvRenderStepper(gDone);
             _pvRenderMainCal(gDone);

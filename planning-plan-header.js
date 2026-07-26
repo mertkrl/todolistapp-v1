@@ -31,6 +31,9 @@
 // - planning.js'in geri kalanından (Ana Takvim/Gün Paneli/Sihirbaz-dışı akışlar)
 //   `_pvRenderHeader`/`_pvRenderStepper`'a 27 bare çağrı vardı, hepsi
 //   `window.*`'a çevrildi (tanımları artık burada)
+// Faz G: planning-wizard.js aynı zincirde bu dosyadan ÖNCE yüklendiği için
+// (bkz. inline-module-loader.js) bu yöndeki statik import GÜVENLİ.
+import { _pvRenderWizard, _localToday, _normYMD } from './planning-wizard.js';
     // ── Header ────────────────────────────────
     window._pvRenderHeader = _pvRenderHeader; // planning.js için
     export function _pvRenderHeader(g) {
@@ -203,7 +206,7 @@
         } else if (!ms.length || wizActive) {
             // Show wizard if not already in wizard flow
             if (!window.__getPvWiz()) window.__setPvWiz({ step: 'welcome' });
-            window._pvRenderWizard(g, el);
+            _pvRenderWizard(g, el);
             // Hide normal panel chrome while in wizard
             document.querySelector('.pg-pv-panel-header')?.style.setProperty('display','none');
             document.getElementById('pg-pv-quick-add-ms')?.style.setProperty('display','none');
@@ -216,7 +219,7 @@
         window.__setPvWiz(null);
 
         const allTasks = FocusStorage.get('tasks', []).filter(t => String(t.parentGoal) === String(g.id));
-        const today    = window._localToday();
+        const today    = _localToday();
 
         el.innerHTML = ms.map((m, i) => {
             const isActive = m.id === window.__getPvActiveMsId();
@@ -227,7 +230,7 @@
 
             // Task count in this milestone's date range — only this goal's tasks
             const mTasks   = m.start_date && m.due_date
-                ? allTasks.filter(t => { const d = window._normYMD(t.date); return d >= m.start_date && d <= m.due_date && String(t.parentGoal) === String(g.id); })
+                ? allTasks.filter(t => { const d = _normYMD(t.date); return d >= m.start_date && d <= m.due_date && String(t.parentGoal) === String(g.id); })
                 : [];
             const mDone    = mTasks.filter(t => t.completed).length;
 
