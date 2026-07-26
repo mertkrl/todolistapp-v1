@@ -5865,6 +5865,9 @@ export function setMindDumpsRef(...args) { return window.__setMindDumpsRef(...ar
 export function getRenderCalendarRef(...args) { return window.__getRenderCalendarRef(...args); }
 export function getRenderEventsRef(...args) { return window.__getRenderEventsRef(...args); }
 export function getRenderStatisticsRef(...args) { return window.__getRenderStatisticsRef(...args); }
+export function getRenderSocialStatsRef(...args) { return window.__getRenderSocialStatsRef(...args); }
+export function openGoalDetails(...args) { return window.openGoalDetails(...args); }
+export function setGoalsRef(...args) { return window.__setGoalsRef(...args); }
 export function getHabitsForDate(...args) { return window.getHabitsForDate(...args); }
 export function addGlobalTask(...args) { return window.addGlobalTask(...args); }
 export function getActiveFocusTaskRef(...args) { return window.__getActiveFocusTaskRef(...args); }

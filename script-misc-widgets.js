@@ -5,7 +5,7 @@
 // - updateDynamicGreeting: "Günaydın/İyi Akşamlar" saatlik selamlama metni
 // - updateCharCounter: günlük/reflection textarea'larının karakter sayacı
 // - updateGlobalStreak: günlük seri (streak) rozetini hesaplayıp gösterir
-//   (tasks state'ini SALT-OKUNUR okur → window.__getTasksRef())
+//   (tasks state'ini SALT-OKUNUR okur → getTasksRef())
 // - animateCount + _spawnChipParticles + _celebrateDoneChip: "Bekleyen/
 //   Tamamlanan" sayaç chip'lerindeki roll-up/roll-down animasyonu ve
 //   tamamlanınca patlayan parçacık efekti (üçü birbirini çağırır, birlikte
@@ -16,6 +16,9 @@
 // TÜM mantığı kendi DOMContentLoaded dinleyicisi İÇİNDE çalışıyor ve bu
 // olay tüm modül script'lerinin top-level kodu çalıştıktan SONRA ateşleniyor
 // (bkz. script-confetti.js/script-time-picker.js'teki aynı not).
+
+import { getTasksRef } from './script.js';
+import { formatDateToString } from './script-date-time-utils.js';
 
  function updateDynamicGreeting() {
      const greetingDisplay = document.getElementById('dynamic-greeting');
@@ -49,10 +52,10 @@ window.updateDynamicGreeting = updateDynamicGreeting;
  }
 window.updateCharCounter = updateCharCounter;
 
- function updateGlobalStreak() {
+ export function updateGlobalStreak() {
      // Tamamlanmış görev olan günleri bul (DD-MM-YYYY formatında set)
      const completedDays = new Set(
-         window.__getTasksRef().filter(t => t.completed && t.date).map(t => t.date)
+         getTasksRef().filter(t => t.completed && t.date).map(t => t.date)
      );
 
      // Günlük hedef tamamlanan günleri de ekle
@@ -61,7 +64,7 @@ window.updateCharCounter = updateCharCounter;
          if (val && val.completed) completedDays.add(dateKey);
      });
 
-     const todayStr = window.formatDateToString(new Date());
+     const todayStr = formatDateToString(new Date());
 
      // Bugün tamamlanan görev yoksa seri sıfır — dünden saymaya başlama
      let streak = 0;
@@ -69,7 +72,7 @@ window.updateCharCounter = updateCharCounter;
          let d = new Date();
          d.setHours(0, 0, 0, 0);
          while (true) {
-             const ds = window.formatDateToString(d);
+             const ds = formatDateToString(d);
              if (completedDays.has(ds)) {
                  streak++;
                  d.setDate(d.getDate() - 1);

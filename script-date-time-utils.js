@@ -27,7 +27,7 @@ export function formatDateToString(date) {
 window.formatDateToString = formatDateToString;
 
 // HTML <input type="date"> için dd-mm-yyyy → yyyy-mm-dd
-function toInputDate(ddmmyyyy) {
+export function toInputDate(ddmmyyyy) {
     if (!ddmmyyyy) return '';
     const parts = ddmmyyyy.split('-');
     if (parts.length !== 3) return ddmmyyyy;

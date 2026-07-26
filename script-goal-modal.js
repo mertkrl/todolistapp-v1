@@ -17,9 +17,9 @@
 // ki o da aynı DOM işlemini (modal'ı gizle) yapar, davranış farkı yok.
 //
 // Dış bağımlılıklar (script.js'te kalıyor, window.* köprüsüyle açıldı):
-// - goals → window.__getGoalsRef()/__setGoalsRef() (deleteGoal içinde
+// - goals → getGoalsRef()/__setGoalsRef() (deleteGoal içinde
 //   reassignment var — bu çıkarmada setter YENİ eklendi)
-// - tasks/habits → window.__getTasksRef()/__getHabitsRef() (salt-okunur,
+// - tasks/habits → getTasksRef()/__getHabitsRef() (salt-okunur,
 //   sadece forEach ile mutasyon, reassignment yok)
 // - saveTasks, saveHabits, populateParentHabitSelects → window.* (bu
 //   çıkarmada köprüleri YENİ eklendi — önceden sadece bare erişilebiliyordu)
@@ -32,6 +32,10 @@
 // sorgulanıyor/tanımlanıyor (basit document.getElementById/sabit değer —
 // çapraz dosya bağımlılığından daha basit).
 
+import { getGoalsRef, setGoalsRef, getHabitsRef, getTasksRef, showPremiumModal, populateParentHabitSelects, openGoalDetails, saveTasks, saveHabits } from './script.js';
+import { generateId } from './storage-manager.js';
+import { toInputDate, formatDateToString } from './script-date-time-utils.js';
+
 const MAX_ACTIVE_GOALS = 5;
 const goalModal = document.getElementById('goal-modal');
 const goalsContainer = document.getElementById('goals-container');
@@ -40,7 +44,7 @@ const monthNamesShort = ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu
 
 window.editGoalInfo = function() {
     const goalId = document.getElementById('detail-active-goal-id').value;
-    const goal = window.__getGoalsRef().find(g => String(g.id) === String(goalId));
+    const goal = getGoalsRef().find(g => String(g.id) === String(goalId));
     if(!goal) return;
 
     document.getElementById('edit-goal-id').value = goal.id;
@@ -60,11 +64,11 @@ const btnVictoryClose = document.getElementById('btn-victory-close');
 if (btnVictoryArchive && victoryModal) {
     btnVictoryArchive.addEventListener('click', () => {
         const goalId = victoryModal._activeGoalId;
-        const goal = window.__getGoalsRef().find(g => String(g.id) === String(goalId));
+        const goal = getGoalsRef().find(g => String(g.id) === String(goalId));
         if (goal) {
             goal.status = 'completed';
             goal.completedAt = Date.now();
-            Store.goals.set(window.__getGoalsRef());
+            Store.goals.set(getGoalsRef());
             if (window.FocusAISocial && typeof window.FocusAISocial.postActivity === 'function') {
                 window.FocusAISocial.postActivity(`"${goal.title}" hedefini başarıyla tamamladı 🏆`);
             }
@@ -73,7 +77,7 @@ if (btnVictoryArchive && victoryModal) {
         victoryModal.classList.add('hidden');
         document.getElementById('goal-details-modal').classList.add('hidden');
         if(typeof fireConfetti === 'function') fireConfetti();
-        window.showPremiumModal({ title: 'Başarı Arşivlendi! 🏆', message: 'Tebrikler! Bu büyük başarı artık Başarılarım sekmesinde.', type: 'success' });
+        showPremiumModal({ title: 'Başarı Arşivlendi! 🏆', message: 'Tebrikler! Bu büyük başarı artık Başarılarım sekmesinde.', type: 'success' });
     });
 }
 
@@ -109,33 +113,33 @@ window._saveGoalImpl = function() {
         const category = categorySelect ? categorySelect.value : '';
 
         if(!title) {
-            window.showPremiumModal({ title: 'Hata', message: 'Lütfen hedefinizi yazın.', type: 'warning' });
+            showPremiumModal({ title: 'Hata', message: 'Lütfen hedefinizi yazın.', type: 'warning' });
             return;
         }
 
         if (idToEdit) {
             // Düzenleme Modu
-            const goal = window.__getGoalsRef().find(g => String(g.id) === String(idToEdit));
+            const goal = getGoalsRef().find(g => String(g.id) === String(idToEdit));
             if (goal) {
                 goal.title = title;
                 goal.desc = desc;
                 goal.deadline = deadline;
                 if(categorySelect) goal.category = category; // Kategoriyi güncelle
-                window.showPremiumModal({ title: 'Güncellendi!', message: 'Ana hedef başarıyla güncellendi.', type: 'success' });
+                showPremiumModal({ title: 'Güncellendi!', message: 'Ana hedef başarıyla güncellendi.', type: 'success' });
             }
         } else {
             // Yeni Ekleme Modu
-            const activeGoalCount = window.__getGoalsRef().filter(g => g.status !== 'completed' && g.status !== 'expired').length;
+            const activeGoalCount = getGoalsRef().filter(g => g.status !== 'completed' && g.status !== 'expired').length;
             if (activeGoalCount >= MAX_ACTIVE_GOALS) {
-                window.showPremiumModal({
+                showPremiumModal({
                     title: 'Odağını Koru 🎯',
                     message: `Aynı anda en fazla ${MAX_ACTIVE_GOALS} aktif ana hedef belirleyebilirsin. Yeni bir vizyon eklemeden önce mevcut hedeflerinden birini tamamla ya da arşivle.`,
                     type: 'warning'
                 });
                 return;
             }
-            window.__getGoalsRef().push({
-                id: window.generateId(),
+            getGoalsRef().push({
+                id: generateId(),
                 title: title,
                 desc: desc,
                 deadline: deadline,
@@ -146,10 +150,10 @@ window._saveGoalImpl = function() {
             if (window.FocusAISocial && typeof window.FocusAISocial.postActivity === 'function') {
                window.FocusAISocial.postActivity(`"${title}" adında yeni bir ana hedef belirledi 🎯`);
            }
-            window.showPremiumModal({ title: 'Vizyon Belirlendi!', message: 'Harika bir hedef! Şimdi görev ve alışkanlıklarını bu hedefe bağlayabilirsin.', type: 'success' });
+            showPremiumModal({ title: 'Vizyon Belirlendi!', message: 'Harika bir hedef! Şimdi görev ve alışkanlıklarını bu hedefe bağlayabilirsin.', type: 'success' });
         }
-        Store.goals.set(window.__getGoalsRef());
-        window.populateParentHabitSelects();
+        Store.goals.set(getGoalsRef());
+        populateParentHabitSelects();
         renderGoals();
         
         // YENİ DÜZELTME: Bir sonraki ana hedef oluşturulduğunda tarihin eski hedeften referans almasını engellemek için formları sıfırlıyoruz.
@@ -158,14 +162,14 @@ window._saveGoalImpl = function() {
         if (document.getElementById('goal-deadline-input')._flatpickr) {
             document.getElementById('goal-deadline-input')._flatpickr.setDate(new Date());
         } else {
-            document.getElementById('goal-deadline-input').value = window.toInputDate(window.formatDateToString(new Date()));
+            document.getElementById('goal-deadline-input').value = toInputDate(formatDateToString(new Date()));
         }
 
         closeGoalModal();
         
         // Eğer detay paneli arka planda o hedefe aitse ekranı canlandır
         if (idToEdit) {
-            window.openGoalDetails(idToEdit);
+            openGoalDetails(idToEdit);
         }
     }
 }
@@ -174,32 +178,32 @@ window._saveGoalImpl = function() {
 // boş başlık uyarısı gösterir. Bu yüzden addEventListener kullanmıyoruz.
 
 window.deleteGoal = function(id) {
-    window.showPremiumModal({
+    showPremiumModal({
         title: 'Hedefi Sil',
         message: 'Bu ana hedefi silmek istediğinize emin misiniz? (Bağlı görev ve alışkanlıklar silinmez, sadece bağları kopar).',
         type: 'warning',
         showCancel: true,
         confirmText: 'Sil',
         onConfirm: () => {
-            window.__setGoalsRef(window.__getGoalsRef().filter(g => String(g.id) !== String(id)));
-            window.__getTasksRef().forEach(t => { if(t.parentGoal === id) t.parentGoal = ""; });
-            window.__getHabitsRef().forEach(h => { 
+            setGoalsRef(getGoalsRef().filter(g => String(g.id) !== String(id)));
+            getTasksRef().forEach(t => { if(t.parentGoal === id) t.parentGoal = ""; });
+            getHabitsRef().forEach(h => { 
                 if(h.parentGoals) h.parentGoals = h.parentGoals.filter(gid => gid !== id);
             });
-            window.saveTasks();
-            window.saveHabits();
+            saveTasks();
+            saveHabits();
            
-           window.__getHabitsRef().forEach(h => { 
+           getHabitsRef().forEach(h => { 
                if(h.parentGoals) h.parentGoals = h.parentGoals.filter(gid => gid !== id);
                //  edef silindiğinde bugünkü sahte kilit geçmişini temizler
-               const todayStr = window.formatDateToString(new Date());
+               const todayStr = formatDateToString(new Date());
                if (h.history && h.history[todayStr]) {
                    delete h.history[todayStr];
                }
            });
           
-            Store.goals.set(window.__getGoalsRef());
-            window.populateParentHabitSelects();
+            Store.goals.set(getGoalsRef());
+            populateParentHabitSelects();
             renderGoals();
         }
     });
@@ -248,8 +252,8 @@ export function renderGoals() {
 
     // Başarılarım veya Süresi Dolanlar sekmesindeyken özet banner göster
     if (currentGoalFilter === 'completed' || currentGoalFilter === 'expired') {
-        const wonGoals = window.__getGoalsRef().filter(g => g.status === 'completed');
-        const expiredGoals = window.__getGoalsRef().filter(g => g.status === 'expired');
+        const wonGoals = getGoalsRef().filter(g => g.status === 'completed');
+        const expiredGoals = getGoalsRef().filter(g => g.status === 'expired');
         if (wonGoals.length > 0 || expiredGoals.length > 0) {
             const banner = document.createElement('div');
             banner.style.cssText = 'display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap;';
@@ -272,9 +276,9 @@ export function renderGoals() {
     }
 
     // Sekme butonlarına sayı badge'i ekle (early return'dan ÖNCE yapılmalı)
-    const wonCount = window.__getGoalsRef().filter(g => g.status === 'completed').length;
-    const expiredCount = window.__getGoalsRef().filter(g => g.status === 'expired').length;
-    const activeCount = window.__getGoalsRef().filter(g => g.status !== 'completed' && g.status !== 'expired').length;
+    const wonCount = getGoalsRef().filter(g => g.status === 'completed').length;
+    const expiredCount = getGoalsRef().filter(g => g.status === 'expired').length;
+    const activeCount = getGoalsRef().filter(g => g.status !== 'completed' && g.status !== 'expired').length;
     const victoryTabBtn = document.querySelector('.goal-tab-btn[data-goal-filter="completed"]');
     const expiredTabBtn = document.querySelector('.goal-tab-btn[data-goal-filter="expired"]');
     const activeTabBtn = document.querySelector('.goal-tab-btn[data-goal-filter="active"]');
@@ -290,7 +294,7 @@ export function renderGoals() {
         btnOpenGoalModal.title = atLimit ? `Aynı anda en fazla ${MAX_ACTIVE_GOALS} aktif ana hedef belirleyebilirsin.` : '';
     }
 
-    if(window.__getGoalsRef().length === 0) {
+    if(getGoalsRef().length === 0) {
         goalsContainer.innerHTML = `
         <div class="glass-element" style="text-align: center; padding: 50px 20px; border: 1px dashed rgba(108, 92, 231, 0.3); background: rgba(0,0,0,0.2);">
             <i class="fa-solid fa-mountain" style="font-size: 48px; color: rgba(108, 92, 231, 0.5); margin-bottom: 15px;"></i>
@@ -305,9 +309,9 @@ export function renderGoals() {
     const sortType = goalSortSelect ? goalSortSelect.value : 'newest';
 
     // Hedefleri render etmeden önce ilerleme yüzdelerini hesaplayıp sıralamak için geçici bir dizi oluşturuyoruz
-    let processedGoals = window.__getGoalsRef().map(goal => {
-        let linkedTasks = window.__getTasksRef().filter(t => t.parentGoal === goal.id);
-        let linkedHabits = window.__getHabitsRef().filter(h => h.parentGoals && h.parentGoals.includes(goal.id));
+    let processedGoals = getGoalsRef().map(goal => {
+        let linkedTasks = getTasksRef().filter(t => t.parentGoal === goal.id);
+        let linkedHabits = getHabitsRef().filter(h => h.parentGoals && h.parentGoals.includes(goal.id));
         
         let totalSteps = linkedTasks.length;
         let completedSteps = linkedTasks.filter(t => t.completed).length;
@@ -379,8 +383,8 @@ export function renderGoals() {
             const accentBg = isWon ? 'rgba(254,202,87,0.12)' : 'rgba(255,71,87,0.12)';
             const statusLabel = isWon ? 'Başarıldı!' : 'Süre Doldu';
             const statusIcon = isWon ? 'fa-trophy' : 'fa-hourglass-end';
-            const linkedTaskCount = window.__getTasksRef().filter(t => t.parentGoal === goal.id).length;
-            const completedTaskCount = window.__getTasksRef().filter(t => t.parentGoal === goal.id && t.completed).length;
+            const linkedTaskCount = getTasksRef().filter(t => t.parentGoal === goal.id).length;
+            const completedTaskCount = getTasksRef().filter(t => t.parentGoal === goal.id && t.completed).length;
             const categoryLabel = goal.category ? goal.category.charAt(0).toUpperCase() + goal.category.slice(1).replace(/-/g, ' ') : '';
 
             const div = document.createElement('div');
@@ -566,17 +570,17 @@ export function renderGoals() {
             </div>`;
         } else {
             // --- ZAFERLERİ YOK EMPTY STATE ---
-            const activeGoals = window.__getGoalsRef().filter(g => g.status !== 'completed' && g.status !== 'expired');
+            const activeGoals = getGoalsRef().filter(g => g.status !== 'completed' && g.status !== 'expired');
             let nearestGoalHTML = '';
             if (activeGoals.length > 0) {
                 const bestGoal = activeGoals.reduce((prev, curr) => {
-                    const prevLinked = window.__getTasksRef().filter(t => t.parentGoal === prev.id);
-                    const currLinked = window.__getTasksRef().filter(t => t.parentGoal === curr.id);
+                    const prevLinked = getTasksRef().filter(t => t.parentGoal === prev.id);
+                    const currLinked = getTasksRef().filter(t => t.parentGoal === curr.id);
                     const prevPct = prevLinked.length === 0 ? 0 : Math.round((prevLinked.filter(t => t.completed).length / prevLinked.length) * 100);
                     const currPct = currLinked.length === 0 ? 0 : Math.round((currLinked.filter(t => t.completed).length / currLinked.length) * 100);
                     return currPct > prevPct ? curr : prev;
                 });
-                const linkedTasks = window.__getTasksRef().filter(t => t.parentGoal === bestGoal.id);
+                const linkedTasks = getTasksRef().filter(t => t.parentGoal === bestGoal.id);
                 const pct = linkedTasks.length === 0 ? 0 : Math.round((linkedTasks.filter(t => t.completed).length / linkedTasks.length) * 100);
                 nearestGoalHTML = `
                 <div style="margin-top: 24px; padding: 16px 20px; background: rgba(108,92,231,0.1); border: 1px solid rgba(108,92,231,0.25); border-radius: 14px; text-align: left;">

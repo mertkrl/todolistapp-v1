@@ -12,13 +12,13 @@
 // window.* köprüsü SADECE dışarıdan OKUNAN paylaşılan state için gerekti.
 //
 // Dış bağımlılıklar (hepsi script.js'te kalıyor, window.* köprüsüyle açıldı):
-// - tasks/goals → window.__getTasksRef()/__getGoalsRef() (script.js'te
+// - tasks/goals → getTasksRef()/__getGoalsRef() (script.js'te
 //   ÖNCEDEN var olan salt-okunur getter'lar)
 // - activeFocusTask (odaklanılan görev id'si, script.js'te startFocusMode/
-//   clearFocusMode tarafından yönetiliyor) → window.__getActiveFocusTaskRef()
+//   clearFocusMode tarafından yönetiliyor) → getActiveFocusTaskRef()
 //   (script.js'te ÖNCEDEN vardı)
 // - renderStatisticsRef/renderSocialStatsRef (sekme render fonksiyon
-//   işaretçileri) → window.__getRenderStatisticsRef()/__getRenderSocialStatsRef()
+//   işaretçileri) → getRenderStatisticsRef()/__getRenderSocialStatsRef()
 //   (bu çıkarmada YENİ eklendi)
 // - generateId, showPremiumModal, renderGoals, updateGoalDetailsUI → window.*
 //   (script.js'te zaten dışa açık fonksiyonlar/köprüler)
@@ -29,6 +29,11 @@
 // Yükleme sırası önemsiz — script.js ve kardeşleri dynamic import() değil
 // normal <script type="module" src="..."> ile yükleniyor (bkz.
 // script-confetti.js/script-time-picker.js/script-misc-widgets.js'teki aynı not).
+
+import { getTasksRef, getGoalsRef, getRenderSocialStatsRef, getRenderStatisticsRef, getActiveFocusTaskRef, clearFocusMode, showPremiumModal, updateGoalDetailsUI } from './script.js';
+import { formatDateToString } from './script-date-time-utils.js';
+import { generateId } from './storage-manager.js';
+import { renderGoals } from './script-goal-modal.js';
 
  let timerInterval;
  let totalTime = 25 * 60;
@@ -389,15 +394,15 @@
                      }
 
                      // Günlük odak ve kategori geçmişini hafızaya ekleyen akıllı motor
-                     const todayDateStr = window.formatDateToString(new Date());
+                     const todayDateStr = formatDateToString(new Date());
                      let focusHistory = FocusStorage.get('focus_history', {});
                      focusHistory[todayDateStr] = (focusHistory[todayDateStr] || 0) + modeMins;
                      FocusStorage.set('focus_history', focusHistory);
  
                      let activeCategory = 'kategorisiz';
-                     if (window.__getActiveFocusTaskRef()) {
-                         if (window.__getActiveFocusTaskRef() !== 'highlight-task') {
-                             const focusedTask = window.__getTasksRef().find(t => String(t.id) === String(window.__getActiveFocusTaskRef()));
+                     if (getActiveFocusTaskRef()) {
+                         if (getActiveFocusTaskRef() !== 'highlight-task') {
+                             const focusedTask = getTasksRef().find(t => String(t.id) === String(getActiveFocusTaskRef()));
                              if (focusedTask && focusedTask.category) activeCategory = focusedTask.category;
                          } else {
                              activeCategory = 'kisisel';
@@ -413,20 +418,20 @@
                      if (!focusHours[todayDateStr]) focusHours[todayDateStr] = {};
                      focusHours[todayDateStr][currentHour] = (focusHours[todayDateStr][currentHour] || 0) + modeMins;
                      FocusStorage.set('focus_hours', focusHours);
-                     if(window.__getRenderStatisticsRef() && document.getElementById('istatistikler').classList.contains('active')) window.__getRenderStatisticsRef()();
-                     if(window.__getRenderSocialStatsRef() && document.getElementById('arkadaslar').classList.contains('active')) window.__getRenderSocialStatsRef()();
+                     if(getRenderStatisticsRef() && document.getElementById('istatistikler').classList.contains('active')) getRenderStatisticsRef()();
+                     if(getRenderSocialStatsRef() && document.getElementById('arkadaslar').classList.contains('active')) getRenderSocialStatsRef()();
  
                      // --- HEDEFE ODAK SÜRESİ EKLEME ---
-                     if(window.__getActiveFocusTaskRef() && window.__getActiveFocusTaskRef() !== 'highlight-task') {
-                         const focusedTask = window.__getTasksRef().find(t => String(t.id) === String(window.__getActiveFocusTaskRef()));
+                     if(getActiveFocusTaskRef() && getActiveFocusTaskRef() !== 'highlight-task') {
+                         const focusedTask = getTasksRef().find(t => String(t.id) === String(getActiveFocusTaskRef()));
                          if(focusedTask && focusedTask.parentGoal) {
-                             const goalToCredit = window.__getGoalsRef().find(g => String(g.id) === String(focusedTask.parentGoal));
+                             const goalToCredit = getGoalsRef().find(g => String(g.id) === String(focusedTask.parentGoal));
                              if(goalToCredit) {
                                  goalToCredit.focusTime = (goalToCredit.focusTime || 0) + modeMins;
-                                 Store.goals.set(window.__getGoalsRef());
-                                 if(typeof renderGoals === 'function') window.renderGoals();
+                                 Store.goals.set(getGoalsRef());
+                                 if(typeof renderGoals === 'function') renderGoals();
                                  if(!document.getElementById('goal-details-modal').classList.contains('hidden') && document.getElementById('detail-active-goal-id').value === String(goalToCredit.id)) {
-                                     window.updateGoalDetailsUI(goalToCredit.id);
+                                     updateGoalDetailsUI(goalToCredit.id);
                                  }
                              }
                          }
@@ -448,7 +453,7 @@
                      }
  
                      // --- YENİ: GÖREV SEÇİLİYSE SORU SOR, DEĞİLSE DİREKT MOLAYA GEÇ ---
-                     if(window.__getActiveFocusTaskRef()) {
+                     if(getActiveFocusTaskRef()) {
                          window.__nextBreakMode = breakType;
                          document.getElementById('task-complete-check-modal').classList.remove('hidden');
                      } else {
@@ -458,9 +463,9 @@
                              setTimeout(() => startTimer(), 300);
                          } else {
                              if (breakType === 'longBreak') {
-                                 window.showPremiumModal({ title: 'Harika!', message: 'Uzun bir molayı hak ettin.', type: 'success' });
+                                 showPremiumModal({ title: 'Harika!', message: 'Uzun bir molayı hak ettin.', type: 'success' });
                              } else {
-                                 window.showPremiumModal({ title: 'Tebrikler!', message: 'Bir seansı tamamladın! Şimdi kısa mola zamanı.', type: 'success' });
+                                 showPremiumModal({ title: 'Tebrikler!', message: 'Bir seansı tamamladın! Şimdi kısa mola zamanı.', type: 'success' });
                              }
                              document.querySelector(`.mode-btn[data-mode="${breakType}"]`).click();
                          }
@@ -472,7 +477,7 @@
                          document.querySelector('.mode-btn[data-mode="pomodoro"]').click();
                          setTimeout(() => startTimer(), 300);
                      } else {
-                         window.showPremiumModal({ title: 'Mola Bitti!', message: 'Tekrar odaklanma zamanı. Hadi başlayalım!', type: 'info' });
+                         showPremiumModal({ title: 'Mola Bitti!', message: 'Tekrar odaklanma zamanı. Hadi başlayalım!', type: 'info' });
                          document.querySelector('.mode-btn[data-mode="pomodoro"]').click();
                      }
                  }
@@ -540,7 +545,7 @@
          // timeLeft === 0 (süre doğal olarak bittiğinde otomatik mola/odak geçişi) hariç —
          // o durumda seans zaten kredilendirilmiş, sorulmadan geçilmeli.
          if (isRunning || (timeLeft > 0 && timeLeft !== totalTime)) {
-             window.showPremiumModal({
+             showPremiumModal({
                  title: 'Modu Değiştir',
                  message: 'Bu aşamada kaydettiğin ilerleme silinecek. Moda geçmek istediğine emin misin?',
                  type: 'warning',
@@ -562,7 +567,7 @@
  // bir ilerleme varsa (taze/hiç başlamamış bir sayaçta gereksiz yere sormadan) uyarı gösterilir.
  resetBtn.addEventListener('click', () => {
      if (timeLeft !== totalTime) {
-         window.showPremiumModal({
+         showPremiumModal({
              title: 'Zamanlayıcıyı Sıfırla',
              message: 'Bu aşamada kaydettiğin ilerleme silinecek. Sıfırlamak istediğine emin misin?',
              type: 'warning',
@@ -585,15 +590,15 @@
      _serverFocusSessionId = null;
      _stopFocusHeartbeat();
 
-     const todayDateStr = window.formatDateToString(new Date());
+     const todayDateStr = formatDateToString(new Date());
      let focusHistory = FocusStorage.get('focus_history', {});
      focusHistory[todayDateStr] = (focusHistory[todayDateStr] || 0) + minutesSpent;
      FocusStorage.set('focus_history', focusHistory);
 
      let activeCategory = 'kategorisiz';
-     if (window.__getActiveFocusTaskRef()) {
-         if (window.__getActiveFocusTaskRef() !== 'highlight-task') {
-             const focusedTask = window.__getTasksRef().find(t => String(t.id) === String(window.__getActiveFocusTaskRef()));
+     if (getActiveFocusTaskRef()) {
+         if (getActiveFocusTaskRef() !== 'highlight-task') {
+             const focusedTask = getTasksRef().find(t => String(t.id) === String(getActiveFocusTaskRef()));
              if (focusedTask && focusedTask.category) activeCategory = focusedTask.category;
          } else {
              activeCategory = 'kisisel';
@@ -610,17 +615,17 @@
      focusHours[todayDateStr][currentHour] = (focusHours[todayDateStr][currentHour] || 0) + minutesSpent;
      FocusStorage.set('focus_hours', focusHours);
 
-     if (window.__getActiveFocusTaskRef() && window.__getActiveFocusTaskRef() !== 'highlight-task') {
-         const focusedTask = window.__getTasksRef().find(t => String(t.id) === String(window.__getActiveFocusTaskRef()));
+     if (getActiveFocusTaskRef() && getActiveFocusTaskRef() !== 'highlight-task') {
+         const focusedTask = getTasksRef().find(t => String(t.id) === String(getActiveFocusTaskRef()));
          if (focusedTask && focusedTask.parentGoal) {
-             const goalToCredit = window.__getGoalsRef().find(g => String(g.id) === String(focusedTask.parentGoal));
+             const goalToCredit = getGoalsRef().find(g => String(g.id) === String(focusedTask.parentGoal));
              if (goalToCredit) {
                  goalToCredit.focusTime = (goalToCredit.focusTime || 0) + minutesSpent;
-                 Store.goals.set(window.__getGoalsRef());
-                 if (typeof renderGoals === 'function') window.renderGoals();
+                 Store.goals.set(getGoalsRef());
+                 if (typeof renderGoals === 'function') renderGoals();
                  if (!document.getElementById('goal-details-modal').classList.contains('hidden') &&
                      document.getElementById('detail-active-goal-id').value === String(goalToCredit.id)) {
-                     window.updateGoalDetailsUI(goalToCredit.id);
+                     updateGoalDetailsUI(goalToCredit.id);
                  }
              }
          }
@@ -629,8 +634,8 @@
      if (window.FocusAISocial && typeof window.FocusAISocial.postActivity === 'function') {
          window.FocusAISocial.postActivity(`${minutesSpent} dakika odaklandı ⏱️`);
      }
-     if (window.__getRenderStatisticsRef() && document.getElementById('istatistikler').classList.contains('active')) window.__getRenderStatisticsRef()();
-     if (window.__getRenderSocialStatsRef() && document.getElementById('arkadaslar').classList.contains('active')) window.__getRenderSocialStatsRef()();
+     if (getRenderStatisticsRef() && document.getElementById('istatistikler').classList.contains('active')) getRenderStatisticsRef()();
+     if (getRenderSocialStatsRef() && document.getElementById('arkadaslar').classList.contains('active')) getRenderSocialStatsRef()();
  }
 
  // "Sıradaki Aşama": mevcut aşamayı (odaklanma/mola) bitirmeyi beklemeden bir
@@ -689,7 +694,7 @@
              } else {
                  message = 'Molan burada kesilecek ve odaklanma aşamasına geçilecek. Devam etmek istiyor musun?';
              }
-             window.showPremiumModal({
+             showPremiumModal({
                  title: 'Sıradaki Aşamaya Geç',
                  message,
                  type: 'warning',
@@ -739,13 +744,13 @@
 
         if (minutesSpent > 0) {
             creditFocusMinutes(minutesSpent);
-            window.showPremiumModal({
+            showPremiumModal({
                 title: 'Odaklanma Tamamlandı ⏱️',
                 message: `Oturumu erken bitirmene rağmen, kazandığın ${minutesSpent} dakikalık derin odaklanma süresi tüm hedeflerine ve istatistiklerine başarıyla işlendi!`,
                 type: 'success'
             });
         } else {
-            window.showPremiumModal({
+            showPremiumModal({
                 title: 'Süre Çok Kısa',
                 message: 'Henüz 1 dakika bile tamamlanmadığı için süre kaydedilmedi. İvme kazanmak için biraz daha odaklanmayı dene!',
                 type: 'info'
@@ -759,11 +764,11 @@
          timeLeft = totalTime;
          updateTimerDisplay();
          finishEarlyBtn.classList.add('hidden');
-         window.clearFocusMode(); // Aktif odak seçimini temizle
+         clearFocusMode(); // Aktif odak seçimini temizle
  
          // Sayfa yenilenmeden İstatistikleri ve Arkadaşlar panelini anlık güncelle
-         if (window.__getRenderStatisticsRef() && document.getElementById('istatistikler').classList.contains('active')) window.__getRenderStatisticsRef()();
-         if (window.__getRenderSocialStatsRef() && document.getElementById('arkadaslar').classList.contains('active')) window.__getRenderSocialStatsRef()();
+         if (getRenderStatisticsRef() && document.getElementById('istatistikler').classList.contains('active')) getRenderStatisticsRef()();
+         if (getRenderSocialStatsRef() && document.getElementById('arkadaslar').classList.contains('active')) getRenderSocialStatsRef()();
      });
  }
  
@@ -810,8 +815,8 @@
  let timerProfiles = FocusStorage.get('timer_profiles', null);
  if (!Array.isArray(timerProfiles) || timerProfiles.length === 0) {
      timerProfiles = [
-         { id: window.generateId(), name: 'Klasik Pomodoro', focus: 25, shortBreak: 5, longBreak: 15, cycles: 4 },
-         { id: window.generateId(), name: 'Derin Çalışma', focus: 90, shortBreak: 20, longBreak: 20, cycles: 2 },
+         { id: generateId(), name: 'Klasik Pomodoro', focus: 25, shortBreak: 5, longBreak: 15, cycles: 4 },
+         { id: generateId(), name: 'Derin Çalışma', focus: 90, shortBreak: 20, longBreak: 20, cycles: 2 },
      ];
      FocusStorage.set('timer_profiles', timerProfiles);
  } else {
@@ -945,7 +950,7 @@
          if (deleteTimerProfileBtn) deleteTimerProfileBtn.classList.remove('hidden');
      } else {
          if (timerProfiles.length >= MAX_TIMER_PROFILES) {
-             window.showPremiumModal({ title: 'Profil Limiti Doldu', message: `En fazla ${MAX_TIMER_PROFILES} zamanlayıcı profili oluşturabilirsin. Yeni bir profil eklemeden önce kullanmadığın birini silebilirsin.`, type: 'warning' });
+             showPremiumModal({ title: 'Profil Limiti Doldu', message: `En fazla ${MAX_TIMER_PROFILES} zamanlayıcı profili oluşturabilirsin. Yeni bir profil eklemeden önce kullanmadığın birini silebilirsin.`, type: 'warning' });
              return;
          }
          _editingTimerProfileId = null;
@@ -968,12 +973,12 @@
 
  function deleteTimerProfile(id) {
      if (timerProfiles.length <= 1) {
-         window.showPremiumModal({ title: 'Son Profil', message: 'En az bir zamanlayıcı profilin olmalı. Bunu silmeden önce yeni bir profil oluşturmalısın.', type: 'warning' });
+         showPremiumModal({ title: 'Son Profil', message: 'En az bir zamanlayıcı profilin olmalı. Bunu silmeden önce yeni bir profil oluşturmalısın.', type: 'warning' });
          return;
      }
      const p = timerProfiles.find(x => x.id === id);
      if (!p) return;
-     window.showPremiumModal({
+     showPremiumModal({
          title: 'Profili Sil',
          message: `"${escapeHtml(p.name)}" profilini silmek istediğine emin misin?`,
          type: 'warning', showCancel: true, confirmText: 'Sil', cancelText: 'Vazgeç',
@@ -1020,27 +1025,27 @@
          const lVal = parseInt(settingLongBreak.value) || 15;
 
          if (!nameVal) {
-             window.showPremiumModal({ title: 'İsim Gerekli', message: 'Lütfen profiline bir isim ver.', type: 'warning' });
+             showPremiumModal({ title: 'İsim Gerekli', message: 'Lütfen profiline bir isim ver.', type: 'warning' });
              return;
          }
          // --- BİLİMSEL SINIRLAR (Ultradian Ritim) ---
          if (pVal < 5 || pVal > 120) {
-             window.showPremiumModal({ title: 'Bilimsel Sınır Aşıldı', message: 'İnsan beyni aralıksız maksimum 90-120 dakika odaklanabilir. Lütfen odaklanma süresini 5 ile 120 dakika arasında belirleyin.', type: 'warning' });
+             showPremiumModal({ title: 'Bilimsel Sınır Aşıldı', message: 'İnsan beyni aralıksız maksimum 90-120 dakika odaklanabilir. Lütfen odaklanma süresini 5 ile 120 dakika arasında belirleyin.', type: 'warning' });
              return;
          }
          if (sVal < 1 || sVal > 30) {
-             window.showPremiumModal({ title: 'Geçersiz Kısa Mola', message: 'Kısa molalar zihni tazelemek içindir. Eğer 30 dakikayı geçerse zihin tamamen soğur. Lütfen 1 ile 30 dakika arası bir süre girin.', type: 'warning' });
+             showPremiumModal({ title: 'Geçersiz Kısa Mola', message: 'Kısa molalar zihni tazelemek içindir. Eğer 30 dakikayı geçerse zihin tamamen soğur. Lütfen 1 ile 30 dakika arası bir süre girin.', type: 'warning' });
              return;
          }
          if (lVal < 5 || lVal > 60) {
-             window.showPremiumModal({ title: 'Geçersiz Uzun Mola', message: 'Uzun molalar derin dinlenme içindir ancak 60 dakikayı aşarsa tekrar işe dönmek imkansızlaşır. Lütfen 5 ile 60 dakika arası bir süre girin.', type: 'warning' });
+             showPremiumModal({ title: 'Geçersiz Uzun Mola', message: 'Uzun molalar derin dinlenme içindir ancak 60 dakikayı aşarsa tekrar işe dönmek imkansızlaşır. Lütfen 5 ile 60 dakika arası bir süre girin.', type: 'warning' });
              return;
          }
 
          const cVal = parseInt(settingTargetCycles?.value) || 4;
          const aVal = settingAutoStart?.checked || false;
          if (cVal < 1 || cVal > 10) {
-             window.showPremiumModal({ title: 'Geçersiz Tur Sayısı', message: 'Tur sayısı 1 ile 10 arasında olmalıdır.', type: 'warning' });
+             showPremiumModal({ title: 'Geçersiz Tur Sayısı', message: 'Tur sayısı 1 ile 10 arasında olmalıdır.', type: 'warning' });
              return;
          }
 
@@ -1054,10 +1059,10 @@
              }
          } else {
              if (timerProfiles.length >= MAX_TIMER_PROFILES) {
-                 window.showPremiumModal({ title: 'Profil Limiti Doldu', message: `En fazla ${MAX_TIMER_PROFILES} zamanlayıcı profili oluşturabilirsin.`, type: 'warning' });
+                 showPremiumModal({ title: 'Profil Limiti Doldu', message: `En fazla ${MAX_TIMER_PROFILES} zamanlayıcı profili oluşturabilirsin.`, type: 'warning' });
                  return;
              }
-             const newProfile = { id: window.generateId(), name: nameVal, focus: pVal, shortBreak: sVal, longBreak: lVal, cycles: cVal };
+             const newProfile = { id: generateId(), name: nameVal, focus: pVal, shortBreak: sVal, longBreak: lVal, cycles: cVal };
              timerProfiles.push(newProfile);
              activeTimerProfileId = newProfile.id;
              FocusStorage.set('active_timer_profile_id', activeTimerProfileId);

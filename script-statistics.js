@@ -5,11 +5,15 @@
 // etmiyor) — bu yüzden sadece getter köprüleri yeterli, setter gerekmedi.
 //
 // Köprüler:
-//  - window.__getTasksRef()/__getHabitsRef()/__getMindDumpsRef(): script.js'te
+//  - getTasksRef()/__getHabitsRef()/__getMindDumpsRef(): script.js'te
 //    zaten var olan salt-okunur getter'lar.
 //  - window.monthNames/window.monthNamesShort: script.js'te tanımlı, bu modül
 //    için yeni eklendi.
-//  - window.formatDateToString: script.js'te zaten window'a atanmıştı.
+//  - formatDateToString: script.js'te zaten window'a atanmıştı, artık import.
+
+import { getTasksRef, getHabitsRef, getMindDumpsRef } from './script.js';
+import { formatDateToString } from './script-date-time-utils.js';
+import { updateGlobalStreak } from './script-misc-widgets.js';
 
      function renderStatistics() {
          const now = new Date();
@@ -29,10 +33,10 @@
  
          // --- Temel veriler ---
          const highlightHistory = FocusStorage.get('highlight_history', {});
-         const filteredTasks = window.__getTasksRef().filter(t => t.completed && inRange(t.date || window.formatDateToString(now)));
+         const filteredTasks = getTasksRef().filter(t => t.completed && inRange(t.date || formatDateToString(now)));
          const filteredHighlights = Object.entries(highlightHistory).filter(([ds, h]) => h.completed && inRange(ds));
          const completedTaskCount = filteredTasks.length + filteredHighlights.length;
-         const totalTasksCount = window.__getTasksRef().filter(t => inRange(t.date || window.formatDateToString(now))).length + Object.keys(highlightHistory).filter(ds => inRange(ds)).length;
+         const totalTasksCount = getTasksRef().filter(t => inRange(t.date || formatDateToString(now))).length + Object.keys(highlightHistory).filter(ds => inRange(ds)).length;
          const completionRate = totalTasksCount === 0 ? 0 : Math.round((completedTaskCount / totalTasksCount) * 100);
  
          // --- Odaklanma ---
@@ -46,7 +50,7 @@
              for (let i = 0; i < filterDays; i++) {
                  const dCheck = new Date();
                  dCheck.setDate(dCheck.getDate() - i);
-                 const dsCheck = window.formatDateToString(dCheck);
+                 const dsCheck = formatDateToString(dCheck);
                  if (focusHistory[dsCheck]) focusMinutes += focusHistory[dsCheck];
              }
          }
@@ -75,7 +79,7 @@
  
          // --- Alışkanlık ---
          let totalHabitTargetDays = 0, completedHabitDaysCount = 0;
-         window.__getHabitsRef().forEach(h => {
+         getHabitsRef().forEach(h => {
              totalHabitTargetDays += (h.targetDays || 21);
              completedHabitDaysCount += Object.keys(h.history).filter(ds => inRange(ds)).length;
          });
@@ -112,12 +116,12 @@
          const peakConfidenceEl = document.getElementById('confidence-peak');
          if (peakConfidenceEl) peakConfidenceEl.style.display = filteredTasks.length < CONFIDENCE_MIN_SAMPLE ? 'inline-flex' : 'none';
          const habitConfidenceEl = document.getElementById('confidence-habit');
-         if (habitConfidenceEl) habitConfidenceEl.style.display = (window.__getHabitsRef().length > 0 && completedHabitDaysCount < 3) ? 'inline-flex' : 'none';
+         if (habitConfidenceEl) habitConfidenceEl.style.display = (getHabitsRef().length > 0 && completedHabitDaysCount < 3) ? 'inline-flex' : 'none';
 
          // EKLEME: 1. Ana Hedef Serisi Hesaplama Algoritması
          let highlightStreak = 0;
          let streakCheckDate = new Date();
-         let todayStr = window.formatDateToString(streakCheckDate);
+         let todayStr = formatDateToString(streakCheckDate);
          
          // Eğer bugün henüz ana hedef tamamlanmadıysa ama dün tamamlandıysa seriyi dünden itibaren geriye doğru saymaya başla
          if (!(highlightHistory[todayStr] && highlightHistory[todayStr].completed)) {
@@ -125,7 +129,7 @@
          }
          
          while (true) {
-             let dStr = window.formatDateToString(streakCheckDate);
+             let dStr = formatDateToString(streakCheckDate);
              if (highlightHistory[dStr] && highlightHistory[dStr].completed) {
                  highlightStreak++;
                  streakCheckDate.setDate(streakCheckDate.getDate() - 1); // Bir gün geriye git
@@ -143,7 +147,7 @@
          // Geçmiş verileri kaybetmemek için eski sayacı yeni sisteme göçür (Migration)
          if (legacyCount > 0 && conversionLog.length === 0) {
              for (let i = 0; i < legacyCount; i++) {
-                 conversionLog.push({ id: 'legacy_' + i, date: window.formatDateToString(now) });
+                 conversionLog.push({ id: 'legacy_' + i, date: formatDateToString(now) });
              }
              FocusStorage.set('mind_dump_conversions', conversionLog);
          }
@@ -151,7 +155,7 @@
          // Seçilen zaman filtresine (Son 7 Gün vb.) göre verileri süz
          const filteredConversions = conversionLog.filter(log => inRange(log.date));
          const convertedCount = filteredConversions.length;
-         const activeDumpCount = window.__getMindDumpsRef() ? window.__getMindDumpsRef().length : 0;
+         const activeDumpCount = getMindDumpsRef() ? getMindDumpsRef().length : 0;
          const totalFikir = convertedCount + activeDumpCount;
          const conversionRate = totalFikir > 0 ? Math.round((convertedCount / totalFikir) * 100) : 0;
          
@@ -175,16 +179,16 @@
                  const dt = new Date(y, m - 1, d);
                  return dt >= startDate && dt < endDate;
              }
-             const tasksInRange = window.__getTasksRef().filter(t => t.completed && within(t.date || window.formatDateToString(now)));
+             const tasksInRange = getTasksRef().filter(t => t.completed && within(t.date || formatDateToString(now)));
              const highlightsInRange = Object.entries(highlightHistory).filter(([ds, h]) => h.completed && within(ds));
              const completed = tasksInRange.length + highlightsInRange.length;
-             const totalInRange = window.__getTasksRef().filter(t => within(t.date || window.formatDateToString(now))).length
+             const totalInRange = getTasksRef().filter(t => within(t.date || formatDateToString(now))).length
                  + Object.keys(highlightHistory).filter(ds => within(ds)).length;
              const rate = totalInRange === 0 ? 0 : Math.round((completed / totalInRange) * 100);
              let focus = 0;
              Object.entries(focusHistory).forEach(([ds, mins]) => { if (within(ds)) focus += mins; });
              let totalTargetDays = 0, completedDays = 0;
-             window.__getHabitsRef().forEach(h => {
+             getHabitsRef().forEach(h => {
                  totalTargetDays += (h.targetDays || 21);
                  completedDays += Object.keys(h.history).filter(ds => within(ds)).length;
              });
@@ -292,7 +296,7 @@
          const monthsEl = document.getElementById('heatmap-months');
          if (heatmapEl) {
              const tasksByDay = {};
-             window.__getTasksRef().filter(t => t.completed).forEach(t => {
+             getTasksRef().filter(t => t.completed).forEach(t => {
                  if (t.date) tasksByDay[t.date] = (tasksByDay[t.date] || 0) + 1;
              });
              Object.entries(highlightHistory).filter(([,h]) => h.completed).forEach(([ds]) => {
@@ -329,7 +333,7 @@
              // 2. ADIM: Isı haritası kutucuklarını (hücreleri) oluşturma
              for (let i = totalDays - 1; i >= 0; i--) {
                  const d = new Date(); d.setDate(d.getDate() - i); d.setHours(0,0,0,0);
-                 const ds = window.formatDateToString(d);
+                 const ds = formatDateToString(d);
                  const count = tasksByDay[ds] || 0;
                  
                  // Sıfır görev varsa seviye 0, diğer durumlarda yoğunluğa göre seviye ataması
@@ -347,7 +351,7 @@
                      heatmapEl.querySelectorAll('.hm-day').forEach(c => c.classList.remove('active-heatmap-day'));
                      cell.classList.add('active-heatmap-day');
                      
-                     const dayTasks = window.__getTasksRef().filter(t => t.date === clickedDate && t.completed);
+                     const dayTasks = getTasksRef().filter(t => t.date === clickedDate && t.completed);
                      
                      let dayHighlightText = "";
                      if (highlightHistory[clickedDate] && highlightHistory[clickedDate].completed) {
@@ -407,7 +411,7 @@
         const trendTitleEl  = document.getElementById('weeklyTrendTitle');
         if (trendBarsWrap) {
             const completedByDate = {};
-            window.__getTasksRef().forEach(t => { if (t.completed && t.date) completedByDate[t.date] = (completedByDate[t.date] || 0) + 1; });
+            getTasksRef().forEach(t => { if (t.completed && t.date) completedByDate[t.date] = (completedByDate[t.date] || 0) + 1; });
             Object.entries(highlightHistory).forEach(([ds, h]) => { if (h.completed) completedByDate[ds] = (completedByDate[ds] || 0) + 1; });
             const trendFocusHistory = FocusStorage.get('focus_history', {});
 
@@ -417,7 +421,7 @@
                 if (trendTitleEl) trendTitleEl.textContent = `Son ${filterDays} Günlük İlerleme`;
                 for (let i = filterDays - 1; i >= 0; i--) {
                     const d = new Date(); d.setDate(d.getDate() - i);
-                    const ds = window.formatDateToString(d);
+                    const ds = formatDateToString(d);
                     const dayNamesShortTr = ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'];
                     const label = filterDays === 7
                         ? `${d.getDate()} ${window.monthNamesShort ? window.monthNamesShort[d.getMonth()] : ''}`
@@ -663,21 +667,21 @@
         }
 
         // --- Streak ---
-        todayStr = window.formatDateToString(now);
+        todayStr = formatDateToString(now);
         const taskDaySet = new Set();
-         window.__getTasksRef().filter(t=>t.completed).forEach(t => { if(t.date) taskDaySet.add(t.date); });
+         getTasksRef().filter(t=>t.completed).forEach(t => { if(t.date) taskDaySet.add(t.date); });
          Object.entries(highlightHistory).filter(([,h])=>h.completed).forEach(([ds])=>taskDaySet.add(ds));
          let streak = 0, streakBest = 0, tempStreak = 0;
          const msDay = 86400000;
          for (let i=0; i<365; i++) {
-             const d=new Date(now.getTime()-i*msDay); const ds=window.formatDateToString(d);
+             const d=new Date(now.getTime()-i*msDay); const ds=formatDateToString(d);
              if (taskDaySet.has(ds)) { if(i===streak) streak++; tempStreak++; streakBest=Math.max(streakBest,tempStreak); } else { tempStreak=0; }
          }
          const dotsEl = document.getElementById('streak-dots');
          if (dotsEl) {
              let dotsHTML = '';
              for (let i=6; i>=0; i--) {
-                 const d=new Date(now.getTime()-i*msDay); const ds=window.formatDateToString(d);
+                 const d=new Date(now.getTime()-i*msDay); const ds=formatDateToString(d);
                  dotsHTML += `<div class="streak-dot${taskDaySet.has(ds)?' active':''}" title="${ds}"></div>`;
              }
              dotsEl.innerHTML = dotsHTML;
@@ -693,15 +697,15 @@
          // --- Haftalık Ort. ---
          const weekStart = new Date(now); weekStart.setDate(now.getDate()-now.getDay()); weekStart.setHours(0,0,0,0);
          const prevStart = new Date(weekStart); prevStart.setDate(prevStart.getDate()-7);
-         const thisWeekTasks = window.__getTasksRef().filter(t=>{ if(!t.completed||!t.date) return false; const [d,m,y]=t.date.split('-').map(Number); const dd=new Date(y,m-1,d); return dd>=weekStart; }).length;
-         const prevWeekTasks = window.__getTasksRef().filter(t=>{ if(!t.completed||!t.date) return false; const [d,m,y]=t.date.split('-').map(Number); const dd=new Date(y,m-1,d); return dd>=prevStart&&dd<weekStart; }).length;
+         const thisWeekTasks = getTasksRef().filter(t=>{ if(!t.completed||!t.date) return false; const [d,m,y]=t.date.split('-').map(Number); const dd=new Date(y,m-1,d); return dd>=weekStart; }).length;
+         const prevWeekTasks = getTasksRef().filter(t=>{ if(!t.completed||!t.date) return false; const [d,m,y]=t.date.split('-').map(Number); const dd=new Date(y,m-1,d); return dd>=prevStart&&dd<weekStart; }).length;
          document.getElementById('weekly-avg-tasks').textContent = thisWeekTasks;
          document.getElementById('prev-week-tasks').textContent = prevWeekTasks;
          const weekBar = document.getElementById('weekly-avg-bar');
          if (weekBar) { const maxW = Math.max(thisWeekTasks,prevWeekTasks,1); setTimeout(()=>{ weekBar.style.width = Math.min((thisWeekTasks/maxW)*100,100)+'%'; },300); }
          setTrend('trend-peak', maxH > 0 ? 0 : 0, '');
  
-         window.updateGlobalStreak();
+         updateGlobalStreak();
      }
 
 window.renderStatistics = renderStatistics;
