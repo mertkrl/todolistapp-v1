@@ -1,5 +1,7 @@
 // Faz F: Ortak Odaklanma Odası (co-working) + Gruplar (mock) mini modülü — script.js'ten çıkarıldı.
-// Bağımlılıklar: window.showPremiumModal, window.escapeHtml.
+// Bağımlılıklar: showPremiumModal (Faz G'de script.js'ten gerçek import'a çevrildi), window.escapeHtml
+// (storage-manager.js'te sadece window'a atanmış, export edilmemiş — window ile bırakıldı).
+import { showPremiumModal } from './script.js';
 (function () {
     const coWorkingIdle = document.getElementById('co-working-idle');
     const coWorkingActive = document.getElementById('co-working-active');
@@ -19,7 +21,7 @@
     let cwTimeLeft = 25 * 60;
 
     window.sendCoWorkingInvite = function(name, avatar) {
-        window.showPremiumModal({
+        showPremiumModal({
             title: 'Davet Gönderildi',
             message: `${name} adlı arkadaşına sanal odak odası daveti gönderildi. Yanıt bekleniyor...`,
             type: 'info'
@@ -29,7 +31,7 @@
             const premiumModal = document.getElementById('premium-modal');
             if (premiumModal) premiumModal.classList.add('hidden');
             startCoWorkingRoom(name, avatar);
-            window.showPremiumModal({
+            showPremiumModal({
                 title: 'Davet Kabul Edildi!',
                 message: `${name} davetini kabul etti. Ortak odaklanma seansı başlıyor!`,
                 type: 'success'
@@ -60,7 +62,7 @@
                 updateCwTimerDisplay();
                 if(cwTimeLeft <= 0) {
                     clearInterval(cwTimerInterval);
-                    window.showPremiumModal({
+                    showPremiumModal({
                         title: 'Ortak Seans Bitti!',
                         message: `Harika iş çıkardınız! ${friendName} ile ortak odaklanma seansını başarıyla tamamladınız. Sana +50 XP eklendi!`,
                         type: 'success'
@@ -90,7 +92,7 @@
 
     if(cwPokeBtn) {
         cwPokeBtn.addEventListener('click', () => {
-            window.showPremiumModal({
+            showPremiumModal({
                 title: 'Motivasyon Gönderildi!',
                 message: `Arkadaşını dürttün! Onun ekranında motivasyon gönderdiğine dair şık bir bildirim belirecek.`,
                 type: 'success'

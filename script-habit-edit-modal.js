@@ -11,18 +11,19 @@
 // bu, ayrı ve çok daha büyük/riskli "Takvim" kümesinin (#10) bir parçası —
 // BİLİNÇLİ OLARAK çıkarılmadı.
 //
-// Dış bağımlılıklar (script.js'te kalıyor, window.* köprüsüyle açıldı):
-// - habits → window.__getHabitsRef() (salt-okunur, sadece .find + obje
+// Dış bağımlılıklar (script.js'te kalıyor, Faz G'de gerçek import'a çevrildi):
+// - habits → getHabitsRef() (salt-okunur, sadece .find + obje
 //   mutasyonu, reassignment yok)
-// - saveHabits, populateParentHabitSelects → window.* (önceki çıkarmada
-//   zaten köprülenmişti)
-// - renderHabits, renderGoals → window.* (renderHabits bu çıkarmada YENİ
-//   köprülendi; renderGoals zaten vardı)
-// - showPremiumModal → window.* (zaten köprülüydü)
+// - saveHabits, populateParentHabitSelects, renderHabits → script.js'ten import
+// - renderGoals → script-goal-modal.js'ten import
+// - showPremiumModal → script.js'ten import
 //
 // editHabitModal/closeEditHabitBtn/cancelEditHabitBtn/saveEditHabitBtn DOM
 // referansları köprü yerine burada TEKRAR sorgulanıyor (basit
 // document.getElementById — çapraz dosya bağımlılığından daha basit).
+
+import { getHabitsRef, saveHabits, renderHabits, populateParentHabitSelects, showPremiumModal } from './script.js';
+import { renderGoals } from './script-goal-modal.js';
 
 const editHabitModal = document.getElementById('edit-habit-modal');
 const closeEditHabitBtn = document.getElementById('close-edit-habit-btn');
@@ -30,14 +31,14 @@ const cancelEditHabitBtn = document.getElementById('cancel-edit-habit-btn');
 const saveEditHabitBtn = document.getElementById('save-edit-habit-btn');
 
 window.openEditHabitModal = function(id) {
-    const habit = window.__getHabitsRef().find(h => String(h.id) === String(id));
+    const habit = getHabitsRef().find(h => String(h.id) === String(id));
     if(!habit) return;
 
     document.getElementById('edit-habit-id').value = habit.id;
     document.getElementById('edit-habit-name').value = habit.name;
 
     window.tempEditHabitGoals = habit.parentGoals || [];
-    window.populateParentHabitSelects(); // Seçimleri UI'a yansıt
+    populateParentHabitSelects(); // Seçimleri UI'a yansıt
 
     editHabitModal.classList.remove('hidden');
 }
@@ -56,17 +57,17 @@ if(saveEditHabitBtn) {
         const pillsContainer = document.getElementById('edit-habit-goal-pills');
         const selectedGoals = pillsContainer ? Array.from(pillsContainer.querySelectorAll('.goal-pill.selected')).map(p => p.dataset.val) : [];
 
-        const habit = window.__getHabitsRef().find(h => String(h.id) === String(id));
+        const habit = getHabitsRef().find(h => String(h.id) === String(id));
         if(habit && newName) {
             habit.name = newName;
             habit.parentGoals = selectedGoals;
 
-            window.saveHabits();
-            window.renderHabits();
-            window.renderGoals(); // Bağlı hedefleri hemen tekrar hesapla
+            saveHabits();
+            renderHabits();
+            renderGoals(); // Bağlı hedefleri hemen tekrar hesapla
             closeEditHabitModalFunc();
 
-            window.showPremiumModal({ title: 'Güncellendi', message: 'Alışkanlık başarıyla yeniden yapılandırıldı!', type: 'success' });
+            showPremiumModal({ title: 'Güncellendi', message: 'Alışkanlık başarıyla yeniden yapılandırıldı!', type: 'success' });
         }
     });
 }

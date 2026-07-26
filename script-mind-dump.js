@@ -35,7 +35,7 @@
 // "temizle" bandı gösteriliyor.
 const MAX_MIND_DUMPS = 30;
 
- function saveMindDumps() {
+ export function saveMindDumps() {
      Store.mind_dumps.set(window.__getMindDumpsRef());
  }
  window.saveMindDumps = saveMindDumps;
@@ -121,7 +121,7 @@ const MAX_MIND_DUMPS = 30;
      }).join('');
  }
 
- function renderMindDumps() {
+ export function renderMindDumps() {
      const dumpList = document.getElementById('dump-list');
      if(!dumpList) return;
      dumpList.innerHTML = '';

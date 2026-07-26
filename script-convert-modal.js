@@ -7,10 +7,10 @@
 // referanslara bağımlı).
 //
 // Köprüler:
-//  - window.__getMindDumpsRef()/__setMindDumpsRef(): mindDumps hem okunuyor
+//  - getMindDumpsRef()/__setMindDumpsRef(): mindDumps hem okunuyor
 //    hem `filter()` sonucu reassign ediliyor, bu yüzden getter+setter.
-//  - window.__getHabitsRef(): habits sadece push ile mutate ediliyor, getter yeterli.
-//  - window.__getHabitCategoriesRef(): script.js'te bu çıkarma için yeni eklendi.
+//  - getHabitsRef(): habits sadece push ile mutate ediliyor, getter yeterli.
+//  - getHabitCategoriesRef(): script.js'te bu çıkarma için yeni eklendi.
 //  - window.renderCalendar/renderEvents/addSmartTask: script.js'te bu çıkarma
 //    için yeni eklendi (önceden sadece hoisting'e dayanan bare referanslardı —
 //    taşınmadan önce her ikisi de script.js'in kendi closure'ında "çalışıyormuş
@@ -19,6 +19,15 @@
 //    saveHabits/renderHabits/renderTasks/renderCalMindDump: script.js'te zaten vardı.
 //  - window.__getRenderCalendarRef/__getRenderEventsRef/__getRenderStatisticsRef:
 //    script.js'te zaten vardı (script-habit-sync.js ile aynı desen).
+//
+// Faz G: window.* çağrıları gerçek import'lara çevrildi (script.js/script-date-time-utils.js/
+// script-mind-dump.js hâlâ window.X = fn atamalarını KORUYOR, geriye dönük uyumluluk için).
+// openGoalModal() bare çağrısı BİLİNÇLİ OLARAK dokunulmadı — inline-goal-modal-globals.js'te
+// klasik (non-module) global olarak tanımlı, script.js'in kendi (kullanılmayan) openGoalModal'ı değil.
+
+import { getHabitCategoriesRef, getMindDumpsRef, setMindDumpsRef, checkGoalDateBoundaries, showPremiumModal, hasTimeConflict, addSmartTask, getHabitsRef, saveHabits, renderHabits, renderTasks, getRenderCalendarRef, getRenderEventsRef, getRenderStatisticsRef } from './script.js';
+import { formatDateToString, timeToMins, addOneHour } from './script-date-time-utils.js';
+import { saveMindDumps, renderMindDumps } from './script-mind-dump.js';
 
      const convertModal = document.getElementById('convert-dump-modal');
      const convertIdInput = document.getElementById('convert-dump-id');
@@ -78,7 +87,7 @@
                  
                  // KATEGORİLERİ SENKRONİZE ET (Alışkanlıklar sekmesiyle aynı yapar)
                  convertHabitCat.innerHTML = '';
-                 window.__getHabitCategoriesRef().forEach(cat => {
+                 getHabitCategoriesRef().forEach(cat => {
                      const opt = document.createElement('option');
                      opt.value = cat.id; 
                      opt.textContent = cat.name;
@@ -92,7 +101,7 @@
      });
  
      window.openConvertModal = function(id) {
-         const dump = window.__getMindDumpsRef().find(d => String(d.id) === String(id));
+         const dump = getMindDumpsRef().find(d => String(d.id) === String(id));
          if(!dump) return;
          
          convertIdInput.value = dump.id;
@@ -103,7 +112,7 @@
          if (convertDateInput._flatpickr) {
             convertDateInput._flatpickr.setDate(new Date(), false);
         } else {
-            convertDateInput.value = window.formatDateToString(new Date());
+            convertDateInput.value = formatDateToString(new Date());
         }
          convertPriorityInput.value = 'medium';
          if(convertTaskRecurring) convertTaskRecurring.value = '';
@@ -116,7 +125,7 @@
  
      if (convertStartTimeInput && convertEndTimeInput) {
          convertStartTimeInput.addEventListener('change', () => {
-             convertEndTimeInput.value = window.addOneHour(convertStartTimeInput.value);
+             convertEndTimeInput.value = addOneHour(convertStartTimeInput.value);
          });
      }
  
@@ -137,9 +146,9 @@
              openGoalModal(); 
              document.getElementById('goal-title-input').value = text; 
              
-             window.__setMindDumpsRef(window.__getMindDumpsRef().filter(d => String(d.id) !== String(id)));
-             window.saveMindDumps();
-             window.renderMindDumps();
+             setMindDumpsRef(getMindDumpsRef().filter(d => String(d.id) !== String(id)));
+             saveMindDumps();
+             renderMindDumps();
          });
      }
  
@@ -167,33 +176,33 @@
                  const parentGoal = convertParentGoal ? convertParentGoal.value : '';
 
                     // --- YENİ: Ana Hedef Tarih Sınırı Kontrolü ---
-                    if (!window.checkGoalDateBoundaries(parentGoal, date)) {
+                    if (!checkGoalDateBoundaries(parentGoal, date)) {
                         return;
                     }
 
                  const recurring = convertTaskRecurring ? convertTaskRecurring.value : '';
                  
                  if(!date || !start || !end) {
-                     window.showPremiumModal({ title: 'Eksik Bilgi', message: 'Lütfen görev için bir başlangıç ve bitiş saati belirleyin.', type: 'warning' });
+                     showPremiumModal({ title: 'Eksik Bilgi', message: 'Lütfen görev için bir başlangıç ve bitiş saati belirleyin.', type: 'warning' });
                      return;
                  }
  
-                 const startMins = window.timeToMins(start);
-                 const endMins = window.timeToMins(end);
+                 const startMins = timeToMins(start);
+                 const endMins = timeToMins(end);
  
                  if(startMins >= endMins) {
-                     window.showPremiumModal({ title: 'Hatalı Zaman', message: 'Bitiş saati başlangıçtan önce veya aynı olamaz.', type: 'warning' });
+                     showPremiumModal({ title: 'Hatalı Zaman', message: 'Bitiş saati başlangıçtan önce veya aynı olamaz.', type: 'warning' });
                      return;
                  }
  
-                 if(window.hasTimeConflict(date, startMins, endMins)) {
-                     window.showPremiumModal({ title: 'Zaman Çakışması', message: 'Bu saatte takviminizde başka plan var.', type: 'warning' });
+                 if(hasTimeConflict(date, startMins, endMins)) {
+                     showPremiumModal({ title: 'Zaman Çakışması', message: 'Bu saatte takviminizde başka plan var.', type: 'warning' });
                      return;
                  }
  
-                 window.addSmartTask(text, priority, 'kisisel', date, start, end, '', parentGoal, recurring);
+                 addSmartTask(text, priority, 'kisisel', date, start, end, '', parentGoal, recurring);
                  if(!recurring) {
-                     window.showPremiumModal({ title: 'Başarılı!', message: 'Fikriniz başarıyla bir göreve dönüştürüldü.', type: 'success' });
+                     showPremiumModal({ title: 'Başarılı!', message: 'Fikriniz başarıyla bir göreve dönüştürüldü.', type: 'success' });
                  }
                  if (window.FocusAISocial && typeof window.FocusAISocial.postActivity === 'function') {
                      window.FocusAISocial.postActivity(`"${text}" fikrini göreve dönüştürdü 💡`);
@@ -204,37 +213,37 @@
                  const duration = parseInt(convertHabitDuration.value) || 21;
                  const iconMap = { 'health': 'fa-heart-pulse', 'education': 'fa-book-open', 'finance': 'fa-wallet', 'social': 'fa-users', 'work': 'fa-briefcase', 'other': 'fa-star' };
                  
-                 window.__getHabitsRef().push({ 
-                     id: generateId(),
+                 getHabitsRef().push({ 
+                     id: window.generateId(),
                      name: text, 
                      icon: iconMap[category] || 'fa-star', 
                      targetDays: duration, 
                      category: category,
-                     startDate: window.formatDateToString(new Date()),
+                     startDate: formatDateToString(new Date()),
                      buddy: 'none', 
                      parentGoals: [],
                      history: {} 
                  });
-                 window.saveHabits();
-                 window.renderHabits();
-                 window.showPremiumModal({ title: 'Başarılı!', message: 'Fikriniz yeni bir alışkanlığa dönüştürüldü.', type: 'success' });
+                 saveHabits();
+                 renderHabits();
+                 showPremiumModal({ title: 'Başarılı!', message: 'Fikriniz yeni bir alışkanlığa dönüştürüldü.', type: 'success' });
              }
  
             // Ortak: Çöplükten sil ve yenile
-            window.__setMindDumpsRef(window.__getMindDumpsRef().filter(d => String(d.id) !== String(id)));
+            setMindDumpsRef(getMindDumpsRef().filter(d => String(d.id) !== String(id)));
             
             // Fikir dönüşüm günlüğünü veritabanına tarihli kaydet
             let conversionLog = FocusStorage.get('mind_dump_conversions', []);
-            conversionLog.push({ id: id, date: window.formatDateToString(new Date()) });
+            conversionLog.push({ id: id, date: formatDateToString(new Date()) });
             FocusStorage.set('mind_dump_conversions', conversionLog);
  
-            window.saveMindDumps();
-            window.renderMindDumps();
+            saveMindDumps();
+            renderMindDumps();
              
-             window.renderTasks();
-             if(window.__getRenderCalendarRef()) window.__getRenderCalendarRef()();
-             if(window.__getRenderEventsRef()) window.__getRenderEventsRef()();
-             if(window.__getRenderStatisticsRef() && document.getElementById('istatistikler').classList.contains('active')) window.__getRenderStatisticsRef()();
+             renderTasks();
+             if(getRenderCalendarRef()) getRenderCalendarRef()();
+             if(getRenderEventsRef()) getRenderEventsRef()();
+             if(getRenderStatisticsRef() && document.getElementById('istatistikler').classList.contains('active')) getRenderStatisticsRef()();
              
              // GÜNCELLEME: Takvimin aktif görünüm moduna (Aylık/Haftalık/Günlük) göre arayüzü ve havuzu zorunlu yenile
                 setTimeout(() => {
@@ -243,7 +252,7 @@
                     if (typeof window.renderCalMindDump === 'function') window.renderCalMindDump();
                     if (typeof window.renderCalMindDump === 'function') window.renderCalMindDump();
                     if (typeof window.updateStats === 'function') window.updateStats();
-                    if (typeof window.renderTasks === 'function') window.renderTasks();
+                    if (typeof window.renderTasks === 'function') renderTasks();
                     
                     // Aktif takvim görünümlerini (Haftalık/Günlük çipleri) anında yenileyen tetikleyiciler
                     if (typeof window.renderWeeklyView === 'function') window.renderWeeklyView();

@@ -53,7 +53,7 @@ function getWeekNumber(d) {
 }
 window.getWeekNumber = getWeekNumber;
 
-function timeToMins(t) {
+export function timeToMins(t) {
     if(!t) return 0;
     const parts = t.split(':').map(Number);
     return parts[0] * 60 + parts[1];
@@ -79,7 +79,7 @@ function getNextRecurringDate(dateStr, recurringType) {
 }
 window.getNextRecurringDate = getNextRecurringDate;
 
-function addOneHour(timeStr) {
+export function addOneHour(timeStr) {
     if (!timeStr) return "13:00";
     let [hours, minutes] = timeStr.split(':').map(Number);
     hours = (hours + 1) % 24; // YENİ: 23'ten sonra 00'a (gece yarısı) kusursuz döngü yapar

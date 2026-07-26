@@ -5853,3 +5853,15 @@ export function showPremiumModal(...args) { return window.showPremiumModal(...ar
 export function updateGoalDetailsUI(...args) { return window.updateGoalDetailsUI(...args); }
 export function saveHabits(...args) { return window.saveHabits(...args); }
 export function getRenderHabitsRef(...args) { return window.__getRenderHabitsRef(...args); }
+export function checkGoalDateBoundaries(...args) { return window.checkGoalDateBoundaries(...args); }
+export function saveTasks(...args) { return window.saveTasks(...args); }
+export function renderTasks(...args) { return window.renderTasks(...args); }
+export function renderHabits(...args) { return window.renderHabits(...args); }
+export function populateParentHabitSelects(...args) { return window.populateParentHabitSelects(...args); }
+export function hasTimeConflict(...args) { return window.hasTimeConflict(...args); }
+export function addSmartTask(...args) { return window.addSmartTask(...args); }
+export function getCalendarEventsRef(...args) { return window.__getCalendarEventsRef(...args); }
+export function setMindDumpsRef(...args) { return window.__setMindDumpsRef(...args); }
+export function getRenderCalendarRef(...args) { return window.__getRenderCalendarRef(...args); }
+export function getRenderEventsRef(...args) { return window.__getRenderEventsRef(...args); }
+export function getRenderStatisticsRef(...args) { return window.__getRenderStatisticsRef(...args); }

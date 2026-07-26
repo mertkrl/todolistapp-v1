@@ -268,15 +268,15 @@ script-command-palette.js:243  ${iconColor}
 script-command-palette.js:244  ${icon}
 script-command-palette.js:247  ${title}
 script-command-palette.js:250  ${badge ? `<span class="cmd-item-badge" style="color:${badgeColor};background:${badgeBg||'rgba(255,...}
-script-coworking-groups.js:175  ${group.members}
-script-coworking-groups.js:179  ${Math.round((group.weeklyGoalCurrent / group.weeklyGoalMax) * 100)}
-script-coworking-groups.js:222  ${encodeURIComponent(member.name)}
-script-coworking-groups.js:222  ${member.color.replace('#','')}
-script-coworking-groups.js:222  ${borderStyle}
-script-coworking-groups.js:225  ${member.status}
-script-coworking-groups.js:252  ${rankIcon}
-script-coworking-groups.js:253  ${encodeURIComponent(user.name)}
-script-coworking-groups.js:256  ${user.score}
+script-coworking-groups.js:177  ${group.members}
+script-coworking-groups.js:181  ${Math.round((group.weeklyGoalCurrent / group.weeklyGoalMax) * 100)}
+script-coworking-groups.js:224  ${encodeURIComponent(member.name)}
+script-coworking-groups.js:224  ${member.color.replace('#','')}
+script-coworking-groups.js:224  ${borderStyle}
+script-coworking-groups.js:227  ${member.status}
+script-coworking-groups.js:254  ${rankIcon}
+script-coworking-groups.js:255  ${encodeURIComponent(user.name)}
+script-coworking-groups.js:258  ${user.score}
 script-day-summary-card.js:95  ${statusIcon}
 script-day-summary-card.js:96  ${statusColor}
 script-day-summary-card.js:96  ${statusLabel}

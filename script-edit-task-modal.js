@@ -9,6 +9,12 @@
 //  - window.checkGoalDateBoundaries/saveTasks/renderTasks: script.js'te zaten vardı.
 //  - window.__getRenderCalendarRef/__getRenderEventsRef: script.js'te zaten vardı
 //    (script-habit-sync.js/script-convert-modal.js ile aynı desen).
+//
+// Faz G: window.* çağrıları gerçek import'lara çevrildi (script.js hâlâ
+// window.X = fn atamalarını KORUYOR, geriye dönük uyumluluk için).
+
+import { getTasksRef, getCalendarEventsRef, checkGoalDateBoundaries, saveTasks, renderTasks, getRenderCalendarRef, getRenderEventsRef } from './script.js';
+import { timeToMins, addOneHour } from './script-date-time-utils.js';
 
      const editTaskModal       = document.getElementById('edit-task-modal');
      const editTaskIdInput     = document.getElementById('edit-task-id');
@@ -22,16 +28,16 @@
      const saveEditTaskBtn     = document.getElementById('save-edit-task-btn');
      const cancelEditTaskBtn   = document.getElementById('cancel-edit-task-btn');
      const closeEditTaskBtn    = document.getElementById('close-edit-task-btn');
- 
+
      function closeEditModal() {
          if (editTaskModal) editTaskModal.classList.add('hidden');
          if (editTaskTimeError) editTaskTimeError.style.display = 'none';
      }
- 
+
      window.editTask = function(id) {
-         const task = window.__getTasksRef().find(t => String(t.id) === String(id));
+         const task = getTasksRef().find(t => String(t.id) === String(id));
          if (!task) return;
- 
+
          editTaskIdInput.value       = task.id;
          editTaskTextInput.value     = task.text;
          if(editTaskParentSelect) editTaskParentSelect.value = task.parentHabit || "";
@@ -40,11 +46,11 @@
          editTaskStart.value         = task.timeStart || '09:00';
          editTaskEnd.value           = task.timeEnd   || '10:00';
          editTaskTimeError.style.display = 'none';
- 
+
          editTaskModal.classList.remove('hidden');
          editTaskTextInput.focus();
      };
- 
+
      if (saveEditTaskBtn) {
          saveEditTaskBtn.addEventListener('click', () => {
              const id       = editTaskIdInput.value;
@@ -52,39 +58,39 @@
              const newParent = editTaskParentSelect ? editTaskParentSelect.value : "";
              const newStart = editTaskStart.value;
              const newEnd   = editTaskEnd.value;
- 
+
              if (!newText) {
                  editTaskTextInput.focus();
                  return;
              }
-             if (window.timeToMins(newStart) >= window.timeToMins(newEnd)) {
+             if (timeToMins(newStart) >= timeToMins(newEnd)) {
                  editTaskTimeError.style.display = 'block';
                  return;
              }
              editTaskTimeError.style.display = 'none';
- 
-             const task = window.__getTasksRef().find(t => String(t.id) === String(id));
+
+             const task = getTasksRef().find(t => String(t.id) === String(id));
 
              // --- DÜZENLEME EKRANI HEDEF TARİH SINIRI KONTROLÜ (DÜZELTİLDİ) ---
              const configGoalSelect = document.getElementById('edit-task-parent-goal');
              const checkedParentGoal = configGoalSelect ? configGoalSelect.value : (task ? task.parentGoal : '');
-             if (checkedParentGoal && task && !window.checkGoalDateBoundaries(checkedParentGoal, task.date)) {
+             if (checkedParentGoal && task && !checkGoalDateBoundaries(checkedParentGoal, task.date)) {
                  return;
              }
 
              if (!task) return;
- 
+
              const oldDate = task.date;
- 
+
              task.text      = newText;
              task.parentHabit = newParent;
              task.priority  = editTaskPriority.value;
              task.category  = editTaskCategory.value;
              task.timeStart = newStart;
              task.timeEnd   = newEnd;
- 
-             if (window.__getCalendarEventsRef()[oldDate]) {
-                 const ev = window.__getCalendarEventsRef()[oldDate].find(e => String(e.id) === String(id));
+
+             if (getCalendarEventsRef()[oldDate]) {
+                 const ev = getCalendarEventsRef()[oldDate].find(e => String(e.id) === String(id));
                  if (ev) {
                      ev.text      = newText;
                      ev.parentHabit = newParent;
@@ -93,39 +99,39 @@
                      ev.priority  = task.priority;
                  }
              }
- 
-             window.saveTasks();
-             window.renderTasks();
-             if (window.__getRenderCalendarRef())  window.__getRenderCalendarRef()();
-             if (window.__getRenderEventsRef())    window.__getRenderEventsRef()();
+
+             saveTasks();
+             renderTasks();
+             if (getRenderCalendarRef())  getRenderCalendarRef()();
+             if (getRenderEventsRef())    getRenderEventsRef()();
              if (typeof window.renderWeeklyView === 'function') window.renderWeeklyView();
              if (typeof window.renderDailyView  === 'function') window.renderDailyView();
- 
+
              closeEditModal();
          });
      }
- 
+
      if (cancelEditTaskBtn) cancelEditTaskBtn.addEventListener('click', closeEditModal);
      if (closeEditTaskBtn)  closeEditTaskBtn.addEventListener('click',  closeEditModal);
- 
+
      if (editTaskModal) {
          editTaskModal.addEventListener('click', (e) => {
              if (e.target === editTaskModal) closeEditModal();
          });
      }
- 
+
      if (editTaskStart) {
          editTaskStart.addEventListener('change', () => {
              if (editTaskEnd) {
-                 editTaskEnd.value = window.addOneHour(editTaskStart.value);
+                 editTaskEnd.value = addOneHour(editTaskStart.value);
              }
-             const ok = window.timeToMins(editTaskStart.value) < window.timeToMins(editTaskEnd.value);
+             const ok = timeToMins(editTaskStart.value) < timeToMins(editTaskEnd.value);
              editTaskTimeError.style.display = ok ? 'none' : 'block';
          });
      }
      if (editTaskEnd) {
          editTaskEnd.addEventListener('change', () => {
-             const ok = window.timeToMins(editTaskStart.value) < window.timeToMins(editTaskEnd.value);
+             const ok = timeToMins(editTaskStart.value) < timeToMins(editTaskEnd.value);
              editTaskTimeError.style.display = ok ? 'none' : 'block';
          });
      }
