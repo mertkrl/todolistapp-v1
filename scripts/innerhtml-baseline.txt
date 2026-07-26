@@ -131,42 +131,42 @@ planning-misc-widgets.js:286  ${done}
 planning-misc-widgets.js:287  ${avgPct}
 planning-misc-widgets.js:288  ${doneMs}
 planning-misc-widgets.js:288  ${totalMs}
-planning-plan-header.js:43  ${cat.color}
-planning-plan-header.js:43  ${cat.color}
-planning-plan-header.js:47  ${cat.icon}
-planning-plan-header.js:47  ${cat.label}
-planning-plan-header.js:48  ${g.deadline ? `<span>·</span><span><i class="ti ti-calendar-due"></i> ${window.fmtDate(g.deadline)...}
-planning-plan-header.js:53  ${pct}
-planning-plan-header.js:53  ${cat.color}
-planning-plan-header.js:55  ${cat.color}
-planning-plan-header.js:55  ${pct}
-planning-plan-header.js:86  ${window.__getPvReadOnlyShowOwnTasks() ? ' active' : ''}
-planning-plan-header.js:87  ${window.__getPvReadOnlyShowOwnTasks() ? 'Mevcut Görevlerimi Gizle' : 'Mevcut Görevlerimi Gör'}
-planning-plan-header.js:106  ${!isTpl ? `<button class="pg-pv-save-template-btn" id="pg-pv-save-template-btn" title="Bu planın a...}
-planning-plan-header.js:109  ${!isTpl ? `<button class="pg-pv-assign-class-btn" id="pg-pv-assign-class-btn"> <i class="ti ti-sen...}
-planning-plan-header.js:238  ${diff}
-planning-plan-header.js:240  ${-diff}
-planning-plan-header.js:251  ${cat.color}
-planning-plan-header.js:254  ${m.start_time || ''}
-planning-plan-header.js:254  ${m.end_time ? '–'+m.end_time : ''}
-planning-plan-header.js:256  ${window.fmtShort(m.start_date)}
-planning-plan-header.js:256  ${window.fmtShort(m.due_date)}
-planning-plan-header.js:256  ${timeLabel}
-planning-plan-header.js:257  ${window.fmtShort(m.due_date)}
-planning-plan-header.js:257  ${timeLabel}
-planning-plan-header.js:260  ${i > 0 ? `<div class="pg-pv-step-connector${ms[i-1].done?' done':''}"></div>` : ''}
-planning-plan-header.js:262  ${m.id}
-planning-plan-header.js:262  ${isActive?`--ms-color:${cat.color};`:''}
-planning-plan-header.js:263  ${isLocked ? 'title="Sıralı modda önceki aşama tamamlanmadan açılamaz"' : ''}
-planning-plan-header.js:266  ${isActive||m.done?`background:${cat.color};color:#000;`:''}
-planning-plan-header.js:267  ${m.done ? '✓' : i + 1}
-planning-plan-header.js:271  ${statusBadge}
-planning-plan-header.js:275  ${dateRange ? `<div class="pg-pv-step-daterange"><i class="ti ti-calendar-event"></i> ${dateRange}<...}
-planning-plan-header.js:277  ${(stTotal || mTasks.length) ? ` <div class="pg-pv-step-progress-row"> <div class="pg-pv-step-progr...}
-planning-plan-header.js:286  ${mTasks.length ? `<span class="pg-pv-step-stat"><i class="ti ti-checkbox"></i> ${mDone}/${mTasks.l...}
-planning-plan-header.js:287  ${stTotal ? `<span class="pg-pv-step-stat"><i class="ti ti-list-check"></i> ${stsDone}/${stTotal} a...}
-planning-plan-header.js:288  ${mDur ? `<span class="pg-pv-step-stat"><i class="ti ti-clock"></i> ${mDur}</span>` : ''}
-planning-plan-header.js:289  ${daysInfo ? `<span class="pg-pv-step-stat${m.due_date < today && !m.done ? ' overdue' : ''}"><i cl...}
+planning-plan-header.js:46  ${cat.color}
+planning-plan-header.js:46  ${cat.color}
+planning-plan-header.js:50  ${cat.icon}
+planning-plan-header.js:50  ${cat.label}
+planning-plan-header.js:51  ${g.deadline ? `<span>·</span><span><i class="ti ti-calendar-due"></i> ${window.fmtDate(g.deadline)...}
+planning-plan-header.js:56  ${pct}
+planning-plan-header.js:56  ${cat.color}
+planning-plan-header.js:58  ${cat.color}
+planning-plan-header.js:58  ${pct}
+planning-plan-header.js:89  ${window.__getPvReadOnlyShowOwnTasks() ? ' active' : ''}
+planning-plan-header.js:90  ${window.__getPvReadOnlyShowOwnTasks() ? 'Mevcut Görevlerimi Gizle' : 'Mevcut Görevlerimi Gör'}
+planning-plan-header.js:109  ${!isTpl ? `<button class="pg-pv-save-template-btn" id="pg-pv-save-template-btn" title="Bu planın a...}
+planning-plan-header.js:112  ${!isTpl ? `<button class="pg-pv-assign-class-btn" id="pg-pv-assign-class-btn"> <i class="ti ti-sen...}
+planning-plan-header.js:241  ${diff}
+planning-plan-header.js:243  ${-diff}
+planning-plan-header.js:254  ${cat.color}
+planning-plan-header.js:257  ${m.start_time || ''}
+planning-plan-header.js:257  ${m.end_time ? '–'+m.end_time : ''}
+planning-plan-header.js:259  ${window.fmtShort(m.start_date)}
+planning-plan-header.js:259  ${window.fmtShort(m.due_date)}
+planning-plan-header.js:259  ${timeLabel}
+planning-plan-header.js:260  ${window.fmtShort(m.due_date)}
+planning-plan-header.js:260  ${timeLabel}
+planning-plan-header.js:263  ${i > 0 ? `<div class="pg-pv-step-connector${ms[i-1].done?' done':''}"></div>` : ''}
+planning-plan-header.js:265  ${m.id}
+planning-plan-header.js:265  ${isActive?`--ms-color:${cat.color};`:''}
+planning-plan-header.js:266  ${isLocked ? 'title="Sıralı modda önceki aşama tamamlanmadan açılamaz"' : ''}
+planning-plan-header.js:269  ${isActive||m.done?`background:${cat.color};color:#000;`:''}
+planning-plan-header.js:270  ${m.done ? '✓' : i + 1}
+planning-plan-header.js:274  ${statusBadge}
+planning-plan-header.js:278  ${dateRange ? `<div class="pg-pv-step-daterange"><i class="ti ti-calendar-event"></i> ${dateRange}<...}
+planning-plan-header.js:280  ${(stTotal || mTasks.length) ? ` <div class="pg-pv-step-progress-row"> <div class="pg-pv-step-progr...}
+planning-plan-header.js:289  ${mTasks.length ? `<span class="pg-pv-step-stat"><i class="ti ti-checkbox"></i> ${mDone}/${mTasks.l...}
+planning-plan-header.js:290  ${stTotal ? `<span class="pg-pv-step-stat"><i class="ti ti-list-check"></i> ${stsDone}/${stTotal} a...}
+planning-plan-header.js:291  ${mDur ? `<span class="pg-pv-step-stat"><i class="ti ti-clock"></i> ${mDur}</span>` : ''}
+planning-plan-header.js:292  ${daysInfo ? `<span class="pg-pv-step-stat${m.due_date < today && !m.done ? ' overdue' : ''}"><i cl...}
 planning-quick-create.js:80  ${c.id === _qcState.category ? ' selected' : ''}
 planning-quick-create.js:81  ${c.id}
 planning-quick-create.js:81  ${c.color}
@@ -188,70 +188,70 @@ planning-wizard.js:143  ${idx < count - 1 ? 'İleri <i class="ti ti-arrow-right"
 planning-wizard.js:266  ${minDate ? `<span class="pvwiz-min-hint">(${window.fmtDate(minDate)} ve sonrası)</span>` : ''}
 planning-wizard.js:301  ${avatar}
 planning-wizard.js:308  ${avatar}
-planning.js:887  ${cat.color}
-planning.js:887  ${cat.color}
-planning.js:887  ${cat.color}
-planning.js:887  ${cat.icon}
-planning.js:887  ${cat.label}
-planning.js:890  ${window.progressRing(pct,cat.color)}
-planning.js:894  ${st.color}
-planning.js:894  ${st.label}
-planning.js:895  ${g.deadline?`<span class="pg-dp-meta-item"><i class="ti ti-calendar-due"></i> ${window.fmtDate(g.d...}
-planning.js:896  ${ms.length>0?`<span class="pg-dp-meta-item"><i class="ti ti-flag-3"></i> ${ms.filter(m=>m.done).le...}
-planning.js:919  ${cat.color}
-planning.js:948  ${m.id}
-planning.js:950  ${m.id}
-planning.js:950  ${goalId}
-planning.js:955  ${dlLabel?`<span class="pg-ms-date-label"><i class="ti ti-calendar"></i> ${dlLabel}</span>`:''}
-planning.js:956  ${subs.length?`<span class="pg-ms-subtask-counter"><i class="ti ti-checklist"></i> ${subsDone}/${su...}
-planning.js:958  ${subsHTML}
-planning.js:960  ${m.id}
-planning.js:962  ${extras}
-planning.js:965  ${m.id}
-planning.js:965  ${goalId}
-planning.js:966  ${m.id}
-planning.js:966  ${goalId}
-planning.js:1035  ${dep.id}
-planning.js:2361  ${_pvMsIcon(ms, g)}
-planning.js:2366  ${cat.color}
-planning.js:2368  ${statusCls}
-planning.js:2368  ${statusLbl}
-planning.js:2372  ${ms.due_date || ''}
-planning.js:2372  ${cat.color}
-planning.js:2373  ${!ms.due_date ? '<span style="color:#444;font-size:11px;">Tarih belirle</span>' : ''}
-planning.js:2379  ${stTotal ? ` <div class="pg-pv-st-progress"> <div class="pg-pv-st-progress-header"> <span class="p...}
-planning.js:2415  ${_pvGetMsIndex(g, ms.id) === 0 ? 'disabled' : ''}
-planning.js:2419  ${ms.done ? '<i class="ti ti-rotate-counterclockwise"></i> Geri Al' : '<i class="ti ti-check"></i> ...}
-planning.js:2421  ${_pvGetMsIndex(g, ms.id) === (g.milestones.length - 1) ? 'disabled' : ''}
-planning.js:3155  ${monthLbl}
-planning.js:3159  ${_pvCalSwitchInline(g)}
-planning.js:3161  ${_pvBusyToggleBtn(g)}
-planning.js:3165  ${dayNames.map(d => `<div class="pg-pv-main-cal-hdr">${d}</div>`).join('')}
-planning.js:3166  ${cells}
-planning.js:3322  ${cat.color}
-planning.js:3323  ${cat.icon}
-planning.js:3328  ${cat.color}
-planning.js:3332  ${cat.color}
-planning.js:3335  ${totalDur ? `<div class="pvwiz-summary-stat-card"> <div class="pvwiz-summary-stat-val" style="colo...}
-planning.js:3340  ${msRows}
+planning.js:900  ${cat.color}
+planning.js:900  ${cat.color}
+planning.js:900  ${cat.color}
+planning.js:900  ${cat.icon}
+planning.js:900  ${cat.label}
+planning.js:903  ${window.progressRing(pct,cat.color)}
+planning.js:907  ${st.color}
+planning.js:907  ${st.label}
+planning.js:908  ${g.deadline?`<span class="pg-dp-meta-item"><i class="ti ti-calendar-due"></i> ${window.fmtDate(g.d...}
+planning.js:909  ${ms.length>0?`<span class="pg-dp-meta-item"><i class="ti ti-flag-3"></i> ${ms.filter(m=>m.done).le...}
+planning.js:932  ${cat.color}
+planning.js:961  ${m.id}
+planning.js:963  ${m.id}
+planning.js:963  ${goalId}
+planning.js:968  ${dlLabel?`<span class="pg-ms-date-label"><i class="ti ti-calendar"></i> ${dlLabel}</span>`:''}
+planning.js:969  ${subs.length?`<span class="pg-ms-subtask-counter"><i class="ti ti-checklist"></i> ${subsDone}/${su...}
+planning.js:971  ${subsHTML}
+planning.js:973  ${m.id}
+planning.js:975  ${extras}
+planning.js:978  ${m.id}
+planning.js:978  ${goalId}
+planning.js:979  ${m.id}
+planning.js:979  ${goalId}
+planning.js:1048  ${dep.id}
+planning.js:2374  ${_pvMsIcon(ms, g)}
+planning.js:2379  ${cat.color}
+planning.js:2381  ${statusCls}
+planning.js:2381  ${statusLbl}
+planning.js:2385  ${ms.due_date || ''}
+planning.js:2385  ${cat.color}
+planning.js:2386  ${!ms.due_date ? '<span style="color:#444;font-size:11px;">Tarih belirle</span>' : ''}
+planning.js:2392  ${stTotal ? ` <div class="pg-pv-st-progress"> <div class="pg-pv-st-progress-header"> <span class="p...}
+planning.js:2428  ${_pvGetMsIndex(g, ms.id) === 0 ? 'disabled' : ''}
+planning.js:2432  ${ms.done ? '<i class="ti ti-rotate-counterclockwise"></i> Geri Al' : '<i class="ti ti-check"></i> ...}
+planning.js:2434  ${_pvGetMsIndex(g, ms.id) === (g.milestones.length - 1) ? 'disabled' : ''}
+planning.js:3168  ${monthLbl}
+planning.js:3172  ${_pvCalSwitchInline(g)}
+planning.js:3174  ${_pvBusyToggleBtn(g)}
+planning.js:3178  ${dayNames.map(d => `<div class="pg-pv-main-cal-hdr">${d}</div>`).join('')}
+planning.js:3179  ${cells}
+planning.js:3335  ${cat.color}
+planning.js:3336  ${cat.icon}
 planning.js:3341  ${cat.color}
-planning.js:3539  ${isToday ? 'Bugün' : dateLbl}
-planning.js:3541  ${isToday ? dateLbl : dayName}
-planning.js:3545  ${capacityHtml}
-planning.js:3549  ${typingHtml}
-planning.js:3550  ${tasksHtml}
-planning.js:3553  ${ownTasksHtml}
-planning.js:3555  ${msSubsHtml}
-planning.js:3561  ${blocksAdd ? '' : `<div class="pg-pv-day-add-task pg-pv-day-add-task-lp" id="pg-pv-day-add-task"> ...}
-planning.js:3670  ${cat.color}
-planning.js:3911  ${cat.color}
-planning.js:3911  ${done}
-planning.js:3911  ${pct}
-planning.js:3914  ${pct}
-planning.js:3914  ${cat.color}
-planning.js:4077  ${pct}
-planning.js:4078  ${done}
-planning.js:4099  ${items.length-5}
+planning.js:3345  ${cat.color}
+planning.js:3348  ${totalDur ? `<div class="pvwiz-summary-stat-card"> <div class="pvwiz-summary-stat-val" style="colo...}
+planning.js:3353  ${msRows}
+planning.js:3354  ${cat.color}
+planning.js:3552  ${isToday ? 'Bugün' : dateLbl}
+planning.js:3554  ${isToday ? dateLbl : dayName}
+planning.js:3558  ${capacityHtml}
+planning.js:3562  ${typingHtml}
+planning.js:3563  ${tasksHtml}
+planning.js:3566  ${ownTasksHtml}
+planning.js:3568  ${msSubsHtml}
+planning.js:3574  ${blocksAdd ? '' : `<div class="pg-pv-day-add-task pg-pv-day-add-task-lp" id="pg-pv-day-add-task"> ...}
+planning.js:3683  ${cat.color}
+planning.js:3924  ${cat.color}
+planning.js:3924  ${done}
+planning.js:3924  ${pct}
+planning.js:3927  ${pct}
+planning.js:3927  ${cat.color}
+planning.js:4090  ${pct}
+planning.js:4091  ${done}
+planning.js:4112  ${items.length-5}
 script-ambient-sounds.js:101  ${icon}
 script-ambient-sounds.js:196  ${type}
 script-ambient-sounds.js:197  ${label.icon}
@@ -795,59 +795,59 @@ social-home-summary.js:296  ${done ? '✓ Tamamlandı' : `%${pct}`}
 social-home-summary.js:296  ${window.formatFocusMinutes(total)}
 social-home-summary.js:296  ${window.formatFocusMinutes(g.weekly_goal)}
 social-home-summary.js:296  ${window.formatFocusMinutes(mine)}
-social-institution-panel.js:306  ${groupAvatarHtml(groupCode, groupData.name, 30)}
-social-institution-panel.js:308  ${ownerBadge}
-social-institution-panel.js:311  ${groupCode}
-social-institution-panel.js:311  ${activeNowMiniHtml}
-social-institution-panel.js:467  ${avatarImgHtml(uData, 28)}
-social-institution-panel.js:900  ${c.id}
-social-institution-panel.js:928  ${t.id}
-social-institution-panel.js:980  ${countByTemplate[t.id] || 0}
-social-institution-panel.js:982  ${t.id}
-social-institution-panel.js:983  ${t.id}
-social-institution-panel.js:984  ${t.id}
-social-institution-panel.js:997  ${c.id}
-social-institution-panel.js:1062  ${dayName}
-social-institution-panel.js:1121  ${badge}
-social-institution-panel.js:1164  ${dayName}
+social-institution-class-modals.js:183  ${c.id}
+social-institution-class-modals.js:211  ${t.id}
+social-institution-class-modals.js:263  ${countByTemplate[t.id] || 0}
+social-institution-class-modals.js:265  ${t.id}
+social-institution-class-modals.js:266  ${t.id}
+social-institution-class-modals.js:267  ${t.id}
+social-institution-class-modals.js:280  ${c.id}
+social-institution-class-modals.js:345  ${dayName}
+social-institution-class-modals.js:404  ${badge}
+social-institution-class-modals.js:447  ${dayName}
+social-institution-class-modals.js:706  ${newSectionId ? `<option value="__unassigned__">— Sınıfsız yap —</option>` : ''}
+social-institution-class-modals.js:776  ${info.program.id}
+social-institution-class-modals.js:777  ${info.program.id}
 917 potentially-unescaped interpolation(s) found.
 
-social-institution-panel.js:1423  ${newSectionId ? `<option value="__unassigned__">— Sınıfsız yap —</option>` : ''}
-social-institution-panel.js:1493  ${info.program.id}
-social-institution-panel.js:1494  ${info.program.id}
-social-institution-panel.js:1502  ${info.draftProgram.id}
-social-institution-panel.js:1503  ${info.draftProgram.id}
-social-institution-panel.js:3108  ${hasStudentPerfTab ? `<button class="cp-subtab-btn${isActive('performansim')}" data-cpsub="perform...}
-social-institution-panel.js:3109  ${hasPerfTab ? `<button class="cp-subtab-btn${isActive('performans')}" data-cpsub="performans"><i c...}
-social-institution-panel.js:3110  ${isActive('odevler')}
-social-institution-panel.js:3110  ${asgLabel}
-social-institution-panel.js:3111  ${isActive('program')}
-social-institution-panel.js:3112  ${isClassAdmin ? `<button class="cp-subtab-btn${isActive('roster')}" data-cpsub="roster"><i class="...}
-social-institution-panel.js:3113  ${isActive('rapor')}
-social-institution-panel.js:3115  ${hasStudentPerfTab ? `<div class="cp-subtab-panel${isActive('performansim')}" data-cpsubpanel="per...}
-social-institution-panel.js:3116  ${hasPerfTab ? `<div class="cp-subtab-panel${isActive('performans')}" data-cpsubpanel="performans">...}
-social-institution-panel.js:3117  ${isActive('odevler')}
-social-institution-panel.js:3117  ${asgHtml}
-social-institution-panel.js:3118  ${isActive('program')}
-social-institution-panel.js:3118  ${scheduleHtml}
-social-institution-panel.js:3119  ${isClassAdmin ? `<div class="cp-subtab-panel${isActive('roster')}" data-cpsubpanel="roster">${rost...}
-social-institution-panel.js:3120  ${isActive('rapor')}
-social-institution-panel.js:3120  ${reportHtml}
-social-institution-panel.js:3717  ${s.userId}
-social-institution-panel.js:4094  ${onboardingHtml}
-social-institution-panel.js:4094  ${weekTodoHtml}
-social-institution-panel.js:4094  ${kpiHtml}
-social-institution-panel.js:4270  ${nextMineHtml}
-social-institution-panel.js:4270  ${myStreakHtml}
-social-institution-panel.js:4270  ${myActiveStatusHtml}
-social-institution-panel.js:4270  ${myCompletionHtml}
-social-institution-panel.js:4270  ${privacyHtml}
-social-institution-panel.js:4294  ${checked ? `<i class="fa-solid fa-eye-slash"></i> Şu an <b>gizli</b>: haftalık odak süren ve aktif...}
-social-institution-panel.js:4343  ${statTilesHtml}
-social-institution-panel.js:4344  ${isClassAdmin ? `<div id="grp-intro-insights" class="cp-skeleton" style="margin-bottom:14px;"><div...}
-social-institution-panel.js:4345  ${isClassAdmin ? `<div id="grp-intro-shortcuts-wrap"></div>` : ` <button type="button" class="contr...}
-social-institution-panel.js:4428  ${ids.map(tileHtml).join('')}
-social-institution-panel.js:4453  ${Object.keys(SHORTCUT_DEFS).map(galleryRowHtml).join('')}
+social-institution-class-modals.js:785  ${info.draftProgram.id}
+social-institution-class-modals.js:786  ${info.draftProgram.id}
+social-institution-panel.js:320  ${groupAvatarHtml(groupCode, groupData.name, 30)}
+social-institution-panel.js:322  ${ownerBadge}
+social-institution-panel.js:325  ${groupCode}
+social-institution-panel.js:325  ${activeNowMiniHtml}
+social-institution-panel.js:481  ${avatarImgHtml(uData, 28)}
+social-institution-panel.js:2216  ${hasStudentPerfTab ? `<button class="cp-subtab-btn${isActive('performansim')}" data-cpsub="perform...}
+social-institution-panel.js:2217  ${hasPerfTab ? `<button class="cp-subtab-btn${isActive('performans')}" data-cpsub="performans"><i c...}
+social-institution-panel.js:2218  ${isActive('odevler')}
+social-institution-panel.js:2218  ${asgLabel}
+social-institution-panel.js:2219  ${isActive('program')}
+social-institution-panel.js:2220  ${isClassAdmin ? `<button class="cp-subtab-btn${isActive('roster')}" data-cpsub="roster"><i class="...}
+social-institution-panel.js:2221  ${isActive('rapor')}
+social-institution-panel.js:2223  ${hasStudentPerfTab ? `<div class="cp-subtab-panel${isActive('performansim')}" data-cpsubpanel="per...}
+social-institution-panel.js:2224  ${hasPerfTab ? `<div class="cp-subtab-panel${isActive('performans')}" data-cpsubpanel="performans">...}
+social-institution-panel.js:2225  ${isActive('odevler')}
+social-institution-panel.js:2225  ${asgHtml}
+social-institution-panel.js:2226  ${isActive('program')}
+social-institution-panel.js:2226  ${scheduleHtml}
+social-institution-panel.js:2227  ${isClassAdmin ? `<div class="cp-subtab-panel${isActive('roster')}" data-cpsubpanel="roster">${rost...}
+social-institution-panel.js:2228  ${isActive('rapor')}
+social-institution-panel.js:2228  ${reportHtml}
+social-institution-panel.js:2825  ${s.userId}
+social-institution-panel.js:3202  ${onboardingHtml}
+social-institution-panel.js:3202  ${weekTodoHtml}
+social-institution-panel.js:3202  ${kpiHtml}
+social-institution-panel.js:3378  ${nextMineHtml}
+social-institution-panel.js:3378  ${myStreakHtml}
+social-institution-panel.js:3378  ${myActiveStatusHtml}
+social-institution-panel.js:3378  ${myCompletionHtml}
+social-institution-panel.js:3378  ${privacyHtml}
+social-institution-panel.js:3402  ${checked ? `<i class="fa-solid fa-eye-slash"></i> Şu an <b>gizli</b>: haftalık odak süren ve aktif...}
+social-institution-panel.js:3451  ${statTilesHtml}
+social-institution-panel.js:3452  ${isClassAdmin ? `<div id="grp-intro-insights" class="cp-skeleton" style="margin-bottom:14px;"><div...}
+social-institution-panel.js:3453  ${isClassAdmin ? `<div id="grp-intro-shortcuts-wrap"></div>` : ` <button type="button" class="contr...}
+social-institution-panel.js:3536  ${ids.map(tileHtml).join('')}
+social-institution-panel.js:3561  ${Object.keys(SHORTCUT_DEFS).map(galleryRowHtml).join('')}
 social-message-pins.js:269  ${keys.length > 1 ? `Sabitlenmiş mesaj (${_dcPinnedIndex + 1}/${keys.length})` : 'Sabitlenmiş mesaj'}
 social-message-pins.js:272  ${keys.length > 1 ? `<button class="dc-pinned-nav-btn" data-action="next-pin" title="Sonraki sabitl...}
 social-message-pins.js:273  ${canUnpin ? `<button class="dc-pinned-unpin-btn" data-action="unpin" title="Sabitlemeyi kaldır"><i...}
