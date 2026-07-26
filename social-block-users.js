@@ -26,7 +26,7 @@ window.isUserBlocked = isUserBlocked;
 
 // Ben onu engelledim VEYA o beni engelledi — her iki durumda da
 // birbirimizin profilini, mesajlarını ve istatistiklerini göremeyiz.
-function isBlockedEitherWay(username) {
+export function isBlockedEitherWay(username) {
     return isUserBlocked(username) || window._dcGetBlockedByOthers().has(username);
 }
 window.isBlockedEitherWay = isBlockedEitherWay;
@@ -98,7 +98,7 @@ window.updateDcBlockedBanner = updateDcBlockedBanner;
 
 // Ayarlar > "Engellenen Kullanıcılar" listesini doldurur — engeli
 // kaldırmanın TEK yolu burasıdır.
-async function renderBlockedUsersSettings() {
+export async function renderBlockedUsersSettings() {
     const listEl = document.getElementById('settings-blocked-list');
     if (!listEl) return;
 

@@ -2,6 +2,14 @@
 // FOCUSAI SOCIAL — SOHBET PANELİ: PROFİL GÜNCELLEME + KİŞİLER LİSTESİ
 // social.js'ten çıkarıldı (2026-07-18)
 // ============================================================
+// Faz G: gerçek ES import'lar — bu dosya inline-module-loader.js sırasında
+// aşağıdaki üreticilerden SONRA yüklendiği için statik import güvenli.
+import { getFriends } from './social-friends-notifications.js';
+import { registerPresenceWatchIds } from './social-presence.js';
+import { isBlockedEitherWay } from './social-block-users.js';
+import { hasUnreadDm } from './social-dm-notifications.js';
+import { goToDmChat, openMiniProfile } from './social-dc-contacts.js';
+
 (function () {
 'use strict';
 
@@ -55,7 +63,7 @@ function syncSidebarContacts() {
     const badgeEl = document.getElementById('sb-contacts-badge');
     if (!listEl) return;
 
-    const friends = window.getFriends ? window.getFriends() : [];
+    const friends = getFriends();
     if (!friends.length) {
         listEl.innerHTML = '<div class="sidebar-chat-empty-state">Arkadaş ekle, burada görünsün.</div>';
         if (badgeEl) badgeEl.textContent = '0';
@@ -69,11 +77,11 @@ function syncSidebarContacts() {
         window.FocusSupabase.from('profiles').select('id, username, display_name, avatar_color, custom_avatar, avatar_initials')
             .in('username', friends)
             .then(({ data: profiles }) => {
-                window.registerPresenceWatchIds?.((profiles || []).map(u => u.id).filter(Boolean));
+                registerPresenceWatchIds((profiles || []).map(u => u.id).filter(Boolean));
                 const presenceState = window.getCommunityPresenceState ? window.getCommunityPresenceState() : {};
                 (profiles || []).forEach(u => {
                     const username    = u.username;
-                    if (typeof window.isBlockedEitherWay === 'function' && window.isBlockedEitherWay(username)) return;
+                    if (isBlockedEitherWay(username)) return;
                     const displayName = u.display_name || username;
                     const color       = u.avatar_color || '6c5ce7';
                     const isOnline    = !!(presenceState && presenceState[username]);
@@ -86,7 +94,7 @@ function syncSidebarContacts() {
                         card.className = 'sb-contact-card';
                     }
 
-                    const unread = (typeof window.hasUnreadDm === 'function') && window.hasUnreadDm(username);
+                    const unread = hasUnreadDm(username);
                     card.innerHTML = `
                         <div class="sb-contact-avatar" style="background:#${color}; position:relative;" title="Profili Gör">
                             ${window._escapeHtml(displayName.charAt(0).toUpperCase())}
@@ -103,16 +111,16 @@ function syncSidebarContacts() {
                     `;
 
                     const openDM = () => {
-                        if (typeof window.goToDmChat === 'function') window.goToDmChat(username, displayName);
+                        if (typeof goToDmChat === 'function') goToDmChat(username, displayName);
                         else if (typeof window.openDcDmRoom === 'function') window.openDcDmRoom(username, displayName);
                     };
                     card.querySelector('.sb-contact-avatar').addEventListener('click', e => {
                         e.stopPropagation();
-                        window.openMiniProfile(username, { displayName, avatarColor: color, customAvatar: u.custom_avatar, avatarInitials: u.avatar_initials || null }, card);
+                        openMiniProfile(username, { displayName, avatarColor: color, customAvatar: u.custom_avatar, avatarInitials: u.avatar_initials || null }, card);
                     });
                     card.querySelector('.sb-contact-detail-btn').addEventListener('click', e => {
                         e.stopPropagation();
-                        window.openMiniProfile(username, { displayName, avatarColor: color, customAvatar: u.custom_avatar, avatarInitials: u.avatar_initials || null }, card);
+                        openMiniProfile(username, { displayName, avatarColor: color, customAvatar: u.custom_avatar, avatarInitials: u.avatar_initials || null }, card);
                     });
                     card.querySelector('.sb-contact-focus-btn')?.addEventListener('click', e => {
                         e.stopPropagation();
