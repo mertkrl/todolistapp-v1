@@ -173,3 +173,8 @@ function showChatNotificationToast({ key, avatarHtml, title, body, onClick }) {
 window.showChatNotificationToast = showChatNotificationToast;
 
 })();
+
+// Diğer social-*.js modüllerinin import edebilmesi için ince sarmalayıcı export'lar.
+export const playNotificationSound = window.playNotificationSound;
+export const requestDesktopNotificationPermission = window.requestDesktopNotificationPermission;
+export const maybeShowDesktopNotification = window.maybeShowDesktopNotification;

@@ -6,6 +6,9 @@
 // NOT: getUser/getDB/currentUser social.js'te tanımlı — window.getUser/
 // window.getDB/window.currentUser köprüsü üzerinden erişiliyor (social.js'in
 // kendisi de bu köprüleri zaten her yerde tutarlı tutuyor).
+// DİKKAT: social.js bu dosyadan SONRA yükleniyor (inline-module-loader.js sırası),
+// bu yüzden statik import'a ÇEVRİLMEDİ — statik import social.js'i erken
+// yükleyip modül init sırasını bozardı. window köprüsü BİLİNÇLİ OLARAK bırakıldı.
 (function () {
 'use strict';
 

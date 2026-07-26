@@ -501,13 +501,13 @@ social-chat-extras.js:720  ${c.bg}
 social-chat-extras.js:720  ${c.color}
 social-chat-extras.js:720  ${c.border}
 social-chat-extras.js:723  ${m.xp}
-social-daily-race.js:26  ${Math.min(i, 15) * 35}
-social-daily-race.js:27  ${i + 1}
-social-daily-race.js:28  ${window.avatarImgHtml({ displayName: r.display_name, username: r.username, avatarColor: r.avatar_c...}
-social-daily-race.js:31  ${r.is_me ? '<span class="lb-me-tag"> (Sen)</span>' : ''}
-social-daily-race.js:32  ${medal}
-social-daily-race.js:32  ${xp}
-social-daily-race.js:34  ${pct}
+social-daily-race.js:28  ${Math.min(i, 15) * 35}
+social-daily-race.js:29  ${i + 1}
+social-daily-race.js:30  ${avatarImgHtml({ displayName: r.display_name, username: r.username, avatarColor: r.avatar_color, c...}
+social-daily-race.js:33  ${r.is_me ? '<span class="lb-me-tag"> (Sen)</span>' : ''}
+social-daily-race.js:34  ${medal}
+social-daily-race.js:34  ${xp}
+social-daily-race.js:36  ${pct}
 social-dc-chat-theme.js:266  ${Object.entries(DC_CHAT_THEMES).map(([key, t]) => ` <button class="dc-theme-swatch" data-theme="${...}
 social-dc-chat-theme.js:269  ${customColor}
 social-dc-chat-theme.js:270  ${customColor}
@@ -856,8 +856,8 @@ social-online-friends.js:84  ${window.avatarImgHtml(f, 34)}
 social-online-friends.js:86  ${window.hasUnreadDm(f.username) ? '<span class="dc-unread-dot"></span>' : ''}
 social-online-friends.js:94  ${!f.online ? ' cw-invite-btn--offline' : ''}
 social-online-friends.js:94  ${!f.online ? 'disabled title="Bu kullanıcı şu an çevrimdışı"' : ''}
-social-polls.js:35  ${num}
-social-polls.js:138  ${totalVotes}
+social-polls.js:39  ${num}
+social-polls.js:142  ${totalVotes}
 social-roles.js:217  ${meta.color}
 social-roles.js:217  ${meta.color}
 social-roles.js:218  ${meta.icon}
@@ -891,9 +891,9 @@ social-settings-modal.js:72  ${savedPrivacy === 'friends' ? 'selected' : ''}
 social-settings-modal.js:73  ${savedPrivacy === 'nobody' ? 'selected' : ''}
 social-settings-modal.js:90  ${savedLang === 'tr' ? 'selected' : ''}
 social-settings-modal.js:91  ${savedLang === 'en' ? 'selected' : ''}
-social-sidebar-profile.js:91  ${color}
-social-sidebar-profile.js:100  ${unread ? '<span class="dc-unread-pill"></span>' : ''}
-social-sidebar-profile.js:101  ${isOnline ? '<button class="sb-contact-focus-btn" title="Birlikte Odaklan"><i class="fa-solid fa-b...}
+social-sidebar-profile.js:99  ${color}
+social-sidebar-profile.js:108  ${unread ? '<span class="dc-unread-pill"></span>' : ''}
+social-sidebar-profile.js:109  ${isOnline ? '<button class="sb-contact-focus-btn" title="Birlikte Odaklan"><i class="fa-solid fa-b...}
 social-toast.js:41  ${type}
 social-toast.js:42  ${icon || icons[type] || icons.info}
 social-toast.js:45  ${desc}
