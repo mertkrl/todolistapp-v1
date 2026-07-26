@@ -10,12 +10,16 @@
 // script.js'ten SONRA, orijinal DOMContentLoaded zamanlamasını korumak
 // için kendi DOMContentLoaded sarmalayıcısında yüklenir.
 // ============================================================
+import { getGoalsRef, getTasksRef, showPremiumModal } from './script.js';
+import { toInputDate, formatDateToString } from './script-date-time-utils.js';
+import { renderGoals } from './script-goal-modal.js';
+
 (function () {
 'use strict';
 document.addEventListener('DOMContentLoaded', () => {
 
     window.extendGoalDeadline = function(goalId) {
-        const goals = window.__getGoalsRef();
+        const goals = getGoalsRef();
         const goal = goals.find(g => String(g.id) === String(goalId));
         if (!goal || goal.status !== 'expired') return;
 
@@ -28,20 +32,20 @@ document.addEventListener('DOMContentLoaded', () => {
             deadlineEl._flatpickr.set('minDate', 'today');
             deadlineEl._flatpickr.setDate(suggested);
         } else {
-            deadlineEl.value = window.toInputDate(window.formatDateToString(suggested));
+            deadlineEl.value = toInputDate(formatDateToString(suggested));
         }
         document.getElementById('extend-deadline-modal').classList.remove('hidden');
     }
 
     window.saveExtendedDeadline = function() {
-        const goals = window.__getGoalsRef();
+        const goals = getGoalsRef();
         const goalId = document.getElementById('extend-goal-id').value;
         const goal = goals.find(g => String(g.id) === String(goalId));
         if (!goal) return;
 
         const rawDeadline = document.getElementById('extend-deadline-input').value;
         if (!rawDeadline) {
-            window.showPremiumModal({ title: 'Hata', message: 'Lütfen yeni bir bitiş tarihi seçin.', type: 'warning' });
+            showPremiumModal({ title: 'Hata', message: 'Lütfen yeni bir bitiş tarihi seçin.', type: 'warning' });
             return;
         }
 
@@ -58,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const newDeadlineDate = new Date(ny, nm - 1, nd);
         newDeadlineDate.setHours(23, 59, 59, 999);
         if (newDeadlineDate < new Date()) {
-            window.showPremiumModal({ title: 'Geçersiz Tarih', message: 'Yeni bitiş tarihi bugünden önce olamaz.', type: 'warning' });
+            showPremiumModal({ title: 'Geçersiz Tarih', message: 'Yeni bitiş tarihi bugünden önce olamaz.', type: 'warning' });
             return;
         }
 
@@ -68,14 +72,14 @@ document.addEventListener('DOMContentLoaded', () => {
         window.Store.goals.set(goals);
 
         document.getElementById('extend-deadline-modal').classList.add('hidden');
-        window.renderGoals();
+        renderGoals();
 
-        window.showPremiumModal({ title: 'Süre Uzatıldı! 🚀', message: `"${goal.title}" hedefi tekrar Aktif Hedefler'e taşındı. Yeni bitiş tarihi: ${newDeadlineDate.toLocaleDateString('tr-TR')}.`, type: 'success' });
+        showPremiumModal({ title: 'Süre Uzatıldı! 🚀', message: `"${goal.title}" hedefi tekrar Aktif Hedefler'e taşındı. Yeni bitiş tarihi: ${newDeadlineDate.toLocaleDateString('tr-TR')}.`, type: 'success' });
     }
 
     window.quickCompleteGoal = function(goalId) {
-        const goals = window.__getGoalsRef();
-        const tasks = window.__getTasksRef();
+        const goals = getGoalsRef();
+        const tasks = getTasksRef();
         const goal = goals.find(g => String(g.id) === String(goalId));
         if (!goal) return;
 
@@ -86,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ? `⚠️ Bu hedefe bağlı <strong style="color:#ff9f43;">${pendingTasks.length} aktif görev</strong> var. Yine de hedefi tamamlamak istiyor musunuz?`
             : 'Bu ana hedefi başarıyla tamamlandı (Başarı) olarak işaretlemek istiyor musunuz?';
 
-            window.showPremiumModal({
+            showPremiumModal({
                 title: 'Hedefi Tamamla 🏆',
                 message: warningText,
                 type: pendingTasks.length > 0 ? 'warning' : 'info',
@@ -98,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     window.Store.goals.set(goals);
 
                     if (typeof window.fireConfetti === 'function') window.fireConfetti();
-                    window.renderGoals();
+                    renderGoals();
 
                     if (window.FocusAISocial && typeof window.FocusAISocial.postActivity === 'function') {
                         window.FocusAISocial.postActivity(`"${goal.title}" hedefini başarıyla tamamladı 🏆`);
@@ -106,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     // Başarı mesajı
                     setTimeout(() => {
-                        window.showPremiumModal({
+                        showPremiumModal({
                             title: 'Tebrikler! 🏆',
                             message: 'Hedef başarıyla tamamlandı ve otomatik olarak Başarılarım arşivine taşındı.',
                             type: 'success'

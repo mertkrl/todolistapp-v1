@@ -260,8 +260,8 @@ script-ambient-sounds.js:199  ${type}
 script-ambient-sounds.js:199  ${vol / 100}
 script-ambient-sounds.js:200  ${vol}
 script-ambient-sounds.js:471  ${icon}
-script-calendar-hover-popup.js:60  ${dayName}
-script-calendar-hover-popup.js:60  ${rows}
+script-calendar-hover-popup.js:64  ${dayName}
+script-calendar-hover-popup.js:64  ${rows}
 script-calendar-week-day-view.js:413  ${timeStr}
 script-command-palette.js:243  ${iconBg}
 script-command-palette.js:243  ${iconColor}
@@ -277,48 +277,48 @@ script-coworking-groups.js:227  ${member.status}
 script-coworking-groups.js:254  ${rankIcon}
 script-coworking-groups.js:255  ${encodeURIComponent(user.name)}
 script-coworking-groups.js:258  ${user.score}
-script-day-summary-card.js:95  ${statusIcon}
-script-day-summary-card.js:96  ${statusColor}
-script-day-summary-card.js:96  ${statusLabel}
-script-day-summary-card.js:102  ${pills.length ? `<div class="cdd-sum-pills">${pills.join('')}</div>` : ''}
-script-goal-modal.js:267  ${wonGoals.length + expiredGoals.length > 0 ? Math.round((wonGoals.length / (wonGoals.length + expi...}
-script-goal-modal.js:281  ${wonCount > 0 ? ` <span style="background:rgba(254,202,87,0.2);color:#feca57;padding:1px 7px;borde...}
-script-goal-modal.js:282  ${expiredCount > 0 ? ` <span style="background:rgba(255,71,87,0.2);color:#ff4757;padding:1px 7px;bo...}
-script-goal-modal.js:283  ${activeCount > 0 ? ` <span style="background:rgba(108,92,231,0.2);color:#a29bfe;padding:1px 7px;bo...}
-script-goal-modal.js:288  ${MAX_ACTIVE_GOALS}
-script-goal-modal.js:391  ${emoji}
-script-goal-modal.js:393  ${accentColor}
-script-goal-modal.js:393  ${emoji}
-script-goal-modal.js:396  ${accentBg}
-script-goal-modal.js:396  ${accentColor}
-script-goal-modal.js:396  ${accentColor}
-script-goal-modal.js:397  ${statusIcon}
-script-goal-modal.js:397  ${statusLabel}
-script-goal-modal.js:399  ${categoryLabel ? `<span style="background: rgba(108,92,231,0.12); color: #a29bfe; padding: 3px 10p...}
-script-goal-modal.js:405  ${accentColor}
-script-goal-modal.js:406  ${endDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
+script-day-summary-card.js:99  ${statusIcon}
+script-day-summary-card.js:100  ${statusColor}
+script-day-summary-card.js:100  ${statusLabel}
+script-day-summary-card.js:106  ${pills.length ? `<div class="cdd-sum-pills">${pills.join('')}</div>` : ''}
+script-goal-modal.js:271  ${wonGoals.length + expiredGoals.length > 0 ? Math.round((wonGoals.length / (wonGoals.length + expi...}
+script-goal-modal.js:285  ${wonCount > 0 ? ` <span style="background:rgba(254,202,87,0.2);color:#feca57;padding:1px 7px;borde...}
+script-goal-modal.js:286  ${expiredCount > 0 ? ` <span style="background:rgba(255,71,87,0.2);color:#ff4757;padding:1px 7px;bo...}
+script-goal-modal.js:287  ${activeCount > 0 ? ` <span style="background:rgba(108,92,231,0.2);color:#a29bfe;padding:1px 7px;bo...}
+script-goal-modal.js:292  ${MAX_ACTIVE_GOALS}
+script-goal-modal.js:395  ${emoji}
+script-goal-modal.js:397  ${accentColor}
+script-goal-modal.js:397  ${emoji}
+script-goal-modal.js:400  ${accentBg}
+script-goal-modal.js:400  ${accentColor}
+script-goal-modal.js:400  ${accentColor}
+script-goal-modal.js:401  ${statusIcon}
+script-goal-modal.js:401  ${statusLabel}
+script-goal-modal.js:403  ${categoryLabel ? `<span style="background: rgba(108,92,231,0.12); color: #a29bfe; padding: 3px 10p...}
 script-goal-modal.js:409  ${accentColor}
-script-goal-modal.js:410  ${durationText}
-script-goal-modal.js:412  ${linkedTaskCount > 0 ? `<div style="display: flex; align-items: center; gap: 6px; font-size: 12px;...}
-script-goal-modal.js:416  ${accentColor}
-script-goal-modal.js:416  ${accentBg}
-script-goal-modal.js:416  ${accentColor}
-script-goal-modal.js:417  ${goal._progress}
-script-goal-modal.js:422  ${!isWon ? `<button class="control-btn" data-action="extend-goal-deadline" data-id="${goal.id}" tit...}
-script-goal-modal.js:425  ${goal.id}
-script-goal-modal.js:523  ${gcStartDisplay}
-script-goal-modal.js:523  ${gcEndDisplay}
-script-goal-modal.js:528  ${urgencyClass}
-script-goal-modal.js:528  ${urgencyText}
-script-goal-modal.js:529  ${goal.id}
-script-goal-modal.js:543  ${goal._progress}
-script-goal-modal.js:543  ${progressColor}
-script-goal-modal.js:546  ${goal._completedSteps}
-script-goal-modal.js:546  ${goal._totalSteps}
+script-goal-modal.js:410  ${endDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
+script-goal-modal.js:413  ${accentColor}
+script-goal-modal.js:414  ${durationText}
+script-goal-modal.js:416  ${linkedTaskCount > 0 ? `<div style="display: flex; align-items: center; gap: 6px; font-size: 12px;...}
+script-goal-modal.js:420  ${accentColor}
+script-goal-modal.js:420  ${accentBg}
+script-goal-modal.js:420  ${accentColor}
+script-goal-modal.js:421  ${goal._progress}
+script-goal-modal.js:426  ${!isWon ? `<button class="control-btn" data-action="extend-goal-deadline" data-id="${goal.id}" tit...}
+script-goal-modal.js:429  ${goal.id}
+script-goal-modal.js:527  ${gcStartDisplay}
+script-goal-modal.js:527  ${gcEndDisplay}
+script-goal-modal.js:532  ${urgencyClass}
+script-goal-modal.js:532  ${urgencyText}
+script-goal-modal.js:533  ${goal.id}
 script-goal-modal.js:547  ${goal._progress}
-script-goal-modal.js:552  ${goal.status !== 'completed' ? `<button class="gc-complete-btn" data-action="quick-complete-goal" ...}
-script-goal-modal.js:553  ${goal.id}
-script-goal-modal.js:598  ${nearestGoalHTML}
+script-goal-modal.js:547  ${progressColor}
+script-goal-modal.js:550  ${goal._completedSteps}
+script-goal-modal.js:550  ${goal._totalSteps}
+script-goal-modal.js:551  ${goal._progress}
+script-goal-modal.js:556  ${goal.status !== 'completed' ? `<button class="gc-complete-btn" data-action="quick-complete-goal" ...}
+script-goal-modal.js:557  ${goal.id}
+script-goal-modal.js:602  ${nearestGoalHTML}
 script-journal-library.js:102  ${longDate}
 script-journal-library.js:350  ${trMonthsFull[selectedMonth].toUpperCase()}
 script-journal-library.js:350  ${selectedYear}
@@ -332,19 +332,19 @@ script-milestone-goal-actions.js:55  ${currentDate}
 script-milestone-goal-actions.js:55  ${goal.createdAt ? `min="${new Date(goal.createdAt).toISOString().split('T')[0]}"` : ''}
 script-milestone-goal-actions.js:55  ${goal.deadline ? `max="${goal.deadline.split('-')[0].length===4 ? goal.deadline : goal.deadline.sp...}
 script-milestone-goal-actions.js:419  ${items}
-script-mind-dump.js:119  ${isActive ? `color:${info.color};background:${info.bg};border-color:${info.border};` : ''}
-script-mind-dump.js:120  ${key}
-script-mind-dump.js:219  ${tagInfo.color}
-script-mind-dump.js:219  ${tagInfo.bg}
-script-mind-dump.js:219  ${tagInfo.border}
-script-mind-dump.js:222  ${ageStr}
-script-mind-dump.js:223  ${isOld ? `<span class="dump-age-warn">${ageWarnLabel}</span>` : ''}
-script-mind-dump.js:227  ${dump.id}
-script-mind-dump.js:228  ${dump.id}
-script-mind-dump.js:229  ${dump.id}
-script-mind-dump.js:252  ${dumpActiveTag === 'all' ? ' active' : ''}
-script-mind-dump.js:254  ${dumpActiveTag === tag ? ' active' : ''}
-script-mind-dump.js:254  ${tag}
+script-mind-dump.js:122  ${isActive ? `color:${info.color};background:${info.bg};border-color:${info.border};` : ''}
+script-mind-dump.js:123  ${key}
+script-mind-dump.js:222  ${tagInfo.color}
+script-mind-dump.js:222  ${tagInfo.bg}
+script-mind-dump.js:222  ${tagInfo.border}
+script-mind-dump.js:225  ${ageStr}
+script-mind-dump.js:226  ${isOld ? `<span class="dump-age-warn">${ageWarnLabel}</span>` : ''}
+script-mind-dump.js:230  ${dump.id}
+script-mind-dump.js:231  ${dump.id}
+script-mind-dump.js:232  ${dump.id}
+script-mind-dump.js:255  ${dumpActiveTag === 'all' ? ' active' : ''}
+script-mind-dump.js:257  ${dumpActiveTag === tag ? ' active' : ''}
+script-mind-dump.js:257  ${tag}
 script-plan-wizard.js:130  ${dayName}
 script-plan-wizard.js:130  ${shortDate}
 script-plan-wizard.js:349  ${t.start}
@@ -360,34 +360,34 @@ script-spotlight-search.js:99  ${res.icon}
 script-spotlight-search.js:101  ${shortDate}
 script-spotlight-search.js:102  ${res.time || 'Tüm Gün'}
 script-spotlight-search.js:103  ${res.type}
-script-statistics.js:287  ${c}
-script-statistics.js:287  ${t}
-script-statistics.js:366  ${parseInt(d)}
-script-statistics.js:366  ${activeFullMonths[parseInt(m)-1]}
-script-statistics.js:366  ${y}
-script-statistics.js:571  ${W}
-script-statistics.js:571  ${H}
-script-statistics.js:582  ${gridAndYLabels}
-script-statistics.js:583  ${areaFor(linePath2, points2)}
-script-statistics.js:584  ${areaFor(linePath, points)}
-script-statistics.js:585  ${linePath2}
-script-statistics.js:586  ${linePath}
-script-statistics.js:587  ${dotsFor(points2, 'trend-line-dot trend-series-focus-dot')}
-script-statistics.js:588  ${dotsFor(points, 'trend-line-dot trend-series-tasks-dot')}
-script-statistics.js:589  ${xLabels}
-script-statistics.js:590  ${padT}
-script-statistics.js:590  ${padT + innerH}
-script-statistics.js:593  ${padL}
-script-statistics.js:593  ${innerW}
-script-statistics.js:593  ${H}
-script-statistics.js:618  ${p.value}
-script-statistics.js:619  ${p.value2}
-script-timer.js:234  ${timeStr}
-script-timer.js:847  ${curLoop}
-script-timer.js:847  ${timerSettings.targetCycles}
-script-timer.js:902  ${p.focus}
-script-timer.js:903  ${p.shortBreak}
-script-timer.js:904  ${p.longBreak}
+script-statistics.js:291  ${c}
+script-statistics.js:291  ${t}
+script-statistics.js:370  ${parseInt(d)}
+script-statistics.js:370  ${activeFullMonths[parseInt(m)-1]}
+script-statistics.js:370  ${y}
+script-statistics.js:575  ${W}
+script-statistics.js:575  ${H}
+script-statistics.js:586  ${gridAndYLabels}
+script-statistics.js:587  ${areaFor(linePath2, points2)}
+script-statistics.js:588  ${areaFor(linePath, points)}
+script-statistics.js:589  ${linePath2}
+script-statistics.js:590  ${linePath}
+script-statistics.js:591  ${dotsFor(points2, 'trend-line-dot trend-series-focus-dot')}
+script-statistics.js:592  ${dotsFor(points, 'trend-line-dot trend-series-tasks-dot')}
+script-statistics.js:593  ${xLabels}
+script-statistics.js:594  ${padT}
+script-statistics.js:594  ${padT + innerH}
+script-statistics.js:597  ${padL}
+script-statistics.js:597  ${innerW}
+script-statistics.js:597  ${H}
+script-statistics.js:622  ${p.value}
+script-statistics.js:623  ${p.value2}
+script-timer.js:239  ${timeStr}
+script-timer.js:852  ${curLoop}
+script-timer.js:852  ${timerSettings.targetCycles}
+script-timer.js:907  ${p.focus}
+script-timer.js:908  ${p.shortBreak}
+script-timer.js:909  ${p.longBreak}
 script.js:1512  ${completedTasks}
 script.js:1512  ${totalTasks}
 script.js:1580  ${icon}

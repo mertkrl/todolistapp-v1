@@ -13,7 +13,7 @@
 // escapeHtml mekanizmasıyla aynı).
 //
 // Dış bağımlılıklar (script.js'te kalıyor, window.* köprüsüyle açıldı):
-// - mindDumps → window.__getMindDumpsRef() (script.js'te ÖNCEDEN var olan
+// - mindDumps → getMindDumpsRef() (script.js'te ÖNCEDEN var olan
 //   salt-okunur getter — bu kümede sadece push/splice/find gibi mutasyon var,
 //   reassignment yok, bu yüzden setter gerekmedi)
 // - generateId, showPremiumModal, renderCalMindDump → window.*
@@ -28,6 +28,9 @@
 // Yükleme sırası önemsiz — script.js ve kardeşleri dynamic import() değil
 // normal <script type="module" src="..."> ile yükleniyor.
 
+import { getMindDumpsRef, showPremiumModal, renderCalMindDump } from './script.js';
+import { generateId } from './storage-manager.js';
+
 // Zihin çöplüğü, işlenmeyi bekleyen fikirlerin BİRİKMEMESİ için sert bir üst
 // sınıra sahip — sınırsız birikim, işleme motivasyonunu öldürüp gerçek bir
 // "çöplüğe" dönüştürüyor (dijital biriktiricilik / karar yorgunluğu). Sert
@@ -36,7 +39,7 @@
 const MAX_MIND_DUMPS = 30;
 
  export function saveMindDumps() {
-     Store.mind_dumps.set(window.__getMindDumpsRef());
+     Store.mind_dumps.set(getMindDumpsRef());
  }
  window.saveMindDumps = saveMindDumps;
 
@@ -131,7 +134,7 @@ const MAX_MIND_DUMPS = 30;
      // ── Dönüşüm özeti ──────────────────────────────────────
      const convLog = FocusStorage.get('mind_dump_conversions', []);
      const convertedCount = convLog.length;
-     const totalEver = convertedCount + window.__getMindDumpsRef().length;
+     const totalEver = convertedCount + getMindDumpsRef().length;
      const convRate = totalEver > 0 ? Math.round((convertedCount / totalEver) * 100) : 0;
 
      // Header meta chip'leri güncelle
@@ -139,18 +142,18 @@ const MAX_MIND_DUMPS = 30;
      const hChipCount = document.getElementById('dump-hchip-count');
      const hChipRate  = document.getElementById('dump-hchip-rate');
      if (headerMeta) {
-         if (window.__getMindDumpsRef().length === 0 && convertedCount === 0) {
+         if (getMindDumpsRef().length === 0 && convertedCount === 0) {
              headerMeta.style.display = 'none';
          } else {
              headerMeta.style.display = 'flex';
-             if (hChipCount) hChipCount.textContent = `${window.__getMindDumpsRef().length} düşünce`;
+             if (hChipCount) hChipCount.textContent = `${getMindDumpsRef().length} düşünce`;
              if (hChipRate)  hChipRate.textContent  = `%${convRate} dönüştürüldü`;
          }
      }
 
      // Limite yaklaşınca/dolunca "Fırlat" butonunu görsel olarak uyar
      if (dumpInlineSubmitBtn) {
-         const dumpAtLimit = window.__getMindDumpsRef().length >= MAX_MIND_DUMPS;
+         const dumpAtLimit = getMindDumpsRef().length >= MAX_MIND_DUMPS;
          dumpInlineSubmitBtn.style.opacity = dumpAtLimit ? '0.55' : '';
          dumpInlineSubmitBtn.title = dumpAtLimit ? `Zihin çöplüğü dolu (${MAX_MIND_DUMPS}/${MAX_MIND_DUMPS}) — önce işle ya da temizle.` : '';
      }
@@ -166,8 +169,8 @@ const MAX_MIND_DUMPS = 30;
      const dismissed = FocusStorage.get('dump_banner_dismissed_at', 0);
      const daysSinceDismiss = (Date.now() - dismissed) / (1000 * 60 * 60 * 24);
      if (banner) {
-         if (window.__getMindDumpsRef().length >= CLEANUP_THRESHOLD && daysSinceDismiss > 7) {
-             if (bannerText) bannerText.textContent = `Zihin çöplüğünde ${window.__getMindDumpsRef().length} bekleyen öğe var — işleme vakti! 🧹`;
+         if (getMindDumpsRef().length >= CLEANUP_THRESHOLD && daysSinceDismiss > 7) {
+             if (bannerText) bannerText.textContent = `Zihin çöplüğünde ${getMindDumpsRef().length} bekleyen öğe var — işleme vakti! 🧹`;
              banner.style.display = 'flex';
          } else {
              banner.style.display = 'none';
@@ -175,7 +178,7 @@ const MAX_MIND_DUMPS = 30;
      }
 
      // Filtreleme
-     let filtered = [...window.__getMindDumpsRef()].reverse();
+     let filtered = [...getMindDumpsRef()].reverse();
      if (dumpSearchQuery) {
          const q = dumpSearchQuery.toLowerCase();
          filtered = filtered.filter(d => d.text.toLowerCase().includes(q));
@@ -185,7 +188,7 @@ const MAX_MIND_DUMPS = 30;
      }
 
      if (filtered.length === 0) {
-         if (window.__getMindDumpsRef().length === 0) {
+         if (getMindDumpsRef().length === 0) {
              dumpList.innerHTML = '<li class="dump-empty">🎉 Zihin çöplüğün tertemiz. <button data-action="focus-dump-textarea" class="dump-empty-cta">Bir şeyler fırlat →</button></li>';
          } else {
              dumpList.innerHTML = '<li class="dump-empty">Bu filtreyle eşleşen öğe yok.</li>';
@@ -419,18 +422,18 @@ const MAX_MIND_DUMPS = 30;
      if (!dumpInlineTextarea) return;
      const text = dumpInlineTextarea.value.trim();
      if (!text) return;
-     if (window.__getMindDumpsRef().length >= MAX_MIND_DUMPS) {
-         window.showPremiumModal({
+     if (getMindDumpsRef().length >= MAX_MIND_DUMPS) {
+         showPremiumModal({
              title: 'Çöplük Dolu 🗑️',
              message: `Zihin çöplüğü, işlenmeyi bekleyen ${MAX_MIND_DUMPS} fikirle dolu. Buradaki amaç düşünceleri biriktirmek değil, kafanı boşaltıp hızlıca işlemek — yeni bir fikir eklemeden önce birkaçını göreve/hedefe dönüştür ya da artık gerekmeyenleri sil.`,
              type: 'warning'
          });
          return;
      }
-     window.__getMindDumpsRef().push({ id: window.generateId(), text, tag: dumpInlineSelectedTag, timestamp: Date.now() });
+     getMindDumpsRef().push({ id: generateId(), text, tag: dumpInlineSelectedTag, timestamp: Date.now() });
      saveMindDumps();
      renderMindDumps();
-     if (typeof window.renderCalMindDump === 'function') window.renderCalMindDump();
+     if (typeof renderCalMindDump === 'function') renderCalMindDump();
      dumpInlineTextarea.value = '';
      dumpInlineTextarea.focus();
  }
@@ -453,7 +456,7 @@ const MAX_MIND_DUMPS = 30;
  }
 
  window.changeDumpTag = function(id, newTag) {
-     const dump = window.__getMindDumpsRef().find(d => String(d.id) === String(id));
+     const dump = getMindDumpsRef().find(d => String(d.id) === String(id));
      if (!dump) return;
      dump.tag = newTag;
      saveMindDumps();
@@ -523,19 +526,19 @@ const MAX_MIND_DUMPS = 30;
      if(!dumpInput) return;
      const text = dumpInput.value.trim();
      if(!text) return;
-     if (window.__getMindDumpsRef().length >= MAX_MIND_DUMPS) {
-         window.showPremiumModal({
+     if (getMindDumpsRef().length >= MAX_MIND_DUMPS) {
+         showPremiumModal({
              title: 'Çöplük Dolu 🗑️',
              message: `Zihin çöplüğü, işlenmeyi bekleyen ${MAX_MIND_DUMPS} fikirle dolu. Yeni bir fikir eklemeden önce birkaçını göreve/hedefe dönüştür ya da artık gerekmeyenleri sil.`,
              type: 'warning'
          });
          return;
      }
-     window.__getMindDumpsRef().push({ id: window.generateId(), text, timestamp: Date.now() });
+     getMindDumpsRef().push({ id: generateId(), text, timestamp: Date.now() });
      dumpInput.value = '';
      saveMindDumps();
      renderMindDumps();
-     if (typeof window.renderCalMindDump === 'function') window.renderCalMindDump();
+     if (typeof renderCalMindDump === 'function') renderCalMindDump();
  }
  if(addDumpBtn) addDumpBtn.addEventListener('click', addMindDump);
  if(dumpInput) dumpInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') addMindDump(); });
@@ -569,13 +572,13 @@ const MAX_MIND_DUMPS = 30;
 
 
  window.deleteMindDump = function(id) {
-     const idx = window.__getMindDumpsRef().findIndex(d => String(d.id) === String(id));
+     const idx = getMindDumpsRef().findIndex(d => String(d.id) === String(id));
      if (idx === -1) return;
-     const [deleted] = window.__getMindDumpsRef().splice(idx, 1);
+     const [deleted] = getMindDumpsRef().splice(idx, 1);
      saveMindDumps();
      renderMindDumps();
      showUndoToast(`"${deleted.text.slice(0, 40)}${deleted.text.length > 40 ? '…' : ''}" silindi`, () => {
-         window.__getMindDumpsRef().splice(idx, 0, deleted);
+         getMindDumpsRef().splice(idx, 0, deleted);
          saveMindDumps();
          renderMindDumps();
      });
@@ -613,7 +616,7 @@ const MAX_MIND_DUMPS = 30;
      function commit() {
          const newText = input.value.trim();
          if (newText && newText !== originalText) {
-             const dump = window.__getMindDumpsRef().find(d => String(d.id) === String(id));
+             const dump = getMindDumpsRef().find(d => String(d.id) === String(id));
              if (dump) { dump.text = newText; saveMindDumps(); }
          }
          renderMindDumps();

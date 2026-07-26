@@ -1,6 +1,10 @@
 // ============ HIZLI GÖREV EKLE (CTRL+N) SİSTEMİ ============
 // Faz F: script.js'ten çıkarıldı (openQuickAdd/closeQuickAdd + spotlight quick-add sistemi)
 
+import { getGoalsRef, getRenderCalendarRef, getRenderEventsRef, getRenderStatisticsRef, addGlobalTask, addSmartTask, hasTimeConflict, renderTasks, showPremiumModal } from './script.js';
+import { formatDateToString, addOneHour, timeToMins } from './script-date-time-utils.js';
+import { parseSmartText } from './script-nlp.js';
+
 const quickAddModal = document.getElementById('quick-add-task-modal');
 const quickAddInput = document.getElementById('quick-task-input');
 const closeQuickAddBtn = document.getElementById('close-quick-task-btn');
@@ -24,7 +28,7 @@ function openQuickAdd() {
         todayDateOnly.setHours(0, 0, 0, 0);
         quickDateInput._flatpickr.setDate(todayDateOnly, true);
     } else {
-        quickDateInput.value = window.formatDateToString(new Date());
+        quickDateInput.value = formatDateToString(new Date());
     }
     quickStartInput.value = '09:00';
     quickEndInput.value = '10:00';
@@ -33,7 +37,7 @@ function openQuickAdd() {
     // --- Premium Dönüm Noktası Tarih Sınırları ve Çakışma Kontrolü Başlangıç ---
     if(quickParentGoal) {
        quickParentGoal.innerHTML = '<option value="" selected>🎯 Ana Hedef Seç (Opsiyonel)</option>';
-       window.__getGoalsRef().forEach(g => {
+       getGoalsRef().forEach(g => {
            const opt = document.createElement('option');
            opt.value = g.id;
            opt.textContent = g.title;
@@ -45,7 +49,7 @@ function openQuickAdd() {
            const selectedGoalId = e.target.value;
            if (!selectedGoalId) return;
 
-           const goal = window.__getGoalsRef().find(g => String(g.id) === String(selectedGoalId));
+           const goal = getGoalsRef().find(g => String(g.id) === String(selectedGoalId));
            if (!goal) return;
 
            // Ana hedefin oluşturulduğu tarih (En erken alınabilecek gün)
@@ -97,7 +101,7 @@ if (openQuickAddBtn) {
 window._focusOpenQuickAdd = openQuickAdd; // Global köprü
 if (quickStartInput && quickEndInput) {
     quickStartInput.addEventListener('change', () => {
-        quickEndInput.value = window.addOneHour(quickStartInput.value);
+        quickEndInput.value = addOneHour(quickStartInput.value);
     });
 }
 if (closeQuickAddBtn) closeQuickAddBtn.addEventListener('click', closeQuickAdd);
@@ -124,11 +128,11 @@ document.addEventListener('keydown', (e) => {
 // Akıllı Metin (Kullanıcı "Yarın 14:00" yazdığında saati ve tarihi otomatik ayarla)
 if (quickAddInput) {
     quickAddInput.addEventListener('input', (e) => {
-        const smartData = window.parseSmartText(e.target.value);
+        const smartData = parseSmartText(e.target.value);
         if(smartData.parsedDate) quickDateInput.value = smartData.parsedDate;
         if(smartData.parsedTime) {
             quickStartInput.value = smartData.parsedTime;
-            quickEndInput.value = window.addOneHour(smartData.parsedTime);
+            quickEndInput.value = addOneHour(smartData.parsedTime);
         }
     });
 
@@ -144,10 +148,10 @@ if (saveQuickAddBtn) {
         const rawText = quickAddInput.value.trim();
         if(rawText === "") return;
 
-        const smartData = window.parseSmartText(rawText);
+        const smartData = parseSmartText(rawText);
         const text = smartData.cleanText || "İsimsiz Görev";
 
-        const date = quickDateInput.value || window.formatDateToString(new Date());
+        const date = quickDateInput.value || formatDateToString(new Date());
         const start = quickStartInput.value;
         const end = quickEndInput.value;
         const priority = quickPriority.value;
@@ -155,35 +159,35 @@ if (saveQuickAddBtn) {
 
         // Saat her zaman zorunlu
         if(!start || !end) {
-            window.showPremiumModal({ title: 'Hata', message: 'Lütfen görev için bir saat belirleyin.', type: 'warning' });
+            showPremiumModal({ title: 'Hata', message: 'Lütfen görev için bir saat belirleyin.', type: 'warning' });
             return;
         }
 
-        const startMins = window.timeToMins(start);
-        const endMins = window.timeToMins(end);
+        const startMins = timeToMins(start);
+        const endMins = timeToMins(end);
 
         if(startMins >= endMins) {
-            window.showPremiumModal({ title: 'Hatalı Zaman', message: 'Bitiş saati başlangıçtan önce olamaz.', type: 'warning' });
+            showPremiumModal({ title: 'Hatalı Zaman', message: 'Bitiş saati başlangıçtan önce olamaz.', type: 'warning' });
             return;
         }
 
-        if(window.hasTimeConflict(date, startMins, endMins)) {
-            window.showPremiumModal({ title: 'Zaman Çakışması', message: 'Bu saatte takviminizde zaten başka bir plan var.', type: 'warning' });
+        if(hasTimeConflict(date, startMins, endMins)) {
+            showPremiumModal({ title: 'Zaman Çakışması', message: 'Bu saatte takviminizde zaten başka bir plan var.', type: 'warning' });
             return;
         }
 
         // Görevi globale ekle
-        window.addGlobalTask(text, priority, 'kisisel', date, start, end, '', parentGoal, '');
+        addGlobalTask(text, priority, 'kisisel', date, start, end, '', parentGoal, '');
 
         closeQuickAdd();
 
         // Tüm ekranları güncelle
-        window.renderTasks();
-        if(window.__getRenderCalendarRef()) window.__getRenderCalendarRef()();
-        if(window.__getRenderEventsRef()) window.__getRenderEventsRef()();
-        if(window.__getRenderStatisticsRef() && document.getElementById('istatistikler').classList.contains('active')) window.__getRenderStatisticsRef()();
+        renderTasks();
+        if(getRenderCalendarRef()) getRenderCalendarRef()();
+        if(getRenderEventsRef()) getRenderEventsRef()();
+        if(getRenderStatisticsRef() && document.getElementById('istatistikler').classList.contains('active')) getRenderStatisticsRef()();
 
-        window.showPremiumModal({ title: 'Hızlı Ekleme Başarılı', message: 'Görev takviminize eklendi.', type: 'success' });
+        showPremiumModal({ title: 'Hızlı Ekleme Başarılı', message: 'Görev takviminize eklendi.', type: 'success' });
     });
 }
 
@@ -239,7 +243,7 @@ if(sqInput) {
             if(rawText === "") return;
 
             // NLP (Akıllı Metin) motorundan geçir
-            const smartData = window.parseSmartText(rawText);
+            const smartData = parseSmartText(rawText);
             const text = smartData.cleanText || "Hızlı Görev";
 
             const parentGoal = document.getElementById('quick-add-parent-goal').value;
@@ -249,31 +253,31 @@ if(sqInput) {
             // NLP saat bulduysa onu kullan, bulamadıysa arayüzdeki zorunlu saati kullan
             const manualTime = document.getElementById('quick-add-time').value;
             const timeStart = smartData.parsedTime ? smartData.parsedTime : (manualTime || "09:00");
-            const timeEnd = window.addOneHour(timeStart); // Bitiş otomatik 1 saat sonrası
+            const timeEnd = addOneHour(timeStart); // Bitiş otomatik 1 saat sonrası
 
             // NLP tarih bulduysa onu kullan, yoksa bugün
-            const taskDateStr = smartData.parsedDate ? smartData.parsedDate : window.formatDateToString(new Date());
+            const taskDateStr = smartData.parsedDate ? smartData.parsedDate : formatDateToString(new Date());
 
-            const startMins = window.timeToMins(timeStart);
-            const endMins = window.timeToMins(timeEnd);
+            const startMins = timeToMins(timeStart);
+            const endMins = timeToMins(timeEnd);
 
             // Çakışma kontrolü
-            if (window.hasTimeConflict(taskDateStr, startMins, endMins)) {
-                window.showPremiumModal({ title: 'Zaman Çakışması', message: 'Bu saatte takviminizde başka plan var.', type: 'warning' });
+            if (hasTimeConflict(taskDateStr, startMins, endMins)) {
+                showPremiumModal({ title: 'Zaman Çakışması', message: 'Bu saatte takviminizde başka plan var.', type: 'warning' });
                 return;
             }
 
             // addSmartTask hem normal hem de sıklık (recurring) içeren görevleri mükemmel işler
-            window.addSmartTask(text, priority, 'kisisel', taskDateStr, timeStart, timeEnd, "", parentGoal, recurring);
+            addSmartTask(text, priority, 'kisisel', taskDateStr, timeStart, timeEnd, "", parentGoal, recurring);
 
             closeQuickAddModal();
 
             // Arayüzleri yenile
-            window.renderTasks();
-            if(window.__getRenderCalendarRef()) window.__getRenderCalendarRef()();
-            if(window.__getRenderEventsRef()) window.__getRenderEventsRef()();
+            renderTasks();
+            if(getRenderCalendarRef()) getRenderCalendarRef()();
+            if(getRenderEventsRef()) getRenderEventsRef()();
 
-            window.showPremiumModal({ title: 'Başarılı!', message: `"${text}" sisteme eklendi.`, type: 'success' });
+            showPremiumModal({ title: 'Başarılı!', message: `"${text}" sisteme eklendi.`, type: 'success' });
         }
     });
 }
