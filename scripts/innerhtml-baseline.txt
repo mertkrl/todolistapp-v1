@@ -684,30 +684,29 @@ social-gamification.js:482  ${finished ? 'Bitti' : `${daysLeft} gün kaldı`}
 social-gamification.js:485  ${rowsHtml}
 social-gamification.js:486  ${joinBtn}
 social-gamification.js:487  ${finished && canStart ? `<button class="control-btn secondary btn-md" data-gt-start="3" style="mar...}
-social-group-details.js:114  ${window.groupAvatarHtml(code, data.name, 54)}
-social-group-details.js:153  ${_showOverviewTab ? ` <button class="group-detail-tab-btn${_gtabActiveCls('overview')}" data-gtab=...}
-social-group-details.js:155  ${(data.classroomType === 'classroom' || data.classroomType === 'workplace') ? ` <button class="gro...}
-social-group-details.js:157  ${_gtabActiveCls('calendar')}
-social-group-details.js:158  ${(data.classroomType === 'classroom' || data.classroomType === 'workplace') ? '' : ` <button class...}
-social-group-details.js:160  ${_gtabActiveCls('history')}
-social-group-details.js:166  ${_showOverviewTab ? ` <div id="group-gtab-overview" class="group-detail-tab-content${_gtabActiveCl...}
-social-group-details.js:248  ${_gtabActiveCls('leaderboard')}
-social-group-details.js:268  ${_gtabActiveCls('calendar')}
-social-group-details.js:317  ${_gtabActiveCls('history')}
-social-group-details.js:322  ${_gtabActiveCls('classroom')}
-social-group-details.js:724  ${avatarImgHtml({ ...uData, displayName: uData.displayName || memberUsername }, 30)}
-social-group-details.js:865  ${formatFocusMinutes(me.focusMin)}
-social-group-details.js:879  ${rankLabel}
-social-group-details.js:881  ${myIdx + 1}
-social-group-details.js:882  ${subText}
-social-group-details.js:884  ${formatFocusMinutes(me.focusMin)}
-social-group-details.js:930  ${summaryHtml}
-social-group-details.js:954  ${idx + 1}
-social-group-details.js:959  ${idx < 3 ? ' top-rank' : ''}
-social-group-details.js:960  ${rankLabel}
-social-group-details.js:961  ${avatarImgHtml({ ...m.uData, displayName }, 34)}
-social-group-details.js:965  ${m.uData.online ? '<span class="glb-online-dot" title="Çevrimiçi"></span>' : ''}
-social-group-details.js:970  ${formatFocusMinutes(m.focusMin)}
+social-group-details.js:137  ${window.groupAvatarHtml(code, data.name, 54)}
+social-group-details.js:176  ${_showOverviewTab ? ` <button class="group-detail-tab-btn${_gtabActiveCls('overview')}" data-gtab=...}
+social-group-details.js:178  ${(data.classroomType === 'classroom' || data.classroomType === 'workplace') ? ` <button class="gro...}
+social-group-details.js:180  ${_gtabActiveCls('calendar')}
+social-group-details.js:181  ${(data.classroomType === 'classroom' || data.classroomType === 'workplace') ? '' : ` <button class...}
+social-group-details.js:183  ${_gtabActiveCls('history')}
+social-group-details.js:189  ${_showOverviewTab ? ` <div id="group-gtab-overview" class="group-detail-tab-content${_gtabActiveCl...}
+social-group-details.js:271  ${_gtabActiveCls('leaderboard')}
+social-group-details.js:291  ${_gtabActiveCls('calendar')}
+social-group-details.js:340  ${_gtabActiveCls('history')}
+social-group-details.js:345  ${_gtabActiveCls('classroom')}
+social-group-details.js:747  ${avatarImgHtml({ ...uData, displayName: uData.displayName || memberUsername }, 30)}
+social-group-details.js:888  ${formatFocusMinutes(me.focusMin)}
+social-group-details.js:901  ${rankLabel}
+social-group-details.js:903  ${myIdx + 1}
+social-group-details.js:904  ${subText}
+social-group-details.js:906  ${formatFocusMinutes(me.focusMin)}
+social-group-details.js:952  ${summaryHtml}
+social-group-details.js:979  ${idx < 3 ? ' top-rank' : ''}
+social-group-details.js:980  ${rankLabel}
+social-group-details.js:981  ${avatarImgHtml({ ...m.uData, displayName }, 34)}
+social-group-details.js:985  ${m.uData.online ? '<span class="glb-online-dot" title="Çevrimiçi"></span>' : ''}
+social-group-details.js:990  ${formatFocusMinutes(m.focusMin)}
 social-group-discover.js:313  ${groupData.weeklyGoal || 0}
 social-group-discover.js:316  ${categoryTag ? ` <div class="glass-panel si-flex1-pad"> <div class="si-header-title">${categoryTag...}
 social-group-discover.js:399  ${categoryTag ? `<span class="discover-category-tag">${categoryTag}</span>` : ''}
@@ -802,9 +801,9 @@ social-institution-class-modals.js:265  ${t.id}
 social-institution-class-modals.js:266  ${t.id}
 social-institution-class-modals.js:267  ${t.id}
 social-institution-class-modals.js:280  ${c.id}
-917 potentially-unescaped interpolation(s) found.
-
 social-institution-class-modals.js:345  ${dayName}
+916 potentially-unescaped interpolation(s) found.
+
 social-institution-class-modals.js:404  ${badge}
 social-institution-class-modals.js:447  ${dayName}
 social-institution-class-modals.js:706  ${newSectionId ? `<option value="__unassigned__">— Sınıfsız yap —</option>` : ''}

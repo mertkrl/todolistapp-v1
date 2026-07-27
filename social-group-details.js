@@ -38,6 +38,36 @@ import {
        let _groupLeaderboardMode = 'weekly'; // 'weekly' (Pazartesi'de sıfırlanır) | 'alltime' — sıralama sekmesi
        let _groupLeaderboardLiveChannel = null; // profiles UPDATE'lerini dinleyip leaderboard'u canlı güncelleyen kanal
        let _groupLeaderboardLiveDebounce = null;
+
+       // ── SAF YARDIMCI FONKSİYONLAR (showGroupDetails'in closure state'ini
+       // okumaz/yazmaz, sadece kendi parametrelerine bağlı hesaplama/HTML üretimi) ──
+
+       // Sıralama rozeti: ilk 3 için madalya emojisi, sonrası için "#N". Önceden
+       // showGroupDetails içinde iki ayrı yerde (leaderboardData + yourRankCard)
+       // birbirinden bağımsız aynı rankIcons dizisiyle tekrarlanıyordu.
+       const _GD_RANK_ICONS = ['🥇', '🥈', '🥉'];
+       function _gdRankLabel(idx) {
+           return idx < 3 ? _GD_RANK_ICONS[idx] : `#${idx + 1}`;
+       }
+
+       // Sayfa yenileme restorasyonunda hangi grup-sekmesinin (gtab) en başta
+       // aktif render edileceğini hesaplar. pendingGtab: window._pendingGroupPanelGtab
+       // değeri; showOverviewTab/isInstitutionalGroup çağıran taraf tarafından
+       // önceden hesaplanıp geçirilir.
+       function _gdComputeRestoreTargetGtab(pendingGtab, showOverviewTab, isInstitutionalGroup) {
+           if (pendingGtab === 'overview') return showOverviewTab ? 'overview' : null;
+           if (pendingGtab === 'classroom') return isInstitutionalGroup ? 'classroom' : null; // kurumsal olmayan grupta bu sekme yok
+           if (pendingGtab === 'leaderboard') return isInstitutionalGroup ? null : 'leaderboard'; // kurumsal grupta bu sekme yok
+           if (pendingGtab === 'calendar' || pendingGtab === 'history') return pendingGtab;
+           return null;
+       }
+
+       // Bir sekme butonunun/panelinin "active" CSS sınıfını alıp almayacağını
+       // hesaplar: restoreTarget varsa ona göre, yoksa defaultTab'a göre karar verir.
+       function _gdTabActiveClass(name, restoreTarget, defaultTab) {
+           return (restoreTarget ? name === restoreTarget : name === defaultTab) ? ' active' : '';
+       }
+
        async function showGroupDetails(code, data) {
         // Eğer arka planda çalışan eski bir grup dinleyicisi varsa önce onu KESİNLİKLE kapat
         if (groupMembersListenerRef) {
@@ -88,16 +118,9 @@ import {
         // kullanıcı geri bildirimi) — içeriği zaten sadece stat kartları + "Sınıf Paneline
         // Git" butonuna inmişti, öğrenci doğrudan Sınıf Paneli'ne (Performansım dahil) inebilir.
         const _showOverviewTab = !_isInstitutionalGroup || _isClassAdmin;
-        const _restoreTargetGtab = (() => {
-            const g = window._pendingGroupPanelGtab;
-            if (g === 'overview') return _showOverviewTab ? 'overview' : null;
-            if (g === 'classroom') return _isInstitutionalGroup ? 'classroom' : null; // kurumsal olmayan grupta bu sekme yok
-            if (g === 'leaderboard') return _isInstitutionalGroup ? null : 'leaderboard'; // kurumsal grupta bu sekme yok
-            if (g === 'calendar' || g === 'history') return g;
-            return null;
-        })();
+        const _restoreTargetGtab = _gdComputeRestoreTargetGtab(window._pendingGroupPanelGtab, _showOverviewTab, _isInstitutionalGroup);
         const _defaultGtab = _showOverviewTab ? 'overview' : 'classroom';
-        const _gtabActiveCls = (name) => (_restoreTargetGtab ? name === _restoreTargetGtab : name === _defaultGtab) ? ' active' : '';
+        const _gtabActiveCls = (name) => _gdTabActiveClass(name, _restoreTargetGtab, _defaultGtab);
 
         // Paneli temiz ve dinamik olarak sıfırdan kur (aşağıdaki innerHTML atamasıyla
         // #group-gtab-classroom dahil TÜM alt elemanlar yok edilip BOŞ olarak yeniden
@@ -870,8 +893,7 @@ import {
                     const isFirst = myIdx === 0;
                     const ahead = isFirst ? null : leaderboardData[myIdx - 1];
                     const gapMin = ahead ? Math.max(ahead.focusMin - me.focusMin, 0) : 0;
-                    const rankIcons = ['🥇', '🥈', '🥉'];
-                    const rankLabel = myIdx < 3 ? rankIcons[myIdx] : `#${myIdx + 1}`;
+                    const rankLabel = _gdRankLabel(myIdx);
                     const subText = isFirst
                         ? 'Zirvedesin! Yerini korumak için odaklanmaya devam et.'
                         : `Önündeki <b style="color:#fff;">${_escapeHtml(ahead.uData.displayName || ahead.username)}</b>'ı geçmek için <b style="color:#fff;">${formatFocusMinutes(gapMin)}</b> kaldı.`;
@@ -941,8 +963,6 @@ import {
             const leaderboardEmpty = document.getElementById("group-leaderboard-empty");
             if (leaderboardEmpty) leaderboardEmpty.classList.toggle('hidden', leaderboardData.length > 0);
             if (leaderboardEl) {
-                const rankIcons = ['🥇', '🥈', '🥉'];
-
                 leaderboardEl.innerHTML = leaderboardData.map((m, idx) => {
                     const builtinRole = BUILTIN_ROLE_PERMS[m.role];
                     const customRole = isSupabaseGroup
@@ -951,7 +971,7 @@ import {
                     const roleName = builtinRole ? builtinRole.name : (customRole ? customRole.name : 'Üye');
                     const roleColor = builtinRole ? builtinRole.color : (customRole ? (customRole.color || '6c5ce7') : '636e72');
                     const displayName = m.uData.displayName || m.username;
-                    const rankLabel = idx < 3 ? rankIcons[idx] : `#${idx + 1}`;
+                    const rankLabel = _gdRankLabel(idx);
 
                     const isSelfRow = m.username === currentUser.username;
 
