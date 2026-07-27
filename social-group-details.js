@@ -68,6 +68,326 @@ import {
            return (restoreTarget ? name === restoreTarget : name === defaultTab) ? ' active' : '';
        }
 
+       // Üye listesini/sayısını/sıralamasını render eder — Firebase ve Supabase
+       // dinleyicileri aynı `membersData` şeklini ({ username: {role, joinedAt, ...} })
+       // üretip bu fonksiyonu çağırır. showGroupDetails'in eski iç (closure) fonksiyonuydu;
+       // sadece `data`/`membersData`'yı OKUYUP DOM'a yazıyor, showGroupDetails'in 15+ paylaşılan
+       // state değişkeninden HİÇBİRİNİ mutasyona uğratmıyor — bu yüzden `data`'yı açık parametre
+       // olarak alan modül-seviyesi bir fonksiyona güvenle çıkarıldı (Faz H).
+       async function _renderGroupMembersPanel(data, membersData) {
+           const studyMembersContainer = document.getElementById("group-study-members");
+           const activeCountEl = document.getElementById("group-active-count");
+           if (!studyMembersContainer) return;
+
+           studyMembersContainer.innerHTML = "";
+           if (!membersData) return;
+
+           const usernames = Object.keys(membersData)
+               .filter(u => !(typeof window.isBlockedEitherWay === 'function' && window.isBlockedEitherWay(u)));
+           if (activeCountEl) activeCountEl.textContent = `${usernames.length} Üye`;
+
+           let totalGroupFocusMinutes = 0;
+           const leaderboardData = [];
+
+           const isSupabaseGroup = !!data._supaId;
+           if (isSupabaseGroup) window.registerPresenceWatchIds?.(usernames.map(u => membersData[u]?.userId).filter(Boolean));
+           const presenceState = isSupabaseGroup && window.getCommunityPresenceState ? window.getCommunityPresenceState() : null;
+           const supaCustomRoles = isSupabaseGroup ? await loadGroupCustomRolesMapSupabase(data._supaId) : null;
+
+           for (let memberUsername of usernames) {
+               const memberEntry = membersData[memberUsername] || {};
+               let uData;
+
+               const online = !!(presenceState && memberEntry.userId && presenceState[memberEntry.userId] && presenceState[memberEntry.userId].some(p => p.studying));
+               uData = {
+                   displayName: memberEntry.displayName || memberUsername,
+                   avatarColor: memberEntry.avatarColor,
+                   customAvatar: memberEntry.customAvatar,
+                   xp: memberEntry.xp || 0,
+                   userId: memberEntry.userId,
+                   online
+               };
+
+               const allTimeFocusMin = Math.floor((uData.xp || 0) / 10);
+               const weeklyFocusMin = Math.max(0, Math.floor(memberEntry.weeklyFocusMin || 0));
+               const activeDays = Math.max(0, Math.floor(memberEntry.activeDays || 0));
+               const prevWeekFocusMin = Math.max(0, Math.floor(memberEntry.prevWeekFocusMin || 0));
+               totalGroupFocusMinutes += weeklyFocusMin;
+
+               const role = (membersData[memberUsername] && membersData[memberUsername].role)
+                   || (data.createdBy === memberUsername ? 'admin' : 'member');
+               const focusMin = _groupLeaderboardMode === 'weekly' ? weeklyFocusMin : allTimeFocusMin;
+               leaderboardData.push({ username: memberUsername, uData, focusMin, allTimeFocusMin, weeklyFocusMin, activeDays, prevWeekFocusMin, role });
+
+               if (uData.online) {
+                   const mBox = document.createElement("div");
+                   mBox.className = "glass-element";
+                   mBox.style.cssText = "padding: 12px; display: flex; align-items: center; gap: 10px; border: 1px solid #2ed573; background: rgba(46, 213, 115, 0.05); border-radius: 8px;";
+                   const isSelf = memberUsername === currentUser.username;
+                   mBox.innerHTML = `
+                       ${avatarImgHtml({ ...uData, displayName: uData.displayName || memberUsername }, 30)}
+                       <div style="flex:1; min-width:0; text-align:left;">
+                           <div style="font-size:12px; font-weight:600; color:#fff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${_escapeHtml(uData.displayName || memberUsername)}</div>
+                           <div style="font-size:10px; color:#2ed573;"><i class="fa-solid fa-bolt"></i> Odaklanıyor</div>
+                       </div>
+                       ${isSelf ? '' : `<button class="group-kudos-btn" data-user-id="${uData.userId || ''}" data-username="${_escapeHtml(memberUsername)}" title="Alkış gönder" style="flex-shrink:0; background:none; border:none; cursor:pointer; font-size:16px; padding:4px; border-radius:6px; opacity:0.85;">👏</button>`}
+                   `;
+                   studyMembersContainer.appendChild(mBox);
+               }
+           }
+
+           const weeklyGoal = data.weeklyGoal || 1000;
+           const percent = Math.min(100, Math.floor((totalGroupFocusMinutes / weeklyGoal) * 100));
+
+           const fillEl = document.getElementById('group-goal-fill');
+           const percentText = document.getElementById('group-goal-percent');
+           const goalText = document.getElementById('group-goal-text');
+
+           if (fillEl) fillEl.style.strokeDashoffset = (238.76 * (1 - percent / 100)).toFixed(2);
+           if (percentText) percentText.textContent = '%' + percent;
+           if (goalText) goalText.textContent = `${formatFocusMinutes(totalGroupFocusMinutes)} / ${formatFocusMinutes(weeklyGoal)}`;
+
+           // ── EKİP BAŞARISI: haftalık hedef tamamlanınca kutlama ──
+           if (isSupabaseGroup && totalGroupFocusMinutes >= weeklyGoal && weeklyGoal > 0) {
+               _maybeCelebrateGroupGoal(data._supaId, data.name, totalGroupFocusMinutes, weeklyGoal);
+           }
+
+           // Mini turnuva kartı — presence güncellemeleri sık tetiklenebildiği için
+           // grup başına en fazla 20 sn'de bir tazelenir.
+           if (isSupabaseGroup && data._supaId && typeof window.renderGroupTournament === 'function') {
+               const now = Date.now();
+               if (!window._gtLastFetch[data._supaId] || now - window._gtLastFetch[data._supaId] > 20000) {
+                   window._gtLastFetch[data._supaId] = now;
+                   window.renderGroupTournament(data._supaId);
+               }
+           }
+
+           // Sıralamayı önceden hesapla (boş durum özetinde de kullanılacak)
+           leaderboardData.sort((a, b) => b.focusMin - a.focusMin);
+
+           // ── BU HAFTANIN YILDIZLARI — tek metrikli ("kim daha çok çalıştı") yarışı
+           // çeşitlendiren rozetler: sadece toplam dakika değil, tutarlılık ve ilerleme de ödüllendirilsin.
+           const badgesEl = document.getElementById('group-weekly-badges');
+           if (badgesEl) {
+               const badges = [];
+               const addBadge = (icon, label, member, detail, color) => {
+                   if (!member) return;
+                   badges.push({ icon, label, name: member.uData.displayName || member.username, detail, color });
+               };
+
+               if (_groupLeaderboardMode === 'weekly' && leaderboardData.length >= 2) {
+                   // 🏆 Haftanın Şampiyonu — en çok odaklanan
+                   const champ = leaderboardData.filter(m => m.weeklyFocusMin > 0)[0];
+                   addBadge('🏆', 'Haftanın Şampiyonu', champ, formatFocusMinutes(champ?.weeklyFocusMin || 0), 'var(--primary-color)');
+
+                   // 🏅 En Tutarlı — en fazla aktif gün
+                   const consistent = leaderboardData.filter(m => m.activeDays > 0).sort((a,b) => b.activeDays - a.activeDays || b.weeklyFocusMin - a.weeklyFocusMin)[0];
+                   addBadge('🏅', 'En Tutarlı', consistent, `${consistent?.activeDays || 0} gün`, '#74b9ff');
+
+                   // 📈 Yükselen Yıldız — geçen haftaya göre en çok artış
+                   const rising = leaderboardData.filter(m => m.weeklyFocusMin > 0 && (m.weeklyFocusMin - m.prevWeekFocusMin) > 0)
+                       .sort((a,b) => (b.weeklyFocusMin - b.prevWeekFocusMin) - (a.weeklyFocusMin - a.prevWeekFocusMin))[0];
+                   addBadge('📈', 'Yükselen Yıldız', rising, rising ? `+${formatFocusMinutes(rising.weeklyFocusMin - rising.prevWeekFocusMin)}` : '', '#D4900E');
+
+                   // 🤝 En Sadık Katılımcı — bu haftaki seanslara en yüksek check-in oranı
+                   const _gscCache = getGscSessionsCache();
+                   if (Object.keys(_gscCache).length > 0) {
+                       const thisWeek = gscGetWeekDates ? gscGetWeekDates(0) : [];
+                       const weekKeys = new Set(thisWeek.map(d => gscDateKey(d)));
+                       const rsvpMap = {};
+                       Object.values(_gscCache).forEach(s => {
+                           if (!weekKeys.has(s.date)) return;
+                           Object.entries(s.attendees || {}).forEach(([u, a]) => {
+                               if (!rsvpMap[u]) rsvpMap[u] = { rsvp: 0, checkin: 0 };
+                               rsvpMap[u].rsvp++;
+                               if (a.checkedInAt) rsvpMap[u].checkin++;
+                           });
+                       });
+                       let bestRate = -1, bestUser = null;
+                       leaderboardData.forEach(m => {
+                           const r = rsvpMap[m.username];
+                           if (!r || r.rsvp < 2) return;
+                           const rate = r.checkin / r.rsvp;
+                           if (rate > bestRate) { bestRate = rate; bestUser = m; }
+                       });
+                       if (bestUser && bestRate >= 0.5) {
+                           addBadge('🤝', 'En Sadık Katılımcı', bestUser, `%${Math.round(bestRate * 100)} katılım`, '#a29bfe');
+                       }
+                   }
+               } else if (_groupLeaderboardMode === 'alltime') {
+                   // Tüm Zamanlar modunda: tüm zamanların zirvesi
+                   const atChamp = leaderboardData.filter(m => m.allTimeFocusMin > 0)[0];
+                   addBadge('👑', 'Tüm Zamanların Lideri', atChamp, formatFocusMinutes(atChamp?.allTimeFocusMin || 0), 'var(--primary-color)');
+                   // En fazla aktif gün (all-time consistent)
+                   const atConsistent = leaderboardData.filter(m => m.activeDays > 0).sort((a,b) => b.activeDays - a.activeDays)[0];
+                   addBadge('🔥', 'Düzenlilik Rekoru', atConsistent, `${atConsistent?.activeDays || 0} gün/hafta`, '#D4900E');
+               }
+
+               badgesEl.innerHTML = badges.length > 0 ? badges.map(b => `
+                   <div class="grp-badge-chip">
+                       <span class="grp-badge-icon">${b.icon}</span>
+                       <div>
+                           <div class="grp-badge-label">${b.label}</div>
+                           <div class="grp-badge-name">${_escapeHtml(b.name)}
+                               <span style="color:${b.color}; font-size:10px;"> ${b.detail}</span>
+                           </div>
+                       </div>
+                   </div>`).join('')
+                   : '';
+
+               // Kişisel başarılar (gscSessionsCache'den türetilen kalıcı unvanlar)
+               if (currentUser) {
+                   const myAchievements = _computeGroupAchievements(currentUser.username, data._supaId || getGscGroupKey());
+                   const achEl = document.getElementById('group-my-achievements');
+                   if (achEl) {
+                       achEl.innerHTML = myAchievements.length > 0
+                           ? myAchievements.map(a => `<span class="grp-achievement-chip" title="${a.desc}">${a.icon} ${a.label}</span>`).join('')
+                           : '';
+                       achEl.style.display = myAchievements.length > 0 ? 'flex' : 'none';
+                   }
+               }
+           }
+
+           // ── SENİN KONUMUN — pozitif rekabet için kullanıcının sırasını öne çıkar ──
+           const yourRankCard = document.getElementById('group-your-rank-card');
+           if (yourRankCard) {
+               const myIdx = leaderboardData.findIndex(m => m.username === currentUser.username);
+               if (myIdx === -1 || leaderboardData.length === 0) {
+                   yourRankCard.classList.add('hidden');
+                   yourRankCard.innerHTML = '';
+               } else if (leaderboardData.length < 3) {
+                   // 1-2 kişilik gruplarda "X kişi içinde 1.'sin" anlamsız bir övünmeye dönüşüyor —
+                   // bunun yerine grubu büyütmeye teşvik eden bir mesaj göster.
+                   yourRankCard.classList.remove('hidden');
+                   const me = leaderboardData[myIdx];
+                   yourRankCard.innerHTML = `
+                       <div class="gyr-rank"><i class="fa-solid fa-user-group"></i></div>
+                       <div class="gyr-info">
+                           <div class="gyr-title">Henüz az kişisiniz</div>
+                           <div class="gyr-sub">Rekabeti daha eğlenceli hale getirmek için arkadaşlarını davet et.</div>
+                       </div>
+                       <div class="gyr-time">${formatFocusMinutes(me.focusMin)}</div>
+                   `;
+               } else {
+                   yourRankCard.classList.remove('hidden');
+                   const me = leaderboardData[myIdx];
+                   const isFirst = myIdx === 0;
+                   const ahead = isFirst ? null : leaderboardData[myIdx - 1];
+                   const gapMin = ahead ? Math.max(ahead.focusMin - me.focusMin, 0) : 0;
+                   const rankLabel = _gdRankLabel(myIdx);
+                   const subText = isFirst
+                       ? 'Zirvedesin! Yerini korumak için odaklanmaya devam et.'
+                       : `Önündeki <b style="color:#fff;">${_escapeHtml(ahead.uData.displayName || ahead.username)}</b>'ı geçmek için <b style="color:#fff;">${formatFocusMinutes(gapMin)}</b> kaldı.`;
+                   yourRankCard.innerHTML = `
+                       <div class="gyr-rank">${rankLabel}</div>
+                       <div class="gyr-info">
+                           <div class="gyr-title">Senin Konumun: ${leaderboardData.length} kişi içinde ${myIdx + 1}.</div>
+                           <div class="gyr-sub">${subText}</div>
+                       </div>
+                       <div class="gyr-time">${formatFocusMinutes(me.focusMin)}</div>
+                   `;
+
+                   // ── ARKADAN GELEN RAKİP UYARISI ──
+                   // Pozitif/dostane tonda: seni geçmeye yaklaşan biri varsa, haftada bir kez uyar.
+                   if (_groupLeaderboardMode === 'weekly') {
+                       const behind = leaderboardData[myIdx + 1];
+                       const RIVAL_THRESHOLD_MIN = 15;
+                       if (behind && me.focusMin > 0) {
+                           const behindGap = me.focusMin - behind.focusMin;
+                           if (behindGap <= RIVAL_THRESHOLD_MIN) {
+                               const warnKey = `focusai_rival_warn_${data._supaId}_${_currentWeekStartKey()}_${behind.username}`;
+                               if (!localStorage.getItem(warnKey)) {
+                                   localStorage.setItem(warnKey, '1');
+                                   const behindName = behind.uData.displayName || behind.username;
+                                   dcShowToast(`👀 ${behindName} sana yaklaşıyor — sadece ${formatFocusMinutes(Math.max(behindGap, 0))} arkanda, devam et!`);
+                               }
+                           }
+                       }
+                   }
+               }
+           }
+
+           if (studyMembersContainer.innerHTML === "") {
+               const topMember = leaderboardData[0];
+               if (totalGroupFocusMinutes === 0) {
+                   // Tamamen boş grup: pasif bir "henüz kayıt yok" mesajı yerine
+                   // doğrudan odaklanmaya başlatan bir CTA göster.
+                   studyMembersContainer.innerHTML = `
+                       <div style="grid-column: 1/-1; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; padding: 14px;">
+                           <p style="color:var(--text-muted); font-size:12px; margin:0; line-height:1.6; text-align:left;">Bu grupta bu hafta henüz odaklanma kaydı yok.<br>Liderlik tablosuna girecek ilk kişi sen ol!</p>
+                           <button id="group-empty-state-cta" class="control-btn primary" style="font-size:12px; padding:9px 16px; white-space:nowrap; flex-shrink:0;">
+                               <i class="fa-solid fa-bolt"></i> İlk Seansını Başlat
+                           </button>
+                       </div>`;
+                   const ctaBtn = document.getElementById('group-empty-state-cta');
+                   if (ctaBtn) {
+                       ctaBtn.onclick = () => {
+                           if (typeof window.switchTab === 'function') window.switchTab('zamanlayici');
+                       };
+                   }
+               } else {
+                   const summaryHtml = `Bu grup bu hafta <b style="color:#fff;">${formatFocusMinutes(totalGroupFocusMinutes)}</b> odaklandı.<br>En çok odaklanan: <b style="color:#fff;">${_escapeHtml(topMember.uData.displayName || topMember.username)}</b> (${formatFocusMinutes(topMember.focusMin)})`;
+                   studyMembersContainer.innerHTML = `
+                       <div style="grid-column: 1/-1; text-align:center; padding: 14px 10px;">
+                           <p style="color:var(--text-muted); font-size:12px; margin: 0 0 6px 0;">Şu an grupta aktif çalışan kimse yok.</p>
+                           <p style="color:var(--text-muted); font-size:12px; margin:0; line-height:1.6;">${summaryHtml}</p>
+                       </div>`;
+               }
+           }
+
+           // Onboarding kartını: sıralama verisi yoksa göster, varsa gizle
+           const onboardingCard = document.getElementById('group-overview-onboarding');
+           if (onboardingCard) onboardingCard.classList.toggle('hidden', leaderboardData.length > 0);
+
+           // ── SIRALAMA (Leaderboard) ──
+           const leaderboardEl = document.getElementById("group-leaderboard-list");
+           const leaderboardEmpty = document.getElementById("group-leaderboard-empty");
+           if (leaderboardEmpty) leaderboardEmpty.classList.toggle('hidden', leaderboardData.length > 0);
+           if (leaderboardEl) {
+               leaderboardEl.innerHTML = leaderboardData.map((m, idx) => {
+                   const builtinRole = BUILTIN_ROLE_PERMS[m.role];
+                   const customRole = isSupabaseGroup
+                       ? (supaCustomRoles && supaCustomRoles[m.role])
+                       : (data.customRoles && data.customRoles[m.role]);
+                   const roleName = builtinRole ? builtinRole.name : (customRole ? customRole.name : 'Üye');
+                   const roleColor = builtinRole ? builtinRole.color : (customRole ? (customRole.color || '6c5ce7') : '636e72');
+                   const displayName = m.uData.displayName || m.username;
+                   const rankLabel = _gdRankLabel(idx);
+
+                   const isSelfRow = m.username === currentUser.username;
+
+                   return `
+                       <div class="group-leaderboard-row${idx < 3 ? ' top-rank' : ''}" data-username="${_escapeHtml(m.username)}" style="cursor:pointer;">
+                           <div class="glb-rank">${rankLabel}</div>
+                           ${avatarImgHtml({ ...m.uData, displayName }, 34)}
+                           <div class="glb-info">
+                               <div class="glb-name">
+                                   ${_escapeHtml(displayName)}
+                                   ${m.uData.online ? '<span class="glb-online-dot" title="Çevrimiçi"></span>' : ''}
+                               </div>
+                               <div class="glb-role" style="color:#${_escapeHtml(roleColor)};">${_escapeHtml(roleName)}</div>
+                           </div>
+                           ${isSelfRow ? '' : `<button class="group-kudos-btn" data-user-id="${m.uData.userId || ''}" data-username="${_escapeHtml(m.username)}" title="Alkış gönder" style="flex-shrink:0; background:none; border:none; cursor:pointer; font-size:15px; padding:4px; border-radius:6px; opacity:0.7;">👏</button>`}
+                           <div class="glb-time">${formatFocusMinutes(m.focusMin)}</div>
+                       </div>
+                   `;
+               }).join("");
+
+               if (leaderboardData.length === 0) {
+                   leaderboardEl.innerHTML = `<p style="color:var(--text-muted); font-size:12px; text-align:center; margin:10px 0;">Henüz üye yok.</p>`;
+               } else {
+                   leaderboardEl.querySelectorAll(".group-leaderboard-row").forEach(row => {
+                       row.addEventListener("click", () => {
+                           const m = leaderboardData.find(x => x.username === row.dataset.username);
+                           if (m && typeof openMiniProfile === 'function') {
+                               openMiniProfile(m.username, m.uData, row, membersData[m.username] || null);
+                           }
+                       });
+                   });
+               }
+           }
+       }
+
        async function showGroupDetails(code, data) {
         // Eğer arka planda çalışan eski bir grup dinleyicisi varsa önce onu KESİNLİKLE kapat
         if (groupMembersListenerRef) {
@@ -421,7 +741,7 @@ import {
                 if (_groupLeaderboardMode === btn.dataset.mode) return;
                 _groupLeaderboardMode = btn.dataset.mode;
                 _syncLeaderboardModeTabs();
-                if (data.members) _renderGroupMembersPanel(data.members);
+                if (data.members) _renderGroupMembersPanel(data, data.members);
             };
         });
 
@@ -690,322 +1010,6 @@ import {
             };
         }
 
-        // Üye listesini/sayısını/sıralamasını render eder — Firebase ve Supabase
-        // dinleyicileri aynı `membersData` şeklini ({ username: {role, joinedAt, ...} })
-        // üretip bu fonksiyonu çağırır.
-        async function _renderGroupMembersPanel(membersData) {
-            const studyMembersContainer = document.getElementById("group-study-members");
-            const activeCountEl = document.getElementById("group-active-count");
-            if (!studyMembersContainer) return;
-
-            studyMembersContainer.innerHTML = "";
-            if (!membersData) return;
-
-            const usernames = Object.keys(membersData)
-                .filter(u => !(typeof window.isBlockedEitherWay === 'function' && window.isBlockedEitherWay(u)));
-            if (activeCountEl) activeCountEl.textContent = `${usernames.length} Üye`;
-
-            let totalGroupFocusMinutes = 0;
-            const leaderboardData = [];
-
-            const isSupabaseGroup = !!data._supaId;
-            if (isSupabaseGroup) window.registerPresenceWatchIds?.(usernames.map(u => membersData[u]?.userId).filter(Boolean));
-            const presenceState = isSupabaseGroup && window.getCommunityPresenceState ? window.getCommunityPresenceState() : null;
-            const supaCustomRoles = isSupabaseGroup ? await loadGroupCustomRolesMapSupabase(data._supaId) : null;
-
-            for (let memberUsername of usernames) {
-                const memberEntry = membersData[memberUsername] || {};
-                let uData;
-
-                const online = !!(presenceState && memberEntry.userId && presenceState[memberEntry.userId] && presenceState[memberEntry.userId].some(p => p.studying));
-                uData = {
-                    displayName: memberEntry.displayName || memberUsername,
-                    avatarColor: memberEntry.avatarColor,
-                    customAvatar: memberEntry.customAvatar,
-                    xp: memberEntry.xp || 0,
-                    userId: memberEntry.userId,
-                    online
-                };
-
-                const allTimeFocusMin = Math.floor((uData.xp || 0) / 10);
-                const weeklyFocusMin = Math.max(0, Math.floor(memberEntry.weeklyFocusMin || 0));
-                const activeDays = Math.max(0, Math.floor(memberEntry.activeDays || 0));
-                const prevWeekFocusMin = Math.max(0, Math.floor(memberEntry.prevWeekFocusMin || 0));
-                totalGroupFocusMinutes += weeklyFocusMin;
-
-                const role = (membersData[memberUsername] && membersData[memberUsername].role)
-                    || (data.createdBy === memberUsername ? 'admin' : 'member');
-                const focusMin = _groupLeaderboardMode === 'weekly' ? weeklyFocusMin : allTimeFocusMin;
-                leaderboardData.push({ username: memberUsername, uData, focusMin, allTimeFocusMin, weeklyFocusMin, activeDays, prevWeekFocusMin, role });
-
-                if (uData.online) {
-                    const mBox = document.createElement("div");
-                    mBox.className = "glass-element";
-                    mBox.style.cssText = "padding: 12px; display: flex; align-items: center; gap: 10px; border: 1px solid #2ed573; background: rgba(46, 213, 115, 0.05); border-radius: 8px;";
-                    const isSelf = memberUsername === currentUser.username;
-                    mBox.innerHTML = `
-                        ${avatarImgHtml({ ...uData, displayName: uData.displayName || memberUsername }, 30)}
-                        <div style="flex:1; min-width:0; text-align:left;">
-                            <div style="font-size:12px; font-weight:600; color:#fff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${_escapeHtml(uData.displayName || memberUsername)}</div>
-                            <div style="font-size:10px; color:#2ed573;"><i class="fa-solid fa-bolt"></i> Odaklanıyor</div>
-                        </div>
-                        ${isSelf ? '' : `<button class="group-kudos-btn" data-user-id="${uData.userId || ''}" data-username="${_escapeHtml(memberUsername)}" title="Alkış gönder" style="flex-shrink:0; background:none; border:none; cursor:pointer; font-size:16px; padding:4px; border-radius:6px; opacity:0.85;">👏</button>`}
-                    `;
-                    studyMembersContainer.appendChild(mBox);
-                }
-            }
-
-            const weeklyGoal = data.weeklyGoal || 1000;
-            const percent = Math.min(100, Math.floor((totalGroupFocusMinutes / weeklyGoal) * 100));
-
-            const fillEl = document.getElementById('group-goal-fill');
-            const percentText = document.getElementById('group-goal-percent');
-            const goalText = document.getElementById('group-goal-text');
-
-            if (fillEl) fillEl.style.strokeDashoffset = (238.76 * (1 - percent / 100)).toFixed(2);
-            if (percentText) percentText.textContent = '%' + percent;
-            if (goalText) goalText.textContent = `${formatFocusMinutes(totalGroupFocusMinutes)} / ${formatFocusMinutes(weeklyGoal)}`;
-
-            // ── EKİP BAŞARISI: haftalık hedef tamamlanınca kutlama ──
-            if (isSupabaseGroup && totalGroupFocusMinutes >= weeklyGoal && weeklyGoal > 0) {
-                _maybeCelebrateGroupGoal(data._supaId, data.name, totalGroupFocusMinutes, weeklyGoal);
-            }
-
-            // Mini turnuva kartı — presence güncellemeleri sık tetiklenebildiği için
-            // grup başına en fazla 20 sn'de bir tazelenir.
-            if (isSupabaseGroup && data._supaId && typeof window.renderGroupTournament === 'function') {
-                const now = Date.now();
-                if (!window._gtLastFetch[data._supaId] || now - window._gtLastFetch[data._supaId] > 20000) {
-                    window._gtLastFetch[data._supaId] = now;
-                    window.renderGroupTournament(data._supaId);
-                }
-            }
-
-            // Sıralamayı önceden hesapla (boş durum özetinde de kullanılacak)
-            leaderboardData.sort((a, b) => b.focusMin - a.focusMin);
-
-            // ── BU HAFTANIN YILDIZLARI — tek metrikli ("kim daha çok çalıştı") yarışı
-            // çeşitlendiren rozetler: sadece toplam dakika değil, tutarlılık ve ilerleme de ödüllendirilsin.
-            const badgesEl = document.getElementById('group-weekly-badges');
-            if (badgesEl) {
-                const badges = [];
-                const addBadge = (icon, label, member, detail, color) => {
-                    if (!member) return;
-                    badges.push({ icon, label, name: member.uData.displayName || member.username, detail, color });
-                };
-
-                if (_groupLeaderboardMode === 'weekly' && leaderboardData.length >= 2) {
-                    // 🏆 Haftanın Şampiyonu — en çok odaklanan
-                    const champ = leaderboardData.filter(m => m.weeklyFocusMin > 0)[0];
-                    addBadge('🏆', 'Haftanın Şampiyonu', champ, formatFocusMinutes(champ?.weeklyFocusMin || 0), 'var(--primary-color)');
-
-                    // 🏅 En Tutarlı — en fazla aktif gün
-                    const consistent = leaderboardData.filter(m => m.activeDays > 0).sort((a,b) => b.activeDays - a.activeDays || b.weeklyFocusMin - a.weeklyFocusMin)[0];
-                    addBadge('🏅', 'En Tutarlı', consistent, `${consistent?.activeDays || 0} gün`, '#74b9ff');
-
-                    // 📈 Yükselen Yıldız — geçen haftaya göre en çok artış
-                    const rising = leaderboardData.filter(m => m.weeklyFocusMin > 0 && (m.weeklyFocusMin - m.prevWeekFocusMin) > 0)
-                        .sort((a,b) => (b.weeklyFocusMin - b.prevWeekFocusMin) - (a.weeklyFocusMin - a.prevWeekFocusMin))[0];
-                    addBadge('📈', 'Yükselen Yıldız', rising, rising ? `+${formatFocusMinutes(rising.weeklyFocusMin - rising.prevWeekFocusMin)}` : '', '#D4900E');
-
-                    // 🤝 En Sadık Katılımcı — bu haftaki seanslara en yüksek check-in oranı
-                    const _gscCache = getGscSessionsCache();
-                    if (Object.keys(_gscCache).length > 0) {
-                        const thisWeek = gscGetWeekDates ? gscGetWeekDates(0) : [];
-                        const weekKeys = new Set(thisWeek.map(d => gscDateKey(d)));
-                        const rsvpMap = {};
-                        Object.values(_gscCache).forEach(s => {
-                            if (!weekKeys.has(s.date)) return;
-                            Object.entries(s.attendees || {}).forEach(([u, a]) => {
-                                if (!rsvpMap[u]) rsvpMap[u] = { rsvp: 0, checkin: 0 };
-                                rsvpMap[u].rsvp++;
-                                if (a.checkedInAt) rsvpMap[u].checkin++;
-                            });
-                        });
-                        let bestRate = -1, bestUser = null;
-                        leaderboardData.forEach(m => {
-                            const r = rsvpMap[m.username];
-                            if (!r || r.rsvp < 2) return;
-                            const rate = r.checkin / r.rsvp;
-                            if (rate > bestRate) { bestRate = rate; bestUser = m; }
-                        });
-                        if (bestUser && bestRate >= 0.5) {
-                            addBadge('🤝', 'En Sadık Katılımcı', bestUser, `%${Math.round(bestRate * 100)} katılım`, '#a29bfe');
-                        }
-                    }
-                } else if (_groupLeaderboardMode === 'alltime') {
-                    // Tüm Zamanlar modunda: tüm zamanların zirvesi
-                    const atChamp = leaderboardData.filter(m => m.allTimeFocusMin > 0)[0];
-                    addBadge('👑', 'Tüm Zamanların Lideri', atChamp, formatFocusMinutes(atChamp?.allTimeFocusMin || 0), 'var(--primary-color)');
-                    // En fazla aktif gün (all-time consistent)
-                    const atConsistent = leaderboardData.filter(m => m.activeDays > 0).sort((a,b) => b.activeDays - a.activeDays)[0];
-                    addBadge('🔥', 'Düzenlilik Rekoru', atConsistent, `${atConsistent?.activeDays || 0} gün/hafta`, '#D4900E');
-                }
-
-                badgesEl.innerHTML = badges.length > 0 ? badges.map(b => `
-                    <div class="grp-badge-chip">
-                        <span class="grp-badge-icon">${b.icon}</span>
-                        <div>
-                            <div class="grp-badge-label">${b.label}</div>
-                            <div class="grp-badge-name">${_escapeHtml(b.name)}
-                                <span style="color:${b.color}; font-size:10px;"> ${b.detail}</span>
-                            </div>
-                        </div>
-                    </div>`).join('')
-                    : '';
-
-                // Kişisel başarılar (gscSessionsCache'den türetilen kalıcı unvanlar)
-                if (currentUser) {
-                    const myAchievements = _computeGroupAchievements(currentUser.username, data._supaId || getGscGroupKey());
-                    const achEl = document.getElementById('group-my-achievements');
-                    if (achEl) {
-                        achEl.innerHTML = myAchievements.length > 0
-                            ? myAchievements.map(a => `<span class="grp-achievement-chip" title="${a.desc}">${a.icon} ${a.label}</span>`).join('')
-                            : '';
-                        achEl.style.display = myAchievements.length > 0 ? 'flex' : 'none';
-                    }
-                }
-            }
-
-            // ── SENİN KONUMUN — pozitif rekabet için kullanıcının sırasını öne çıkar ──
-            const yourRankCard = document.getElementById('group-your-rank-card');
-            if (yourRankCard) {
-                const myIdx = leaderboardData.findIndex(m => m.username === currentUser.username);
-                if (myIdx === -1 || leaderboardData.length === 0) {
-                    yourRankCard.classList.add('hidden');
-                    yourRankCard.innerHTML = '';
-                } else if (leaderboardData.length < 3) {
-                    // 1-2 kişilik gruplarda "X kişi içinde 1.'sin" anlamsız bir övünmeye dönüşüyor —
-                    // bunun yerine grubu büyütmeye teşvik eden bir mesaj göster.
-                    yourRankCard.classList.remove('hidden');
-                    const me = leaderboardData[myIdx];
-                    yourRankCard.innerHTML = `
-                        <div class="gyr-rank"><i class="fa-solid fa-user-group"></i></div>
-                        <div class="gyr-info">
-                            <div class="gyr-title">Henüz az kişisiniz</div>
-                            <div class="gyr-sub">Rekabeti daha eğlenceli hale getirmek için arkadaşlarını davet et.</div>
-                        </div>
-                        <div class="gyr-time">${formatFocusMinutes(me.focusMin)}</div>
-                    `;
-                } else {
-                    yourRankCard.classList.remove('hidden');
-                    const me = leaderboardData[myIdx];
-                    const isFirst = myIdx === 0;
-                    const ahead = isFirst ? null : leaderboardData[myIdx - 1];
-                    const gapMin = ahead ? Math.max(ahead.focusMin - me.focusMin, 0) : 0;
-                    const rankLabel = _gdRankLabel(myIdx);
-                    const subText = isFirst
-                        ? 'Zirvedesin! Yerini korumak için odaklanmaya devam et.'
-                        : `Önündeki <b style="color:#fff;">${_escapeHtml(ahead.uData.displayName || ahead.username)}</b>'ı geçmek için <b style="color:#fff;">${formatFocusMinutes(gapMin)}</b> kaldı.`;
-                    yourRankCard.innerHTML = `
-                        <div class="gyr-rank">${rankLabel}</div>
-                        <div class="gyr-info">
-                            <div class="gyr-title">Senin Konumun: ${leaderboardData.length} kişi içinde ${myIdx + 1}.</div>
-                            <div class="gyr-sub">${subText}</div>
-                        </div>
-                        <div class="gyr-time">${formatFocusMinutes(me.focusMin)}</div>
-                    `;
-
-                    // ── ARKADAN GELEN RAKİP UYARISI ──
-                    // Pozitif/dostane tonda: seni geçmeye yaklaşan biri varsa, haftada bir kez uyar.
-                    if (_groupLeaderboardMode === 'weekly') {
-                        const behind = leaderboardData[myIdx + 1];
-                        const RIVAL_THRESHOLD_MIN = 15;
-                        if (behind && me.focusMin > 0) {
-                            const behindGap = me.focusMin - behind.focusMin;
-                            if (behindGap <= RIVAL_THRESHOLD_MIN) {
-                                const warnKey = `focusai_rival_warn_${data._supaId}_${_currentWeekStartKey()}_${behind.username}`;
-                                if (!localStorage.getItem(warnKey)) {
-                                    localStorage.setItem(warnKey, '1');
-                                    const behindName = behind.uData.displayName || behind.username;
-                                    dcShowToast(`👀 ${behindName} sana yaklaşıyor — sadece ${formatFocusMinutes(Math.max(behindGap, 0))} arkanda, devam et!`);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (studyMembersContainer.innerHTML === "") {
-                const topMember = leaderboardData[0];
-                if (totalGroupFocusMinutes === 0) {
-                    // Tamamen boş grup: pasif bir "henüz kayıt yok" mesajı yerine
-                    // doğrudan odaklanmaya başlatan bir CTA göster.
-                    studyMembersContainer.innerHTML = `
-                        <div style="grid-column: 1/-1; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; padding: 14px;">
-                            <p style="color:var(--text-muted); font-size:12px; margin:0; line-height:1.6; text-align:left;">Bu grupta bu hafta henüz odaklanma kaydı yok.<br>Liderlik tablosuna girecek ilk kişi sen ol!</p>
-                            <button id="group-empty-state-cta" class="control-btn primary" style="font-size:12px; padding:9px 16px; white-space:nowrap; flex-shrink:0;">
-                                <i class="fa-solid fa-bolt"></i> İlk Seansını Başlat
-                            </button>
-                        </div>`;
-                    const ctaBtn = document.getElementById('group-empty-state-cta');
-                    if (ctaBtn) {
-                        ctaBtn.onclick = () => {
-                            if (typeof window.switchTab === 'function') window.switchTab('zamanlayici');
-                        };
-                    }
-                } else {
-                    const summaryHtml = `Bu grup bu hafta <b style="color:#fff;">${formatFocusMinutes(totalGroupFocusMinutes)}</b> odaklandı.<br>En çok odaklanan: <b style="color:#fff;">${_escapeHtml(topMember.uData.displayName || topMember.username)}</b> (${formatFocusMinutes(topMember.focusMin)})`;
-                    studyMembersContainer.innerHTML = `
-                        <div style="grid-column: 1/-1; text-align:center; padding: 14px 10px;">
-                            <p style="color:var(--text-muted); font-size:12px; margin: 0 0 6px 0;">Şu an grupta aktif çalışan kimse yok.</p>
-                            <p style="color:var(--text-muted); font-size:12px; margin:0; line-height:1.6;">${summaryHtml}</p>
-                        </div>`;
-                }
-            }
-
-            // Onboarding kartını: sıralama verisi yoksa göster, varsa gizle
-            const onboardingCard = document.getElementById('group-overview-onboarding');
-            if (onboardingCard) onboardingCard.classList.toggle('hidden', leaderboardData.length > 0);
-
-            // ── SIRALAMA (Leaderboard) ──
-            const leaderboardEl = document.getElementById("group-leaderboard-list");
-            const leaderboardEmpty = document.getElementById("group-leaderboard-empty");
-            if (leaderboardEmpty) leaderboardEmpty.classList.toggle('hidden', leaderboardData.length > 0);
-            if (leaderboardEl) {
-                leaderboardEl.innerHTML = leaderboardData.map((m, idx) => {
-                    const builtinRole = BUILTIN_ROLE_PERMS[m.role];
-                    const customRole = isSupabaseGroup
-                        ? (supaCustomRoles && supaCustomRoles[m.role])
-                        : (data.customRoles && data.customRoles[m.role]);
-                    const roleName = builtinRole ? builtinRole.name : (customRole ? customRole.name : 'Üye');
-                    const roleColor = builtinRole ? builtinRole.color : (customRole ? (customRole.color || '6c5ce7') : '636e72');
-                    const displayName = m.uData.displayName || m.username;
-                    const rankLabel = _gdRankLabel(idx);
-
-                    const isSelfRow = m.username === currentUser.username;
-
-                    return `
-                        <div class="group-leaderboard-row${idx < 3 ? ' top-rank' : ''}" data-username="${_escapeHtml(m.username)}" style="cursor:pointer;">
-                            <div class="glb-rank">${rankLabel}</div>
-                            ${avatarImgHtml({ ...m.uData, displayName }, 34)}
-                            <div class="glb-info">
-                                <div class="glb-name">
-                                    ${_escapeHtml(displayName)}
-                                    ${m.uData.online ? '<span class="glb-online-dot" title="Çevrimiçi"></span>' : ''}
-                                </div>
-                                <div class="glb-role" style="color:#${_escapeHtml(roleColor)};">${_escapeHtml(roleName)}</div>
-                            </div>
-                            ${isSelfRow ? '' : `<button class="group-kudos-btn" data-user-id="${m.uData.userId || ''}" data-username="${_escapeHtml(m.username)}" title="Alkış gönder" style="flex-shrink:0; background:none; border:none; cursor:pointer; font-size:15px; padding:4px; border-radius:6px; opacity:0.7;">👏</button>`}
-                            <div class="glb-time">${formatFocusMinutes(m.focusMin)}</div>
-                        </div>
-                    `;
-                }).join("");
-
-                if (leaderboardData.length === 0) {
-                    leaderboardEl.innerHTML = `<p style="color:var(--text-muted); font-size:12px; text-align:center; margin:10px 0;">Henüz üye yok.</p>`;
-                } else {
-                    leaderboardEl.querySelectorAll(".group-leaderboard-row").forEach(row => {
-                        row.addEventListener("click", () => {
-                            const m = leaderboardData.find(x => x.username === row.dataset.username);
-                            if (m && typeof openMiniProfile === 'function') {
-                                openMiniProfile(m.username, m.uData, row, membersData[m.username] || null);
-                            }
-                        });
-                    });
-                }
-            }
-        }
 
         // Yeni grubun veritabanı kanalını dinlemeye başla
         if (window.FocusSupabase && currentUser?.id && data._supaId) {
@@ -1068,14 +1072,14 @@ import {
                 }
 
                 data.members = membersData;
-                await _renderGroupMembersPanel(membersData);
+                await _renderGroupMembersPanel(data, membersData);
             };
 
             await refreshMembersSupabase();
 
             if (_groupOverviewPresenceHandler) _groupOverviewPresenceHandler();
 
-            _groupLeaderboardPresenceHandler = () => _renderGroupMembersPanel(data.members);
+            _groupLeaderboardPresenceHandler = () => _renderGroupMembersPanel(data, data.members);
             window.addEventListener('focusai:presence-changed', _groupLeaderboardPresenceHandler);
 
             const _gmChannel = window.FocusSupabase
