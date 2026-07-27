@@ -4,21 +4,28 @@
 // seçimi, "Bitir" akışı (staged görevleri gerçek tasks/calendarEvents'e yazar).
 //
 // ÖNEMLİ: Bu blok `tasks` dizisini TAM REASSIGN ediyor (`tasks = tasks.filter(...)`,
-// "Bitir" ve "İptal" akışlarında). Bu, script.js'in bugüne kadarki hiçbir
-// çıkarmasında gerekmemiş bir ilk: `window.__setTasksRef` bu çıkarma için
-// eklendi. `tasks` çekirdek/yüksek-riskli kabul edildiği için bu köprü
-// DİKKATLE kullanılmalı — yeni bir extraction `tasks` reassignment yaparsa
-// aynı setter'ı kullansın, YENİ bir setter icat ETMESİN.
+// "Bitir" ve "İptal" akışlarında). `setTasksRef` bu çıkarma için eklendi.
+// `tasks` çekirdek/yüksek-riskli kabul edildiği için bu köprü DİKKATLE
+// kullanılmalı — yeni bir extraction `tasks` reassignment yaparsa aynı
+// setter'ı kullansın, YENİ bir setter icat ETMESİN.
 //
-// Köprüler:
-//  - window.__getTasksRef()/__setTasksRef() (setter YENİ): tam reassign var.
-//  - window.__getCalendarEventsRef()/__getGoalsRef(): salt-okunur (calendarEvents
-//    property bazlı mutate ediliyor, reassign yok — getter yeterli).
-//  - window.saveTasks/renderTasks: script.js'te zaten vardı.
-//  - window.__getRenderStatisticsRef/__getRenderSocialStatsRef/__getRenderBuddyHabitsRef:
-//    script.js'te zaten vardı.
+// Faz H: script.js/script-calendar-month-view.js'ten tüketilen köprüler gerçek
+// import'a çevrildi. Bu dosya script.js'in TEK YÖNLÜ tüketicisi olduğu
+// doğrulandı (script.js bu dosyadaki hiçbir window.X'i çağırmıyor — sadece
+// removeStagedTask/handlePrioritySelection bu dosya İÇİNDE, event delegasyonu
+// üzerinden kendi kendine çağrılıyordu, artık düz fonksiyon). index.html'de
+// bu dosya script.js VE script-calendar-month-view.js'ten SONRA yüklendiği
+// için static import güvenli.
 //  - showPremiumModal/generateId: script.js'te de bare çalışıyordu (genuinely
 //    global, başka dosyada tanımlı window.X), değişiklik gerekmedi.
+import {
+    getTasksRef, setTasksRef, getCalendarEventsRef, getGoalsRef, saveTasks,
+    renderTasks, getRenderStatisticsRef, getRenderSocialStatsRef,
+    getRenderBuddyHabitsRef, getCurrentWeekStr, getTotalFocusMinutes,
+    getDayNames, getMonthNamesShort
+} from './script.js';
+import { renderCalendar, renderEvents } from './script-calendar-month-view.js';
+import { formatDateToString, timeToMins, addOneHour } from './script-date-time-utils.js';
 
      const weeklyBanner = document.getElementById('weekly-plan-banner');
      const startWeeklyPlanBtn = document.getElementById('start-weekly-plan-btn');
@@ -40,7 +47,7 @@
      let wizardDates = []; 
  
      function checkBannerVisibility() {
-         const isPlanned = FocusStorage.getRaw('weekly_planned') === window.currentWeekStr;
+         const isPlanned = FocusStorage.getRaw('weekly_planned') === getCurrentWeekStr();
          if (!isPlanned) {
              weeklyBanner.style.display = 'flex';
          } else {
@@ -50,11 +57,12 @@
      checkBannerVisibility();
  
      function openPlanWizardOrAction() {
-         const isPlanned = FocusStorage.getRaw('weekly_planned') === window.currentWeekStr;
+         const isPlanned = FocusStorage.getRaw('weekly_planned') === getCurrentWeekStr();
          if (isPlanned) {
              actionModal.classList.remove('hidden');
          } else {
-             document.getElementById('w-stat-tasks').textContent = window.__getTasksRef().filter(t => t.completed).length;
+             document.getElementById('w-stat-tasks').textContent = getTasksRef().filter(t => t.completed).length;
+             const totalFocusMinutes = getTotalFocusMinutes();
              let focusDisplay = totalFocusMinutes + " dk";
              if(totalFocusMinutes >= 60) focusDisplay = `${Math.floor(totalFocusMinutes / 60)} sa ${totalFocusMinutes % 60} dk`;
              document.getElementById('w-stat-focus').textContent = focusDisplay;
@@ -72,15 +80,15 @@
      actionCloseBtn.onclick = () => { actionModal.classList.add('hidden'); };
  
      actionCancelBtn.onclick = () => {
-         window.__setTasksRef(window.__getTasksRef().filter(t => t.weekStr !== window.currentWeekStr));
-         for(let date in window.__getCalendarEventsRef()) {
-             window.__getCalendarEventsRef()[date] = window.__getCalendarEventsRef()[date].filter(e => e.weekStr !== window.currentWeekStr);
-             if(window.__getCalendarEventsRef()[date].length === 0) delete window.__getCalendarEventsRef()[date];
+         setTasksRef(getTasksRef().filter(t => t.weekStr !== getCurrentWeekStr()));
+         for(let date in getCalendarEventsRef()) {
+             getCalendarEventsRef()[date] = getCalendarEventsRef()[date].filter(e => e.weekStr !== getCurrentWeekStr());
+             if(getCalendarEventsRef()[date].length === 0) delete getCalendarEventsRef()[date];
          }
          
          FocusStorage.remove('weekly_planned');
-         window.saveTasks();
-         window.renderTasks(); window.renderCalendar(); window.renderEvents();
+         saveTasks();
+         renderTasks(); renderCalendar(); renderEvents();
          checkBannerVisibility();
          actionModal.classList.add('hidden');
          showPremiumModal({title: 'Plan İptal Edildi', message: 'Haftalık planınız başarıyla silindi.', type: 'info'});
@@ -88,7 +96,7 @@
  
      actionEditBtn.onclick = () => {
          stagedTasks = [];
-         let tasksToEdit = window.__getTasksRef().filter(t => t.weekStr === window.currentWeekStr);
+         let tasksToEdit = getTasksRef().filter(t => t.weekStr === getCurrentWeekStr());
          tasksToEdit.forEach(t => {
              stagedTasks.push({ id: t.id, name: t.text, date: t.date, start: t.timeStart, end: t.timeEnd, parentGoal: t.parentGoal });
          });
@@ -119,11 +127,11 @@
          for(let i=0; i<7; i++) {
              let currDate = new Date(d);
              currDate.setDate(d.getDate() + i);
-             let dateStr = window.formatDateToString(currDate);
+             let dateStr = formatDateToString(currDate);
              wizardDates.push(dateStr);
  
-             let dayName = dayNames[currDate.getDay() === 0 ? 0 : currDate.getDay() ];
-             let shortDate = `${currDate.getDate()} ${monthNamesShort[currDate.getMonth()]}`;
+             let dayName = getDayNames()[currDate.getDay() === 0 ? 0 : currDate.getDay() ];
+             let shortDate = `${currDate.getDate()} ${getMonthNamesShort()[currDate.getMonth()]}`;
  
              let tab = document.createElement('div');
              tab.className = `wizard-day-tab ${i === 0 ? 'active' : ''}`;
@@ -233,8 +241,8 @@
  
          if(!name || !date || !start || !end) return;
  
-         const startMins = window.timeToMins(start);
-         const endMins = window.timeToMins(end);
+         const startMins = timeToMins(start);
+         const endMins = timeToMins(end);
  
          if(startMins >= endMins) {
              showPremiumModal({ title: 'Hatalı Zaman', message: 'Bitiş saati başlangıçtan önce olamaz.', type: 'warning' });
@@ -252,11 +260,11 @@
         }
 
          let totalMins = 0;
-         stagedTasks.forEach(t => { if(t.date === date) totalMins += (window.timeToMins(t.end) - window.timeToMins(t.start)); });
-         if(window.__getCalendarEventsRef()[date]) {
-             window.__getCalendarEventsRef()[date].forEach(ev => { 
-                 if (ev.weekStr !== window.currentWeekStr) {
-                     totalMins += (window.timeToMins(ev.timeEnd) - window.timeToMins(ev.timeStart)); 
+         stagedTasks.forEach(t => { if(t.date === date) totalMins += (timeToMins(t.end) - timeToMins(t.start)); });
+         if(getCalendarEventsRef()[date]) {
+             getCalendarEventsRef()[date].forEach(ev => { 
+                 if (ev.weekStr !== getCurrentWeekStr()) {
+                     totalMins += (timeToMins(ev.timeEnd) - timeToMins(ev.timeStart)); 
                  }
              });
          }
@@ -272,7 +280,7 @@
          document.getElementById('wiz-parent-goal').value = '';
          
          const nextStart = end;
-         const nextEnd = window.addOneHour(end);
+         const nextEnd = addOneHour(end);
          
          const displayStart = document.getElementById('wiz-time-start-display');
          const inputStart = document.getElementById('wiz-new-task-start');
@@ -288,8 +296,8 @@
      function hasStagedConflict(date, startMins, endMins) {
          for(let st of stagedTasks) {
              if(st.date === date) {
-                 let stStart = window.timeToMins(st.start);
-                 let stEnd = window.timeToMins(st.end);
+                 let stStart = timeToMins(st.start);
+                 let stEnd = timeToMins(st.end);
                  if(startMins < stEnd && endMins > stStart) return true;
              }
          }
@@ -301,13 +309,13 @@
          let totalMins = 0;
  
          stagedTasks.forEach(t => {
-             if(t.date === currentDate) totalMins += (window.timeToMins(t.end) - window.timeToMins(t.start));
+             if(t.date === currentDate) totalMins += (timeToMins(t.end) - timeToMins(t.start));
          });
  
-         if(window.__getCalendarEventsRef()[currentDate]) {
-             window.__getCalendarEventsRef()[currentDate].forEach(ev => {
-                 if (ev.weekStr !== window.currentWeekStr) { 
-                     totalMins += (window.timeToMins(ev.timeEnd) - window.timeToMins(ev.timeStart));
+         if(getCalendarEventsRef()[currentDate]) {
+             getCalendarEventsRef()[currentDate].forEach(ev => {
+                 if (ev.weekStr !== getCurrentWeekStr()) { 
+                     totalMins += (timeToMins(ev.timeEnd) - timeToMins(ev.timeStart));
                  }
              });
          }
@@ -336,7 +344,7 @@
          dayTasks.forEach((t) => {
              let badgeHTML = '';
              if (t.parentGoal) {
-                 const pg = window.__getGoalsRef().find(g => String(g.id) === String(t.parentGoal));
+                 const pg = getGoalsRef().find(g => String(g.id) === String(t.parentGoal));
                  if (pg) {
                      badgeHTML = `<span class="task-category-tag" style="background: rgba(108, 92, 231, 0.1); color: var(--primary-color); border: 1px solid rgba(108, 92, 231, 0.2); display:inline-flex; font-size:10px; padding:2px 6px; margin-top:4px;"><i class="fa-solid fa-bullseye"></i> ${escapeHtml(pg.title)}</span>`;
                  }
@@ -358,13 +366,13 @@
              list.dataset.delegated = '1';
              list.addEventListener('click', (e) => {
                  const el = e.target.closest('[data-action="remove-staged-task"]');
-                 if (el) window.removeStagedTask(el.dataset.id);
+                 if (el) removeStagedTask(el.dataset.id);
              });
          }
          checkBurnout();
      }
 
-     window.removeStagedTask = function(id) { stagedTasks = stagedTasks.filter(t => String(t.id) !== String(id)); renderStagedTasks(); };
+     function removeStagedTask(id) { stagedTasks = stagedTasks.filter(t => String(t.id) !== String(id)); renderStagedTasks(); }
  
      function renderPrioritySelection() {
          const container = document.getElementById('wiz-priority-selection');
@@ -374,7 +382,7 @@
  
          stagedTasks.forEach(t => {
              const [d, m, y] = t.date.split('-'); // GÜNCELLEME: d, m, y sırasına alındı
-             const shortDate = `${parseInt(d)} ${monthNamesShort[parseInt(m)-1]}`;
+             const shortDate = `${parseInt(d)} ${getMonthNamesShort()[parseInt(m)-1]}`;
  
              container.innerHTML += `
                  <label class="priority-select-item" id="priority-label-${t.id}">
@@ -390,12 +398,12 @@
              container.dataset.delegated = '1';
              container.addEventListener('change', (e) => {
                  const cb = e.target.closest('.priority-checkbox');
-                 if (cb) window.handlePrioritySelection(cb);
+                 if (cb) handlePrioritySelection(cb);
              });
          }
      }
 
-     window.handlePrioritySelection = function(cb) {
+     function handlePrioritySelection(cb) {
          const warningEl = document.getElementById('wiz-priority-warning');
          const labelEl = document.getElementById(`priority-label-${cb.value}`);
          
@@ -416,32 +424,32 @@
      };
  
      wizardFinishBtn.onclick = () => {
-         window.__setTasksRef(window.__getTasksRef().filter(t => t.weekStr !== window.currentWeekStr));
-         for(let date in window.__getCalendarEventsRef()) {
-             window.__getCalendarEventsRef()[date] = window.__getCalendarEventsRef()[date].filter(e => e.weekStr !== window.currentWeekStr);
-             if(window.__getCalendarEventsRef()[date].length === 0) delete window.__getCalendarEventsRef()[date];
+         setTasksRef(getTasksRef().filter(t => t.weekStr !== getCurrentWeekStr()));
+         for(let date in getCalendarEventsRef()) {
+             getCalendarEventsRef()[date] = getCalendarEventsRef()[date].filter(e => e.weekStr !== getCurrentWeekStr());
+             if(getCalendarEventsRef()[date].length === 0) delete getCalendarEventsRef()[date];
          }
  
          stagedTasks.forEach(st => {
              const isTopPriority = selectedPriorities.includes(String(st.id));
              const taskPriority = isTopPriority ? 'high' : 'medium';
              
-             window.__getTasksRef().push({ id: st.id, text: st.name, completed: false, priority: taskPriority, category: 'is', date: st.date, timeStart: st.start, timeEnd: st.end, weekStr: window.currentWeekStr, parentGoal: st.parentGoal });
+             getTasksRef().push({ id: st.id, text: st.name, completed: false, priority: taskPriority, category: 'is', date: st.date, timeStart: st.start, timeEnd: st.end, weekStr: getCurrentWeekStr(), parentGoal: st.parentGoal });
              
-             if(!window.__getCalendarEventsRef()[st.date]) window.__getCalendarEventsRef()[st.date] = [];
-             window.__getCalendarEventsRef()[st.date].push({ id: st.id, text: st.name, timeStart: st.start, timeEnd: st.end, priority: taskPriority, weekStr: window.currentWeekStr, parentGoal: st.parentGoal });
+             if(!getCalendarEventsRef()[st.date]) getCalendarEventsRef()[st.date] = [];
+             getCalendarEventsRef()[st.date].push({ id: st.id, text: st.name, timeStart: st.start, timeEnd: st.end, priority: taskPriority, weekStr: getCurrentWeekStr(), parentGoal: st.parentGoal });
          });
          
-         window.saveTasks();
-         FocusStorage.setRaw('weekly_planned', window.currentWeekStr);
+         saveTasks();
+         FocusStorage.setRaw('weekly_planned', getCurrentWeekStr());
          
          wizardModal.classList.add('hidden');
          checkBannerVisibility(); 
          
-         window.renderTasks(); window.renderCalendar(); window.renderEvents();
-         if(window.__getRenderStatisticsRef() && document.getElementById('istatistikler').classList.contains('active')) window.__getRenderStatisticsRef()();
-         if(window.__getRenderSocialStatsRef() && document.getElementById('arkadaslar').classList.contains('active')) window.__getRenderSocialStatsRef()();
-         if(window.__getRenderBuddyHabitsRef() && document.getElementById('arkadaslar').classList.contains('active')) window.__getRenderBuddyHabitsRef()();
+         renderTasks(); renderCalendar(); renderEvents();
+         if(getRenderStatisticsRef() && document.getElementById('istatistikler').classList.contains('active')) getRenderStatisticsRef()();
+         if(getRenderSocialStatsRef() && document.getElementById('arkadaslar').classList.contains('active')) getRenderSocialStatsRef()();
+         if(getRenderBuddyHabitsRef() && document.getElementById('arkadaslar').classList.contains('active')) getRenderBuddyHabitsRef()();
          
          showPremiumModal({title: 'Hafta Kilitlendi!', message: 'Tüm planlarınızı ve önceliklerinizi takvime yerleştirdik. Verimli bir hafta dileriz!', type: 'success'});
      };

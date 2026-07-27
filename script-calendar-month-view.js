@@ -26,11 +26,12 @@ import {
     getCalendarEventsRef, getMindDumpsRef, getTasksRef, getGoalsRef, getHabitsRef,
     setMindDumpsRef, moveTaskToDate, renderCalMindDump, updateStats, renderTasks,
     getCurrentDateRef, setCurrentDateRef, getSelectedDateRef, setSelectedDateRef,
-    initCalEventListDnD as _initCalEventListDnD, openDayDrawer as _openDayDrawer
+    initCalEventListDnD as _initCalEventListDnD, openDayDrawer as _openDayDrawer,
+    getPriorityLabelsRef
 } from './script.js';
 
      window.renderCalendar = () => renderCalendar(); // Faz 6: script-convert-modal.js için
-    function renderCalendar() {
+    export function renderCalendar() {
          const year = getCurrentDateRef().getFullYear(); 
          const month = getCurrentDateRef().getMonth();
          window.monthYearDisplay.textContent = `${monthNames[month]} ${year}`; 
@@ -185,7 +186,7 @@ import {
      }
  
      window.renderEvents = () => renderEvents(); // Faz 6: script-convert-modal.js için
-    function renderEvents() {
+    export function renderEvents() {
          const check = window.formatDateToString(getSelectedDateRef());
          
          // Arama ve Filtreleme Değerlerini Al
@@ -234,7 +235,7 @@ import {
              
              // Seçili Günün Görevleri (isLessonPlanDraft: öğretmenin başka bir öğrenci için
              // henüz atamadığı ders planı taslağı — bu görünümde gizli kalmalı)
-             if (getCalendarEventsRef()[check]) dayEvents.push(...calendarEvents[check].filter(e => !e.isLessonPlanDraft));
+             if (getCalendarEventsRef()[check]) dayEvents.push(...getCalendarEventsRef()[check].filter(e => !e.isLessonPlanDraft));
 
              // Dünden sarkan (gece kuşu) görevler
              let prevDate = new Date(getSelectedDateRef());
@@ -433,7 +434,7 @@ import {
              const evTimeStart = ev.timeStart || ev.time || "12:00";
              const evTimeEnd = ev.timeEnd || "13:00";
              const evPriority = ev.priority || "medium";
-             const priorityLabel = priorityLabels[evPriority] || "Orta";
+             const priorityLabel = getPriorityLabelsRef()[evPriority] || "Orta";
 
              const evDate = (globalTask && globalTask.date) ? globalTask.date : (ev._searchDate || check);
              const [d, m, y] = evDate.split('-'); // GÜNCELLEME: d, m, y sırasına alındı

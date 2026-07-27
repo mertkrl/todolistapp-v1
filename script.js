@@ -131,6 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
      const monthNamesShort = ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"];
      window.monthNames = monthNames; window.monthNamesShort = monthNamesShort; // Faz 6: script-statistics.js için
      const dayNames = ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'];
+     window.dayNames = dayNames; // Faz H: script-plan-wizard.js için — önceden bare 'dayNames' ReferenceError veriyordu (pre-existing bug)
  
      // getWeekNumber → script-date-time-utils.js dosyasına taşındı.
  
@@ -301,7 +302,8 @@ document.addEventListener('DOMContentLoaded', () => {
      // MAX_MIND_DUMPS -> script-mind-dump.js dosyasına taşındı (Faz 2, 2026-07-20).
 
      let totalFocusMinutes = FocusStorage.get('focus_minutes', 0) || 0;
- 
+     window.__getTotalFocusMinutesRef = () => totalFocusMinutes; // Faz H: script-plan-wizard.js için — önceden bare 'totalFocusMinutes' ReferenceError veriyordu (pre-existing bug)
+
      FocusStorage.checkOnInit();
  
      // ── UNDO (GERİ AL) SİSTEMİ → script-undo-toast.js dosyasına taşındı ──
@@ -2938,8 +2940,9 @@ document.addEventListener('DOMContentLoaded', () => {
      window.__setSelectedDateRef = (v) => { selectedDate = v; };
      
      const priorityLabels = { 'high': 'Yüksek', 'medium': 'Orta', 'low': 'Düşük' };
- 
-     
+     window.__getPriorityLabelsRef = () => priorityLabels; // Faz H: script-calendar-month-view.js için — önceden bare 'priorityLabels' ReferenceError veriyordu (pre-existing bug)
+
+
      // Aylık Takvim Hover Popup → script-calendar-hover-popup.js dosyasına taşındı
      // (window.showCalHoverPopup / window.hideCalHoverPopup olarak sağlanır)
 
@@ -5884,3 +5887,10 @@ export function getSelectedDateRef(...args) { return window.__getSelectedDateRef
 export function setSelectedDateRef(...args) { return window.__setSelectedDateRef(...args); }
 export function initCalEventListDnD(...args) { return window.initCalEventListDnD(...args); }
 export function openDayDrawer(...args) { return window.openDayDrawer(...args); }
+export function setTasksRef(...args) { return window.__setTasksRef(...args); }
+export function getCurrentWeekStr() { return window.currentWeekStr; }
+export function getRenderBuddyHabitsRef(...args) { return window.__getRenderBuddyHabitsRef(...args); }
+export function getTotalFocusMinutes() { return window.__getTotalFocusMinutesRef(); }
+export function getDayNames() { return window.dayNames; }
+export function getMonthNamesShort() { return window.monthNamesShort; }
+export function getPriorityLabelsRef() { return window.__getPriorityLabelsRef(); }
