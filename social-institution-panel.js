@@ -120,6 +120,48 @@ import {
            }
            return null;
        }
+       // ── Performans tablosu saf yardımcı fonksiyonları (Faz H iç-bölme) ──
+       // Bu 5 fonksiyon renderClassroomTab'in closure'ından TAŞINDI: hiçbiri dışarıdan
+       // hiçbir yerel değişken okumuyor/yazmıyor, sadece parametrelerine bağlı saf
+       // hesaplama/HTML-string üretimi yapıyor. Önceki halleri renderClassroomTab
+       // içinde `const x = (...) => {...}` şeklindeydi; davranış birebir aynı.
+       const _CT_TREND_WEEKS = 4;
+       const _CT_TREND_MIN_TOTAL = 4;
+       function _ctPctColor(pct) { return pct === null ? '#888' : pct >= 80 ? '#06d6a0' : pct >= 50 ? '#feca57' : '#ff8f70'; }
+       function _ctDistJitter(str) { let h = 0; for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) | 0; return (Math.abs(h) % 9) - 4; }
+       function _ctSparkHtml(buckets) {
+           if (!buckets || !buckets.some(b => b.assigned)) return '<span class="cp-perf-spark-empty">—</span>';
+           return `<span class="cp-perf-spark" title="Son ${_CT_TREND_WEEKS} hafta">${buckets.map(b => {
+               if (!b.assigned) return '<span class="cp-perf-spark-bar cp-perf-spark-bar--empty"></span>';
+               const pct = Math.round((b.done / b.assigned) * 100);
+               const h = Math.max(3, Math.round((pct / 100) * 24));
+               return `<span class="cp-perf-spark-bar" style="height:${h}px; background:${_ctPctColor(pct)};" title="%${pct}"></span>`;
+           }).join('')}</span>`;
+       }
+       function _ctTrendDirection(buckets) {
+           if (!buckets) return null;
+           const totalAssigned = buckets.reduce((sum, b) => sum + (b.assigned || 0), 0);
+           if (totalAssigned < _CT_TREND_MIN_TOTAL) return null;
+           const points = buckets.map((b, i) => b.assigned ? { x: i, y: b.done / b.assigned } : null).filter(p => p !== null);
+           if (points.length < 2) return null;
+           const n = points.length;
+           const meanX = points.reduce((s, p) => s + p.x, 0) / n;
+           const meanY = points.reduce((s, p) => s + p.y, 0) / n;
+           const num = points.reduce((s, p) => s + (p.x - meanX) * (p.y - meanY), 0);
+           const den = points.reduce((s, p) => s + (p.x - meanX) ** 2, 0);
+           if (den === 0) return null;
+           const slope = num / den;
+           const totalChange = slope * (buckets.length - 1);
+           if (totalChange >= 0.15) return 'up';
+           if (totalChange <= -0.15) return 'down';
+           return 'flat';
+       }
+       function _ctTrendArrowHtml(dir, labels) {
+           const t = labels || { up: 'Yükseliş trendi', down: 'Düşüş trendi' };
+           if (dir === 'up') return `<i class="fa-solid fa-arrow-trend-up cp-trend-icon cp-trend-icon--up" title="${t.up}"></i>`;
+           if (dir === 'down') return `<i class="fa-solid fa-arrow-trend-down cp-trend-icon cp-trend-icon--down" title="${t.down}"></i>`;
+           return '';
+       }
        async function renderClassroomTab(data, isClassAdmin) {
            const el = document.getElementById('group-gtab-classroom');
            if (!el || !window.FocusSupabase || !window.currentUser?.id || !data._supaId) return;
@@ -310,7 +352,8 @@ import {
            // değişince) kullanılabilsin diye üst kapsamda tutulur.
            let tableRows = [];
            const filterPerfRowsByClass = (classId, rows) => classId === 'all' ? rows : rows.filter(r => r.classId === classId);
-           const pctColor = (pct) => pct === null ? '#888' : pct >= 80 ? '#06d6a0' : pct >= 50 ? '#feca57' : '#ff8f70';
+           // Faz H iç-bölme: gövde module-seviye _ctPctColor'da (saf fonksiyon).
+           const pctColor = _ctPctColor;
            // Küçük örneklem eşiği: 5'in altındaki ödev sayısında % değeri tek bir ödevle 20+ puan
            // oynayabilir (1/4 → 2/4 = %25 → %50). Bu durumda tabloda "az veri" işareti gösterilir —
            // hem "Destek Önerilir" kararının hem de öğretmenin gözle yaptığı yorumun yanıltıcı
@@ -409,7 +452,8 @@ import {
            // sapması varsa çarpıklığa işaret eder) ve her öğrencinin tek tek noktasını gösterir —
            // öğretmen "Destek Önerilir" rozetli bir öğrencinin sınıfın kuyruğunda mı yoksa aslında
            // herkese yakın mı olduğunu bir bakışta görebilir.
-           const _distJitter = (str) => { let h = 0; for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) | 0; return (Math.abs(h) % 9) - 4; };
+           // Faz H iç-bölme: gövde module-seviye _ctDistJitter'da (saf fonksiyon).
+           const _distJitter = _ctDistJitter;
            const renderPerfDistributionHtml = (rows) => {
                // LOW_SAMPLE_MAX kullanılıyor (aynı "az veri" güvenilirlik eşiği, dosya başında
                // tanımlı) — dağılıma güvenilmez bir % ile katkı veren öğrenci karışmasın.
@@ -477,17 +521,9 @@ import {
                    });
                });
            }
-           const sparkHtml = (buckets) => {
-               if (!buckets || !buckets.some(b => b.assigned)) return '<span class="cp-perf-spark-empty">—</span>';
-               return `<span class="cp-perf-spark" title="Son ${TREND_WEEKS} hafta">${buckets.map(b => {
-                   if (!b.assigned) return '<span class="cp-perf-spark-bar cp-perf-spark-bar--empty"></span>';
-                   const pct = Math.round((b.done / b.assigned) * 100);
-                   // Trend sütunü büyütülüp daha görünür hale getirildi (24px yükseklik,
-                   // 8px çubuk genişliği — bkz. .cp-perf-spark, kullanıcı isteği 2026-07-13).
-                   const h = Math.max(3, Math.round((pct / 100) * 24));
-                   return `<span class="cp-perf-spark-bar" style="height:${h}px; background:${pctColor(pct)};" title="%${pct}"></span>`;
-               }).join('')}</span>`;
-           };
+           // Faz H iç-bölme: gövde artık module-seviye _ctSparkHtml'de (yalnızca kendi
+           // parametresine bağlı saf fonksiyon), burada sadece davranış-birebir-aynı takma ad.
+           const sparkHtml = _ctSparkHtml;
            // Trend yönü: 4 haftalık ödev tamamlama bucket'larındaki geçerli (assigned>0) ilk ve
            // son noktayı karşılaştırır. Anomali: ya odak süresinde önceki haftaya göre keskin düşüş
            // (>=30dk geçen hafta + bu hafta o sürenin %40'ının altına inme) ya da ödev tamamlamada
@@ -507,34 +543,15 @@ import {
            // (least-squares) eğimi TÜM haftaları eşit ağırlıkla hesaba katar, tek bir uç haftanın
            // aşırı etkisini azaltır. Eğim (haftalık ortalama değişim) 4 haftalık pencereye
            // ölçeklenip eski eşiklerle (±0.15) karşılaştırılabilir hale getirilir.
-           const trendDirection = (buckets) => {
-               if (!buckets) return null;
-               const totalAssigned = buckets.reduce((sum, b) => sum + (b.assigned || 0), 0);
-               if (totalAssigned < TREND_MIN_TOTAL) return null;
-               const points = buckets.map((b, i) => b.assigned ? { x: i, y: b.done / b.assigned } : null).filter(p => p !== null);
-               if (points.length < 2) return null;
-               const n = points.length;
-               const meanX = points.reduce((s, p) => s + p.x, 0) / n;
-               const meanY = points.reduce((s, p) => s + p.y, 0) / n;
-               const num = points.reduce((s, p) => s + (p.x - meanX) * (p.y - meanY), 0);
-               const den = points.reduce((s, p) => s + (p.x - meanX) ** 2, 0);
-               if (den === 0) return null; // tüm veri tek haftada, eğim tanımsız
-               const slope = num / den; // hafta başına ortalama değişim (fraksiyon)
-               const totalChange = slope * (buckets.length - 1); // pencerenin tamamına ölçeklenmiş toplam değişim
-               if (totalChange >= 0.15) return 'up';
-               if (totalChange <= -0.15) return 'down';
-               return 'flat';
-           };
+           // Faz H iç-bölme: gövde module-seviye _ctTrendDirection'da (saf fonksiyon, sabit
+           // eşikler _CT_TREND_MIN_TOTAL=4 ile TREND_MIN_TOTAL=4 birebir aynı).
+           const trendDirection = _ctTrendDirection;
            // Bilgi yoğunluğu azaltma: "flat" (sabit) yön artık HİÇ ikon basmıyor — bu en yaygın
            // durum olduğundan her satırda gereksiz bir ikon olarak birikip asıl önemli olan
            // up/down sinyallerini görsel gürültüye gömüyordu. Sadece gerçek bir yön değişimi
            // varken ikon gösterilir.
-           const trendArrowHtml = (dir, labels) => {
-               const t = labels || { up: 'Yükseliş trendi', down: 'Düşüş trendi' };
-               if (dir === 'up') return `<i class="fa-solid fa-arrow-trend-up cp-trend-icon cp-trend-icon--up" title="${t.up}"></i>`;
-               if (dir === 'down') return `<i class="fa-solid fa-arrow-trend-down cp-trend-icon cp-trend-icon--down" title="${t.down}"></i>`;
-               return '';
-           };
+           // Faz H iç-bölme: gövde module-seviye _ctTrendArrowHtml'de (saf fonksiyon).
+           const trendArrowHtml = _ctTrendArrowHtml;
            const focusTrendLabels = { up: 'Odak süresi geçen haftaya göre artıyor', down: 'Odak süresi geçen haftaya göre azalıyor', flat: 'Odak süresi geçen haftayla benzer' };
            const anomalyMeta = {
                focus_drop: { label: 'Ani Düşüş', title: 'Bu haftaki odak süresi geçen haftaya göre belirgin şekilde düştü' },

@@ -817,37 +817,37 @@ social-institution-my-groups.js:342  ${ownerBadge}
 social-institution-my-groups.js:345  ${groupCode}
 social-institution-my-groups.js:345  ${activeNowMiniHtml}
 social-institution-my-groups.js:501  ${window.avatarImgHtml(uData, 28)}
-social-institution-panel.js:1563  ${hasStudentPerfTab ? `<button class="cp-subtab-btn${isActive('performansim')}" data-cpsub="perform...}
-social-institution-panel.js:1564  ${hasPerfTab ? `<button class="cp-subtab-btn${isActive('performans')}" data-cpsub="performans"><i c...}
-social-institution-panel.js:1565  ${isActive('odevler')}
-social-institution-panel.js:1565  ${asgLabel}
-social-institution-panel.js:1566  ${isActive('program')}
-social-institution-panel.js:1567  ${isClassAdmin ? `<button class="cp-subtab-btn${isActive('roster')}" data-cpsub="roster"><i class="...}
-social-institution-panel.js:1568  ${isActive('rapor')}
-social-institution-panel.js:1570  ${hasStudentPerfTab ? `<div class="cp-subtab-panel${isActive('performansim')}" data-cpsubpanel="per...}
-social-institution-panel.js:1571  ${hasPerfTab ? `<div class="cp-subtab-panel${isActive('performans')}" data-cpsubpanel="performans">...}
-social-institution-panel.js:1572  ${isActive('odevler')}
-social-institution-panel.js:1572  ${asgHtml}
-social-institution-panel.js:1573  ${isActive('program')}
-social-institution-panel.js:1573  ${scheduleHtml}
-social-institution-panel.js:1574  ${isClassAdmin ? `<div class="cp-subtab-panel${isActive('roster')}" data-cpsubpanel="roster">${rost...}
-social-institution-panel.js:1575  ${isActive('rapor')}
-social-institution-panel.js:1575  ${reportHtml}
-social-institution-panel.js:2172  ${s.userId}
-social-institution-panel.js:2549  ${onboardingHtml}
-social-institution-panel.js:2549  ${weekTodoHtml}
-social-institution-panel.js:2549  ${kpiHtml}
-social-institution-panel.js:2725  ${nextMineHtml}
-social-institution-panel.js:2725  ${myStreakHtml}
-social-institution-panel.js:2725  ${myActiveStatusHtml}
-social-institution-panel.js:2725  ${myCompletionHtml}
-social-institution-panel.js:2725  ${privacyHtml}
-social-institution-panel.js:2749  ${checked ? `<i class="fa-solid fa-eye-slash"></i> Şu an <b>gizli</b>: haftalık odak süren ve aktif...}
-social-institution-panel.js:2798  ${statTilesHtml}
-social-institution-panel.js:2799  ${isClassAdmin ? `<div id="grp-intro-insights" class="cp-skeleton" style="margin-bottom:14px;"><div...}
-social-institution-panel.js:2800  ${isClassAdmin ? `<div id="grp-intro-shortcuts-wrap"></div>` : ` <button type="button" class="contr...}
-social-institution-panel.js:2883  ${ids.map(tileHtml).join('')}
-social-institution-panel.js:2908  ${Object.keys(SHORTCUT_DEFS).map(galleryRowHtml).join('')}
+social-institution-panel.js:1580  ${hasStudentPerfTab ? `<button class="cp-subtab-btn${isActive('performansim')}" data-cpsub="perform...}
+social-institution-panel.js:1581  ${hasPerfTab ? `<button class="cp-subtab-btn${isActive('performans')}" data-cpsub="performans"><i c...}
+social-institution-panel.js:1582  ${isActive('odevler')}
+social-institution-panel.js:1582  ${asgLabel}
+social-institution-panel.js:1583  ${isActive('program')}
+social-institution-panel.js:1584  ${isClassAdmin ? `<button class="cp-subtab-btn${isActive('roster')}" data-cpsub="roster"><i class="...}
+social-institution-panel.js:1585  ${isActive('rapor')}
+social-institution-panel.js:1587  ${hasStudentPerfTab ? `<div class="cp-subtab-panel${isActive('performansim')}" data-cpsubpanel="per...}
+social-institution-panel.js:1588  ${hasPerfTab ? `<div class="cp-subtab-panel${isActive('performans')}" data-cpsubpanel="performans">...}
+social-institution-panel.js:1589  ${isActive('odevler')}
+social-institution-panel.js:1589  ${asgHtml}
+social-institution-panel.js:1590  ${isActive('program')}
+social-institution-panel.js:1590  ${scheduleHtml}
+social-institution-panel.js:1591  ${isClassAdmin ? `<div class="cp-subtab-panel${isActive('roster')}" data-cpsubpanel="roster">${rost...}
+social-institution-panel.js:1592  ${isActive('rapor')}
+social-institution-panel.js:1592  ${reportHtml}
+social-institution-panel.js:2189  ${s.userId}
+social-institution-panel.js:2566  ${onboardingHtml}
+social-institution-panel.js:2566  ${weekTodoHtml}
+social-institution-panel.js:2566  ${kpiHtml}
+social-institution-panel.js:2742  ${nextMineHtml}
+social-institution-panel.js:2742  ${myStreakHtml}
+social-institution-panel.js:2742  ${myActiveStatusHtml}
+social-institution-panel.js:2742  ${myCompletionHtml}
+social-institution-panel.js:2742  ${privacyHtml}
+social-institution-panel.js:2766  ${checked ? `<i class="fa-solid fa-eye-slash"></i> Şu an <b>gizli</b>: haftalık odak süren ve aktif...}
+social-institution-panel.js:2815  ${statTilesHtml}
+social-institution-panel.js:2816  ${isClassAdmin ? `<div id="grp-intro-insights" class="cp-skeleton" style="margin-bottom:14px;"><div...}
+social-institution-panel.js:2817  ${isClassAdmin ? `<div id="grp-intro-shortcuts-wrap"></div>` : ` <button type="button" class="contr...}
+social-institution-panel.js:2900  ${ids.map(tileHtml).join('')}
+social-institution-panel.js:2925  ${Object.keys(SHORTCUT_DEFS).map(galleryRowHtml).join('')}
 social-message-pins.js:269  ${keys.length > 1 ? `Sabitlenmiş mesaj (${_dcPinnedIndex + 1}/${keys.length})` : 'Sabitlenmiş mesaj'}
 social-message-pins.js:272  ${keys.length > 1 ? `<button class="dc-pinned-nav-btn" data-action="next-pin" title="Sonraki sabitl...}
 social-message-pins.js:273  ${canUnpin ? `<button class="dc-pinned-unpin-btn" data-action="unpin" title="Sabitlemeyi kaldır"><i...}
