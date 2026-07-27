@@ -747,6 +747,355 @@ import {
         }
        }
 
+       // Aşama 3 (Faz H devamı): Sıralama sekmesi ("Bu Hafta"/"Tüm Zamanlar") buton bağlama.
+       // Sadece activePanel + data'ya ihtiyaç duyar, module-level _groupLeaderboardMode'a
+       // serbestçe erişir (closure-hapsi değil).
+       function _gdBindLeaderboardModeTabs(activePanel, data) {
+           const _syncLeaderboardModeTabs = () => {
+               activePanel.querySelectorAll(".glb-mode-btn").forEach(b => {
+                   const active = b.dataset.mode === _groupLeaderboardMode;
+                   b.style.background = active ? 'var(--primary-color)' : 'transparent';
+                   b.style.color = active ? '#fff' : 'var(--text-muted)';
+               });
+               const hint = document.getElementById("group-leaderboard-mode-hint");
+               if (hint) {
+                   hint.textContent = _groupLeaderboardMode === 'weekly'
+                       ? 'Her Pazartesi sıfırlanır — bu haftaki odaklanma süresine göre sıralanır.'
+                       : 'Katılımdan bu yana toplam odaklanma süresine göre sıralanır.';
+               }
+           };
+           _syncLeaderboardModeTabs();
+           activePanel.querySelectorAll(".glb-mode-btn").forEach(btn => {
+               btn.onclick = () => {
+                   if (_groupLeaderboardMode === btn.dataset.mode) return;
+                   _groupLeaderboardMode = btn.dataset.mode;
+                   _syncLeaderboardModeTabs();
+                   if (data.members) _renderGroupMembersPanel(data, data.members);
+               };
+           });
+       }
+
+       // Aşama 4: Kudos delegasyonu + arkadaş davet butonu bağlama.
+       function _gdBindKudosAndInvite(activePanel, code, data) {
+           // 👏 Kudos butonları (panel her render olduğunda yeniden eklendiği için delegasyonla dinleniyor)
+           activePanel.addEventListener("click", e => {
+               const kudosBtn = e.target.closest(".group-kudos-btn");
+               if (!kudosBtn) return;
+               e.stopPropagation();
+               sendGroupKudos(kudosBtn.dataset.userId, kudosBtn.dataset.username, kudosBtn);
+           });
+
+           // Arkadaşını gruba davet et — ayrı mini modal üzerinden
+           const inviteBtn = document.getElementById("group-invite-friend-btn");
+           if (inviteBtn) {
+               inviteBtn.onclick = () => window.openGroupInviteModal(code, data);
+           }
+       }
+
+       // Aşama 5: Sabitlenmiş duyuru banner'ı + düzenleme + "Grup Yönetimi"/Tema butonları.
+       // Sadece Supabase grupları için çalışır (data._supaId).
+       function _gdBindAnnouncementPanel(activePanel, code, data) {
+           const announcementBanner = document.getElementById("group-announcement-banner");
+           const announcementText = document.getElementById("group-announcement-text");
+           const announcementEditBtn = document.getElementById("group-announcement-edit-btn");
+           const announcementEditor = document.getElementById("group-announcement-editor");
+           const announcementInput = document.getElementById("group-announcement-input");
+           const announcementSaveBtn = document.getElementById("group-announcement-save-btn");
+           const announcementCancelBtn = document.getElementById("group-announcement-cancel-btn");
+
+           if (!data._supaId) return;
+
+           // M2b-4 Bölüm 1: Supabase grupları için duyuru banner'ı (groups.announcement jsonb)
+           if (announcementBanner && announcementText) {
+               const renderAnnouncement = (ann) => {
+                   if (ann && ann.text) {
+                       announcementText.textContent = ann.text;
+                       announcementBanner.classList.remove("hidden");
+                   } else {
+                       announcementText.textContent = "";
+                       announcementBanner.classList.add("hidden");
+                   }
+               };
+               renderAnnouncement(data.announcement);
+
+               if (window._announcementSupabaseChannel) {
+                   try { window.FocusSupabase.removeChannel(window._announcementSupabaseChannel); } catch (_) { console.warn('[FocusAI] sessiz hata:', _); }
+                   window._announcementSupabaseChannel = null;
+               }
+               window._announcementSupabaseChannel = window.FocusSupabase
+                   .channel(`group-announcement-${data._supaId}`)
+                   .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'groups', filter: `id=eq.${data._supaId}` }, payload => {
+                       if (window.__getCurrentActiveGroupCodeRef() !== code) return;
+                       data.announcement = payload.new.announcement || null;
+                       renderAnnouncement(data.announcement);
+                   })
+                   .subscribe();
+           }
+
+           if (announcementEditBtn && announcementEditor && announcementInput) {
+               announcementEditBtn.classList.toggle("hidden", !window._isSupabaseGroupAdmin(code));
+               announcementEditBtn.onclick = () => {
+                   announcementInput.value = announcementText ? announcementText.textContent : "";
+                   announcementEditor.classList.remove("hidden");
+                   announcementInput.focus();
+               };
+               if (announcementCancelBtn) {
+                   announcementCancelBtn.onclick = () => {
+                       announcementEditor.classList.add("hidden");
+                   };
+               }
+               if (announcementSaveBtn) {
+                   announcementSaveBtn.onclick = async () => {
+                       const text = announcementInput.value.trim();
+                       const announcement = text
+                           ? { text, setBy: currentUser.id, setByName: currentUser.displayName || currentUser.username, timestamp: Date.now() }
+                           : null;
+                       const { error } = await window.FocusSupabase.from('groups').update({ announcement }).eq('id', data._supaId);
+                       if (error) { window.dcShowToast('Duyuru kaydedilemedi: ' + error.message); return; }
+                       data.announcement = announcement;
+                       announcementEditor.classList.add("hidden");
+                       logGroupAuditSupabase(data._supaId, 'announcement_update', text ? 'Duyuru güncellendi' : 'Duyuru kaldırıldı');
+                       // "Duyuru Geçmişi" kartı için kalıcı kayıt (audit log admin-only olduğundan öğrenciye görünmez)
+                       if (text) {
+                           window.FocusSupabase.from('group_announcement_log').insert({
+                               group_id: data._supaId, text,
+                               author_id: currentUser.id, author_name: currentUser.displayName || currentUser.username,
+                           }).then(({ error: galErr }) => { if (galErr) console.warn('[Duyuru Geçmişi] kayıt hatası', galErr.message); });
+                       }
+                       // Kurumsal panel: duyuru tüm üyelere bildirim olarak gider —
+                       // öğrenci sohbete girmeden (girişi de yok) duyurudan haberdar olur.
+                       if (text) {
+                           const rows = Object.values(data.members || {})
+                               .filter(m => m.userId && m.userId !== currentUser.id)
+                               .map(m => ({
+                                   user_id: m.userId, type: 'group_announcement',
+                                   payload: {
+                                       groupName: data.name, groupCode: code,
+                                       text: text.slice(0, 140),
+                                       fromName: currentUser.displayName || currentUser.username
+                                   }
+                               }));
+                           if (rows.length) {
+                               window.FocusSupabase.from('notifications').insert(rows)
+                                   .then(({ error: nErr }) => { if (nErr) console.warn('[Duyuru] bildirim gönderilemedi', nErr.message); });
+                           }
+                       }
+                   };
+               }
+           }
+
+           // M2b-4 Bölüm 1: "Grup Yönetimi" butonu — Bölüm 2'ye kadar sadece admin
+           const managePermsBtnSupa = document.getElementById("group-manage-perms-btn");
+           if (managePermsBtnSupa) {
+               const canManageSupa = window._isSupabaseGroupAdmin(code);
+               managePermsBtnSupa.classList.toggle("hidden", !canManageSupa);
+               managePermsBtnSupa.onclick = function() {
+                   openGroupManagementModalSupabase(code, data._supaId, data);
+               };
+           }
+
+           // Tema butonu — sadece admin; tercih localStorage'a kaydedilir
+           const themeBtn = document.getElementById("group-theme-btn");
+           if (themeBtn && window._isSupabaseGroupAdmin(code)) {
+               themeBtn.classList.remove("hidden");
+               _applyGroupTheme(data._supaId);
+               themeBtn.onclick = () => _openGroupThemePicker(data._supaId, themeBtn);
+           }
+       }
+
+       // Aşama 6: "Ayrıl" butonu görsel kurulumu + tıklama handler'ı (sahiplik devri
+       // dahil). Sadece code/data/isOwner'a (showGroupDetails'in kendi parametre/lokalleri)
+       // ihtiyaç duyar, module-level groupMembersListenerRef/_managePermsListenerRef'e
+       // serbestçe erişir.
+       function _gdBindLeaveButton(code, data, isOwner) {
+           const leaveBtn = document.getElementById("group-leave-btn");
+           if (!leaveBtn) return;
+
+           leaveBtn.classList.remove("hidden");
+           leaveBtn.style.display = "inline-block";
+           leaveBtn.disabled = false;
+
+           if (isOwner) {
+               leaveBtn.innerHTML = '<i class="fa-solid fa-door-open"></i> Ayrıl';
+               leaveBtn.style.background = "rgba(255, 255, 255, 0.05)";
+               leaveBtn.style.color = "#ff4757";
+               leaveBtn.style.borderColor = "rgba(255, 71, 87, 0.2)";
+           } else {
+               leaveBtn.innerHTML = '<i class="fa-solid fa-door-open"></i> Ayrıl';
+               leaveBtn.style.background = "rgba(255, 255, 255, 0.05)";
+               leaveBtn.style.color = "#ff4757";
+               leaveBtn.style.borderColor = "rgba(255, 71, 87, 0.2)";
+           }
+
+           leaveBtn.onclick = async function() {
+               // ── SUPABASE: gruptan ayrılma ──
+               if (window.FocusSupabase && currentUser?.id && data._supaId) {
+                   const groupId = data._supaId;
+
+                   if (isOwner) {
+                       const { data: allMembers } = await window.FocusSupabase
+                           .from('group_members')
+                           .select('user_id, role, class_section_id, joined_at, profiles(username, display_name)')
+                           .eq('group_id', groupId);
+                       const others = (allMembers || []).filter(m => m.user_id !== currentUser.id);
+
+                       if (others.length === 0) {
+                           const ok = await window.showFocusaiConfirm({
+                               title: 'Grubu Sil',
+                               desc: `<b>"${_escapeHtml(data.name)}"</b> grubunda başka üye kalmadı.<br>Gruptan ayrılmak bu grubu kalıcı olarak silecek.`,
+                               type: 'danger',
+                               icon: 'fa-trash-can',
+                               confirmText: 'Evet, Sil',
+                               cancelText: 'Vazgeç'
+                           });
+                           if (!ok) return;
+
+                           leaveBtn.disabled = true;
+                           if (groupMembersListenerRef) groupMembersListenerRef.off();
+                           if (_managePermsListenerRef) _managePermsListenerRef.off();
+
+                           await window.FocusSupabase.from('groups').delete().eq('id', groupId);
+                           await window.FocusSupabase.from('group_leave_log')
+                               .upsert({ user_id: currentUser.id, group_id: groupId, left_at: new Date().toISOString() });
+
+                           resetActiveGroupPanel();
+                           if (typeof window.__dcCloseChatIfGroup === 'function') window.__dcCloseChatIfGroup(code);
+                           window.loadMyGroups();
+                           if (typeof window.loadUserGroupsForDc === 'function') window.loadUserGroupsForDc();
+                           return;
+                       }
+
+                       let newOwner = null;
+                       const isInstitutional = data.classroomType === 'classroom' || data.classroomType === 'workplace';
+
+                       if (isInstitutional) {
+                           // Sınıf/ders ve iş yeri/ekip gruplarında sahip, devir edilecek kişiyi kendi seçer.
+                           const chosenId = await window._pickNewOwner(others, data.name);
+                           if (!chosenId) return;
+                           newOwner = others.find(m => m.user_id === chosenId);
+                           if (!newOwner) return;
+                       } else {
+                           // Diğer gruplarda en yüksek hiyerarşi sıralı (priority) üye otomatik seçilir;
+                           // eşitlik durumunda en eski katılan.
+                           let bestPriority = -Infinity;
+                           let bestJoinedAt = Infinity;
+                           for (const m of others) {
+                               const p = getRolePriority(m.role || 'member', {});
+                               const joinedAt = m.joined_at ? new Date(m.joined_at).getTime() : Infinity;
+                               if (p > bestPriority || (p === bestPriority && joinedAt < bestJoinedAt)) {
+                                   bestPriority = p;
+                                   bestJoinedAt = joinedAt;
+                                   newOwner = m;
+                               }
+                           }
+
+                           const newOwnerName = (newOwner.profiles && (newOwner.profiles.display_name || newOwner.profiles.username)) || '?';
+                           const ok = await window.showFocusaiConfirm({
+                               title: 'Gruptan Ayrıl',
+                               desc: `<b>"${_escapeHtml(data.name)}"</b> grubunun sahibisiniz.<br>Ayrılırsan grup sahipliği <b>@${_escapeHtml(newOwnerName)}</b> kullanıcısına devredilecek.`,
+                               type: 'danger',
+                               icon: 'fa-door-open',
+                               confirmText: 'Devret ve Ayrıl',
+                               cancelText: 'Vazgeç'
+                           });
+                           if (!ok) return;
+                       }
+
+                       leaveBtn.disabled = true;
+                       if (groupMembersListenerRef) groupMembersListenerRef.off();
+                       if (_managePermsListenerRef) _managePermsListenerRef.off();
+
+                       const { error: ownerUpdErr } = await window.FocusSupabase.from('group_members').update({ role: 'admin' }).eq('group_id', groupId).eq('user_id', newOwner.user_id);
+                       if (ownerUpdErr) { window.dcShowToast('Sahiplik devri başarısız: ' + ownerUpdErr.message); leaveBtn.disabled = false; return; }
+                       const { error: groupUpdErr } = await window.FocusSupabase.from('groups').update({ created_by: newOwner.user_id }).eq('id', groupId);
+                       if (groupUpdErr) { window.dcShowToast('Sahiplik devri başarısız: ' + groupUpdErr.message); leaveBtn.disabled = false; return; }
+                       const newOwnerUsername = newOwner.profiles && newOwner.profiles.username;
+                       if (typeof logGroupAuditSupabase === 'function') {
+                           logGroupAuditSupabase(groupId, 'ownership_transfer', `Sahiplik ${newOwnerUsername ? '@' + newOwnerUsername : 'başka bir üyeye'} kullanıcısına devredildi (önceki sahip ayrıldı)`);
+                       }
+                       const { error: leaveDelErr } = await window.FocusSupabase.from('group_members').delete().eq('group_id', groupId).eq('user_id', currentUser.id);
+                       if (leaveDelErr) { window.dcShowToast('Gruptan ayrılma başarısız: ' + leaveDelErr.message); leaveBtn.disabled = false; return; }
+                       await window.FocusSupabase.from('group_leave_log')
+                           .upsert({ user_id: currentUser.id, group_id: groupId, left_at: new Date().toISOString() });
+
+                       resetActiveGroupPanel();
+                       if (typeof window.__dcCloseChatIfGroup === 'function') window.__dcCloseChatIfGroup(code);
+                       window.loadMyGroups();
+                       if (typeof window.loadUserGroupsForDc === 'function') window.loadUserGroupsForDc();
+                   } else {
+                       const ok = await window.showFocusaiConfirm({
+                           title: 'Gruptan Ayrıl',
+                           desc: `<b>"${_escapeHtml(data.name)}"</b> grubundan ayrılmak istediğine emin misin?`,
+                           type: 'danger',
+                           icon: 'fa-door-open',
+                           confirmText: 'Ayrıl',
+                           cancelText: 'Vazgeç'
+                       });
+                       if (!ok) return;
+
+                       leaveBtn.disabled = true;
+                       if (groupMembersListenerRef) groupMembersListenerRef.off();
+                       if (_managePermsListenerRef) _managePermsListenerRef.off();
+
+                       const { error: leaveDelErr } = await window.FocusSupabase.from('group_members').delete().eq('group_id', groupId).eq('user_id', currentUser.id);
+                       if (leaveDelErr) { window.dcShowToast('Gruptan ayrılma başarısız: ' + leaveDelErr.message); leaveBtn.disabled = false; return; }
+                       await window.FocusSupabase.from('group_leave_log')
+                           .upsert({ user_id: currentUser.id, group_id: groupId, left_at: new Date().toISOString() });
+
+                       resetActiveGroupPanel();
+                       if (typeof window.__dcCloseChatIfGroup === 'function') window.__dcCloseChatIfGroup(code);
+                       window.loadMyGroups();
+                       if (typeof window.loadUserGroupsForDc === 'function') window.loadUserGroupsForDc();
+                   }
+                   return;
+               }
+           };
+       }
+
+       // Aşama 7: Panel sekme geçişleri (Genel Bakış/Sınıf Paneli/Takvim/Geçmiş) bağlama
+       // + restore hedefine göre ilk sekmenin içerik-doldurma yan etkisini tetikleme.
+       function _gdBindPanelTabs(code, data, activePanel, _isClassAdmin, _restoreTargetGtab, _defaultGtab) {
+           // Sekme geçişleri — hangi sekmede olunduğu, sayfa yenilemesinde grup
+           // paneline (ve o sekmeye) geri dönebilmek için de kaydedilir (bkz.
+           // _dcPersistLastOpen / _dcRestoreLastOpenOnLoad, aksi halde yenileme
+           // kullanıcıyı Genel Bakış/Sınıf Paneli/Takvim/Geçmiş'ten atıp grubun
+           // #genel sohbetini açıyordu).
+           const _persistGroupPanelTab = (gtab) => {
+               if (typeof window._dcPersistLastOpen === 'function') window._dcPersistLastOpen({ fn: 'group-panel', code, gtab });
+           };
+           activePanel.querySelectorAll(".group-detail-tab-btn").forEach(btn => {
+               btn.onclick = () => {
+                   activePanel.querySelectorAll(".group-detail-tab-btn").forEach(b => b.classList.remove("active"));
+                   activePanel.querySelectorAll(".group-detail-tab-content").forEach(c => c.classList.remove("active"));
+                   btn.classList.add("active");
+                   const target = activePanel.querySelector(`#group-gtab-${btn.dataset.gtab}`);
+                   if (target) target.classList.add("active");
+                   _persistGroupPanelTab(btn.dataset.gtab);
+                   window._pendingGroupPanelGtab = null; // gerçek bir sekme tıklaması oldu, artık bekleyen bir restore hedefi yok
+                   if (btn.dataset.gtab === 'history') {
+                       gscRenderHistory();
+                   }
+                   if (btn.dataset.gtab === 'overview')  gscRenderActivityFeed();
+                   if (btn.dataset.gtab === 'classroom') {
+                       window.renderClassroomTabCached(data, _isClassAdmin);
+                   }
+               };
+           });
+           // Panel, yukarıda hesaplanan _restoreTargetGtab varsa doğrudan O sekmeyle
+           // (Genel Bakış'a hiç uğramadan) render edildi — burada sadece o sekmenin
+           // içerik doldurma yan etkisini (tıklama olmadığı için) manuel tetikliyoruz
+           // ve durumu kaydediyoruz. Restore hedefi yoksa normal varsayılan "Genel
+           // Bakış" ile açılır ve onun yan etkisi (gscRenderActivityFeed) çalışır.
+           const _initialGtab = _restoreTargetGtab || _defaultGtab;
+           _persistGroupPanelTab(_initialGtab);
+           window._pendingGroupPanelGtab = null; // tüketildi
+           if (_initialGtab === 'overview') gscRenderActivityFeed();
+           if (_initialGtab === 'classroom') window.renderClassroomTabCached(data, _isClassAdmin);
+           if (_initialGtab === 'history') {
+               gscRenderHistory();
+           }
+       }
+
        async function showGroupDetails(code, data) {
         // Eğer arka planda çalışan eski bir grup dinleyicisi varsa önce onu KESİNLİKLE kapat
         _gdCleanupPreviousListeners();
@@ -799,334 +1148,13 @@ import {
             window.addEventListener('focusai:presence-changed', _groupOverviewPresenceHandler);
         }
 
-        // Sekme geçişleri — hangi sekmede olunduğu, sayfa yenilemesinde grup
-        // paneline (ve o sekmeye) geri dönebilmek için de kaydedilir (bkz.
-        // _dcPersistLastOpen / _dcRestoreLastOpenOnLoad, aksi halde yenileme
-        // kullanıcıyı Genel Bakış/Sınıf Paneli/Takvim/Geçmiş'ten atıp grubun
-        // #genel sohbetini açıyordu).
-        const _persistGroupPanelTab = (gtab) => {
-            if (typeof window._dcPersistLastOpen === 'function') window._dcPersistLastOpen({ fn: 'group-panel', code, gtab });
-        };
-        activePanel.querySelectorAll(".group-detail-tab-btn").forEach(btn => {
-            btn.onclick = () => {
-                activePanel.querySelectorAll(".group-detail-tab-btn").forEach(b => b.classList.remove("active"));
-                activePanel.querySelectorAll(".group-detail-tab-content").forEach(c => c.classList.remove("active"));
-                btn.classList.add("active");
-                const target = activePanel.querySelector(`#group-gtab-${btn.dataset.gtab}`);
-                if (target) target.classList.add("active");
-                _persistGroupPanelTab(btn.dataset.gtab);
-                window._pendingGroupPanelGtab = null; // gerçek bir sekme tıklaması oldu, artık bekleyen bir restore hedefi yok
-                if (btn.dataset.gtab === 'history') {
-                    gscRenderHistory();
-                }
-                if (btn.dataset.gtab === 'overview')  gscRenderActivityFeed();
-                if (btn.dataset.gtab === 'classroom') {
-                    window.renderClassroomTabCached(data, _isClassAdmin);
-                }
-            };
-        });
-        // Panel, yukarıda hesaplanan _restoreTargetGtab varsa doğrudan O sekmeyle
-        // (Genel Bakış'a hiç uğramadan) render edildi — burada sadece o sekmenin
-        // içerik doldurma yan etkisini (tıklama olmadığı için) manuel tetikliyoruz
-        // ve durumu kaydediyoruz. Restore hedefi yoksa normal varsayılan "Genel
-        // Bakış" ile açılır ve onun yan etkisi (gscRenderActivityFeed) çalışır.
-        const _initialGtab = _restoreTargetGtab || _defaultGtab;
-        _persistGroupPanelTab(_initialGtab);
-        window._pendingGroupPanelGtab = null; // tüketildi
-        if (_initialGtab === 'overview') gscRenderActivityFeed();
-        if (_initialGtab === 'classroom') window.renderClassroomTabCached(data, _isClassAdmin);
-        if (_initialGtab === 'history') {
-            gscRenderHistory();
-        }
+        _gdBindPanelTabs(code, data, activePanel, _isClassAdmin, _restoreTargetGtab, _defaultGtab);
 
-        // Sıralama sekmesi: "Bu Hafta" (Pazartesi'de sıfırlanır) / "Tüm Zamanlar"
-        const _syncLeaderboardModeTabs = () => {
-            activePanel.querySelectorAll(".glb-mode-btn").forEach(b => {
-                const active = b.dataset.mode === _groupLeaderboardMode;
-                b.style.background = active ? 'var(--primary-color)' : 'transparent';
-                b.style.color = active ? '#fff' : 'var(--text-muted)';
-            });
-            const hint = document.getElementById("group-leaderboard-mode-hint");
-            if (hint) {
-                hint.textContent = _groupLeaderboardMode === 'weekly'
-                    ? 'Her Pazartesi sıfırlanır — bu haftaki odaklanma süresine göre sıralanır.'
-                    : 'Katılımdan bu yana toplam odaklanma süresine göre sıralanır.';
-            }
-        };
-        _syncLeaderboardModeTabs();
-        activePanel.querySelectorAll(".glb-mode-btn").forEach(btn => {
-            btn.onclick = () => {
-                if (_groupLeaderboardMode === btn.dataset.mode) return;
-                _groupLeaderboardMode = btn.dataset.mode;
-                _syncLeaderboardModeTabs();
-                if (data.members) _renderGroupMembersPanel(data, data.members);
-            };
-        });
+        _gdBindLeaderboardModeTabs(activePanel, data);
+        _gdBindKudosAndInvite(activePanel, code, data);
+        _gdBindAnnouncementPanel(activePanel, code, data);
 
-        // 👏 Kudos butonları (panel her render olduğunda yeniden eklendiği için delegasyonla dinleniyor)
-        activePanel.addEventListener("click", e => {
-            const kudosBtn = e.target.closest(".group-kudos-btn");
-            if (!kudosBtn) return;
-            e.stopPropagation();
-            sendGroupKudos(kudosBtn.dataset.userId, kudosBtn.dataset.username, kudosBtn);
-        });
-
-        // Arkadaşını gruba davet et — ayrı mini modal üzerinden
-        const inviteBtn = document.getElementById("group-invite-friend-btn");
-        if (inviteBtn) {
-            inviteBtn.onclick = () => window.openGroupInviteModal(code, data);
-        }
-
-        // ── SABİTLENMİŞ DUYURU ──
-        const announcementBanner = document.getElementById("group-announcement-banner");
-        const announcementText = document.getElementById("group-announcement-text");
-        const announcementEditBtn = document.getElementById("group-announcement-edit-btn");
-        const announcementEditor = document.getElementById("group-announcement-editor");
-        const announcementInput = document.getElementById("group-announcement-input");
-        const announcementSaveBtn = document.getElementById("group-announcement-save-btn");
-        const announcementCancelBtn = document.getElementById("group-announcement-cancel-btn");
-
-        if (data._supaId) {
-            // M2b-4 Bölüm 1: Supabase grupları için duyuru banner'ı (groups.announcement jsonb)
-            if (announcementBanner && announcementText) {
-                const renderAnnouncement = (ann) => {
-                    if (ann && ann.text) {
-                        announcementText.textContent = ann.text;
-                        announcementBanner.classList.remove("hidden");
-                    } else {
-                        announcementText.textContent = "";
-                        announcementBanner.classList.add("hidden");
-                    }
-                };
-                renderAnnouncement(data.announcement);
-
-                if (window._announcementSupabaseChannel) {
-                    try { window.FocusSupabase.removeChannel(window._announcementSupabaseChannel); } catch (_) { console.warn('[FocusAI] sessiz hata:', _); }
-                    window._announcementSupabaseChannel = null;
-                }
-                window._announcementSupabaseChannel = window.FocusSupabase
-                    .channel(`group-announcement-${data._supaId}`)
-                    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'groups', filter: `id=eq.${data._supaId}` }, payload => {
-                        if (window.__getCurrentActiveGroupCodeRef() !== code) return;
-                        data.announcement = payload.new.announcement || null;
-                        renderAnnouncement(data.announcement);
-                    })
-                    .subscribe();
-            }
-
-            if (announcementEditBtn && announcementEditor && announcementInput) {
-                announcementEditBtn.classList.toggle("hidden", !window._isSupabaseGroupAdmin(code));
-                announcementEditBtn.onclick = () => {
-                    announcementInput.value = announcementText ? announcementText.textContent : "";
-                    announcementEditor.classList.remove("hidden");
-                    announcementInput.focus();
-                };
-                if (announcementCancelBtn) {
-                    announcementCancelBtn.onclick = () => {
-                        announcementEditor.classList.add("hidden");
-                    };
-                }
-                if (announcementSaveBtn) {
-                    announcementSaveBtn.onclick = async () => {
-                        const text = announcementInput.value.trim();
-                        const announcement = text
-                            ? { text, setBy: currentUser.id, setByName: currentUser.displayName || currentUser.username, timestamp: Date.now() }
-                            : null;
-                        const { error } = await window.FocusSupabase.from('groups').update({ announcement }).eq('id', data._supaId);
-                        if (error) { window.dcShowToast('Duyuru kaydedilemedi: ' + error.message); return; }
-                        data.announcement = announcement;
-                        announcementEditor.classList.add("hidden");
-                        logGroupAuditSupabase(data._supaId, 'announcement_update', text ? 'Duyuru güncellendi' : 'Duyuru kaldırıldı');
-                        // "Duyuru Geçmişi" kartı için kalıcı kayıt (audit log admin-only olduğundan öğrenciye görünmez)
-                        if (text) {
-                            window.FocusSupabase.from('group_announcement_log').insert({
-                                group_id: data._supaId, text,
-                                author_id: currentUser.id, author_name: currentUser.displayName || currentUser.username,
-                            }).then(({ error: galErr }) => { if (galErr) console.warn('[Duyuru Geçmişi] kayıt hatası', galErr.message); });
-                        }
-                        // Kurumsal panel: duyuru tüm üyelere bildirim olarak gider —
-                        // öğrenci sohbete girmeden (girişi de yok) duyurudan haberdar olur.
-                        if (text) {
-                            const rows = Object.values(data.members || {})
-                                .filter(m => m.userId && m.userId !== currentUser.id)
-                                .map(m => ({
-                                    user_id: m.userId, type: 'group_announcement',
-                                    payload: {
-                                        groupName: data.name, groupCode: code,
-                                        text: text.slice(0, 140),
-                                        fromName: currentUser.displayName || currentUser.username
-                                    }
-                                }));
-                            if (rows.length) {
-                                window.FocusSupabase.from('notifications').insert(rows)
-                                    .then(({ error: nErr }) => { if (nErr) console.warn('[Duyuru] bildirim gönderilemedi', nErr.message); });
-                            }
-                        }
-                    };
-                }
-            }
-
-            // M2b-4 Bölüm 1: "Grup Yönetimi" butonu — Bölüm 2'ye kadar sadece admin
-            const managePermsBtnSupa = document.getElementById("group-manage-perms-btn");
-            if (managePermsBtnSupa) {
-                const canManageSupa = window._isSupabaseGroupAdmin(code);
-                managePermsBtnSupa.classList.toggle("hidden", !canManageSupa);
-                managePermsBtnSupa.onclick = function() {
-                    openGroupManagementModalSupabase(code, data._supaId, data);
-                };
-            }
-
-            // Tema butonu — sadece admin; tercih localStorage'a kaydedilir
-            const themeBtn = document.getElementById("group-theme-btn");
-            if (themeBtn && window._isSupabaseGroupAdmin(code)) {
-                themeBtn.classList.remove("hidden");
-                _applyGroupTheme(data._supaId);
-                themeBtn.onclick = () => _openGroupThemePicker(data._supaId, themeBtn);
-            }
-        }
-
-        const leaveBtn = document.getElementById("group-leave-btn");
-        if (leaveBtn) {
-            leaveBtn.classList.remove("hidden");
-            leaveBtn.style.display = "inline-block"; 
-            leaveBtn.disabled = false;
-
-            if (isOwner) {
-                leaveBtn.innerHTML = '<i class="fa-solid fa-door-open"></i> Ayrıl';
-                leaveBtn.style.background = "rgba(255, 255, 255, 0.05)";
-                leaveBtn.style.color = "#ff4757";
-                leaveBtn.style.borderColor = "rgba(255, 71, 87, 0.2)";
-            } else {
-                leaveBtn.innerHTML = '<i class="fa-solid fa-door-open"></i> Ayrıl';
-                leaveBtn.style.background = "rgba(255, 255, 255, 0.05)";
-                leaveBtn.style.color = "#ff4757";
-                leaveBtn.style.borderColor = "rgba(255, 71, 87, 0.2)";
-            }
-
-            leaveBtn.onclick = async function() {
-                // ── SUPABASE: gruptan ayrılma ──
-                if (window.FocusSupabase && currentUser?.id && data._supaId) {
-                    const groupId = data._supaId;
-
-                    if (isOwner) {
-                        const { data: allMembers } = await window.FocusSupabase
-                            .from('group_members')
-                            .select('user_id, role, class_section_id, joined_at, profiles(username, display_name)')
-                            .eq('group_id', groupId);
-                        const others = (allMembers || []).filter(m => m.user_id !== currentUser.id);
-
-                        if (others.length === 0) {
-                            const ok = await window.showFocusaiConfirm({
-                                title: 'Grubu Sil',
-                                desc: `<b>"${_escapeHtml(data.name)}"</b> grubunda başka üye kalmadı.<br>Gruptan ayrılmak bu grubu kalıcı olarak silecek.`,
-                                type: 'danger',
-                                icon: 'fa-trash-can',
-                                confirmText: 'Evet, Sil',
-                                cancelText: 'Vazgeç'
-                            });
-                            if (!ok) return;
-
-                            leaveBtn.disabled = true;
-                            if (groupMembersListenerRef) groupMembersListenerRef.off();
-                            if (_managePermsListenerRef) _managePermsListenerRef.off();
-
-                            await window.FocusSupabase.from('groups').delete().eq('id', groupId);
-                            await window.FocusSupabase.from('group_leave_log')
-                                .upsert({ user_id: currentUser.id, group_id: groupId, left_at: new Date().toISOString() });
-
-                            resetActiveGroupPanel();
-                            if (typeof window.__dcCloseChatIfGroup === 'function') window.__dcCloseChatIfGroup(code);
-                            window.loadMyGroups();
-                            if (typeof window.loadUserGroupsForDc === 'function') window.loadUserGroupsForDc();
-                            return;
-                        }
-
-                        let newOwner = null;
-                        const isInstitutional = data.classroomType === 'classroom' || data.classroomType === 'workplace';
-
-                        if (isInstitutional) {
-                            // Sınıf/ders ve iş yeri/ekip gruplarında sahip, devir edilecek kişiyi kendi seçer.
-                            const chosenId = await window._pickNewOwner(others, data.name);
-                            if (!chosenId) return;
-                            newOwner = others.find(m => m.user_id === chosenId);
-                            if (!newOwner) return;
-                        } else {
-                            // Diğer gruplarda en yüksek hiyerarşi sıralı (priority) üye otomatik seçilir;
-                            // eşitlik durumunda en eski katılan.
-                            let bestPriority = -Infinity;
-                            let bestJoinedAt = Infinity;
-                            for (const m of others) {
-                                const p = getRolePriority(m.role || 'member', {});
-                                const joinedAt = m.joined_at ? new Date(m.joined_at).getTime() : Infinity;
-                                if (p > bestPriority || (p === bestPriority && joinedAt < bestJoinedAt)) {
-                                    bestPriority = p;
-                                    bestJoinedAt = joinedAt;
-                                    newOwner = m;
-                                }
-                            }
-
-                            const newOwnerName = (newOwner.profiles && (newOwner.profiles.display_name || newOwner.profiles.username)) || '?';
-                            const ok = await window.showFocusaiConfirm({
-                                title: 'Gruptan Ayrıl',
-                                desc: `<b>"${_escapeHtml(data.name)}"</b> grubunun sahibisiniz.<br>Ayrılırsan grup sahipliği <b>@${_escapeHtml(newOwnerName)}</b> kullanıcısına devredilecek.`,
-                                type: 'danger',
-                                icon: 'fa-door-open',
-                                confirmText: 'Devret ve Ayrıl',
-                                cancelText: 'Vazgeç'
-                            });
-                            if (!ok) return;
-                        }
-
-                        leaveBtn.disabled = true;
-                        if (groupMembersListenerRef) groupMembersListenerRef.off();
-                        if (_managePermsListenerRef) _managePermsListenerRef.off();
-
-                        const { error: ownerUpdErr } = await window.FocusSupabase.from('group_members').update({ role: 'admin' }).eq('group_id', groupId).eq('user_id', newOwner.user_id);
-                        if (ownerUpdErr) { window.dcShowToast('Sahiplik devri başarısız: ' + ownerUpdErr.message); leaveBtn.disabled = false; return; }
-                        const { error: groupUpdErr } = await window.FocusSupabase.from('groups').update({ created_by: newOwner.user_id }).eq('id', groupId);
-                        if (groupUpdErr) { window.dcShowToast('Sahiplik devri başarısız: ' + groupUpdErr.message); leaveBtn.disabled = false; return; }
-                        const newOwnerUsername = newOwner.profiles && newOwner.profiles.username;
-                        if (typeof logGroupAuditSupabase === 'function') {
-                            logGroupAuditSupabase(groupId, 'ownership_transfer', `Sahiplik ${newOwnerUsername ? '@' + newOwnerUsername : 'başka bir üyeye'} kullanıcısına devredildi (önceki sahip ayrıldı)`);
-                        }
-                        const { error: leaveDelErr } = await window.FocusSupabase.from('group_members').delete().eq('group_id', groupId).eq('user_id', currentUser.id);
-                        if (leaveDelErr) { window.dcShowToast('Gruptan ayrılma başarısız: ' + leaveDelErr.message); leaveBtn.disabled = false; return; }
-                        await window.FocusSupabase.from('group_leave_log')
-                            .upsert({ user_id: currentUser.id, group_id: groupId, left_at: new Date().toISOString() });
-
-                        resetActiveGroupPanel();
-                        if (typeof window.__dcCloseChatIfGroup === 'function') window.__dcCloseChatIfGroup(code);
-                        window.loadMyGroups();
-                        if (typeof window.loadUserGroupsForDc === 'function') window.loadUserGroupsForDc();
-                    } else {
-                        const ok = await window.showFocusaiConfirm({
-                            title: 'Gruptan Ayrıl',
-                            desc: `<b>"${_escapeHtml(data.name)}"</b> grubundan ayrılmak istediğine emin misin?`,
-                            type: 'danger',
-                            icon: 'fa-door-open',
-                            confirmText: 'Ayrıl',
-                            cancelText: 'Vazgeç'
-                        });
-                        if (!ok) return;
-
-                        leaveBtn.disabled = true;
-                        if (groupMembersListenerRef) groupMembersListenerRef.off();
-                        if (_managePermsListenerRef) _managePermsListenerRef.off();
-
-                        const { error: leaveDelErr } = await window.FocusSupabase.from('group_members').delete().eq('group_id', groupId).eq('user_id', currentUser.id);
-                        if (leaveDelErr) { window.dcShowToast('Gruptan ayrılma başarısız: ' + leaveDelErr.message); leaveBtn.disabled = false; return; }
-                        await window.FocusSupabase.from('group_leave_log')
-                            .upsert({ user_id: currentUser.id, group_id: groupId, left_at: new Date().toISOString() });
-
-                        resetActiveGroupPanel();
-                        if (typeof window.__dcCloseChatIfGroup === 'function') window.__dcCloseChatIfGroup(code);
-                        window.loadMyGroups();
-                        if (typeof window.loadUserGroupsForDc === 'function') window.loadUserGroupsForDc();
-                    }
-                    return;
-                }
-            };
-        }
+        _gdBindLeaveButton(code, data, isOwner);
 
 
         // Yeni grubun veritabanı kanalını dinlemeye başla (Aşama 2, bkz. _gdSetupMemberListeners)
