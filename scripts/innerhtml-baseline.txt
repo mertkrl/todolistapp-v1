@@ -40,91 +40,91 @@ planning-lesson-plan-modal.js:122  ${g.id}
 planning-lesson-plan-modal.js:123  ${g.id}
 planning-lesson-plan-modal.js:199  ${g.id}
 planning-lesson-plan-modal.js:383  ${s.id}
-planning-milestone-wizard.js:348  ${(m.user_id||'?')[0].toUpperCase()}
-planning-milestone-wizard.js:377  ${cat.id === currentCat ? ' selected' : ''}
-planning-milestone-wizard.js:378  ${cat.id}
-planning-milestone-wizard.js:378  ${cat.color}
-planning-milestone-wizard.js:379  ${cat.icon}
-planning-milestone-wizard.js:380  ${cat.label}
-planning-milestone-wizard.js:406  ${p.val === current ? ' selected' : ''}
-planning-milestone-wizard.js:407  ${p.val}
-planning-milestone-wizard.js:407  ${p.color}
-planning-milestone-wizard.js:408  ${p.emoji}
-planning-milestone-wizard.js:408  ${p.label}
-planning-milestone-wizard.js:436  ${o.months}
-planning-milestone-wizard.js:436  ${o.label}
-planning-milestone-wizard.js:549  ${cat.color}
-planning-milestone-wizard.js:549  ${cat.color}
-planning-milestone-wizard.js:549  ${i + 1}
-planning-milestone-wizard.js:550  ${m.icon}
-planning-milestone-wizard.js:552  ${i}
-planning-milestone-wizard.js:554  ${i + 1}
-planning-milestone-wizard.js:592  ${m.id}
-planning-milestone-wizard.js:593  ${i + 1}
-planning-milestone-wizard.js:594  ${m.icon}
-planning-milestone-wizard.js:597  ${i > 0 ? `<button class="pg-icon-btn pg-wz-ms-up" data-wid="${m.id}" title="Yukarı" type="button">...}
-planning-milestone-wizard.js:598  ${i < ms.length - 1 ? `<button class="pg-icon-btn pg-wz-ms-dn" data-wid="${m.id}" title="Aşağı" typ...}
-planning-milestone-wizard.js:599  ${m.id}
-planning-milestone-wizard.js:718  ${new Date(_wzCalYear, _wzCalMonth).toLocaleDateString('tr-TR',{month:'long',year:'numeric'})}
-planning-milestone-wizard.js:718  ${new Date(m2yr, m2mo).toLocaleDateString('tr-TR',{month:'long',year:'numeric'})}
-planning-milestone-wizard.js:722  ${_wzRenderBookingMonth(_wzCalYear, _wzCalMonth, ranges)}
-planning-milestone-wizard.js:723  ${_wzRenderBookingMonth(m2yr, m2mo, ranges)}
-planning-milestone-wizard.js:952  ${cat.color}
-planning-milestone-wizard.js:952  ${cat.color}
-planning-milestone-wizard.js:952  ${cat.color}
-planning-milestone-wizard.js:952  ${i + 1}
-planning-milestone-wizard.js:955  ${m.icon}
-planning-milestone-wizard.js:958  ${m.id}
-planning-milestone-wizard.js:958  ${m.due_date || ''}
-planning-milestone-wizard.js:1016  ${monthLabel}
-planning-milestone-wizard.js:1020  ${dayHdrs.map(d => `<div class="pg-wz-cal-day-hdr">${d}</div>`).join('')}
-planning-milestone-wizard.js:1021  ${cells}
-planning-milestone-wizard.js:1055  ${cat.color}
-planning-milestone-wizard.js:1068  ${deadline.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric' })}
-planning-milestone-wizard.js:1088  ${conflicts[0]}
-planning-milestone-wizard.js:1088  ${conflicts.length > 1 ? ' (+' + (conflicts.length - 1) + ' daha)' : ''}
-planning-milestone-wizard.js:1140  ${msWithDates > 0 ? `<div class="pg-wz-gran-hint"><i class="ti ti-sparkles"></i> ${msWithDates} dön...}
-planning-milestone-wizard.js:1215  ${modeMap[wizardState.planMode] || ''}
-planning-milestone-wizard.js:1236  ${idx === 0 ? ' open' : ''}
-planning-milestone-wizard.js:1236  ${idx}
-planning-milestone-wizard.js:1237  ${idx}
-planning-milestone-wizard.js:1238  ${cat.color}
-planning-milestone-wizard.js:1238  ${cat.color}
-planning-milestone-wizard.js:1238  ${idx+1}
-planning-milestone-wizard.js:1239  ${ms.icon}
-planning-milestone-wizard.js:1241  ${cat.color}
-planning-milestone-wizard.js:1242  ${ms.due_date ? window.fmtShort(ms.due_date) : '—'}
-planning-milestone-wizard.js:1245  ${subs.length > 0 ? `<span class="pg-wz-acc-count" style="background:${cat.color}22;color:${cat.col...}
-planning-milestone-wizard.js:1246  ${det.criteria ? `<span class="pg-wz-acc-crit-badge">✓</span>` : ''}
-planning-milestone-wizard.js:1251  ${idx}
-planning-milestone-wizard.js:1299  ${totalDays > 0 ? `<div class="pg-wz-s4-workload"> <span><i class="ti ti-checklist" aria-hidden="tr...}
-planning-milestone-wizard.js:1307  ${cat.color}
-planning-milestone-wizard.js:1310  ${_wzRenderCapacityBar(subs, cat)}
-planning-milestone-wizard.js:1322  ${msEnd ? `max="${ms.due_date}"` : ''}
-planning-milestone-wizard.js:1323  ${msStart ? `min="${msStart.toISOString().split('T')[0]}"` : ''}
-planning-milestone-wizard.js:1329  ${cat.color}
-planning-milestone-wizard.js:1334  ${_wzRenderAccTaskItems(subs, cat)}
-planning-milestone-wizard.js:1455  ${det.subtasks?.length > 0 ? `<span class="pg-wz-acc-count" style="background:${cat.color}22;color:...}
-planning-milestone-wizard.js:1456  ${det.criteria ? `<span class="pg-wz-acc-crit-badge">✓</span>` : ''}
-planning-milestone-wizard.js:1486  ${modeLabel}
-planning-milestone-wizard.js:1490  ${cat.color}
-planning-milestone-wizard.js:1490  ${cat.color}
-planning-milestone-wizard.js:1490  ${idx+1}
-planning-milestone-wizard.js:1491  ${ms.icon}
-planning-milestone-wizard.js:1493  ${cat.color}
-planning-milestone-wizard.js:1494  ${ms.due_date ? `<span class="pg-wz-s4-ms-due"><i class="ti ti-calendar"></i> ${window.fmtDate(ms.d...}
-planning-milestone-wizard.js:1545  ${cat.color}
-planning-milestone-wizard.js:1547  ${subtasks.length > 0 ? `<span class="pg-wz-s4-task-count" style="background:${cat.color}22;color:$...}
-planning-milestone-wizard.js:1562  ${cat.color}
-planning-milestone-wizard.js:1595  ${i===idx?' active':''}
-planning-milestone-wizard.js:1596  ${i===idx?`background:${cat.color};box-shadow:0 0 0 3px ${cat.color}33;`:''}
-planning-milestone-wizard.js:2048  ${s.id}
-planning-milestone-wizard.js:2083  ${cat.color}
-planning-milestone-wizard.js:2086  ${cat.icon}
-planning-milestone-wizard.js:2088  ${goal.deadline ? `<div class="pg-wz-summary-row"> <span class="pg-wz-summary-label">Son Tarih</spa...}
-planning-milestone-wizard.js:2103  ${workDays.length ? `<div class="pg-wz-summary-row"> <span class="pg-wz-summary-label">Çalışma Günl...}
-planning-milestone-wizard.js:2107  ${goal.hours_per_week ? `<div class="pg-wz-summary-row"> <span class="pg-wz-summary-label">Haftalık...}
-planning-milestone-wizard.js:2111  ${totalSubs ? `<div class="pg-wz-summary-row"> <span class="pg-wz-summary-label">Toplam Alt Görev</...}
+planning-milestone-wizard.js:354  ${(m.user_id||'?')[0].toUpperCase()}
+planning-milestone-wizard.js:383  ${cat.id === currentCat ? ' selected' : ''}
+planning-milestone-wizard.js:384  ${cat.id}
+planning-milestone-wizard.js:384  ${cat.color}
+planning-milestone-wizard.js:385  ${cat.icon}
+planning-milestone-wizard.js:386  ${cat.label}
+planning-milestone-wizard.js:412  ${p.val === current ? ' selected' : ''}
+planning-milestone-wizard.js:413  ${p.val}
+planning-milestone-wizard.js:413  ${p.color}
+planning-milestone-wizard.js:414  ${p.emoji}
+planning-milestone-wizard.js:414  ${p.label}
+planning-milestone-wizard.js:442  ${o.months}
+planning-milestone-wizard.js:442  ${o.label}
+planning-milestone-wizard.js:555  ${cat.color}
+planning-milestone-wizard.js:555  ${cat.color}
+planning-milestone-wizard.js:555  ${i + 1}
+planning-milestone-wizard.js:556  ${m.icon}
+planning-milestone-wizard.js:558  ${i}
+planning-milestone-wizard.js:560  ${i + 1}
+planning-milestone-wizard.js:598  ${m.id}
+planning-milestone-wizard.js:599  ${i + 1}
+planning-milestone-wizard.js:600  ${m.icon}
+planning-milestone-wizard.js:603  ${i > 0 ? `<button class="pg-icon-btn pg-wz-ms-up" data-wid="${m.id}" title="Yukarı" type="button">...}
+planning-milestone-wizard.js:604  ${i < ms.length - 1 ? `<button class="pg-icon-btn pg-wz-ms-dn" data-wid="${m.id}" title="Aşağı" typ...}
+planning-milestone-wizard.js:605  ${m.id}
+planning-milestone-wizard.js:724  ${new Date(_wzCalYear, _wzCalMonth).toLocaleDateString('tr-TR',{month:'long',year:'numeric'})}
+planning-milestone-wizard.js:724  ${new Date(m2yr, m2mo).toLocaleDateString('tr-TR',{month:'long',year:'numeric'})}
+planning-milestone-wizard.js:728  ${_wzRenderBookingMonth(_wzCalYear, _wzCalMonth, ranges)}
+planning-milestone-wizard.js:729  ${_wzRenderBookingMonth(m2yr, m2mo, ranges)}
+planning-milestone-wizard.js:958  ${cat.color}
+planning-milestone-wizard.js:958  ${cat.color}
+planning-milestone-wizard.js:958  ${cat.color}
+planning-milestone-wizard.js:958  ${i + 1}
+planning-milestone-wizard.js:961  ${m.icon}
+planning-milestone-wizard.js:964  ${m.id}
+planning-milestone-wizard.js:964  ${m.due_date || ''}
+planning-milestone-wizard.js:1022  ${monthLabel}
+planning-milestone-wizard.js:1026  ${dayHdrs.map(d => `<div class="pg-wz-cal-day-hdr">${d}</div>`).join('')}
+planning-milestone-wizard.js:1027  ${cells}
+planning-milestone-wizard.js:1061  ${cat.color}
+planning-milestone-wizard.js:1074  ${deadline.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric' })}
+planning-milestone-wizard.js:1094  ${conflicts[0]}
+planning-milestone-wizard.js:1094  ${conflicts.length > 1 ? ' (+' + (conflicts.length - 1) + ' daha)' : ''}
+planning-milestone-wizard.js:1146  ${msWithDates > 0 ? `<div class="pg-wz-gran-hint"><i class="ti ti-sparkles"></i> ${msWithDates} dön...}
+planning-milestone-wizard.js:1221  ${modeMap[wizardState.planMode] || ''}
+planning-milestone-wizard.js:1242  ${idx === 0 ? ' open' : ''}
+planning-milestone-wizard.js:1242  ${idx}
+planning-milestone-wizard.js:1243  ${idx}
+planning-milestone-wizard.js:1244  ${cat.color}
+planning-milestone-wizard.js:1244  ${cat.color}
+planning-milestone-wizard.js:1244  ${idx+1}
+planning-milestone-wizard.js:1245  ${ms.icon}
+planning-milestone-wizard.js:1247  ${cat.color}
+planning-milestone-wizard.js:1248  ${ms.due_date ? window.fmtShort(ms.due_date) : '—'}
+planning-milestone-wizard.js:1251  ${subs.length > 0 ? `<span class="pg-wz-acc-count" style="background:${cat.color}22;color:${cat.col...}
+planning-milestone-wizard.js:1252  ${det.criteria ? `<span class="pg-wz-acc-crit-badge">✓</span>` : ''}
+planning-milestone-wizard.js:1257  ${idx}
+planning-milestone-wizard.js:1305  ${totalDays > 0 ? `<div class="pg-wz-s4-workload"> <span><i class="ti ti-checklist" aria-hidden="tr...}
+planning-milestone-wizard.js:1313  ${cat.color}
+planning-milestone-wizard.js:1316  ${_wzRenderCapacityBar(subs, cat)}
+planning-milestone-wizard.js:1328  ${msEnd ? `max="${ms.due_date}"` : ''}
+planning-milestone-wizard.js:1329  ${msStart ? `min="${msStart.toISOString().split('T')[0]}"` : ''}
+planning-milestone-wizard.js:1335  ${cat.color}
+planning-milestone-wizard.js:1340  ${_wzRenderAccTaskItems(subs, cat)}
+planning-milestone-wizard.js:1461  ${det.subtasks?.length > 0 ? `<span class="pg-wz-acc-count" style="background:${cat.color}22;color:...}
+planning-milestone-wizard.js:1462  ${det.criteria ? `<span class="pg-wz-acc-crit-badge">✓</span>` : ''}
+planning-milestone-wizard.js:1492  ${modeLabel}
+planning-milestone-wizard.js:1496  ${cat.color}
+planning-milestone-wizard.js:1496  ${cat.color}
+planning-milestone-wizard.js:1496  ${idx+1}
+planning-milestone-wizard.js:1497  ${ms.icon}
+planning-milestone-wizard.js:1499  ${cat.color}
+planning-milestone-wizard.js:1500  ${ms.due_date ? `<span class="pg-wz-s4-ms-due"><i class="ti ti-calendar"></i> ${window.fmtDate(ms.d...}
+planning-milestone-wizard.js:1551  ${cat.color}
+planning-milestone-wizard.js:1553  ${subtasks.length > 0 ? `<span class="pg-wz-s4-task-count" style="background:${cat.color}22;color:$...}
+planning-milestone-wizard.js:1568  ${cat.color}
+planning-milestone-wizard.js:1601  ${i===idx?' active':''}
+planning-milestone-wizard.js:1602  ${i===idx?`background:${cat.color};box-shadow:0 0 0 3px ${cat.color}33;`:''}
+planning-milestone-wizard.js:1759  ${s.id}
+planning-milestone-wizard.js:1794  ${cat.color}
+planning-milestone-wizard.js:1797  ${cat.icon}
+planning-milestone-wizard.js:1799  ${goal.deadline ? `<div class="pg-wz-summary-row"> <span class="pg-wz-summary-label">Son Tarih</spa...}
+planning-milestone-wizard.js:1814  ${workDays.length ? `<div class="pg-wz-summary-row"> <span class="pg-wz-summary-label">Çalışma Günl...}
+planning-milestone-wizard.js:1818  ${goal.hours_per_week ? `<div class="pg-wz-summary-row"> <span class="pg-wz-summary-label">Haftalık...}
+planning-milestone-wizard.js:1822  ${totalSubs ? `<div class="pg-wz-summary-row"> <span class="pg-wz-summary-label">Toplam Alt Görev</...}
 planning-misc-widgets.js:168  ${avgPct}
 planning-misc-widgets.js:285  ${active}
 planning-misc-widgets.js:286  ${done}
