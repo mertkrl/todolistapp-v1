@@ -162,6 +162,77 @@ import {
            if (dir === 'down') return `<i class="fa-solid fa-arrow-trend-down cp-trend-icon cp-trend-icon--down" title="${t.down}"></i>`;
            return '';
        }
+       // ── Faz H iç-bölme (2. tur, "açık context" tekniği) ──
+       // Aşağıdaki 2 fonksiyon renderClassroomTab closure'ından TAŞINDI: ikisi de
+       // paylaşılan state'e YAZMIYOR, sadece kendilerine PARAMETRE olarak geçirilen
+       // rows/showClassColumn/memberLabel/anomalyMeta/contextMeta/focusTrendLabels
+       // değerlerinden salt-okunur HTML üretiyor. Davranış birebir aynı — sadece
+       // önceden closure'dan okunan değişkenler artık parametre.
+       function _ctRenderPerfRowsHtml(rows, showClassColumn, memberLabel, anomalyMeta, contextMeta, focusTrendLabels) {
+           return rows.map((r, i) => r.is_hidden ? `
+               <div class="cp-row cp-row--admin${showClassColumn ? ' cp-row--withclass' : ''}">
+                   <span>${i + 1}</span>
+                   <span class="cp-name cp-perf-name-link" data-user-id="${r.user_id}" title="Rapor sekmesinde ${window._escapeHtml(r.name)} için detay aç">${window._escapeHtml(r.name)}</span>
+                   ${showClassColumn ? `<span class="cp-perf-class-tag" title="${window._escapeHtml(r.className || '')}">${window._escapeHtml(r.className || '—')}</span>` : ''}
+                   <span style="grid-column: span 4; color:var(--text-muted); font-size:12px;"><i class="fa-solid fa-lock"></i> İstatistiklerini gizledi</span>
+                   <button class="cp-row-kick-btn" data-user-id="${r.user_id}" data-name="${window._escapeHtml(r.name)}" title="${memberLabel === 'Çalışan' ? 'Ekipten' : 'Sınıftan'} çıkar"><i class="fa-solid fa-user-xmark"></i></button>
+               </div>` : `
+               <div class="cp-row cp-row--admin${showClassColumn ? ' cp-row--withclass' : ''}${r.supportFlag ? ' cp-row--support' : ''}${r.anomaly ? ' cp-row--anomaly' : ''}">
+                   <span>${i + 1}</span>
+                   <span class="cp-name cp-perf-name-link" data-user-id="${r.user_id}" title="Rapor sekmesinde ${window._escapeHtml(r.name)} için detay aç">${window._escapeHtml(r.name)}${r.supportFlag ? '<span class="cp-support-badge"><i class="fa-solid fa-hand-holding-heart"></i> Destek Önerilir</span>' : ''}${r.anomaly ? `<span class="cp-anomaly-badge" title="${window._escapeHtml(r.anomalyDetail || anomalyMeta[r.anomaly].title)}"><i class="fa-solid fa-triangle-exclamation"></i> ${anomalyMeta[r.anomaly].label}</span>` : ''}${(r.contextNotes && r.contextNotes.length) ? `<span class="cp-context-note" title="${r.contextNotes.map(k => contextMeta[k].title).join(' • ')}"><i class="fa-solid fa-circle-info"></i> ${r.contextNotes.map(k => contextMeta[k].label).join(', ')}</span>` : ''}</span>
+                   ${showClassColumn ? `<span class="cp-perf-class-tag" title="${window._escapeHtml(r.className || '')}">${window._escapeHtml(r.className || '—')}</span>` : ''}
+                   <span class="cp-asg-pct-cell${r.lowSample ? ' cp-asg-pct-cell--lowsample' : ''}">
+                       ${r.assigned ? `
+                       <div class="cp-asg-pct-track"><div class="cp-asg-pct-fill" style="width:${r.pct}%; background-color:${_ctPctColor(r.pct)};"></div></div>
+                       <b style="color:${_ctPctColor(r.pct)};">${r.done}/${r.assigned}</b>${r.lowSample ? `<span class="cp-lowsample-badge cp-lowsample-badge--icon" title="Az veri: sadece ${r.assigned} ödev üzerinden hesaplandı — bu kadar az veride % oranı tek bir ödevle bile büyük ölçüde değişebilir, ${r.done}/${r.assigned} rakamına bakmak daha güvenilir"><i class="fa-solid fa-circle-info"></i></span>` : ''}` : `<span style="color:var(--text-muted); font-size:11px;">Ödev yok</span>`}
+                   </span>
+                   <span class="cp-perf-trend-cell">${_ctSparkHtml(r.trend)}${_ctTrendArrowHtml(r.trendDir)}</span>
+                   <span class="cp-perf-focus-cell">${formatFocusMinutes(r.weekly_minutes)}${_ctTrendArrowHtml(r.focusTrendDir, focusTrendLabels)}</span>
+                   <span class="cp-perf-active-cell">${r.active_days}/7</span>
+                   <button class="cp-row-kick-btn" data-user-id="${r.user_id}" data-name="${window._escapeHtml(r.name)}" title="${memberLabel === 'Çalışan' ? 'Ekipten' : 'Sınıftan'} çıkar"><i class="fa-solid fa-user-xmark"></i></button>
+               </div>`).join('');
+       }
+       function _ctRenderPerfDistributionHtml(rows, LOW_SAMPLE_MAX, memberLabel) {
+           // LOW_SAMPLE_MAX kullanılıyor (aynı "az veri" güvenilirlik eşiği, dosya başında
+           // tanımlı) — dağılıma güvenilmez bir % ile katkı veren öğrenci karışmasın.
+           const scored = rows.filter(r => !r.is_hidden && !r.isNewMember && r.assigned >= LOW_SAMPLE_MAX);
+           if (scored.length < 4) return '';
+           const vals = scored.map(r => r.pct).sort((a, b) => a - b);
+           const pctile = (p) => {
+               const idx = (vals.length - 1) * p;
+               const lo = Math.floor(idx), hi = Math.ceil(idx);
+               return lo === hi ? vals[lo] : vals[lo] + (vals[hi] - vals[lo]) * (idx - lo);
+           };
+           const min = vals[0], max = vals[vals.length - 1];
+           const q1 = pctile(0.25), median = pctile(0.5), q3 = pctile(0.75);
+           const mean = vals.reduce((a, b) => a + b, 0) / vals.length;
+           const W = 600, padX = 14, plotW = W - padX * 2, boxY = 26, boxH = 18, dotsY = boxY + boxH + 16, H = dotsY + 12;
+           const xOf = (v) => padX + (v / 100) * plotW;
+           const dotsHtml = scored.map(r => {
+               const cx = xOf(r.pct);
+               const cy = dotsY + _ctDistJitter(r.user_id || r.name || '');
+               return `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="3" fill="${_ctPctColor(r.pct)}" opacity="0.85"><title>${window._escapeHtml(r.name)}: %${r.pct}</title></circle>`;
+           }).join('');
+           return `
+           <div class="cp-perf-dist">
+               <div class="cp-perf-dist-title">Sınıf Dağılımı <small>ödev tamamlama %, n=${scored.length}</small></div>
+               <svg viewBox="0 0 ${W} ${H}" class="cp-perf-dist-svg" preserveAspectRatio="none">
+                   <line x1="${padX}" y1="${boxY + boxH / 2}" x2="${xOf(q1).toFixed(1)}" y2="${boxY + boxH / 2}" stroke="var(--text-muted)" stroke-width="1.5"/>
+                   <line x1="${xOf(q3).toFixed(1)}" y1="${boxY + boxH / 2}" x2="${(padX + plotW).toFixed(1)}" y2="${boxY + boxH / 2}" stroke="var(--text-muted)" stroke-width="1.5"/>
+                   <line x1="${xOf(min).toFixed(1)}" y1="${boxY + 2}" x2="${xOf(min).toFixed(1)}" y2="${boxY + boxH - 2}" stroke="var(--text-muted)" stroke-width="1.5"/>
+                   <line x1="${xOf(max).toFixed(1)}" y1="${boxY + 2}" x2="${xOf(max).toFixed(1)}" y2="${boxY + boxH - 2}" stroke="var(--text-muted)" stroke-width="1.5"/>
+                   <rect x="${xOf(q1).toFixed(1)}" y="${boxY}" width="${Math.max(0, xOf(q3) - xOf(q1)).toFixed(1)}" height="${boxH}" fill="rgba(116,185,255,0.15)" stroke="#74b9ff" stroke-width="1.5" rx="3"></rect>
+                   <line x1="${xOf(median).toFixed(1)}" y1="${boxY}" x2="${xOf(median).toFixed(1)}" y2="${boxY + boxH}" stroke="#74b9ff" stroke-width="2.5"><title>Medyan: %${Math.round(median)}</title></line>
+                   <line x1="${xOf(mean).toFixed(1)}" y1="${boxY - 6}" x2="${xOf(mean).toFixed(1)}" y2="${boxY + boxH + 6}" stroke="#feca57" stroke-width="1.5" stroke-dasharray="3,2"><title>Ortalama: %${Math.round(mean)}</title></line>
+                   ${dotsHtml}
+               </svg>
+               <div class="cp-perf-dist-legend">
+                   <span><i class="cp-perf-dist-swatch" style="background:#74b9ff;"></i> Medyan %${Math.round(median)}</span>
+                   <span><i class="cp-perf-dist-swatch" style="background:#feca57;"></i> Ortalama %${Math.round(mean)}${Math.abs(mean - median) >= 10 ? ' <span class="cp-perf-dist-skew-note">(sınıf ortalaması aşırı uçlardan etkileniyor olabilir)</span>' : ''}</span>
+                   <span class="cp-perf-dist-hint">Kutu: orta %50 (Ç1–Ç3) · Çizgiler: min–maks · Nokta: her ${memberLabel.toLowerCase()}</span>
+               </div>
+           </div>`;
+       }
        async function renderClassroomTab(data, isClassAdmin) {
            const el = document.getElementById('group-gtab-classroom');
            if (!el || !window.FocusSupabase || !window.currentUser?.id || !data._supaId) return;
@@ -422,79 +493,15 @@ import {
                });
                return arr;
            };
-           const renderPerfRowsHtml = (rows) => rows.map((r, i) => r.is_hidden ? `
-               <div class="cp-row cp-row--admin${showClassColumn ? ' cp-row--withclass' : ''}">
-                   <span>${i + 1}</span>
-                   <span class="cp-name cp-perf-name-link" data-user-id="${r.user_id}" title="Rapor sekmesinde ${window._escapeHtml(r.name)} için detay aç">${window._escapeHtml(r.name)}</span>
-                   ${showClassColumn ? `<span class="cp-perf-class-tag" title="${window._escapeHtml(r.className || '')}">${window._escapeHtml(r.className || '—')}</span>` : ''}
-                   <span style="grid-column: span 4; color:var(--text-muted); font-size:12px;"><i class="fa-solid fa-lock"></i> İstatistiklerini gizledi</span>
-                   <button class="cp-row-kick-btn" data-user-id="${r.user_id}" data-name="${window._escapeHtml(r.name)}" title="${memberLabel === 'Çalışan' ? 'Ekipten' : 'Sınıftan'} çıkar"><i class="fa-solid fa-user-xmark"></i></button>
-               </div>` : `
-               <div class="cp-row cp-row--admin${showClassColumn ? ' cp-row--withclass' : ''}${r.supportFlag ? ' cp-row--support' : ''}${r.anomaly ? ' cp-row--anomaly' : ''}">
-                   <span>${i + 1}</span>
-                   <span class="cp-name cp-perf-name-link" data-user-id="${r.user_id}" title="Rapor sekmesinde ${window._escapeHtml(r.name)} için detay aç">${window._escapeHtml(r.name)}${r.supportFlag ? '<span class="cp-support-badge"><i class="fa-solid fa-hand-holding-heart"></i> Destek Önerilir</span>' : ''}${r.anomaly ? `<span class="cp-anomaly-badge" title="${window._escapeHtml(r.anomalyDetail || anomalyMeta[r.anomaly].title)}"><i class="fa-solid fa-triangle-exclamation"></i> ${anomalyMeta[r.anomaly].label}</span>` : ''}${(r.contextNotes && r.contextNotes.length) ? `<span class="cp-context-note" title="${r.contextNotes.map(k => contextMeta[k].title).join(' • ')}"><i class="fa-solid fa-circle-info"></i> ${r.contextNotes.map(k => contextMeta[k].label).join(', ')}</span>` : ''}</span>
-                   ${showClassColumn ? `<span class="cp-perf-class-tag" title="${window._escapeHtml(r.className || '')}">${window._escapeHtml(r.className || '—')}</span>` : ''}
-                   <span class="cp-asg-pct-cell${r.lowSample ? ' cp-asg-pct-cell--lowsample' : ''}">
-                       ${r.assigned ? `
-                       <div class="cp-asg-pct-track"><div class="cp-asg-pct-fill" style="width:${r.pct}%; background-color:${pctColor(r.pct)};"></div></div>
-                       <b style="color:${pctColor(r.pct)};">${r.done}/${r.assigned}</b>${r.lowSample ? `<span class="cp-lowsample-badge cp-lowsample-badge--icon" title="Az veri: sadece ${r.assigned} ödev üzerinden hesaplandı — bu kadar az veride % oranı tek bir ödevle bile büyük ölçüde değişebilir, ${r.done}/${r.assigned} rakamına bakmak daha güvenilir"><i class="fa-solid fa-circle-info"></i></span>` : ''}` : `<span style="color:var(--text-muted); font-size:11px;">Ödev yok</span>`}
-                   </span>
-                   <span class="cp-perf-trend-cell">${sparkHtml(r.trend)}${trendArrowHtml(r.trendDir)}</span>
-                   <span class="cp-perf-focus-cell">${formatFocusMinutes(r.weekly_minutes)}${trendArrowHtml(r.focusTrendDir, focusTrendLabels)}</span>
-                   <span class="cp-perf-active-cell">${r.active_days}/7</span>
-                   <button class="cp-row-kick-btn" data-user-id="${r.user_id}" data-name="${window._escapeHtml(r.name)}" title="${memberLabel === 'Çalışan' ? 'Ekipten' : 'Sınıftan'} çıkar"><i class="fa-solid fa-user-xmark"></i></button>
-               </div>`).join('');
+           // Faz H iç-bölme (2. tur): gövde module-seviye _ctRenderPerfRowsHtml'de
+           // (paylaşılan state'e yazmayan, salt-okunur render — "açık context" tekniği:
+           // showClassColumn/memberLabel/anomalyMeta/contextMeta/focusTrendLabels artık
+           // parametre). Davranış birebir aynı.
+           const renderPerfRowsHtml = (rows) => _ctRenderPerfRowsHtml(rows, showClassColumn, memberLabel, anomalyMeta, contextMeta, focusTrendLabels);
            // ── Sınıf Dağılımı (kutu grafiği) ──
-           // Tek bir öğrenciye "düşük" demek ancak sınıfın GENELİNİN nerede olduğu bilinirse
-           // anlam kazanır (bkz. performans analizi: ortalama birkaç aşırı yüksek/düşük öğrenci
-           // tarafından çarpıtılabilir, medyan daha dayanıklıdır). Bu kutu grafiği medyan + orta
-           // %50 (çeyrekler arası aralık) + min-maks aralığını, ortalamayı (kesikli çizgi, medyandan
-           // sapması varsa çarpıklığa işaret eder) ve her öğrencinin tek tek noktasını gösterir —
-           // öğretmen "Destek Önerilir" rozetli bir öğrencinin sınıfın kuyruğunda mı yoksa aslında
-           // herkese yakın mı olduğunu bir bakışta görebilir.
-           // Faz H iç-bölme: gövde module-seviye _ctDistJitter'da (saf fonksiyon).
-           const _distJitter = _ctDistJitter;
-           const renderPerfDistributionHtml = (rows) => {
-               // LOW_SAMPLE_MAX kullanılıyor (aynı "az veri" güvenilirlik eşiği, dosya başında
-               // tanımlı) — dağılıma güvenilmez bir % ile katkı veren öğrenci karışmasın.
-               const scored = rows.filter(r => !r.is_hidden && !r.isNewMember && r.assigned >= LOW_SAMPLE_MAX);
-               if (scored.length < 4) return '';
-               const vals = scored.map(r => r.pct).sort((a, b) => a - b);
-               const pctile = (p) => {
-                   const idx = (vals.length - 1) * p;
-                   const lo = Math.floor(idx), hi = Math.ceil(idx);
-                   return lo === hi ? vals[lo] : vals[lo] + (vals[hi] - vals[lo]) * (idx - lo);
-               };
-               const min = vals[0], max = vals[vals.length - 1];
-               const q1 = pctile(0.25), median = pctile(0.5), q3 = pctile(0.75);
-               const mean = vals.reduce((a, b) => a + b, 0) / vals.length;
-               const W = 600, padX = 14, plotW = W - padX * 2, boxY = 26, boxH = 18, dotsY = boxY + boxH + 16, H = dotsY + 12;
-               const xOf = (v) => padX + (v / 100) * plotW;
-               const dotsHtml = scored.map(r => {
-                   const cx = xOf(r.pct);
-                   const cy = dotsY + _distJitter(r.user_id || r.name || '');
-                   return `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="3" fill="${pctColor(r.pct)}" opacity="0.85"><title>${window._escapeHtml(r.name)}: %${r.pct}</title></circle>`;
-               }).join('');
-               return `
-               <div class="cp-perf-dist">
-                   <div class="cp-perf-dist-title">Sınıf Dağılımı <small>ödev tamamlama %, n=${scored.length}</small></div>
-                   <svg viewBox="0 0 ${W} ${H}" class="cp-perf-dist-svg" preserveAspectRatio="none">
-                       <line x1="${padX}" y1="${boxY + boxH / 2}" x2="${xOf(q1).toFixed(1)}" y2="${boxY + boxH / 2}" stroke="var(--text-muted)" stroke-width="1.5"/>
-                       <line x1="${xOf(q3).toFixed(1)}" y1="${boxY + boxH / 2}" x2="${(padX + plotW).toFixed(1)}" y2="${boxY + boxH / 2}" stroke="var(--text-muted)" stroke-width="1.5"/>
-                       <line x1="${xOf(min).toFixed(1)}" y1="${boxY + 2}" x2="${xOf(min).toFixed(1)}" y2="${boxY + boxH - 2}" stroke="var(--text-muted)" stroke-width="1.5"/>
-                       <line x1="${xOf(max).toFixed(1)}" y1="${boxY + 2}" x2="${xOf(max).toFixed(1)}" y2="${boxY + boxH - 2}" stroke="var(--text-muted)" stroke-width="1.5"/>
-                       <rect x="${xOf(q1).toFixed(1)}" y="${boxY}" width="${Math.max(0, xOf(q3) - xOf(q1)).toFixed(1)}" height="${boxH}" fill="rgba(116,185,255,0.15)" stroke="#74b9ff" stroke-width="1.5" rx="3"></rect>
-                       <line x1="${xOf(median).toFixed(1)}" y1="${boxY}" x2="${xOf(median).toFixed(1)}" y2="${boxY + boxH}" stroke="#74b9ff" stroke-width="2.5"><title>Medyan: %${Math.round(median)}</title></line>
-                       <line x1="${xOf(mean).toFixed(1)}" y1="${boxY - 6}" x2="${xOf(mean).toFixed(1)}" y2="${boxY + boxH + 6}" stroke="#feca57" stroke-width="1.5" stroke-dasharray="3,2"><title>Ortalama: %${Math.round(mean)}</title></line>
-                       ${dotsHtml}
-                   </svg>
-                   <div class="cp-perf-dist-legend">
-                       <span><i class="cp-perf-dist-swatch" style="background:#74b9ff;"></i> Medyan %${Math.round(median)}</span>
-                       <span><i class="cp-perf-dist-swatch" style="background:#feca57;"></i> Ortalama %${Math.round(mean)}${Math.abs(mean - median) >= 10 ? ' <span class="cp-perf-dist-skew-note">(sınıf ortalaması aşırı uçlardan etkileniyor olabilir)</span>' : ''}</span>
-                       <span class="cp-perf-dist-hint">Kutu: orta %50 (Ç1–Ç3) · Çizgiler: min–maks · Nokta: her ${memberLabel.toLowerCase()}</span>
-                   </div>
-               </div>`;
-           };
+           // Faz H iç-bölme (2. tur): gövde module-seviye _ctRenderPerfDistributionHtml'de
+           // (salt-okunur render, LOW_SAMPLE_MAX/memberLabel artık parametre).
+           const renderPerfDistributionHtml = (rows) => _ctRenderPerfDistributionHtml(rows, LOW_SAMPLE_MAX, memberLabel);
            // ── Trend (son 4 hafta) — tek anlık % değeri "düşüşte mi hep böyle mi" ayrımını
            // yapamaz; öğretmenin doğru müdahaleyi seçmesi tam olarak bu ayrıma bağlı (bkz.
            // Performans analizi). Ödevin VERİLDİĞİ haftaya göre bucketlanır, period filtresinden
