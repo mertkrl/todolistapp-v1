@@ -558,9 +558,9 @@ social-dm-notifications.js:1127  ${color}
 social-dm-notifications.js:1128  ${icon || 'fa-bell'}
 social-dm-notifications.js:1128  ${color}
 social-dm-notifications.js:1132  ${body ? `<div class="st-sub">${body}</div>` : ''}
-social-friend-search.js:41  ${window.avatarImgHtml(user, 44)}
-social-friend-search.js:44  ${user.xp || 0}
-social-friend-search.js:44  ${user.online ? '<span class="si-green">Çevrimiçi</span>' : 'Çevrimdışı'}
+social-friend-search.js:49  ${avatarImgHtml(user, 44)}
+social-friend-search.js:52  ${user.xp || 0}
+social-friend-search.js:52  ${user.online ? '<span class="si-green">Çevrimiçi</span>' : 'Çevrimdışı'}
 social-friends-notifications.js:826  ${_notifFilter === 'all' ? 'Henüz bir bildirimin yok.' : 'Bu kategoride bildirim yok.'}
 social-friends-notifications.js:837  ${window.avatarImgHtml({ displayName: info.fromName, avatarColor: info.fromColor, username: fromUse...}
 social-friends-notifications.js:857  ${window.avatarImgHtml({ displayName: info.fromName, avatarColor: info.fromColor, customAvatar: inf...}
@@ -883,13 +883,13 @@ social-server-tree.js:410  ${it.icon}
 social-server-tree.js:411  ${it.label}
 social-server-tree.js:599  ${isAnnouncement ? '<span class="dc-subchan-announce-badge" title="Duyuru kanalı — sadece yöneticil...}
 social-server-tree.js:600  ${isLocked && !isAnnouncement ? '<span class="dc-subchan-locked-badge" title="Bu odaya girmek için ...}
-social-settings-modal.js:37  ${savedTheme === 'dark' ? 'active' : ''}
-social-settings-modal.js:40  ${savedTheme === 'light' ? 'active' : ''}
-social-settings-modal.js:71  ${savedPrivacy === 'everyone' ? 'selected' : ''}
-social-settings-modal.js:72  ${savedPrivacy === 'friends' ? 'selected' : ''}
-social-settings-modal.js:73  ${savedPrivacy === 'nobody' ? 'selected' : ''}
-social-settings-modal.js:90  ${savedLang === 'tr' ? 'selected' : ''}
-social-settings-modal.js:91  ${savedLang === 'en' ? 'selected' : ''}
+social-settings-modal.js:46  ${savedTheme === 'dark' ? 'active' : ''}
+social-settings-modal.js:49  ${savedTheme === 'light' ? 'active' : ''}
+social-settings-modal.js:80  ${savedPrivacy === 'everyone' ? 'selected' : ''}
+social-settings-modal.js:81  ${savedPrivacy === 'friends' ? 'selected' : ''}
+social-settings-modal.js:82  ${savedPrivacy === 'nobody' ? 'selected' : ''}
+social-settings-modal.js:99  ${savedLang === 'tr' ? 'selected' : ''}
+social-settings-modal.js:100  ${savedLang === 'en' ? 'selected' : ''}
 social-sidebar-profile.js:99  ${color}
 social-sidebar-profile.js:108  ${unread ? '<span class="dc-unread-pill"></span>' : ''}
 social-sidebar-profile.js:109  ${isOnline ? '<button class="sb-contact-focus-btn" title="Birlikte Odaklan"><i class="fa-solid fa-b...}

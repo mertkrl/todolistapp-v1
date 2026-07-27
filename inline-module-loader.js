@@ -37,6 +37,18 @@
             () => import('./social-conn-status.js'),
             () => import('./social-dc-confirm-toasts.js'),
             () => import('./social-dc-msg-selection.js'),
+            // Faz H (2026-07-27): social-friend-search.js / social-settings-modal.js
+            // gerçek import kullanabilsin diye ürettikleri fonksiyonların hepsi
+            // (avatarImgHtml, getFriends/searchUser/sendFriendRequest/removeFriend,
+            // isBlockedEitherWay/renderBlockedUsersSettings, requestDesktopNotificationPermission)
+            // buraya, iki tüketiciden ÖNCEYE taşındı. Bu 4 dosyanın hiçbiri modül
+            // üst seviyesinde (top-level) başka social-*.js fonksiyonu çağırmıyor —
+            // sadece window._escapeHtml'e (social.js, yukarıda zaten yüklü) bağımlılar,
+            // dolayısıyla erken taşınmaları güvenli.
+            () => import('./social-avatar-utils.js'),
+            () => import('./social-friends-notifications.js'),
+            () => import('./social-block-users.js'),
+            () => import('./social-notif-sounds.js'),
             () => import('./social-friend-search.js'),
             () => import('./social-arena-chips.js'),
             () => import('./social-dc-profile-resolve.js'),
@@ -47,14 +59,12 @@
             () => import('./social-dc-online-status.js'),
             () => import('./social-dc-mentions.js'),
             () => import('./social-dc-draft.js'),
-            () => import('./social-avatar-utils.js'),
             () => import('./social-dc-chat-theme.js'),
             () => import('./social-settings-modal.js'),
             () => import('./social-dc-contacts.js'),
             () => import('./social-dc-init.js'),
             () => import('./social-group-details.js'),
             () => import('./social-dm-limit-notice.js'),
-            () => import('./social-friends-notifications.js'),
             () => import('./social-group-discover.js'),
             () => import('./social-institution-panel.js'),
             () => import('./social-emoji-picker.js'),
@@ -66,7 +76,6 @@
             () => import('./social-group-focus-leave.js'),
             () => import('./social-group-focus-task-selector.js'),
             () => import('./social-chat-list-actions.js'),
-            () => import('./social-block-users.js'),
             () => import('./social-chat-local-delete.js'),
             () => import('./social-focus-reminders.js'),
             () => import('./social-online-people-popover.js'),
@@ -77,7 +86,6 @@
             () => import('./social-chat-search.js'),
             () => import('./social-chat-clear.js'),
             () => import('./social-sidebar-profile.js'),
-            () => import('./social-notif-sounds.js'),
             () => import('./social-buddy-habits.js'),
             () => import('./social-online-friends.js'),
             () => import('./social-activity-feed.js'),

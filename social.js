@@ -6703,3 +6703,4 @@ window.openDetailedMiniProfile = function(userId, userName) {
 // Diğer social-*.js modüllerinin import edebilmesi için ince sarmalayıcı export'lar.
 export const getUser = window.getUser;
 export const getDB = window.getDB;
+export const _escapeHtml = window._escapeHtml;
