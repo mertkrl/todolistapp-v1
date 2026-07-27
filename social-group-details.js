@@ -610,8 +610,11 @@ import {
         `;
        }
 
-       async function showGroupDetails(code, data) {
-        // Eğer arka planda çalışan eski bir grup dinleyicisi varsa önce onu KESİNLİKLE kapat
+       // Aşama 1 (Faz H): showGroupDetails girişinde arka planda çalışan eski
+       // grup dinleyicilerini kapatan blok. Modül-seviyesi state'e (groupMembersListenerRef
+       // vb.) doğrudan erişiyor — showGroupDetails'in KENDİ closure'ına değil, dosyanın
+       // üst seviyesindeki `let` değişkenlerine erişiyor, bu yüzden parametresiz taşınabildi.
+       function _gdCleanupPreviousListeners() {
         if (groupMembersListenerRef) {
             groupMembersListenerRef.off();
             groupMembersListenerRef = null;
@@ -641,6 +644,112 @@ import {
             _groupLeaderboardLiveChannel = null;
         }
         clearTimeout(_groupLeaderboardLiveDebounce);
+       }
+
+       // Aşama 2 (Faz H): Supabase grup üyeleri canlı dinleyicisi + haftalık istatistik
+       // yenileme + canlı liderlik tablosu kanalı. Sadece `data` parametresine ve modül-
+       // seviyesi state'e (groupMembersListenerRef, _groupOverviewPresenceHandler,
+       // _groupLeaderboardPresenceHandler, _groupLeaderboardLiveChannel/_groupLeaderboardLiveDebounce)
+       // bağımlı — showGroupDetails'in diğer yerel değişkenlerine (activePanel, isOwner vb.)
+       // hiç ihtiyaç duymuyor, bu yüzden ayrı fonksiyona TAŞINABİLDİ.
+       async function _gdSetupMemberListeners(data) {
+        if (window.FocusSupabase && currentUser?.id && data._supaId) {
+            const refreshMembersSupabase = async () => {
+                const { data: memberRows, error } = await window.FocusSupabase
+                    .from('group_members')
+                    .select('user_id, role, class_section_id, joined_at, profiles(id, username, display_name, avatar_color, custom_avatar, avatar_initials, xp, focus_min)')
+                    .eq('group_id', data._supaId);
+
+                if (error) console.error('[FocusAI] refreshMembersSupabase / group_members hata:', error);
+
+                const membersData = {};
+                for (const mr of (memberRows || [])) {
+                    const profile = mr.profiles;
+                    if (!profile) continue;
+                    membersData[profile.username] = {
+                        userId: mr.user_id,
+                        displayName: profile.display_name || profile.username,
+                        avatarColor: profile.avatar_color || '6c5ce7',
+                        customAvatar: profile.custom_avatar || null, avatarInitials: profile.avatar_initials || null,
+                        joinedAt: mr.joined_at ? new Date(mr.joined_at).getTime() : Date.now(),
+                        role: mr.role || undefined,
+                        // class_section_id sorgulanıp burada hiç atanmıyordu — bu fonksiyon
+                        // grup paneli her açıldığında VE her group_members değişikliğinde
+                        // (aşağıdaki postgres_changes aboneliği, aynı zamanda öğretmenin kendi
+                        // şube atama UPDATE'i tarafından da tetikleniyor) data.members'ı BAŞTAN
+                        // yazıyordu, _normalizeSupabaseGroup'un doğru okuduğu classSectionId'yi
+                        // sessizce siliyordu — sonuç: sayfa yenilenince/panel açılınca öğrenci
+                        // her zaman "Sınıfsız" görünüyordu (kullanıcı bildirimi, 2026-07-13).
+                        classSectionId: mr.class_section_id || null,
+                        xp: profile.xp || 0,
+                        weeklyFocusMin: 0,
+                        activeDays: 0,
+                        prevWeekFocusMin: 0
+                    };
+                }
+
+                // Bu haftaki (Pazartesi'den itibaren) odaklanma dakikaları + rozetler için
+                // aktif gün sayısı + önceki hafta toplamı — güvenli RPC ile çekiliyor,
+                // çünkü daily_stats kişiye özel RLS'li ve doğrudan sorgulanamıyor.
+                try {
+                    const { data: weeklyRows, error: weeklyErr } = await window.FocusSupabase
+                        .rpc('group_weekly_member_stats', { p_group_id: data._supaId });
+                    if (weeklyErr) {
+                        console.warn('[FocusAI] group_weekly_member_stats RPC hatası:', weeklyErr.message);
+                    } else {
+                        const byUserId = {};
+                        for (const u of Object.values(membersData)) byUserId[u.userId] = u;
+                        for (const row of (weeklyRows || [])) {
+                            const member = byUserId[row.user_id];
+                            if (member) {
+                                member.weeklyFocusMin = row.weekly_minutes || 0;
+                                member.activeDays = row.active_days || 0;
+                                member.prevWeekFocusMin = row.prev_week_minutes || 0;
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.warn('[FocusAI] group_weekly_member_stats RPC çağrısı başarısız:', e.message);
+                }
+
+                data.members = membersData;
+                await _renderGroupMembersPanel(data, membersData);
+            };
+
+            await refreshMembersSupabase();
+
+            if (_groupOverviewPresenceHandler) _groupOverviewPresenceHandler();
+
+            _groupLeaderboardPresenceHandler = () => _renderGroupMembersPanel(data, data.members);
+            window.addEventListener('focusai:presence-changed', _groupLeaderboardPresenceHandler);
+
+            const _gmChannel = window.FocusSupabase
+                .channel(`group-members-${data._supaId}`)
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'group_members', filter: `group_id=eq.${data._supaId}` }, () => refreshMembersSupabase())
+                .subscribe();
+
+            groupMembersListenerRef = { off: () => window.FocusSupabase.removeChannel(_gmChannel) };
+
+            // ── CANLI LİDERLİK TABLOSU ──
+            // Bir üye odaklanırken window.syncXP() her ~1 dakikada bir profiles.xp/focus_min günceller.
+            // Bu güncellemeyi dinleyip leaderboard'u (ve haftalık RPC'yi) debounce ile yeniden çekiyoruz,
+            // böylece "Senin Konumun" ve sıralama sekme değiştirmeden/yenilemeden canlı kalıyor.
+            _groupLeaderboardLiveChannel = window.FocusSupabase
+                .channel(`group-leaderboard-live-${data._supaId}`)
+                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles' }, payload => {
+                    if (!data.members || !payload.new) return;
+                    const isGroupMember = Object.values(data.members).some(m => m.userId === payload.new.id);
+                    if (!isGroupMember) return;
+                    clearTimeout(_groupLeaderboardLiveDebounce);
+                    _groupLeaderboardLiveDebounce = setTimeout(() => refreshMembersSupabase(), 1500);
+                })
+                .subscribe();
+        }
+       }
+
+       async function showGroupDetails(code, data) {
+        // Eğer arka planda çalışan eski bir grup dinleyicisi varsa önce onu KESİNLİKLE kapat
+        _gdCleanupPreviousListeners();
 
         window.__setCurrentActiveGroupCodeRef(code);
         
@@ -1020,99 +1129,8 @@ import {
         }
 
 
-        // Yeni grubun veritabanı kanalını dinlemeye başla
-        if (window.FocusSupabase && currentUser?.id && data._supaId) {
-            const refreshMembersSupabase = async () => {
-                const { data: memberRows, error } = await window.FocusSupabase
-                    .from('group_members')
-                    .select('user_id, role, class_section_id, joined_at, profiles(id, username, display_name, avatar_color, custom_avatar, avatar_initials, xp, focus_min)')
-                    .eq('group_id', data._supaId);
-
-                if (error) console.error('[FocusAI] refreshMembersSupabase / group_members hata:', error);
-
-                const membersData = {};
-                for (const mr of (memberRows || [])) {
-                    const profile = mr.profiles;
-                    if (!profile) continue;
-                    membersData[profile.username] = {
-                        userId: mr.user_id,
-                        displayName: profile.display_name || profile.username,
-                        avatarColor: profile.avatar_color || '6c5ce7',
-                        customAvatar: profile.custom_avatar || null, avatarInitials: profile.avatar_initials || null,
-                        joinedAt: mr.joined_at ? new Date(mr.joined_at).getTime() : Date.now(),
-                        role: mr.role || undefined,
-                        // class_section_id sorgulanıp burada hiç atanmıyordu — bu fonksiyon
-                        // grup paneli her açıldığında VE her group_members değişikliğinde
-                        // (aşağıdaki postgres_changes aboneliği, aynı zamanda öğretmenin kendi
-                        // şube atama UPDATE'i tarafından da tetikleniyor) data.members'ı BAŞTAN
-                        // yazıyordu, _normalizeSupabaseGroup'un doğru okuduğu classSectionId'yi
-                        // sessizce siliyordu — sonuç: sayfa yenilenince/panel açılınca öğrenci
-                        // her zaman "Sınıfsız" görünüyordu (kullanıcı bildirimi, 2026-07-13).
-                        classSectionId: mr.class_section_id || null,
-                        xp: profile.xp || 0,
-                        weeklyFocusMin: 0,
-                        activeDays: 0,
-                        prevWeekFocusMin: 0
-                    };
-                }
-
-                // Bu haftaki (Pazartesi'den itibaren) odaklanma dakikaları + rozetler için
-                // aktif gün sayısı + önceki hafta toplamı — güvenli RPC ile çekiliyor,
-                // çünkü daily_stats kişiye özel RLS'li ve doğrudan sorgulanamıyor.
-                try {
-                    const { data: weeklyRows, error: weeklyErr } = await window.FocusSupabase
-                        .rpc('group_weekly_member_stats', { p_group_id: data._supaId });
-                    if (weeklyErr) {
-                        console.warn('[FocusAI] group_weekly_member_stats RPC hatası:', weeklyErr.message);
-                    } else {
-                        const byUserId = {};
-                        for (const u of Object.values(membersData)) byUserId[u.userId] = u;
-                        for (const row of (weeklyRows || [])) {
-                            const member = byUserId[row.user_id];
-                            if (member) {
-                                member.weeklyFocusMin = row.weekly_minutes || 0;
-                                member.activeDays = row.active_days || 0;
-                                member.prevWeekFocusMin = row.prev_week_minutes || 0;
-                            }
-                        }
-                    }
-                } catch (e) {
-                    console.warn('[FocusAI] group_weekly_member_stats RPC çağrısı başarısız:', e.message);
-                }
-
-                data.members = membersData;
-                await _renderGroupMembersPanel(data, membersData);
-            };
-
-            await refreshMembersSupabase();
-
-            if (_groupOverviewPresenceHandler) _groupOverviewPresenceHandler();
-
-            _groupLeaderboardPresenceHandler = () => _renderGroupMembersPanel(data, data.members);
-            window.addEventListener('focusai:presence-changed', _groupLeaderboardPresenceHandler);
-
-            const _gmChannel = window.FocusSupabase
-                .channel(`group-members-${data._supaId}`)
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'group_members', filter: `group_id=eq.${data._supaId}` }, () => refreshMembersSupabase())
-                .subscribe();
-
-            groupMembersListenerRef = { off: () => window.FocusSupabase.removeChannel(_gmChannel) };
-
-            // ── CANLI LİDERLİK TABLOSU ──
-            // Bir üye odaklanırken window.syncXP() her ~1 dakikada bir profiles.xp/focus_min günceller.
-            // Bu güncellemeyi dinleyip leaderboard'u (ve haftalık RPC'yi) debounce ile yeniden çekiyoruz,
-            // böylece "Senin Konumun" ve sıralama sekme değiştirmeden/yenilemeden canlı kalıyor.
-            _groupLeaderboardLiveChannel = window.FocusSupabase
-                .channel(`group-leaderboard-live-${data._supaId}`)
-                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles' }, payload => {
-                    if (!data.members || !payload.new) return;
-                    const isGroupMember = Object.values(data.members).some(m => m.userId === payload.new.id);
-                    if (!isGroupMember) return;
-                    clearTimeout(_groupLeaderboardLiveDebounce);
-                    _groupLeaderboardLiveDebounce = setTimeout(() => refreshMembersSupabase(), 1500);
-                })
-                .subscribe();
-        }
+        // Yeni grubun veritabanı kanalını dinlemeye başla (Aşama 2, bkz. _gdSetupMemberListeners)
+        await _gdSetupMemberListeners(data);
 
         // Seans takvimini başlat
         try { initGroupSessionCalendar(code, data._supaId || null, data.classroomType === 'classroom' || data.classroomType === 'workplace'); } catch(e) { console.warn('[GSC] Takvim başlatma hatası:', e); }
