@@ -388,69 +388,13 @@ import {
            }
        }
 
-       async function showGroupDetails(code, data) {
-        // Eğer arka planda çalışan eski bir grup dinleyicisi varsa önce onu KESİNLİKLE kapat
-        if (groupMembersListenerRef) {
-            groupMembersListenerRef.off();
-            groupMembersListenerRef = null;
-        }
-        if (_managePermsListenerRef) {
-            _managePermsListenerRef.off();
-            _managePermsListenerRef = null;
-        }
-        if (_announcementListenerRef) {
-            _announcementListenerRef.off();
-            _announcementListenerRef = null;
-        }
-        if (window._announcementSupabaseChannel) {
-            try { window.FocusSupabase.removeChannel(window._announcementSupabaseChannel); } catch (_) { console.warn('[FocusAI] sessiz hata:', _); }
-            window._announcementSupabaseChannel = null;
-        }
-        if (_groupOverviewPresenceHandler) {
-            window.removeEventListener('focusai:presence-changed', _groupOverviewPresenceHandler);
-            _groupOverviewPresenceHandler = null;
-        }
-        if (_groupLeaderboardPresenceHandler) {
-            window.removeEventListener('focusai:presence-changed', _groupLeaderboardPresenceHandler);
-            _groupLeaderboardPresenceHandler = null;
-        }
-        if (_groupLeaderboardLiveChannel) {
-            try { window.FocusSupabase.removeChannel(_groupLeaderboardLiveChannel); } catch (_) { console.warn('[FocusAI] sessiz hata:', _); }
-            _groupLeaderboardLiveChannel = null;
-        }
-        clearTimeout(_groupLeaderboardLiveDebounce);
-
-        window.__setCurrentActiveGroupCodeRef(code);
-        
-        const groupOwner = data.createdBy || currentUser.username;
-        const isOwner = groupOwner === currentUser.username;
-
-        const activePanel = document.getElementById("active-group-panel");
-        if (!activePanel) return;
-
-        // Sayfa yenileme restorasyonu belirli bir sekmeye (ör. Sınıf Paneli)
-        // dönmek istiyorsa, o sekmeyi EN BAŞTAN aktif render eder — "önce Genel
-        // Bakış render olup sonra programatik tıklamayla Sınıf Paneli'ne geçme"
-        // sırasında yaşanan görünür titremeyi (flash) tamamen ortadan kaldırır.
-        const _isInstitutionalGroup = (data.classroomType === 'classroom' || data.classroomType === 'workplace');
-        const _isClassAdmin = _isInstitutionalGroup && window._isInstitutionalAdmin(data, isOwner);
-        // Öğrenci için kurumsal gruplarda "Genel Bakış" sekmesi kaldırıldı (2026-07-12,
-        // kullanıcı geri bildirimi) — içeriği zaten sadece stat kartları + "Sınıf Paneline
-        // Git" butonuna inmişti, öğrenci doğrudan Sınıf Paneli'ne (Performansım dahil) inebilir.
-        const _showOverviewTab = !_isInstitutionalGroup || _isClassAdmin;
-        const _restoreTargetGtab = _gdComputeRestoreTargetGtab(window._pendingGroupPanelGtab, _showOverviewTab, _isInstitutionalGroup);
-        const _defaultGtab = _showOverviewTab ? 'overview' : 'classroom';
-        const _gtabActiveCls = (name) => _gdTabActiveClass(name, _restoreTargetGtab, _defaultGtab);
-
-        // Paneli temiz ve dinamik olarak sıfırdan kur (aşağıdaki innerHTML atamasıyla
-        // #group-gtab-classroom dahil TÜM alt elemanlar yok edilip BOŞ olarak yeniden
-        // oluşturuluyor). renderClassroomTabCached'in 45sn'lik TTL cache'i (_classroomTabCache,
-        // gid'e göre) bu yıkımdan HABERSİZ — aynı gruba 45sn içinde tekrar girilirse cache
-        // "zaten güncel" sanıp render'ı hiç çalıştırmıyor, yeni oluşan boş div hiç
-        // doldurulmuyordu ("Sınıf Paneli hiç yüklenmiyor" — kullanıcı bildirimi, 2026-07-13).
-        // Panel her sıfırdan kurulduğunda önbelleği de geçersiz kılıyoruz.
-        if (data._supaId) window._classroomTabCache?.delete(data._supaId);
-        activePanel.innerHTML = `
+       // Grup detay panelinin (Genel Bakış/Sıralama/Takvim/Geçmiş/Sınıf) tüm
+       // innerHTML iskeletini üreten SAF fonksiyon — hiçbir closure state'ini
+       // (groupMembersListenerRef vb.) okumaz/mutasyona uğratmaz, sadece
+       // parametrelerden HTML string üretir. showGroupDetails'ten Faz H'de
+       // çıkarıldı (2026-07-27).
+       function _renderGroupDetailsPanelHtml(code, data, _showOverviewTab, _gtabActiveCls) {
+        return `
              <div style="border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px;">
                  <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 15px;">
                      <div style="flex: 1; min-width: 0; display: flex; gap: 14px; align-items: flex-start;">
@@ -664,6 +608,71 @@ import {
              <!-- SINIF / EKİP PANELİ (Faz 3 — kurumsal; renderClassroomTab doldurur) -->
              <div id="group-gtab-classroom" class="group-detail-tab-content${_gtabActiveCls('classroom')}"></div>
         `;
+       }
+
+       async function showGroupDetails(code, data) {
+        // Eğer arka planda çalışan eski bir grup dinleyicisi varsa önce onu KESİNLİKLE kapat
+        if (groupMembersListenerRef) {
+            groupMembersListenerRef.off();
+            groupMembersListenerRef = null;
+        }
+        if (_managePermsListenerRef) {
+            _managePermsListenerRef.off();
+            _managePermsListenerRef = null;
+        }
+        if (_announcementListenerRef) {
+            _announcementListenerRef.off();
+            _announcementListenerRef = null;
+        }
+        if (window._announcementSupabaseChannel) {
+            try { window.FocusSupabase.removeChannel(window._announcementSupabaseChannel); } catch (_) { console.warn('[FocusAI] sessiz hata:', _); }
+            window._announcementSupabaseChannel = null;
+        }
+        if (_groupOverviewPresenceHandler) {
+            window.removeEventListener('focusai:presence-changed', _groupOverviewPresenceHandler);
+            _groupOverviewPresenceHandler = null;
+        }
+        if (_groupLeaderboardPresenceHandler) {
+            window.removeEventListener('focusai:presence-changed', _groupLeaderboardPresenceHandler);
+            _groupLeaderboardPresenceHandler = null;
+        }
+        if (_groupLeaderboardLiveChannel) {
+            try { window.FocusSupabase.removeChannel(_groupLeaderboardLiveChannel); } catch (_) { console.warn('[FocusAI] sessiz hata:', _); }
+            _groupLeaderboardLiveChannel = null;
+        }
+        clearTimeout(_groupLeaderboardLiveDebounce);
+
+        window.__setCurrentActiveGroupCodeRef(code);
+        
+        const groupOwner = data.createdBy || currentUser.username;
+        const isOwner = groupOwner === currentUser.username;
+
+        const activePanel = document.getElementById("active-group-panel");
+        if (!activePanel) return;
+
+        // Sayfa yenileme restorasyonu belirli bir sekmeye (ör. Sınıf Paneli)
+        // dönmek istiyorsa, o sekmeyi EN BAŞTAN aktif render eder — "önce Genel
+        // Bakış render olup sonra programatik tıklamayla Sınıf Paneli'ne geçme"
+        // sırasında yaşanan görünür titremeyi (flash) tamamen ortadan kaldırır.
+        const _isInstitutionalGroup = (data.classroomType === 'classroom' || data.classroomType === 'workplace');
+        const _isClassAdmin = _isInstitutionalGroup && window._isInstitutionalAdmin(data, isOwner);
+        // Öğrenci için kurumsal gruplarda "Genel Bakış" sekmesi kaldırıldı (2026-07-12,
+        // kullanıcı geri bildirimi) — içeriği zaten sadece stat kartları + "Sınıf Paneline
+        // Git" butonuna inmişti, öğrenci doğrudan Sınıf Paneli'ne (Performansım dahil) inebilir.
+        const _showOverviewTab = !_isInstitutionalGroup || _isClassAdmin;
+        const _restoreTargetGtab = _gdComputeRestoreTargetGtab(window._pendingGroupPanelGtab, _showOverviewTab, _isInstitutionalGroup);
+        const _defaultGtab = _showOverviewTab ? 'overview' : 'classroom';
+        const _gtabActiveCls = (name) => _gdTabActiveClass(name, _restoreTargetGtab, _defaultGtab);
+
+        // Paneli temiz ve dinamik olarak sıfırdan kur (aşağıdaki innerHTML atamasıyla
+        // #group-gtab-classroom dahil TÜM alt elemanlar yok edilip BOŞ olarak yeniden
+        // oluşturuluyor). renderClassroomTabCached'in 45sn'lik TTL cache'i (_classroomTabCache,
+        // gid'e göre) bu yıkımdan HABERSİZ — aynı gruba 45sn içinde tekrar girilirse cache
+        // "zaten güncel" sanıp render'ı hiç çalıştırmıyor, yeni oluşan boş div hiç
+        // doldurulmuyordu ("Sınıf Paneli hiç yüklenmiyor" — kullanıcı bildirimi, 2026-07-13).
+        // Panel her sıfırdan kurulduğunda önbelleği de geçersiz kılıyoruz.
+        if (data._supaId) window._classroomTabCache?.delete(data._supaId);
+        activePanel.innerHTML = _renderGroupDetailsPanelHtml(code, data, _showOverviewTab, _gtabActiveCls);
 
         document.getElementById("active-group-name").textContent = data.name;
         document.getElementById("active-group-desc").textContent = data.description || '';
