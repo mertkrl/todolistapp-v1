@@ -1,0 +1,212 @@
+/* style.css'ten çıkarıldı (Faz C, 2026-07-22). FAZ 7 — Sosyal Sekmesi + Genel Temizlik + Mobil Dock. Sosyal profil header/istatistik override, .social-sidebar-panel/.online-friend-bubble/.cw-invite-btn/.group-card/.card/.glass-element/.primary-btn/.section-header/.social-toast son katman. Git HEAD: orijinalde satır 19179 — 5 dosyayla çakışma (hepsinden SONRA gelmeli, bu dosya kazanmalı). */
+
+/* ============================================================ */
+
+/* --- Sosyal Sekme Tab Bar --- */
+#arkadaslar .glass-element {
+    background: var(--s2) !important;
+    border: 1px solid var(--b1) !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+}
+
+#arkadaslar .social-tab-btn {
+    color: var(--t3) !important;
+    background: transparent !important;
+}
+#arkadaslar .social-tab-btn:hover {
+    background: var(--a10) !important;
+    color: var(--t1) !important;
+}
+#arkadaslar .social-tab-btn.active {
+    background: var(--a) !important;
+    color: #000 !important;
+    box-shadow: none !important;
+}
+
+/* --- Profil Header --- */
+#social-profile-header {
+    background: var(--s2) !important;
+    border: 1px solid var(--b1) !important;
+    backdrop-filter: none !important;
+}
+#social-my-displayname,
+#social-my-username { color: var(--t1) !important; }
+#social-my-xp { color: var(--t3) !important; }
+
+/* --- Not Configured Banner --- */
+#social-not-configured {
+    background: var(--s2) !important;
+    border: 1px dashed var(--b2) !important;
+    backdrop-filter: none !important;
+}
+#social-not-configured p,
+#social-not-configured h3 { color: var(--t2) !important; }
+
+/* --- Arkadaş Davet Kartı --- */
+
+
+
+/* --- Grup Kartları --- */
+.group-card {
+    background: var(--s2) !important;
+    border: 1px solid var(--b1) !important;
+}
+.group-card:hover {
+    transform: none !important;
+    border-color: var(--a) !important;
+    background: var(--s2) !important;
+}
+
+/* --- Reaksiyon Butonları --- */
+
+
+.reaction-btn.active {
+    background: var(--a10) !important;
+    border-color: var(--a) !important;
+    color: var(--a) !important;
+    box-shadow: none !important;
+}
+
+/* --- Online Arkadaş Baloncukları --- */
+.online-friend-bubble:hover { transform: none !important; }
+
+/* --- CW Timer Zone --- */
+
+
+
+/* --- CW Davet Butonu --- */
+.cw-invite-btn {
+    background: var(--a10) !important;
+    border: 1px solid var(--a) !important;
+    color: var(--a) !important;
+}
+.cw-invite-btn:hover {
+    background: var(--a) !important;
+    color: #000 !important;
+    box-shadow: none !important;
+    transform: none !important;
+    border-color: var(--a) !important;
+}
+
+/* --- Arkadaş Satırları --- */
+
+
+
+
+
+/* --- Sidebar Panel (Sohbet) --- */
+.social-sidebar-panel {
+    background: var(--s2) !important;
+    border-left: 1px solid var(--b1) !important;
+    backdrop-filter: none !important;
+}
+
+/* --- Social Toast --- */
+.social-toast {
+    background: var(--s2) !important;
+    border: 1px solid var(--b2) !important;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.35) !important;
+    backdrop-filter: none !important;
+}
+
+/* ============================================================ */
+/* GENEL TEMİZLİK — glass-element kalıntıları                  */
+/* ============================================================ */
+
+/* Tüm .glass-element bileşenlerini yeni token sisteme çek — tek kaynak (bkz. eski
+   127/5364/22432 satırlarındaki tekrarlar buraya birleştirildi) */
+.glass-element {
+    background: var(--s2) !important;
+    border: 1px solid var(--b1) !important;
+    border-radius: var(--r) !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+}
+
+/* Hover glow kalıntıları — sıfırla */
+.glass-element:hover {
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+/* Ortak section başlıkları */
+.section-header h2 {
+    color: var(--t1) !important;
+    font-family: 'Inter', sans-serif !important;
+}
+
+/* Ortak description / subtitle */
+
+
+/* Ortak kart bileşenleri */
+.card, .stat-card {
+    background: var(--s2) !important;
+    border: 1px solid var(--b1) !important;
+    backdrop-filter: none !important;
+}
+.card:hover {
+    transform: none !important;
+    box-shadow: none !important;
+    border-color: var(--b2) !important;
+}
+
+/* Primary button genel sıfırlama (glow kaldır) */
+.primary-btn,
+button[class*="primary"] {
+    box-shadow: none !important;
+}
+.primary-btn:hover,
+button[class*="primary"]:hover {
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+/* ============================================================ */
+/* MOBİL DOCK — Responsive                                     */
+/* ============================================================ */
+
+@media (max-width: 640px) {
+    /* Dock daha kompakt */
+    #app-dock {
+        padding: 6px 8px !important;
+        gap: 2px !important;
+        border-radius: 16px !important;
+    }
+
+    #app-dock .di {
+        padding: 7px 10px !important;
+        font-size: 16px !important;
+        border-radius: 10px !important;
+        min-width: 38px !important;
+    }
+
+    /* Tooltip'leri gizle (ekran çok dar) */
+    #app-dock .di .tip {
+        display: none !important;
+    }
+
+    /* Topbar daha sıkışık */
+    #app-topbar {
+        padding: 0 12px !important;
+        height: 50px !important;
+    }
+
+    /* İçerik alanı dock yüksekliğine göre ayarla */
+    #main-content,
+    .page-section.active {
+        padding-bottom: 90px !important;
+    }
+}
+
+@media (max-width: 420px) {
+    #app-dock .di {
+        padding: 6px 8px !important;
+        font-size: 15px !important;
+        min-width: 32px !important;
+    }
+
+    #app-dock {
+        gap: 0 !important;
+    }
+}

@@ -1,0 +1,79 @@
+/* ── Sohbet teması paleti ── */
+
+.dc-theme-section { display: flex; flex-direction: column; gap: 6px; }
+.dc-theme-section-label {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.06em; color: rgba(255,255,255,0.35);
+}
+.dc-theme-section-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.dc-theme-swatch {
+    width: 22px; height: 22px; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.15);
+    cursor: pointer;
+    transition: transform 0.12s ease, border-color 0.12s ease;
+    padding: 0;
+}
+.dc-theme-swatch:hover { transform: scale(1.18); border-color: #fff; }
+.dc-theme-swatch.is-active { border-color: #fff; box-shadow: 0 0 0 2px var(--dc-accent, #D4900E); }
+
+/* ── Özel renk seçici ── */
+.dc-theme-swatch-custom {
+    position: relative;
+    overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(255,255,255,0.7);
+    font-size: 10px;
+}
+.dc-theme-swatch-custom input[type="color"] {
+    position: absolute; inset: -4px;
+    width: calc(100% + 8px); height: calc(100% + 8px);
+    opacity: 0; cursor: pointer; border: none; padding: 0;
+}
+
+.dc-theme-pill {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #fff;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background 0.12s ease, border-color 0.12s ease;
+}
+.dc-theme-pill:hover { background: rgba(255,255,255,0.12); border-color: var(--dc-accent, #D4900E); }
+.dc-theme-pill.is-active { background: var(--dc-bubble-me-bg, rgba(212,144,14,0.35)); border-color: var(--dc-accent, #D4900E); }
+
+/* ── Sohbet duvar kağıdı seçici (popover önizlemeleri) ── */
+.dc-wallpaper-swatch {
+    width: 36px; height: 26px; border-radius: 6px;
+    border: 2px solid rgba(255,255,255,0.15);
+    cursor: pointer;
+    background: rgba(255,255,255,0.04);
+    color: rgba(255,255,255,0.4);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    transition: transform 0.12s ease, border-color 0.12s ease;
+    padding: 0;
+}
+.dc-wallpaper-swatch:hover { transform: scale(1.08); border-color: #fff; }
+.dc-wallpaper-swatch.is-active { border-color: #fff; box-shadow: 0 0 0 2px var(--dc-accent, #D4900E); }
+.dc-wallpaper-swatch-stars {
+    background: radial-gradient(circle at 20% 30%, #fff 0 1px, transparent 1px),
+                radial-gradient(circle at 70% 60%, #fff 0 1px, transparent 1px),
+                radial-gradient(circle at 45% 80%, #fff 0 1px, transparent 1px),
+                #161235;
+    background-size: 12px 12px, 16px 16px, 14px 14px;
+}
+.dc-wallpaper-swatch-aurora {
+    background: radial-gradient(circle at 30% 30%, var(--dc-accent, #D4900E) 0%, transparent 60%),
+                radial-gradient(circle at 75% 70%, var(--dc-bubble-me-bg, rgba(212,144,14,0.35)) 0%, transparent 60%),
+                #161235;
+}
+.dc-wallpaper-swatch-dots {
+    background-image: radial-gradient(rgba(255,255,255,0.25) 1px, transparent 1px);
+    background-size: 8px 8px;
+    background-color: #161235;
+}
+.dc-wallpaper-swatch-waves {
+    background: repeating-linear-gradient(135deg, rgba(255,255,255,0.08) 0 6px, transparent 6px 12px), #161235;
+}

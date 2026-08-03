@@ -14,6 +14,7 @@
 //    __getRenderStatisticsRef ile aynı desen).
 //  - window.saveHabits/renderHabits/renderTasks: script.js'te zaten vardı.
 
+import { getCurrentUser } from './state/current-user-store.js';
      window.changeHabitDailyGoal = function(habitId, dateStr, goalId) {
          const habit = window.__getHabitsRef().find(h => String(h.id) === String(habitId));
          if (habit) {
@@ -154,7 +155,7 @@
          if (typeof renderHabits === 'function') window.renderHabits();
          if (typeof window.__getRenderBuddyHabitsRef() === 'function') window.__getRenderBuddyHabitsRef()();
          // Supabase'den de sil (artık buddy değil)
-         if (window.FocusSupabase && window.currentUser?.id) {
+         if (window.FocusSupabase && getCurrentUser()?.id) {
              window.FocusSupabase.from('buddy_habits').delete().eq('id', String(habitId)).then(() => {});
          }
      };
@@ -168,7 +169,7 @@
          if (typeof renderHabits === 'function') window.renderHabits();
          if (typeof renderGoals === 'function') renderGoals();
          if (typeof window.__getRenderBuddyHabitsRef() === 'function') window.__getRenderBuddyHabitsRef()();
-         if (window.FocusSupabase && window.currentUser?.id) {
+         if (window.FocusSupabase && getCurrentUser()?.id) {
              window.FocusSupabase.from('buddy_habits').delete().eq('id', String(habitId)).then(() => {});
          }
      };

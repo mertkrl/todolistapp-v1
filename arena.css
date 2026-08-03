@@ -1,0 +1,209 @@
+/* Meydan Okuma Merkezi / Arena (.arena-, .agc-, .aoc-, .aam-) — style.css'ten 4 parça halinde çıkarıldı */
+
+/* ===== Eylem Bölgesi + Satırlar ===== */
+/* ── Meydan Okuma Merkezi (Arena) ── */
+/* ── Sadeleştirme B (2026-07-03): tek "Eylem" bölgesi, kompakt yoğunluk ──
+   Meydan Okuma/Düello/Grup Hedefi ortak başlık + ortak boş-durum paylaşır;
+   üçünün de kendi kartı/başlığı yok, alt alt üç div sadece dolu olanlar
+   arasına boşluk bırakır (:empty ile — JS boşsa innerHTML='' basıyor). */
+.arena-action-zone { margin-top: 12px; }
+.arena-action-zone > div:not(:empty) + div:not(:empty) { margin-top: 8px; }
+
+
+
+
+/* ── Fikir A (2026-07-03): kart → tek satır ──
+   Meydan Okuma/Düello/Grup Hedefi artık ayrı kart çerçeveleri değil, ~40px'lik
+   tek satırlar: ikon + tek satırlık başlık/meta (+ gerekirse ince ilerleme
+   çubuğu) + sağda tek eylem butonu. Aynı veri, çok daha az dikey alan —
+   5-6 aktif öğe bile tek bakışta sığar. */
+.arena-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 10px; border-radius: 9px;
+    background: rgba(0,0,0,0.18);
+    border: 1px solid rgba(255,255,255,0.06);
+}
+.arena-row + .arena-row { margin-top: 5px; }
+
+.arena-row--done { opacity: 0.72; }
+.arena-row--goal { cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+.arena-row--goal:hover { background: rgba(0,0,0,0.28); border-color: rgba(46,213,115,0.3); }
+.arena-row-icon { flex-shrink: 0; width: 18px; text-align: center; font-size: 13px; }
+.arena-row-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.arena-row-title {
+    font-size: 12.5px; font-weight: 700; color: #fff;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.arena-row-meta {
+    font-size: 11px; color: var(--text-muted); line-height: 1.4;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.arena-row-meta b { font-weight: 700; }
+.arena-row-bar {
+    height: 3px; border-radius: 2px; margin-top: 3px;
+    background: rgba(255,255,255,0.08); overflow: hidden;
+}
+.arena-row-bar-fill {
+    height: 100%; border-radius: 2px;
+    background: linear-gradient(90deg, #D4900E, #feca57);
+    transition: width 0.6s cubic-bezier(0.22,1,0.36,1);
+}
+.arena-row-bar-fill--done { background: linear-gradient(90deg, #2ed573, #7bed9f); }
+
+/* ===== Grup Çip Barı (.agc-) ===== */
+/* ── Arena grup çip barı ──
+   Varsayılan gizli; yalnızca ücretsiz görünümde (dc-chat-disabled) ve
+   home/group-panel modlarında görünür. dc-view-* kuralları #dc-chat-area'nın
+   doğrudan çocuklarını !important ile gizlediğinden burada da !important şart. */
+#arena-group-chips { display: none; }
+body.dc-chat-disabled #dc-chat-area.dc-view-home > #arena-group-chips,
+body.dc-chat-disabled #dc-chat-area.dc-view-group-panel > #arena-group-chips {
+    display: flex !important;
+}
+.arena-group-chips {
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    overflow-x: auto;
+    flex-shrink: 0;
+    scrollbar-width: none;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    background: rgba(0,0,0,0.15);
+}
+.arena-group-chips::-webkit-scrollbar { display: none; }
+.agc-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.05);
+    color: rgba(255,255,255,0.75);
+    font-size: 12.5px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.agc-chip:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.agc-chip.active {
+    background: rgba(212,144,14,0.18);
+    border-color: rgba(212,144,14,0.55);
+    color: #ffd166;
+}
+.agc-chip--add {
+    border-style: dashed;
+    color: rgba(255,255,255,0.55);
+}
+.agc-chip--add:hover { border-color: rgba(46,213,115,0.5); color: #2ed573; background: rgba(46,213,115,0.08); }
+
+/* ===== Çevrimiçi Kişiler Paneli (.aoc-) ===== */
+/* "Kişiler" paneli: rozetin altında sabit konumlu popover (JS ile
+   konumlanır, bkz. _toggleOnlinePeoplePopover). Varsayılan gizli. */
+.arena-online-card {
+    display: none;
+    position: fixed;
+    z-index: 10060;
+    width: 300px;
+    max-width: 92vw;
+    flex-direction: column;
+    padding: 12px 14px;
+    border-radius: 14px;
+    box-shadow: 0 12px 34px rgba(0,0,0,0.5);
+    animation: dhsCardIn 0.16s ease;
+}
+.arena-online-card.aoc-open { display: flex; }
+.aoc-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0 0 8px 0;
+}
+.aoc-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #fff;
+    font-size: 13px;
+    margin: 0;
+    border-bottom: none;
+    padding-bottom: 0;
+}
+.aoc-close-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 13px;
+    padding: 2px 6px;
+}
+.aoc-close-btn:hover { color: #fff; }
+/* Kompaktlaştırma (2026-07-03, madde 3): satır arası boşluk 8→6px; her
+   satırın kendi iç boşluğu aşağıda ayrıca küçültüldü (.online-friend-bubble). */
+.aoc-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 260px;
+    overflow-y: auto;
+}
+
+/* ===== Ekle Menüsü (.aam-) ===== */
+/* "+ Ekle" menüsü (body'ye fixed eklenir — çip barı scroll'u kırpmasın) */
+.arena-add-menu {
+    position: fixed;
+    z-index: 10060;
+    min-width: 210px;
+    padding: 6px;
+    border-radius: 12px;
+    background: rgba(20,18,38,0.98);
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 12px 34px rgba(0,0,0,0.55);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    animation: dhsCardIn 0.16s ease;
+}
+.aam-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: rgba(255,255,255,0.8);
+    font-size: 13px;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+.aam-item:hover { background: rgba(255,255,255,0.08); color: #fff; }
+.aam-item i { width: 16px; text-align: center; color: rgba(255,255,255,0.5); }
+.aam-join-row { display: flex; gap: 6px; padding: 4px; }
+.aam-join-row input {
+    flex: 1;
+    min-width: 0;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.06);
+    color: #fff;
+    font-size: 13px;
+    outline: none;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.aam-join-row input:focus-visible { outline: none; box-shadow: 0 0 0 2px rgba(212,144,14,0.35); border-color: var(--primary-color, #D4900E); }
+.aam-join-row button {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: none;
+    background: rgba(46,213,115,0.2);
+    color: #2ed573;
+    cursor: pointer;
+}
+.aam-join-row button:hover { background: rgba(46,213,115,0.35); }

@@ -1,0 +1,27 @@
+# check-duplicate-window-bridges.py için beyaz liste — bu isimler BİLİNÇLİ
+# olarak birden fazla dosyada window.X = ... atanıyor, gerçek bir çakışma
+# DEĞİL. Her satır bir isim + neden.
+#
+# FocusChat: social-chat-extras.js/social-polls.js aynı paylaşılan namespace
+#   objesini genişletiyor (window.FocusChat = window.FocusChat || {}), atama
+#   değil birleştirme.
+# X: script-*.js dosyalarında ortak "geçici/scratch" global değişken deseni
+#   (her dosya kendi bağımsız kısa ömürlü kullanım için okur/yazar).
+# __nextBreakMode: script.js/script-timer.js arasında BİLİNÇLİ paylaşılan
+#   mutable state (window.X = window.X || default deseni) — fonksiyon değil,
+#   iki dosyanın da okuyup yazdığı ortak bir bellek hücresi.
+# _dcPendingSubChanSupabase/_pendingAsgInnerTab/_pendingGroupPanelGtab: aynı
+#   desen — sekme/panel geçişleri arasında paylaşılan "bekleyen durum" state'i.
+# renderFloatingChatBadge: social-floating-chat-badge.js BİLİNÇLİ olarak
+#   social-dm-notifications.js'in orijinal fonksiyonunu monkey-patch ediyor
+#   (_origRenderFloating ile sarmalıyor) — Faz P3'te doğrulanmış "gerçek duvar".
+# tempEditHabitGoals: script-habit-edit-modal.js/script-populate-parent-selects.js
+#   arasında paylaşılan geçici düzenleme state'i (modal açıkken).
+FocusChat
+X
+__nextBreakMode
+_dcPendingSubChanSupabase
+_pendingAsgInnerTab
+_pendingGroupPanelGtab
+renderFloatingChatBadge
+tempEditHabitGoals

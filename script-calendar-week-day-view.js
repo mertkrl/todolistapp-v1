@@ -1,3 +1,4 @@
+import { getWeekStart, snap15 } from './script-calendar-date-utils.js';
 // script-calendar-week-day-view.js
 // script.js'ten çıkarıldı (Faz 6): Haftalık Görünüm + Günlük Görünüm + ikisi
 // arasında paylaşılan yardımcılar (saat popover'ı, sürükleme "hayalet"
@@ -45,17 +46,19 @@
          }
          const grid = document.getElementById('weekly-grid-inner');
          if (!grid) return;
-         const weekStart = window.getWeekStart(window.__getSelectedDateRef());
+         const weekStart = getWeekStart(window.__getSelectedDateRef());
          const days = Array.from({ length: 7 }, (_, i) => { const d = new Date(weekStart); d.setDate(weekStart.getDate() + i); return d; });
          const todayStr = window.formatDateToString(new Date());
          let html = '';
- 
+         let _weeklyChipStyles = [];
+         let _weeklyChipIdx = 0;
+
          // Köşe + Gün başlıkları
          html += `<div class="weekly-corner"></div>`;
          days.forEach((d, i) => {
              const ds = window.formatDateToString(d);
              const isToday = ds === todayStr;
-            html += `<div class="weekly-day-header${isToday ? ' today-col' : ''}" data-action="weekly-day-header-click" data-date="${ds}" style="cursor:pointer;">
+            html += `<div class="weekly-day-header${isToday ? ' today-col' : ''} u-cursor-pointer" data-action="weekly-day-header-click" data-date="${ds}" >
                  <div class="wdh-name">${window.DAY_NAMES_LOCAL[i]}</div>
                  <div class="wdh-num">${d.getDate()}</div>
              </div>`;
@@ -102,8 +105,8 @@
                      });
                  }
  
-                 html += `<div class="weekly-hour-cell" data-date="${ds}" data-hour="${h}"
-                   data-action="weekly-hour-cell-click" style="position: relative; overflow: visible !important;">`;
+                 html += `<div class="weekly-hour-cell u-position-relative_overflow-visibleimportant" data-date="${ds}" data-hour="${h}"
+ data-action="weekly-hour-cell-click" >`;
                      
                      const chipLayouts = computeChipColumns(cellEvs);
                      chipLayouts.forEach(({ ev, col, totalCols }) => {
@@ -124,19 +127,26 @@
                          const chipBorderColor = done ? '#2ed573' : cc.border;
                          const chipBg          = done ? 'rgba(46,213,115,0.18)' : cc.bg;
                          const chipGlow        = done ? 'rgba(46,213,115,0.15)' : cc.glow;
+                         const _chipIdx = _weeklyChipIdx++;
+                         _weeklyChipStyles.push({
+                             idx: _chipIdx,
+                             top: cTopPx, height: cHeightPx, left: colLeft, width: colW, gap: GAP,
+                             bg: chipBg, borderColor: chipBorderColor, glow: chipGlow,
+                             borderLeftWidth: (cc.isGoal && !done) ? '5px' : null,
+                             prioColor, titleFontSize: (!isTall && chipTime) ? '9px' : null
+                         });
                          html += `<div class="weekly-event-chip${done?' completed':''}"
                              draggable="true"
-                             data-drag-id="${ev.id}" data-drag-date="${ds}"
+                             data-drag-id="${ev.id}" data-drag-date="${ds}" data-chip-idx="${_chipIdx}"
                             data-action="weekly-chip-noop"
                              title="${ev.text}${chipTime?' · '+chipTime:''}${cc.isGoal?' 🎯 '+cc.label:''}"
-                             style="position:absolute;z-index:10;top:${cTopPx}px;height:${cHeightPx}px;min-height:18px;left:calc(${colLeft}% + ${GAP}px);width:calc(${colW}% - ${GAP*2}px);background:${chipBg};border-left-color:${chipBorderColor};box-shadow:0 3px 10px ${chipGlow};${(cc.isGoal&&!done)?'border-left-width:5px;':''}"
                              >
                              ${done
                                  ? `<span class="wec-done-badge"><i class="fa-solid fa-check"></i></span>`
-                                 : `<span class="wec-cat-dot" style="background:${prioColor};" title="${cc.label} · ${ev.priority || 'medium'}"></span>`}
+                                 : `<span class="wec-cat-dot" title="${cc.label} · ${ev.priority || 'medium'}"></span>`}
                              ${cc.isGoal && !done ? `<span class="wec-goal-badge" title="${cc.label}"><i class="fa-solid fa-mountain-sun"></i></span>` : ''}
                              ${isTall && chipTime ? `<span class="wec-time${done?' wec-time-done':''}">${done?'':' <i class="fa-regular fa-clock"></i>'} ${chipTime}</span>` : ''}
-                             <span class="wec-title" style="${!isTall && chipTime ? 'font-size:9px;' : ''}">${!isTall && chipTime ? chipTime + ' · ' : ''}${ev.text}</span>
+                             <span class="wec-title">${!isTall && chipTime ? chipTime + ' · ' : ''}${ev.text}</span>
                              ${showActions ? `<div class="wec-actions">
                                 <button class="wec-btn${done?' wec-done':''}" data-action="weekly-chip-toggle" data-id="${ev.id}">
                                      <i class="fa-solid fa-${done?'rotate-left':'check'}"></i> ${done?'Geri Al':'Tamam'}
@@ -151,7 +161,27 @@
              });
          }
          grid.innerHTML = html;
- 
+
+         _weeklyChipStyles.forEach(s => {
+             const chipEl = grid.querySelector(`[data-chip-idx="${s.idx}"]`);
+             if (!chipEl) return;
+             chipEl.style.position = 'absolute';
+             chipEl.style.zIndex = '10';
+             chipEl.style.top = `${s.top}px`;
+             chipEl.style.height = `${s.height}px`;
+             chipEl.style.minHeight = '18px';
+             chipEl.style.left = `calc(${s.left}% + ${s.gap}px)`;
+             chipEl.style.width = `calc(${s.width}% - ${s.gap*2}px)`;
+             chipEl.style.background = s.bg;
+             chipEl.style.borderLeftColor = s.borderColor;
+             chipEl.style.boxShadow = `0 3px 10px ${s.glow}`;
+             if (s.borderLeftWidth) chipEl.style.borderLeftWidth = s.borderLeftWidth;
+             const dot = chipEl.querySelector('.wec-cat-dot');
+             if (dot) dot.style.background = s.prioColor;
+             const titleEl = chipEl.querySelector('.wec-title');
+             if (titleEl && s.titleFontSize) titleEl.style.fontSize = s.titleFontSize;
+         });
+
          // Şimdiki zaman çizgisi — sadece bugünün kolonunda
          const now = new Date();
          const nowDateStr = window.formatDateToString(now);
@@ -430,7 +460,7 @@
          cellEl.classList.add('drag-over');
          if (!_calDragId) return;
 
-         const snapMins = window.snap15((e.offsetY / hourPx) * 60);
+         const snapMins = snap15((e.offsetY / hourPx) * 60);
          const task = window.__getTasksRef().find(t => String(t.id) === String(_calDragId));
          if (!task) return;
 
@@ -495,7 +525,7 @@
          const srcDate = e.dataTransfer.getData('sourceDate');
          calDragEnd();
          if (id) {
-             const snapMins = window.snap15((e.offsetY / 60) * 60);
+             const snapMins = snap15((e.offsetY / 60) * 60);
              premiumMoveTask(id, srcDate, targetDate, targetHour, snapMins);
          }
      };
@@ -532,6 +562,8 @@
          }
  
          let html = '';
+         let _dailyBlockStyles = [];
+         let _dailyBlockIdx = 0;
          for (let h = 0; h <= 23; h++) {
              const hLabel = String(h).padStart(2,'0') + ':00';
              const isNowHour = (dateStr === todayStr && h === now.getHours());
@@ -573,10 +605,10 @@
              }
  
              html += `<div class="daily-hour-label">${hLabel}</div>`;
-             html += `<div class="daily-hour-cell${isNowHour?' is-now':''}" data-date="${dateStr}" data-hour="${h}"
-                data-action="daily-hour-cell-click" style="position: relative; overflow: visible !important;">`;
+             html += `<div class="daily-hour-cell${isNowHour?' is-now':''} u-position-relative_overflow-visibleimportant" data-date="${dateStr}" data-hour="${h}"
+ data-action="daily-hour-cell-click" >`;
  
-             if (isNowHour) html += `<div class="daily-now-indicator" style="top:${nowPct}%"><span class="daily-now-time">${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}</span></div>`;
+             if (isNowHour) html += `<div class="daily-now-indicator" data-now-pct="${nowPct}"><span class="daily-now-time">${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}</span></div>`;
  
              cellEvs.forEach(ev => {
                  const t = window.__getTasksRef().find(t => String(t.id) === String(ev.id));
@@ -593,15 +625,21 @@
                  const debBorder = done ? '#2ed573' : cc.border;
                  const debGlow   = done ? 'rgba(46,213,115,0.12)' : cc.glow;
 
+                 const _blockIdx = _dailyBlockIdx++;
+                 _dailyBlockStyles.push({
+                     idx: _blockIdx, top: topPx, height: hPx,
+                     bg: debBg, borderColor: debBorder, glow: debGlow,
+                     borderLeftWidth: (cc.isGoal && !done) ? '5px' : null,
+                     prioColor
+                 });
                  html += `<div class="daily-event-block${done?' completed':''}"
                      draggable="true"
-                     data-drag-id="${ev.id}" data-drag-date="${dateStr}"
+                     data-drag-id="${ev.id}" data-drag-date="${dateStr}" data-block-idx="${_blockIdx}"
                      data-action="daily-block-noop"
-                     title="${ev.text}${cc.isGoal?' · 🎯 '+cc.label:''}"
-                     style="position:absolute;z-index:10;left:8px;right:8px;width:auto;top:${topPx}px;height:${hPx}px;background:${debBg};border-left-color:${debBorder};box-shadow:0 4px 14px ${debGlow};${(cc.isGoal&&!done)?'border-left-width:5px;':''}">
+                     title="${ev.text}${cc.isGoal?' · 🎯 '+cc.label:''}">
                      ${done
                          ? `<span class="deb-done-badge"><i class="fa-solid fa-check-double"></i></span>`
-                         : `<span class="deb-prio-dot" style="background:${prioColor};" title="${cc.label}"></span>`}
+                         : `<span class="deb-prio-dot" title="${cc.label}"></span>`}
                      ${cc.isGoal && !done ? `<span class="deb-goal-badge" title="${cc.label}"><i class="fa-solid fa-mountain-sun"></i></span>` : ''}
                      <div class="deb-inner">
                          <div class="deb-header">
@@ -624,7 +662,28 @@
          }
  
          grid.innerHTML = html;
- 
+
+         const _nowIndicator = grid.querySelector('.daily-now-indicator[data-now-pct]');
+         if (_nowIndicator) _nowIndicator.style.top = `${_nowIndicator.dataset.nowPct}%`;
+
+         _dailyBlockStyles.forEach(s => {
+             const blockEl = grid.querySelector(`[data-block-idx="${s.idx}"]`);
+             if (!blockEl) return;
+             blockEl.style.position = 'absolute';
+             blockEl.style.zIndex = '10';
+             blockEl.style.left = '8px';
+             blockEl.style.right = '8px';
+             blockEl.style.width = 'auto';
+             blockEl.style.top = `${s.top}px`;
+             blockEl.style.height = `${s.height}px`;
+             blockEl.style.background = s.bg;
+             blockEl.style.borderLeftColor = s.borderColor;
+             blockEl.style.boxShadow = `0 4px 14px ${s.glow}`;
+             if (s.borderLeftWidth) blockEl.style.borderLeftWidth = s.borderLeftWidth;
+             const dot = blockEl.querySelector('.deb-prio-dot');
+             if (dot) dot.style.background = s.prioColor;
+         });
+
          // İlk etkinliğe veya şimdiki saate kaydır
          setTimeout(() => {
              const target = grid.querySelector('.daily-event-block') || grid.querySelector('.daily-hour-cell.is-now');
@@ -658,7 +717,7 @@
          const srcDate = e.dataTransfer.getData('sourceDate');
          calDragEnd();
          if (id) {
-             const snapMins = window.snap15((e.offsetY / 64) * 60);
+             const snapMins = snap15((e.offsetY / 64) * 60);
              premiumMoveTask(id, srcDate, targetDate, targetHour, snapMins);
          }
      };

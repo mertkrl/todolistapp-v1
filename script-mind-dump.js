@@ -119,9 +119,64 @@ const MAX_MIND_DUMPS = 30;
          const info = meta[key] || meta['diger'];
          const isActive = key === dumpInlineSelectedTag;
          return `<button class="dump-inline-tag-chip${isActive ? ' active' : ''}"
-             style="${isActive ? `color:${info.color};background:${info.bg};border-color:${info.border};` : ''}"
              data-action="select-dump-inline-tag" data-tag="${key}">${escapeHtml(info.label)}</button>`;
      }).join('');
+     row.querySelectorAll('.dump-inline-tag-chip.active').forEach(btn => {
+         const key = btn.dataset.tag;
+         const info = meta[key] || meta['diger'];
+         btn.style.color = info.color;
+         btn.style.background = info.bg;
+         btn.style.borderColor = info.border;
+     });
+ }
+
+ // renderMindDumps'tan ayrılan: tek bir zihin çöplüğü öğesinin <li> elementini kurar.
+ // Faz S devamı, dev fonksiyon refactoru.
+ function _dumpBuildItemEl(dump) {
+         const ageStr = dumpRelativeTime(dump.timestamp);
+         const tagKey = dump.tag || 'diger';
+         const _metaAll = getDumpTagMeta();
+         const tagInfo = _metaAll[tagKey] || _metaAll['diger'];
+         const ageDays = (Date.now() - dump.timestamp) / (1000 * 60 * 60 * 24);
+         const ageClass = ageDays > 14 ? 'dump-age-critical'
+                        : ageDays > 7  ? 'dump-age-old'
+                        : ageDays > 3  ? 'dump-age-stale'
+                        : '';
+         const ageWarnLabel = ageDays > 14 ? '🔴 Kritik'
+                            : ageDays > 7  ? '🟠 Bayatladı'
+                            : ageDays > 3  ? '🟡 Eski'
+                            : '';
+         const isOld = ageDays > 3;
+
+         const li = document.createElement('li');
+         li.className = 'dump-item' + (ageClass ? ' ' + ageClass : '');
+         li.dataset.dumpId = dump.id;
+         li.innerHTML = `
+             <div class="dump-info">
+                 <div class="dump-title-row">
+                     <span class="dump-title" title="Düzenlemek için çift tıkla">${escapeHtml(dump.text)}</span>
+                     <span class="dump-tag-badge" title="Etiket">${escapeHtml(tagInfo.label)}</span>
+                 </div>
+                 <span class="dump-date">
+                     <i class="fa-regular fa-clock"></i> ${ageStr}
+                     ${isOld ? `<span class="dump-age-warn">${ageWarnLabel}</span>` : ''}
+                 </span>
+             </div>
+             <div class="dump-actions">
+                 <button class="dump-edit-btn" data-action="edit-dump" data-id="${dump.id}" title="Düzenle" aria-label="Düzenle"><i class="fa-solid fa-pen"></i></button>
+                 <button class="dump-convert-btn" data-action="convert-dump" data-id="${dump.id}" title="Dönüştür" aria-label="Dönüştür"><i class="fa-solid fa-arrow-right-arrow-left"></i></button>
+                 <button class="dump-del-btn" data-action="delete-dump" data-id="${dump.id}" title="Sil" aria-label="Sil"><i class="fa-solid fa-trash"></i></button>
+             </div>
+         `;
+         const tagBadge = li.querySelector('.dump-tag-badge');
+         if (tagBadge) {
+             tagBadge.style.color = tagInfo.color;
+             tagBadge.style.background = tagInfo.bg;
+             tagBadge.style.borderColor = tagInfo.border;
+         }
+         // Çift tıklama ile inline düzenleme
+         li.querySelector('.dump-title').addEventListener('dblclick', () => startDumpEdit(dump.id));
+     return li;
  }
 
  export function renderMindDumps() {
@@ -196,46 +251,7 @@ const MAX_MIND_DUMPS = 30;
          return;
      }
 
-     filtered.forEach(dump => {
-         const ageStr = dumpRelativeTime(dump.timestamp);
-         const tagKey = dump.tag || 'diger';
-         const _metaAll = getDumpTagMeta();
-         const tagInfo = _metaAll[tagKey] || _metaAll['diger'];
-         const ageDays = (Date.now() - dump.timestamp) / (1000 * 60 * 60 * 24);
-         const ageClass = ageDays > 14 ? 'dump-age-critical'
-                        : ageDays > 7  ? 'dump-age-old'
-                        : ageDays > 3  ? 'dump-age-stale'
-                        : '';
-         const ageWarnLabel = ageDays > 14 ? '🔴 Kritik'
-                            : ageDays > 7  ? '🟠 Bayatladı'
-                            : ageDays > 3  ? '🟡 Eski'
-                            : '';
-         const isOld = ageDays > 3;
-
-         const li = document.createElement('li');
-         li.className = 'dump-item' + (ageClass ? ' ' + ageClass : '');
-         li.dataset.dumpId = dump.id;
-         li.innerHTML = `
-             <div class="dump-info">
-                 <div class="dump-title-row">
-                     <span class="dump-title" title="Düzenlemek için çift tıkla">${escapeHtml(dump.text)}</span>
-                     <span class="dump-tag-badge" title="Etiket" style="color:${tagInfo.color};background:${tagInfo.bg};border-color:${tagInfo.border};">${escapeHtml(tagInfo.label)}</span>
-                 </div>
-                 <span class="dump-date">
-                     <i class="fa-regular fa-clock"></i> ${ageStr}
-                     ${isOld ? `<span class="dump-age-warn">${ageWarnLabel}</span>` : ''}
-                 </span>
-             </div>
-             <div class="dump-actions">
-                 <button class="dump-edit-btn" data-action="edit-dump" data-id="${dump.id}" title="Düzenle"><i class="fa-solid fa-pen"></i></button>
-                 <button class="dump-convert-btn" data-action="convert-dump" data-id="${dump.id}" title="Dönüştür"><i class="fa-solid fa-arrow-right-arrow-left"></i></button>
-                 <button class="dump-del-btn" data-action="delete-dump" data-id="${dump.id}" title="Sil"><i class="fa-solid fa-trash"></i></button>
-             </div>
-         `;
-         // Çift tıklama ile inline düzenleme
-         li.querySelector('.dump-title').addEventListener('dblclick', () => startDumpEdit(dump.id));
-         dumpList.appendChild(li);
-     });
+     filtered.forEach(dump => { dumpList.appendChild(_dumpBuildItemEl(dump)); });
  }
  window.renderMindDumps = renderMindDumps;
 
@@ -252,9 +268,9 @@ const MAX_MIND_DUMPS = 30;
      const VISIBLE_PRESET = ['ana-hedef', 'aliskanlik', 'fikir', 'diger'];
      const allTags = [null, ...VISIBLE_PRESET, ...customTags.map(t => t.id)]; // null = "Tümü"
      container.innerHTML = allTags.map(tag => {
-         if (!tag) return `<button class="dump-tag-filter-btn${dumpActiveTag === 'all' ? ' active' : ''}" data-tag="all" style="white-space:nowrap;">Tümü</button>`;
+         if (!tag) return `<button class="dump-tag-filter-btn${dumpActiveTag === 'all' ? ' active' : ''} u-white-space-nowrap" data-tag="all" >Tümü</button>`;
          const m = meta[tag] || meta.diger;
-         return `<button class="dump-tag-filter-btn${dumpActiveTag === tag ? ' active' : ''}" data-tag="${tag}" style="white-space:nowrap;">${escapeHtml(m.label)}</button>`;
+         return `<button class="dump-tag-filter-btn${dumpActiveTag === tag ? ' active' : ''} u-white-space-nowrap" data-tag="${tag}" >${escapeHtml(m.label)}</button>`;
      }).join('');
      container.querySelectorAll('.dump-tag-filter-btn').forEach(btn => {
          btn.addEventListener('click', () => {
@@ -302,25 +318,48 @@ const MAX_MIND_DUMPS = 30;
              custom.forEach((t, i) => {
                  const c = DUMP_CUSTOM_TAG_COLORS[i % DUMP_CUSTOM_TAG_COLORS.length];
                  const li = document.createElement('li');
-                 li.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);';
+                 li.style.display = 'flex';
+                 li.style.alignItems = 'center';
+                 li.style.gap = '10px';
+                 li.style.padding = '8px 12px';
+                 li.style.borderRadius = '10px';
+                 li.style.background = 'rgba(255,255,255,0.03)';
+                 li.style.border = '1px solid rgba(255,255,255,0.07)';
                  const dot = document.createElement('span');
-                 dot.style.cssText = 'width:8px;height:8px;border-radius:50%;background:' + c.color + ';flex-shrink:0;display:inline-block;';
+                 dot.style.width = '8px';
+                 dot.style.height = '8px';
+                 dot.style.borderRadius = '50%';
+                 dot.style.background = c.color;
+                 dot.style.flexShrink = '0';
+                 dot.style.display = 'inline-block';
                  const lbl = document.createElement('span');
                  lbl.textContent = t.label;
-                 lbl.style.cssText = 'flex:1;font-size:13px;color:#fff;font-weight:500;';
+                 lbl.style.flex = '1';
+                 lbl.style.fontSize = '13px';
+                 lbl.style.color = '#fff';
+                 lbl.style.fontWeight = '500';
                  const delBtn = document.createElement('button');
                  delBtn.type = 'button';
                  delBtn.title = 'Etiketi sil';
                  // inline-flex + açık kırmızı renk + SVG ikon (FA bağımlılığı yok)
-                 delBtn.style.cssText = [
-                     'width:30px', 'height:30px', 'min-width:30px', 'border-radius:8px',
-                     'border:1px solid #ff7675', 'background:rgba(255,71,87,0.12)',
-                     'color:#ff7675 !important', 'cursor:pointer',
-                     'display:inline-flex', 'align-items:center', 'justify-content:center',
-                     'flex-shrink:0', 'padding:0', 'box-sizing:border-box',
-                     'font-size:14px', 'line-height:1', 'overflow:visible'
-                 ].join(';');
-                 delBtn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ff7675" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none;display:block;"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>';
+                 delBtn.style.width = '30px';
+                 delBtn.style.height = '30px';
+                 delBtn.style.minWidth = '30px';
+                 delBtn.style.borderRadius = '8px';
+                 delBtn.style.border = '1px solid #ff7675';
+                 delBtn.style.background = 'rgba(255,71,87,0.12)';
+                 delBtn.style.setProperty('color', '#ff7675', 'important');
+                 delBtn.style.cursor = 'pointer';
+                 delBtn.style.display = 'inline-flex';
+                 delBtn.style.alignItems = 'center';
+                 delBtn.style.justifyContent = 'center';
+                 delBtn.style.flexShrink = '0';
+                 delBtn.style.padding = '0';
+                 delBtn.style.boxSizing = 'border-box';
+                 delBtn.style.fontSize = '14px';
+                 delBtn.style.lineHeight = '1';
+                 delBtn.style.overflow = 'visible';
+                 delBtn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ff7675" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="u-pointer-events-none_display-block"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>';
                  delBtn.addEventListener('mouseover', () => { delBtn.style.background = 'rgba(255,71,87,0.28)'; delBtn.style.borderColor = '#ff4757'; });
                  delBtn.addEventListener('mouseout',  () => { delBtn.style.background = 'rgba(255,71,87,0.12)'; delBtn.style.borderColor = '#ff7675'; });
                  delBtn.addEventListener('click', () => window._deleteDumpCustomTag(t.id));
@@ -483,7 +522,7 @@ const MAX_MIND_DUMPS = 30;
          const btn = document.createElement('button');
          btn.className = 'dump-tag-picker-btn';
          btn.textContent = m.label;
-         btn.style.cssText = `color:${m.color};`;
+         btn.style.color = m.color;
          btn.addEventListener('click', (e) => { e.stopPropagation(); picker.remove(); changeDumpTag(id, tag); });
          picker.appendChild(btn);
      });

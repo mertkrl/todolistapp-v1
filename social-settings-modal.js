@@ -28,12 +28,15 @@ import { requestDesktopNotificationPermission } from './social-notif-sounds.js';
         const modal = document.createElement('div');
         modal.id = 'focusai-settings-modal';
         modal.className = 'modal-overlay';
-        modal.style.cssText = 'display:flex;align-items:center;justify-content:center;z-index:10100;';
+        modal.style.display = 'flex';
+        modal.style.alignItems = 'center';
+        modal.style.justifyContent = 'center';
+        modal.style.zIndex = '10100';
         modal.innerHTML = `
           <div class="settings-modal-box" id="focusai-settings-box">
             <div class="settings-modal-header">
               <span><i class="fa-solid fa-sliders"></i> Ayarlar</span>
-              <button class="settings-modal-close" id="settings-close-btn"><i class="fa-solid fa-xmark"></i></button>
+              <button class="settings-modal-close" id="settings-close-btn" aria-label="Kapat"><i class="fa-solid fa-xmark"></i></button>
             </div>
 
             <div class="settings-sections">
@@ -69,7 +72,7 @@ import { requestDesktopNotificationPermission } from './social-notif-sounds.js';
                     <span class="settings-toggle-track"></span>
                   </label>
                 </div>
-                <div style="font-size:11px; color:var(--text-muted); margin-top:-4px;">Gruptan veya özelden yeni bir mesaj geldiğinde sesli ve masaüstü bildirim alırsın.</div>
+                <div class="u-font-size-11px_color-var-text-muted_margin-top-4px">Gruptan veya özelden yeni bir mesaj geldiğinde sesli ve masaüstü bildirim alırsın.</div>
               </div>
 
               <div class="settings-section">
@@ -87,7 +90,7 @@ import { requestDesktopNotificationPermission } from './social-notif-sounds.js';
               <div class="settings-section">
                 <div class="settings-section-title"><i class="fa-solid fa-ban"></i> Engellenen Kullanıcılar</div>
                 <div id="settings-blocked-list" class="settings-blocked-list">
-                  <div style="font-size:12px; color:var(--text-muted); padding:6px 0;">Yükleniyor...</div>
+                  <div class="u-font-size-12px_color-var-text-muted_padding-6px0">Yükleniyor...</div>
                 </div>
               </div>
 

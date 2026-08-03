@@ -1,6 +1,6 @@
 // ─── "YENİ MESAJLAR" AYIRACI + OKUNMAMIŞA HIZLI ATLAMA BUTONU ──────────
 // social.js dosyasından çıkarıldı (2026-07-18).
-function insertDcUnreadDivider(container) {
+export function insertDcUnreadDivider(container) {
     const divider = document.createElement('div');
     divider.className = 'dc-unread-divider';
     divider.innerHTML = `<span class="dc-unread-divider-line"></span><span class="dc-unread-divider-label">Yeni mesajlar</span><span class="dc-unread-divider-line"></span>`;
@@ -8,7 +8,7 @@ function insertDcUnreadDivider(container) {
 }
 window.insertDcUnreadDivider = insertDcUnreadDivider;
 
-function setupDcJumpUnreadBtn(streamEl) {
+export function setupDcJumpUnreadBtn(streamEl) {
     const btn = document.getElementById('dc-jump-unread-btn');
     if (!btn) return;
 
@@ -30,7 +30,15 @@ function setupDcJumpUnreadBtn(streamEl) {
             const divider = streamEl.querySelector('.dc-unread-divider');
             if (divider) divider.scrollIntoView({ block: 'center', behavior: 'smooth' });
         });
-        streamEl.addEventListener('scroll', updateVisibility);
+        // rAF-throttling: updateVisibility 2x getBoundingClientRect çağırıyor (layout'u
+        // zorluyor) — hızlı scroll'da saniyede onlarca kez tetiklenip jank yaratmasın diye
+        // en fazla frame başına bir kez çalıştırılır.
+        let _rafPending = false;
+        streamEl.addEventListener('scroll', () => {
+            if (_rafPending) return;
+            _rafPending = true;
+            requestAnimationFrame(() => { _rafPending = false; updateVisibility(); });
+        }, { passive: true });
     }
 
     updateVisibility();

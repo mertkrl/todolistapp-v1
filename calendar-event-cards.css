@@ -1,0 +1,328 @@
+/* style.css'ten çıkarıldı (Faz C, 2026-07-22). Premium Takvim Event Kartları (.tc-* — timeline card ailesi: checkbox/badge/glow/sürükleme/silme), #event-input/#event-list. NOT: .timeline-card calendar-highlight-timeline.css'ten SONRA (kazanmalı), .cal-day.selected premium-ambient-misc-widgets.css'ten ÖNCE (o kazanmalı) yüklenmeli. */
+
+/* ════════════════════════════════════════════════════════════
+   PREMIUM TAKVİM EVENT KARTLARI
+   ════════════════════════════════════════════════════════════ */
+
+/* Timeline çizgisi ve noktaları */
+
+
+
+.cal-event-item.priority-high::before {
+    background: #ff4757 !important;
+    box-shadow: 0 0 0 3px rgba(255,71,87,0.15), 0 0 16px rgba(255,71,87,0.7) !important;
+}
+.cal-event-item.priority-medium::before {
+    background: var(--primary-color) !important;
+    box-shadow: 0 0 0 3px rgba(212,144,14,0.15), 0 0 16px rgba(212,144,14,0.7) !important;
+}
+.cal-event-item.priority-low::before {
+    background: #2ed573 !important;
+    box-shadow: 0 0 0 3px rgba(46,213,115,0.15), 0 0 16px rgba(46,213,115,0.7) !important;
+}
+.cal-event-item.completed::before {
+    background: rgba(255,255,255,0.15) !important;
+    box-shadow: none !important;
+}
+
+/* Saat pill'i */
+.tc-time-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    padding: 3px 12px;
+    border-radius: 20px;
+    margin-bottom: 9px;
+    color: #D4900E;
+    background: rgba(212,144,14,0.1);
+    border: 1px solid rgba(212,144,14,0.2);
+}
+.tc-sep { opacity: 0.5; font-size: 10px; }
+
+/* Kart kabı */
+.timeline-card {
+    border-radius: 16px !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    border: none !important;
+    backdrop-filter: blur(20px) !important;
+    transition: transform 0.25s ease, box-shadow 0.25s ease !important;
+    position: relative;
+}
+
+/* Önceliğe göre kart rengi */
+.cal-event-item.priority-high .timeline-card {
+    background: linear-gradient(135deg, rgba(255,71,87,0.12) 0%, rgba(18,12,35,0.9) 55%) !important;
+    border: 1px solid rgba(255,71,87,0.22) !important;
+    box-shadow: 0 4px 22px rgba(255,71,87,0.1), inset 0 1px 0 rgba(255,255,255,0.04) !important;
+}
+.cal-event-item.priority-medium .timeline-card {
+    background: linear-gradient(135deg, rgba(212,144,14,0.12) 0%, rgba(18,12,35,0.9) 55%) !important;
+    border: 1px solid rgba(212,144,14,0.22) !important;
+    box-shadow: 0 4px 22px rgba(212,144,14,0.1), inset 0 1px 0 rgba(255,255,255,0.04) !important;
+}
+.cal-event-item.priority-low .timeline-card {
+    background: linear-gradient(135deg, rgba(46,213,115,0.09) 0%, rgba(18,12,35,0.9) 55%) !important;
+    border: 1px solid rgba(46,213,115,0.18) !important;
+    box-shadow: 0 4px 22px rgba(46,213,115,0.08), inset 0 1px 0 rgba(255,255,255,0.04) !important;
+}
+
+/* Hover */
+.cal-event-item .timeline-card:hover { transform: translateX(6px) translateY(-2px) !important; }
+.cal-event-item.priority-high .timeline-card:hover  { box-shadow: 0 10px 35px rgba(255,71,87,0.22)  !important; }
+.cal-event-item.priority-medium .timeline-card:hover { box-shadow: 0 10px 35px rgba(212,144,14,0.22) !important; }
+.cal-event-item.priority-low .timeline-card:hover   { box-shadow: 0 10px 35px rgba(46,213,115,0.18)  !important; }
+
+/* Tamamlanan */
+.cal-event-item.completed .timeline-card { opacity: 0.45 !important; filter: saturate(0.3) !important; }
+
+/* Sol parlayan çubuk */
+.tc-glow-bar {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    border-radius: 16px 0 0 16px;
+}
+.cal-event-item.priority-high   .tc-glow-bar { background: linear-gradient(#ff4757, #ff6b81); box-shadow: 2px 0 14px rgba(255,71,87,0.6); }
+.cal-event-item.priority-medium .tc-glow-bar { background: linear-gradient(#D4900E, #D4900E); box-shadow: 2px 0 14px rgba(212,144,14,0.6); }
+.cal-event-item.priority-low    .tc-glow-bar { background: linear-gradient(#2ed573, #00b894); box-shadow: 2px 0 14px rgba(46,213,115,0.5); }
+
+/* Kart içi düzen */
+.tc-inner {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    padding: 13px 14px 13px 20px;
+}
+
+/* Checkbox */
+.tc-checkbox {
+    width: 22px; height: 22px;
+    border-radius: 7px;
+    border: 2px solid rgba(212,144,14,0.4);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; flex-shrink: 0;
+    transition: all 0.2s ease;
+    background: rgba(212,144,14,0.05);
+}
+.tc-checkbox:hover { transform: scale(1.12); border-color: var(--primary-color); background: rgba(212,144,14,0.15); }
+.cal-event-item.priority-high   .tc-checkbox { border-color: rgba(255,71,87,0.45); }
+.cal-event-item.priority-low    .tc-checkbox { border-color: rgba(46,213,115,0.45); }
+.tc-checkbox.tc-checked { background: var(--primary-color) !important; border-color: var(--primary-color) !important; }
+.tc-checkbox.tc-checked i { font-size: 11px; color: #fff; }
+
+/* Metin alanı */
+.tc-content { flex: 1; min-width: 0; }
+.tc-title {
+    font-weight: 600; font-size: 14px; color: #fff;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    margin-bottom: 7px; line-height: 1.3;
+    transition: color 0.2s;
+}
+.tc-title.tc-done { text-decoration: line-through; color: var(--text-muted); }
+.tc-meta { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
+
+/* Rozet sistemi */
+.tc-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 10px; font-weight: 600;
+    padding: 2px 9px; border-radius: 20px; letter-spacing: 0.2px;
+}
+
+
+
+.tc-badge-date  { background: rgba(255,255,255,0.04); color: var(--text-muted); border: 1px solid rgba(255,255,255,0.07); }
+.tc-badge-goal  { background: rgba(212,144,14,0.08); color: #D4900E; border: 1px solid rgba(212,144,14,0.15); }
+
+/* Aksiyonlar */
+.tc-actions {
+    display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+    opacity: 0; transition: opacity 0.2s;
+}
+.cal-event-item:hover .tc-actions { opacity: 1; }
+.tc-drag-icon {
+    color: var(--text-muted); font-size: 14px; cursor: grab;
+    padding: 5px; border-radius: 6px; transition: color 0.2s;
+}
+.tc-drag-icon:active { cursor: grabbing; }
+.tc-del-btn {
+    background: rgba(255,71,87,0.08); border: 1px solid rgba(255,71,87,0.18);
+    color: #ff6b81; border-radius: 8px; width: 30px; height: 30px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 12px;
+    transition: all 0.2s ease;
+}
+.tc-del-btn:hover { background: rgba(255,71,87,0.2); border-color: rgba(255,71,87,0.4); transform: scale(1.1); }
+
+/* ── Haftalık chip geliştirme ── */
+.weekly-event-chip {
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.2px !important;
+    backdrop-filter: blur(12px) !important;
+    border-left-width: 3px !important;
+    padding: 4px 8px !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.25) !important;
+    transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s !important;
+}
+
+/* ── Günlük blok geliştirme ── */
+.daily-event-block {
+    border-radius: 12px !important;
+    border-left-width: 4px !important;
+    backdrop-filter: blur(16px) !important;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.3) !important;
+    transition: transform 0.2s, box-shadow 0.2s !important;
+}
+.daily-event-block:hover { transform: scale(1.012) translateY(-1px) !important; }
+.daily-event-block.priority-high {
+    background: linear-gradient(135deg, rgba(255,71,87,0.68), rgba(180,30,50,0.55)) !important;
+    border-left-color: #ff4757 !important;
+    box-shadow: 0 6px 22px rgba(255,71,87,0.25) !important;
+}
+.daily-event-block.priority-medium {
+    background: linear-gradient(135deg, rgba(212,144,14,0.68), rgba(72,52,180,0.55)) !important;
+    border-left-color: #D4900E !important;
+    box-shadow: 0 6px 22px rgba(212,144,14,0.25) !important;
+}
+.daily-event-block.priority-low {
+    background: linear-gradient(135deg, rgba(0,184,148,0.68), rgba(0,130,110,0.55)) !important;
+    border-left-color: #00b894 !important;
+    box-shadow: 0 6px 22px rgba(0,184,148,0.2) !important;
+}
+
+/* ================================================================
+   TAKVİM GÖREV KARTI — GELİŞMİŞ ETKİLEŞİMLER (PREMIUM UPGRADE)
+   ================================================================ */
+
+/* 1. Sürüklenen kart (dragging state) */
+.cal-event-item.dragging {
+    opacity: 0.35;
+    transform: scale(0.97);
+    transition: opacity 0.15s, transform 0.15s;
+    pointer-events: none;
+}
+
+/* 2. Bırakma hedef kartı (drag-over state) */
+.cal-event-item.drag-over-above {
+    border-top: 2px dashed rgba(212,144,14,0.7) !important;
+    margin-top: -2px;
+}
+.cal-event-item.drag-over-below {
+    border-bottom: 2px dashed rgba(212,144,14,0.7) !important;
+}
+
+/* 3. Tamamlanma animasyonu (checkbox tık) */
+@keyframes tcComplete {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.08) translateX(3px); }
+    70%  { transform: scale(0.98) translateX(-1px); }
+    100% { transform: scale(1) translateX(0); }
+}
+.cal-event-item.completing .timeline-card {
+    animation: tcComplete 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* 4. Kartın listeye girişi (enter animation) */
+@keyframes taskSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-18px) scale(0.97);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+.cal-event-item {
+    animation: taskSlideIn 0.32s cubic-bezier(0.25, 0.8, 0.25, 1) both;
+    list-style: none;
+}
+.cal-event-item:nth-child(2) { animation-delay: 0.04s; }
+.cal-event-item:nth-child(3) { animation-delay: 0.08s; }
+.cal-event-item:nth-child(4) { animation-delay: 0.12s; }
+.cal-event-item:nth-child(5) { animation-delay: 0.16s; }
+.cal-event-item:nth-child(n+6) { animation-delay: 0.2s; }
+
+/* 5. Glow bar nefes efekti */
+@keyframes glowPulse {
+    0%, 100% { box-shadow: 2px 0 10px currentColor; opacity: 1; }
+    50%       { box-shadow: 2px 0 22px currentColor; opacity: 0.75; }
+}
+.cal-event-item:not(.completed) .tc-glow-bar {
+    animation: glowPulse 2.8s ease-in-out infinite;
+}
+
+/* 6. Boş durum (empty state) geliştirmesi */
+.timeline-view + .empty-state,
+#event-list .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 48px 24px;
+    color: var(--text-muted);
+    text-align: center;
+}
+#event-list .empty-state::before {
+    content: "📅";
+    font-size: 36px;
+    opacity: 0.6;
+    display: block;
+    margin-bottom: 4px;
+    animation: bounce 3s infinite ease-in-out;
+}
+#event-list .empty-state {
+    font-size: 14px;
+    font-weight: 500;
+    border: 1px dashed rgba(255,255,255,0.08);
+    border-radius: 16px;
+    background: rgba(255,255,255,0.01);
+    margin-top: 16px;
+}
+
+/* 7. Drag handle — daha belirgin hover */
+.tc-drag-icon {
+    padding: 6px 5px !important;
+    border-radius: 7px !important;
+    transition: background 0.18s, color 0.18s, transform 0.15s !important;
+}
+.tc-drag-icon:hover {
+    background: rgba(212,144,14,0.18) !important;
+    color: #D4900E !important;
+    transform: scale(1.1) !important;
+}
+
+/* 8. Checkbox tamamlama checkmark animasyonu */
+@keyframes checkPop {
+    0%   { transform: scale(0) rotate(-15deg); }
+    60%  { transform: scale(1.25) rotate(5deg); }
+    100% { transform: scale(1) rotate(0deg); }
+}
+.tc-checkbox.tc-checked i {
+    animation: checkPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* 9. Saat pill — önceliğe göre renk */
+.cal-event-item.priority-high   .tc-time-pill { color: #ff6b81; background: rgba(255,71,87,0.1);   border-color: rgba(255,71,87,0.25); }
+.cal-event-item.priority-low    .tc-time-pill { color: #2ed573; background: rgba(46,213,115,0.08); border-color: rgba(46,213,115,0.2); }
+
+/* 10. Tamamlanan kartın soluk görünümü — smooth */
+.cal-event-item.completed .timeline-card {
+    transition: opacity 0.5s ease, filter 0.5s ease !important;
+}
+
+/* 11. Takvim günü — seçiliyken daha belirgin */
+.cal-day.selected {
+    box-shadow: 0 0 0 2px var(--primary-color), 0 4px 18px rgba(212,144,14,0.35) !important;
+}
+
+/* 12. Görev ekleme paneli input focus efekti */
+#event-input:focus {
+    border-color: rgba(212,144,14,0.5) !important;
+    box-shadow: 0 0 0 3px rgba(212,144,14,0.12), 0 4px 20px rgba(212,144,14,0.1) !important;
+}

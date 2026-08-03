@@ -1,0 +1,248 @@
+/* style.css'ten çıkarıldı (Faz C, 2026-07-22). FAZ 6 — Modal & Overlay Sistemi Bridge CSS. Genel .modal-overlay/.modal-content/.modal-header/.modal-footer override + Komut Paleti (.cmd-*) + Spotlight Arama (.spotlight-*) + çok sayıda özel modal (#gf-*, #weekly-plan-*, #goal-details-modal). Git HEAD: orijinalde satır 18917 — core-modal-system.css'TEN (83-178, çok erken) SONRA gelmeliydi. */
+
+/* --- Genel Modal Overlay --- */
+.modal-overlay {
+    z-index: 9990 !important;
+    background: rgba(0,0,0,0.65) !important;
+    backdrop-filter: none !important;
+}
+
+/* "Birlikte Odaklanma" (#group-focus-overlay, z-index:10100) üzerinde açılan
+   modaller (ayrıl seçimi/oturumu bitir/ayarlar/yeniden başlat/partner
+   bildirim) — yukarıdaki genel .modal-overlay kuralı !important ile 9990'a
+   sabitlediği için bu modaller group-focus-overlay'in ALTINDA kalıp
+   görünmez/tıklanamaz oluyordu. Inline stildeki (10200+) değerleri
+   geri kazandırmak için burada da !important ile ezmemiz gerekiyor. */
+#gf-leave-choice-modal,
+#gf-settings-modal,
+#gf-end-session-modal,
+#gf-restart-confirm-modal,
+#gf-partner-restarting-modal,
+#gf-habit-complete-overlay,
+#gf-solo-continue-overlay {
+    z-index: 10200 !important;
+}
+
+/* --- Genel Modal Content --- */
+.modal-content {
+    background: var(--s2) !important;
+    border: 1px solid var(--b2) !important;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4) !important;
+    backdrop-filter: none !important;
+}
+
+.modal-header {
+    border-bottom: 1px solid var(--b1) !important;
+    background: transparent !important;
+}
+
+.modal-header h2,
+.modal-header h3 {
+    color: var(--t1) !important;
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 600 !important;
+}
+
+.modal-body p,
+.modal-body label,
+.modal-body span {
+    color: var(--t2) !important;
+}
+
+.modal-footer {
+    border-top: 1px solid var(--b1) !important;
+    background: transparent !important;
+}
+
+/* --- Kapat butonu --- */
+.modal-close-btn,
+.close-modal-btn,
+[class*="modal"] .close-btn {
+    background: transparent !important;
+    border: 1px solid var(--b1) !important;
+    color: var(--t2) !important;
+}
+.modal-close-btn:hover,
+.close-modal-btn:hover,
+[class*="modal"] .close-btn:hover {
+    border-color: var(--b2) !important;
+    color: var(--t1) !important;
+}
+
+/* --- Hedef Detay Modalı --- */
+#goal-details-modal .modal-content {
+    background: var(--s2) !important;
+    backdrop-filter: none !important;
+    border: 1px solid var(--b2) !important;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.45) !important;
+}
+
+/* --- Spotlight Arama --- */
+#spotlight-search-modal .modal-content,
+.spotlight-content {
+    background: var(--s2) !important;
+    border: 1px solid var(--b2) !important;
+    backdrop-filter: none !important;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4) !important;
+}
+
+#spotlight-input {
+    background: transparent !important;
+    color: var(--t1) !important;
+    border-bottom: 1px solid var(--b1) !important;
+    caret-color: var(--a) !important;
+}
+#spotlight-input::placeholder { color: var(--t3) !important; }
+
+.spotlight-result-item {
+    border-bottom: 1px solid var(--b1) !important;
+    border-left: 3px solid transparent !important;
+}
+.spotlight-result-item:hover {
+    background: var(--a10) !important;
+    border-left-color: var(--a) !important;
+}
+
+.s-res-title { color: var(--t1) !important; }
+.s-res-meta  { color: var(--t3) !important; }
+
+/* --- Komut Paleti (Ctrl+K) --- */
+.cmd-palette {
+    background: var(--s2) !important;
+    border: 1px solid var(--b2) !important;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4) !important;
+}
+
+.cmd-search-row {
+    border-bottom: 1px solid var(--b1) !important;
+    background: transparent !important;
+}
+
+.cmd-search-icon { color: var(--t3) !important; }
+
+.cmd-input {
+    color: var(--t1) !important;
+    caret-color: var(--a) !important;
+}
+.cmd-input::placeholder { color: var(--t3) !important; }
+
+.cmd-esc-badge {
+    background: var(--s1) !important;
+    border: 1px solid var(--b1) !important;
+    color: var(--t3) !important;
+}
+
+.cmd-results::-webkit-scrollbar-thumb { background: var(--b2) !important; }
+
+.cmd-group-label { color: var(--t3) !important; }
+
+.cmd-item {
+    color: var(--t1) !important;
+}
+.cmd-item:hover,
+.cmd-item.active {
+    background: var(--a10) !important;
+}
+
+.cmd-item-sub { color: var(--t3) !important; }
+
+/* --- Spotlight Quick-Add Modal --- */
+#spotlight-quick-add-modal .modal-content,
+#spotlight-quick-add-modal .spotlight-content {
+    background: var(--s2) !important;
+    border: 1px solid var(--b2) !important;
+    backdrop-filter: none !important;
+}
+
+/* --- Haftalık Plan Modal --- */
+#weekly-plan-modal .modal-content,
+#weekly-plan-action-modal .modal-content {
+    background: var(--s2) !important;
+    border: 1px solid var(--b2) !important;
+    backdrop-filter: none !important;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4) !important;
+}
+
+/* --- Akşam Yansıması Modal --- */
+#evening-reflection-modal .modal-content {
+    background: var(--s2) !important;
+    border: 1px solid var(--b2) !important;
+    border-radius: 14px !important;
+    backdrop-filter: none !important;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4) !important;
+    transition: transform 0.45s cubic-bezier(.4,0,.2,1), opacity 0.45s ease;
+}
+#evening-reflection-modal.slide-out .modal-content {
+    transform: translateX(110%) !important;
+    opacity: 0 !important;
+}
+#evening-reflection-modal .modal-header {
+    padding: 18px 22px 14px !important;
+    border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+    margin-bottom: 0 !important;
+}
+#evening-reflection-modal .modal-header h2 { font-size: 16px; font-weight: 700; margin-bottom: 0; }
+#evening-reflection-modal .modal-body {
+    padding: 20px 22px !important;
+}
+#evening-reflection-modal .modal-footer {
+    padding: 14px 22px 18px !important;
+    border-top: 1px solid rgba(255,255,255,0.06) !important;
+    margin-top: 0 !important;
+}
+
+/* Onboarding Tour Tooltip tema override'ı (.tour-tooltip) — misc-small-widgets.css'e taşındı */
+
+/* --- Bildirim Paneli --- */
+#global-notif-panel {
+    background: var(--s2) !important;
+    border: 1px solid var(--b2) !important;
+    backdrop-filter: none !important;
+    box-shadow: 0 16px 35px rgba(0,0,0,0.4) !important;
+}
+
+
+
+
+/* --- Input ve Textarea (modal içi) --- */
+.modal-content input[type="text"],
+.modal-content input[type="number"],
+.modal-content textarea,
+.modal-content select {
+    background: var(--s1) !important;
+    border: 1px solid var(--b1) !important;
+    color: var(--t1) !important;
+    border-radius: var(--r) !important;
+}
+.modal-content input:focus,
+.modal-content textarea:focus,
+.modal-content select:focus {
+    border-color: var(--a) !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* --- Modal primary button --- */
+.modal-content .btn-primary,
+.modal-content button[class*="primary"],
+.modal-footer .btn-primary {
+    background: var(--a) !important;
+    color: #000 !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+.modal-content .btn-primary:hover,
+.modal-footer .btn-primary:hover {
+    opacity: 0.9 !important;
+    box-shadow: none !important;
+}
+
+/* --- Modal secondary/cancel button --- */
+.modal-content .btn-secondary,
+.modal-content button[class*="secondary"],
+.modal-footer .btn-secondary {
+    background: var(--s1) !important;
+    border: 1px solid var(--b1) !important;
+    color: var(--t2) !important;
+    box-shadow: none !important;
+}

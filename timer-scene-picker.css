@@ -1,0 +1,209 @@
+/* ═══ SCENE BAR — ORTAM SEÇİCİ ═══ */
+/* ═══ SCENE BAR — MİNİMALİST ORTAM SEÇİCİ ═══ */
+.scene-bar {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin-top: 24px;
+    width: 100%;
+    max-width: 420px;
+}
+
+/* Chip sırası */
+.scene-chips {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    background: rgba(0,0,0,0.28);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 4px 5px;
+}
+.scene-chip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 7px 11px;
+    border-radius: 16px;
+    border: none;
+    background: transparent;
+    color: rgba(255,255,255,0.45);
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.18s, color 0.18s;
+    white-space: nowrap;
+}
+.scene-chip-emoji { font-size: 17px; line-height: 1; }
+.scene-chip i { font-size: 15px; }
+.scene-chip:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.8); }
+.scene-chip.active {
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+}
+.scene-chip--none.active {
+    background: rgba(255,255,255,0.07);
+    color: rgba(255,255,255,0.5);
+}
+
+/* Aktif satır: ses + kombine */
+.scene-active-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 0 4px;
+    animation: sceneRowIn 0.2s ease;
+}
+@keyframes sceneRowIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.scene-mute-btn {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.5);
+    font-size: 13px;
+    cursor: pointer;
+    padding: 0 2px;
+    flex-shrink: 0;
+    transition: color 0.15s;
+}
+.scene-mute-btn:hover { color: #fff; }
+.scene-vol-slider {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 3px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+}
+.scene-vol-slider:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(212,144,14,0.4); }
+.scene-vol-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.9);
+    cursor: pointer;
+}
+.scene-mix-toggle {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 10px;
+    color: rgba(255,255,255,0.45);
+    font-size: 11px;
+    padding: 4px 9px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    flex-shrink: 0;
+}
+.scene-mix-toggle:hover { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.8); }
+.scene-mix-toggle.active {
+    background: rgba(212,144,14,0.14);
+    border-color: rgba(212,144,14,0.35);
+    color: var(--primary-color, #D4900E);
+}
+
+/* Kombine mikser — floating, layout'u etkilemez */
+.scene-mixer {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    width: 260px;
+    padding: 12px 14px;
+    background: rgba(10,10,18,0.92);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    animation: fadeInUp 0.18s ease;
+}
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateX(-50%) translateY(6px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+.scene-mx-head {
+    font-size: 10px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.3);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+}
+.scene-mx-row {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+.scene-mx-toggle {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    width: 30px;
+    height: 30px;
+    font-size: 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.15s, border-color 0.15s;
+    opacity: 0.45;
+}
+.scene-mx-toggle:hover { background: rgba(255,255,255,0.12); opacity: 0.75; }
+.scene-mx-row.active .scene-mx-toggle {
+    background: rgba(212,144,14,0.18);
+    border-color: rgba(212,144,14,0.45);
+    opacity: 1;
+}
+.scene-mx-vol {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 3px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+    opacity: 0.35;
+    transition: opacity 0.2s;
+}
+.scene-mx-vol:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(212,144,14,0.4); }
+.scene-mx-row.active .scene-mx-vol {
+    background: rgba(212,144,14,0.35);
+    opacity: 1;
+}
+.scene-mx-vol::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.85);
+    cursor: pointer;
+}
+.scene-mx-pct {
+    font-size: 10px;
+    color: rgba(255,255,255,0.3);
+    width: 26px;
+    text-align: right;
+    flex-shrink: 0;
+    opacity: 0.35;
+    transition: opacity 0.2s;
+}
+.scene-mx-row.active .scene-mx-pct { color: rgba(255,255,255,0.55); opacity: 1; }
+
+/* ghost-mode */
+body.ghost-mode-active .scene-bar { opacity: 0 !important; pointer-events: none !important; transition: opacity 0.6s ease; }

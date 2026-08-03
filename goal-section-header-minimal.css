@@ -1,0 +1,22 @@
+/* style.css'ten çıkarıldı (Faz C, 2026-07-22). Ana Hedefler Minimalist Yeniden Tasarım — Section Header (#hedefler .section-header). */
+
+/* ============================================================
+   ANA HEDEFLER — MİNİMALİST YENİDEN TASARIM
+   ============================================================ */
+
+/* --- Section Header --- */
+#hedefler .section-header {
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    margin-bottom: 24px;
+}
+#hedefler .section-header h1 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+#hedefler .section-header p {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 3px;
+}

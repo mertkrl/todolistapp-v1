@@ -302,55 +302,10 @@ import { renderGoals } from './script-goal-modal.js';
      updateTimerProfileBarVisibility();
  }
  
- function startTimer() {
-     if (!isRunning && timeLeft > 0) {
-         
-         if ("Notification" in window && Notification.permission === "default") {
-             Notification.requestPermission();
-         }
- 
-         isRunning = true;
-         startBtn.classList.add('hidden'); pauseBtn.classList.remove('hidden');
-         if (finishEarlyBtn) finishEarlyBtn.classList.remove('hidden'); // Erken bitirme butonunu göster
-         timerCircle.classList.add('running'); timerCircle.classList.remove('paused');
-         resetIdleTimer();
- 
-         const activeMode = document.querySelector('.mode-btn.active').getAttribute('data-mode');
-         if (activeMode === 'shortBreak' || activeMode === 'longBreak') {
-             timerCircle.classList.add('breathing-active');
-         }
-
-         // Sunucu tarafı odak XP doğrulaması (057): taze bir odak başlangıcında
-         // (mola değil, ve daha önce duraklatılmış bir seansın devamı değil)
-         // sunucuda zaman damgalı bir seans aç. Duraklat/devam et arasında
-         // aynı seans kimliği korunur — resetTimer/mod değişimi sıfırlar.
-         if ((activeMode === 'pomodoro' || activeMode === 'ultradian') && timeLeft === totalTime && !_serverFocusSessionId) {
-             if (window.FocusXP && typeof window.FocusXP.startFocusSession === 'function') {
-                 window.FocusXP.startFocusSession().then(id => {
-                     _serverFocusSessionId = id;
-                     _lastUserActivityAt = Date.now(); // seans başlangıcı = etkileşim anı
-                     _startFocusHeartbeat();
-                 });
-             }
-         }
-
-         // Grup panellerindeki "Canlı Çalışan Üyeler" gerçek odaklanma durumunu
-         // yansıtsın diye sadece odaklanma modlarında (mola değil) presence'ı işaretle.
-         // Bir grup seansından başlatıldıysa sessionId de eklenir — böylece grup takviminde
-         // "şu an bu seansa kimler odaklanıyor" canlı olarak gösterilebilir.
-         if (window.FocusAISocial && typeof window.FocusAISocial.setFocusState === 'function') {
-             const isFocusMode = activeMode === 'pomodoro' || activeMode === 'ultradian';
-             window.FocusAISocial.setFocusState(isFocusMode, activeMode, isFocusMode ? _activeGroupSessionId : null);
-         }
-
-         endTime = Date.now() + (timeLeft * 1000);
-         // Sıfırla/Sıradaki Aşama görünürlüğünü, dock ikonunun yeşile dönmesini ve kaydedilen
-         // çalışma durumunu (endTime dahil) setInterval'ın ilk tick'ini (≈1sn) beklemeden hemen
-         // güncelle. NOT: bu çağrı endTime hesaplanmadan ÖNCE yapılırsa, kaydedilen durum eski/sıfır
-         // bir endTime taşır — kullanıcı tam o anda sayfayı yenilerse zamanlayıcı sıfırlanırdı.
-         updateTimerDisplay();
- 
-         timerInterval = setInterval(() => {
+ // startTimer'daki setInterval callback'i — Faz S devamı, dev fonksiyon refactoru.
+ // Kapsamdaki değişkenler (timeLeft, endTime, isRunning, pomodoroCount vb.) modül
+ // seviyesinde tanımlı, bu yüzden ayrı bir fonksiyon olarak da aynı closure'ı paylaşır.
+ function _timerTick() {
              timeLeft = Math.round((endTime - Date.now()) / 1000);
              
              if (timeLeft <= 0) {
@@ -484,7 +439,57 @@ import { renderGoals } from './script-goal-modal.js';
              } else {
                  updateTimerDisplay(); 
              }
-         }, 1000);
+ }
+
+ function startTimer() {
+     if (!isRunning && timeLeft > 0) {
+         
+         if ("Notification" in window && Notification.permission === "default") {
+             Notification.requestPermission();
+         }
+ 
+         isRunning = true;
+         startBtn.classList.add('hidden'); pauseBtn.classList.remove('hidden');
+         if (finishEarlyBtn) finishEarlyBtn.classList.remove('hidden'); // Erken bitirme butonunu göster
+         timerCircle.classList.add('running'); timerCircle.classList.remove('paused');
+         resetIdleTimer();
+ 
+         const activeMode = document.querySelector('.mode-btn.active').getAttribute('data-mode');
+         if (activeMode === 'shortBreak' || activeMode === 'longBreak') {
+             timerCircle.classList.add('breathing-active');
+         }
+
+         // Sunucu tarafı odak XP doğrulaması (057): taze bir odak başlangıcında
+         // (mola değil, ve daha önce duraklatılmış bir seansın devamı değil)
+         // sunucuda zaman damgalı bir seans aç. Duraklat/devam et arasında
+         // aynı seans kimliği korunur — resetTimer/mod değişimi sıfırlar.
+         if ((activeMode === 'pomodoro' || activeMode === 'ultradian') && timeLeft === totalTime && !_serverFocusSessionId) {
+             if (window.FocusXP && typeof window.FocusXP.startFocusSession === 'function') {
+                 window.FocusXP.startFocusSession().then(id => {
+                     _serverFocusSessionId = id;
+                     _lastUserActivityAt = Date.now(); // seans başlangıcı = etkileşim anı
+                     _startFocusHeartbeat();
+                 });
+             }
+         }
+
+         // Grup panellerindeki "Canlı Çalışan Üyeler" gerçek odaklanma durumunu
+         // yansıtsın diye sadece odaklanma modlarında (mola değil) presence'ı işaretle.
+         // Bir grup seansından başlatıldıysa sessionId de eklenir — böylece grup takviminde
+         // "şu an bu seansa kimler odaklanıyor" canlı olarak gösterilebilir.
+         if (window.FocusAISocial && typeof window.FocusAISocial.setFocusState === 'function') {
+             const isFocusMode = activeMode === 'pomodoro' || activeMode === 'ultradian';
+             window.FocusAISocial.setFocusState(isFocusMode, activeMode, isFocusMode ? _activeGroupSessionId : null);
+         }
+
+         endTime = Date.now() + (timeLeft * 1000);
+         // Sıfırla/Sıradaki Aşama görünürlüğünü, dock ikonunun yeşile dönmesini ve kaydedilen
+         // çalışma durumunu (endTime dahil) setInterval'ın ilk tick'ini (≈1sn) beklemeden hemen
+         // güncelle. NOT: bu çağrı endTime hesaplanmadan ÖNCE yapılırsa, kaydedilen durum eski/sıfır
+         // bir endTime taşır — kullanıcı tam o anda sayfayı yenilerse zamanlayıcı sıfırlanırdı.
+         updateTimerDisplay();
+ 
+         timerInterval = setInterval(_timerTick, 1000);
      }
  }
  
@@ -909,8 +914,8 @@ import { renderGoals } from './script-goal-modal.js';
                  <span title="Uzun Mola"><i class="fa-solid fa-couch"></i> ${p.longBreak}dk</span>
              </div>
              <div class="tpc-actions">
-                 <button class="tpc-edit-btn" title="Düzenle"><i class="fa-solid fa-pen"></i></button>
-                 <button class="tpc-del-btn" title="Sil"><i class="fa-solid fa-trash"></i></button>
+                 <button class="tpc-edit-btn" title="Düzenle" aria-label="Düzenle"><i class="fa-solid fa-pen"></i></button>
+                 <button class="tpc-del-btn" title="Sil" aria-label="Sil"><i class="fa-solid fa-trash"></i></button>
              </div>
          `;
          card.addEventListener('click', (e) => {
@@ -946,7 +951,7 @@ import { renderGoals } from './script-goal-modal.js';
          settingShortBreak.value = p.shortBreak;
          settingLongBreak.value  = p.longBreak;
          if (settingTargetCycles) settingTargetCycles.value = p.cycles;
-         if (timerProfileModalTitle) timerProfileModalTitle.innerHTML = '<i class="fa-solid fa-gear" style="color: var(--primary-color);"></i> Profili Düzenle';
+         if (timerProfileModalTitle) timerProfileModalTitle.innerHTML = '<i class="fa-solid fa-gear u-color-var-primary-color-2" ></i> Profili Düzenle';
          if (deleteTimerProfileBtn) deleteTimerProfileBtn.classList.remove('hidden');
      } else {
          if (timerProfiles.length >= MAX_TIMER_PROFILES) {
@@ -959,7 +964,7 @@ import { renderGoals } from './script-goal-modal.js';
          settingShortBreak.value = 5;
          settingLongBreak.value  = 15;
          if (settingTargetCycles) settingTargetCycles.value = 4;
-         if (timerProfileModalTitle) timerProfileModalTitle.innerHTML = '<i class="fa-solid fa-gear" style="color: var(--primary-color);"></i> Yeni Zamanlayıcı Profili';
+         if (timerProfileModalTitle) timerProfileModalTitle.innerHTML = '<i class="fa-solid fa-gear u-color-var-primary-color-2" ></i> Yeni Zamanlayıcı Profili';
          if (deleteTimerProfileBtn) deleteTimerProfileBtn.classList.add('hidden');
      }
      if (settingAutoStart) settingAutoStart.checked = timerSettings.autoStart;

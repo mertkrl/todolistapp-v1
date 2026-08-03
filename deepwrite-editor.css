@@ -1,0 +1,104 @@
+/* ── Tam Ekran Genişlet Butonu ── */
+.deepwrite-expand-btn {
+    position: absolute;
+    bottom: 8px; right: 8px;
+    width: 26px; height: 26px;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px;
+    background: rgba(0,0,0,0.3);
+    color: rgba(255,255,255,0.3);
+    font-size: 11px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s, color 0.2s, background 0.2s;
+    z-index: 2;
+}
+.premium-input:focus ~ .deepwrite-expand-btn,
+div:focus-within > .deepwrite-expand-btn { opacity: 1; }
+.deepwrite-expand-btn:hover { color: var(--primary-color); background: rgba(212,144,14,0.15); border-color: rgba(212,144,14,0.3); }
+
+/* ── Tam Ekran Derin Yazım Modu ── */
+.deepwrite-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(8, 8, 14, 0.92);
+    backdrop-filter: blur(20px);
+    z-index: 20000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    animation: deepwriteFadeIn 0.2s ease;
+}
+.deepwrite-overlay.hidden { display: none; }
+@keyframes deepwriteFadeIn {
+    from { opacity: 0; transform: scale(0.97); }
+    to   { opacity: 1; transform: scale(1); }
+}
+.deepwrite-panel {
+    width: 100%;
+    max-width: 760px;
+    height: 85vh;
+    background: #12121c;
+    border: 1px solid rgba(212,144,14,0.2);
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(212,144,14,0.08);
+}
+.deepwrite-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    flex-shrink: 0;
+}
+.deepwrite-meta {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 14px; font-weight: 600; color: #ccc;
+}
+.deepwrite-header-right { display: flex; align-items: center; gap: 12px; }
+.deepwrite-char {
+    font-size: 12px;
+    color: rgba(255,255,255,0.25);
+    font-variant-numeric: tabular-nums;
+    transition: color 0.3s;
+}
+.deepwrite-char.cc-writing { color: #10b981; }
+.deepwrite-char.cc-good    { color: #3b82f6; }
+.deepwrite-char.cc-warn    { color: #f59e0b; }
+.deepwrite-char.cc-limit   { color: #ef4444; font-weight: 700; }
+.deepwrite-textarea {
+    flex: 1;
+    width: 100%;
+    padding: 28px 32px;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #e8e8e8;
+    font-size: 16px;
+    line-height: 1.8;
+    font-family: 'Georgia', 'Times New Roman', serif;
+    resize: none;
+    caret-color: var(--primary-color);
+}
+.deepwrite-textarea::placeholder { color: rgba(255,255,255,0.15); font-style: italic; }
+.deepwrite-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    flex-shrink: 0;
+}
+.deepwrite-hint { font-size: 11px; color: rgba(255,255,255,0.2); }
+.deepwrite-hint kbd {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-size: 10px;
+}

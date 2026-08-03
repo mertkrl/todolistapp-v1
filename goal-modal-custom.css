@@ -1,0 +1,65 @@
+/* style.css'ten çıkarıldı (Faz C, 2026-07-22). Yeni Hedef Modalı (#goal-modal .modal-*) özel stilleri — max-width/border-radius, header/footer düzenlemeleri. Farklı özellikler ayarladığı için five-modal-shared-polish.css ile gerçek çakışma yok (tamamlayıcı). */
+
+/* ================================================================
+   YENİ HEDEF MODALI
+   ================================================================ */
+#goal-modal .modal-content {
+    max-width: 460px !important;
+    border-radius: 14px !important;
+}
+#goal-modal .modal-header {
+    padding: 18px 22px 14px !important;
+    border-bottom: 1px solid rgba(212,144,14,0.16) !important;
+}
+#goal-modal .modal-header h2 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+}
+#goal-modal .modal-header h2 i { display: none; }
+#goal-modal .modal-body {
+    padding: 20px 22px !important;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+#goal-modal .form-group { margin-bottom: 16px !important; }
+#goal-modal .form-group:last-child { margin-bottom: 0 !important; }
+#goal-modal .form-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--t2, #888);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 7px;
+    display: block;
+}
+#goal-modal .premium-input {
+    background: rgba(255,255,255,0.03) !important;
+    border: 1px solid var(--b2, rgba(255,255,255,0.11)) !important;
+    border-radius: 8px !important;
+    font-size: 14px !important;
+    padding: 10px 13px !important;
+    color: #fff !important;
+    transition: border-color 0.2s !important;
+    width: 100%;
+    box-sizing: border-box;
+}
+#goal-modal .premium-input:focus {
+    border-color: var(--primary-color) !important;
+    background: rgba(255,255,255,0.045) !important;
+    box-shadow: 0 0 0 3px rgba(212,144,14,0.15) !important;
+    outline: none !important;
+}
+#goal-modal .modal-footer {
+    padding: 14px 22px 18px !important;
+    border-top: 1px solid var(--b1, rgba(255,255,255,0.06)) !important;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+#goal-add-category-btn:hover {
+    color: #fff !important;
+    background: rgba(212,144,14,0.1) !important;
+    border-color: rgba(212,144,14,0.3) !important;
+}

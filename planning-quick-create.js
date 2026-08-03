@@ -78,10 +78,12 @@ function _qcRender() {
     if (catRow) {
         catRow.innerHTML = QC_CATEGORIES.map(c => `
             <div class="pg-qc-cat-chip${c.id === _qcState.category ? ' selected' : ''}"
-                data-qc-cat="${c.id}" style="--cat-color:${c.color};">
+                data-qc-cat="${c.id}">
                 <span>${c.icon}</span> ${c.label}
             </div>`).join('');
         catRow.querySelectorAll('.pg-qc-cat-chip').forEach(chip => {
+            const cat = QC_CATEGORIES.find(c => c.id === chip.dataset.qcCat);
+            if (cat) chip.style.setProperty('--cat-color', cat.color);
             chip.addEventListener('click', () => {
                 catRow.querySelectorAll('.pg-qc-cat-chip').forEach(c => c.classList.remove('selected'));
                 chip.classList.add('selected');

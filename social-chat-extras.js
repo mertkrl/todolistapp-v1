@@ -1,3 +1,8 @@
+import { fmtDate } from './planning-utils.js';
+import { getCurrentUser } from './state/current-user-store.js';
+import { getActiveChatTarget } from './state/active-chat-target-store.js';
+import { getDcCurrentGroupScope } from './state/dc-current-group-scope-store.js';
+import { getDcCurrentGroupId } from './state/dc-chat-view-store.js';
 // ============================================================
 // FOCUSAI SOCIAL-CHAT-EXTRAS.JS
 // social.js'ten çıkarılmış window.FocusChat.* ek özellikleri:
@@ -5,7 +10,7 @@
 // bildirim tercihleri, düzenleme geçmişi, initHybridChatUI().
 // (Anket sistemi ayrıca social-polls.js dosyasına taşındı.)
 // social.js'ten SONRA yüklenmeli (window.dcShowToast, window.FocusSupabase,
-// window.currentUser gibi social.js/supabase-client.js globallerine bağımlı).
+// getCurrentUser() gibi social.js/supabase-client.js globallerine bağımlı).
 // ============================================================
 (function () {
 'use strict';
@@ -54,27 +59,40 @@ window.FocusChat.renderAttachment = function(att) {
 
     const wrap = document.createElement('div');
     wrap.className = 'dc-msg-attachment';
-    wrap.style.cssText = 'margin-top:6px; max-width:260px;';
+    wrap.style.marginTop = '6px';
+    wrap.style.maxWidth = '260px';
 
     if (isImage) {
         const img = document.createElement('img');
         img.src = att.url;
         img.alt = att.name || 'Resim';
-        img.style.cssText = 'max-width:100%; max-height:220px; border-radius:8px; display:block; cursor:pointer; object-fit:cover;';
-        img.addEventListener('click', () => window.open(att.url, '_blank'));
+        img.style.maxWidth = '100%';
+        img.style.maxHeight = '220px';
+        img.style.borderRadius = '8px';
+        img.style.display = 'block';
+        img.style.cursor = 'pointer';
+        img.style.objectFit = 'cover';
+        img.addEventListener('click', () => window.open(att.url, '_blank', 'noopener,noreferrer'));
         wrap.appendChild(img);
     } else {
         const icon = isPdf ? 'fa-file-pdf' : 'fa-file';
-        wrap.style.cssText += 'background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:8px 12px; display:flex; align-items:center; gap:10px; cursor:pointer;';
+        wrap.style.background = 'rgba(255,255,255,0.06)';
+        wrap.style.border = '1px solid rgba(255,255,255,0.1)';
+        wrap.style.borderRadius = '8px';
+        wrap.style.padding = '8px 12px';
+        wrap.style.display = 'flex';
+        wrap.style.alignItems = 'center';
+        wrap.style.gap = '10px';
+        wrap.style.cursor = 'pointer';
         wrap.innerHTML = `
-            <i class="fa-solid ${icon}" style="font-size:22px; color:#a29bfe; flex-shrink:0;"></i>
-            <div style="overflow:hidden;">
-                <div style="font-size:12px; font-weight:600; color:#fff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${window.escapeHtml(att.name || 'Dosya')}</div>
-                ${sizeMB ? `<div style="font-size:10px; color:rgba(255,255,255,0.4);">${sizeMB}</div>` : ''}
+            <i class="fa-solid ${icon} u-font-size-22px_color-ha29bfe_flex-shrink-0" ></i>
+            <div class="u-overflow-hidden">
+                <div class="u-font-weight-600_color-hfff_font-size-12px_overflow-hidden_">${window.escapeHtml(att.name || 'Dosya')}</div>
+                ${sizeMB ? `<div class="u-font-size-10px_color-rgba2552552550p4">${sizeMB}</div>` : ''}
             </div>
-            <i class="fa-solid fa-download" style="margin-left:auto; color:rgba(255,255,255,0.35); flex-shrink:0;"></i>
+            <i class="fa-solid fa-download u-margin-left-auto_color-rgba2552552550p35_flex-shrink-0" ></i>
         `;
-        wrap.addEventListener('click', () => window.open(att.url, '_blank'));
+        wrap.addEventListener('click', () => window.open(att.url, '_blank', 'noopener,noreferrer'));
     }
     return wrap;
 };
@@ -95,7 +113,9 @@ window.FocusChat.initFileUploadBtn = function(inputBarEl, onFileSelected) {
     btn.type = 'button';
     btn.className = 'dc-msg-action-btn dc-file-upload-btn';
     btn.title = 'Dosya ekle';
-    btn.style.cssText = 'flex-shrink:0; opacity:0.6; transition:opacity 0.15s;';
+    btn.style.flexShrink = '0';
+    btn.style.opacity = '0.6';
+    btn.style.transition = 'opacity 0.15s';
     btn.innerHTML = '<i class="fa-solid fa-paperclip"></i>';
     btn.addEventListener('mouseenter', () => { btn.style.opacity = '1'; });
     btn.addEventListener('mouseleave', () => { btn.style.opacity = '0.6'; });
@@ -164,10 +184,10 @@ window.FocusChat.openGlobalSearch = function() {
         <div class="fgs-header">
             <i class="fa-solid fa-magnifying-glass si-purple"></i>
             <input id="fgs-input" type="text" placeholder="Mesajlarda ara..." autocomplete="off" />
-            <button id="fgs-close" class="dc-msg-action-btn" title="Kapat"><i class="fa-solid fa-xmark"></i></button>
+            <button id="fgs-close" class="dc-msg-action-btn" title="Kapat" aria-label="Kapat"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div id="fgs-results" class="fgs-results">
-            <div class="fgs-empty" style="text-align:center; color:rgba(255,255,255,0.3); padding:30px; font-size:13px;">
+            <div class="fgs-empty u-text-align-center_color-rgba2552552550p3_padding-30px_font" >
                 Aramak için yazmaya başla...
             </div>
         </div>
@@ -185,19 +205,19 @@ window.FocusChat.openGlobalSearch = function() {
         clearTimeout(_searchTimer);
         const q = input.value.trim();
         if (q.length < 2) {
-            results.innerHTML = '<div class="fgs-empty" style="text-align:center; color:rgba(255,255,255,0.3); padding:30px; font-size:13px;">En az 2 karakter gir...</div>';
+            results.innerHTML = '<div class="fgs-empty u-text-align-center_color-rgba2552552550p3_padding-30px_font" >En az 2 karakter gir...</div>';
             return;
         }
-        results.innerHTML = '<div class="fgs-empty" style="text-align:center; color:rgba(255,255,255,0.3); padding:20px; font-size:12px;"><i class="fa-solid fa-spinner fa-spin"></i> Aranıyor...</div>';
+        results.innerHTML = '<div class="fgs-empty u-text-align-center_color-rgba2552552550p3_padding-20px_font" ><i class="fa-solid fa-spinner fa-spin"></i> Aranıyor...</div>';
         _searchTimer = setTimeout(async () => {
-            const scope = window._dcCurrentGroupScope || (window._activeChatTarget?.type === 'dm' ? { type: 'dm', id: window._dcCurrentConversation?.id } : null);
+            const scope = getDcCurrentGroupScope() || (getActiveChatTarget()?.type === 'dm' ? { type: 'dm', id: window._dcCurrentConversation?.id } : null);
             if (!scope || !scope.id) {
-                results.innerHTML = '<div class="fgs-empty" style="text-align:center; color:rgba(255,255,255,0.3); padding:20px; font-size:12px;">Önce bir sohbet aç.</div>';
+                results.innerHTML = '<div class="fgs-empty u-text-align-center_color-rgba2552552550p3_padding-20px_font" >Önce bir sohbet aç.</div>';
                 return;
             }
             const msgs = await window.FocusChat.searchMessages({ query: q, scopeType: scope.type, scopeId: scope.id });
             if (!msgs.length) {
-                results.innerHTML = '<div class="fgs-empty" style="text-align:center; color:rgba(255,255,255,0.3); padding:20px; font-size:12px;">Sonuç bulunamadı.</div>';
+                results.innerHTML = '<div class="fgs-empty u-text-align-center_color-rgba2552552550p3_padding-20px_font" >Sonuç bulunamadı.</div>';
                 return;
             }
             results.innerHTML = '';
@@ -208,7 +228,7 @@ window.FocusChat.openGlobalSearch = function() {
                 const esc = window.escapeHtml;
                 const highlight = (esc(msg.text || '')).replace(
                     new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'),
-                    m => `<mark style="background:rgba(162,155,254,0.3); color:#fff; border-radius:2px;">${m}</mark>`
+                    m => `<mark class="u-background-rgba1621552540p3_color-hfff_border-radius-2px">${m}</mark>`
                 );
                 item.innerHTML = `
                     <div class="fgs-msg-text">${highlight}</div>
@@ -256,8 +276,8 @@ window.FocusChat.submitDailySummary = async function() {
 
     const obstacle = document.getElementById('ds-obstacle')?.value.trim() || '';
     const tomorrow = document.getElementById('ds-tomorrow')?.value.trim() || '';
-    const scope = window._dcCurrentGroupScope;
-    if (!scope || !window.FocusSupabase || !window.currentUser?.id) {
+    const scope = getDcCurrentGroupScope();
+    if (!scope || !window.FocusSupabase || !getCurrentUser()?.id) {
         window.dcShowToast('Önce bir grup kanalı aç.');
         return;
     }
@@ -279,15 +299,15 @@ window.FocusChat.submitDailySummary = async function() {
         const { data: msg, error: msgErr } = await window.FocusSupabase.from('messages').insert({
             scope_type: scope.type,
             scope_id:   scope.id,
-            sender_id:  window.currentUser.id,
+            sender_id:  getCurrentUser().id,
             text:       lines
         }).select().single();
         if (msgErr) throw msgErr;
 
         // Özeti daily_summaries tablosuna kaydet
-        const groupId = window._dcCurrentGroupId || null;
+        const groupId = getDcCurrentGroupId();
         await window.FocusSupabase.from('daily_summaries').upsert({
-            user_id:    window.currentUser.id,
+            user_id:    getCurrentUser().id,
             group_id:   groupId,
             did_today:  didToday,
             obstacle,
@@ -343,7 +363,7 @@ window.FocusChat.createTaskFromMsg = function() {
     try {
         const tasks = (typeof FocusStorage !== 'undefined')
             ? FocusStorage.get('tasks', [])
-            : JSON.parse(localStorage.getItem('focusai_tasks') || '[]');
+            : JSON.parse(localStorage.getItem('focusai_tasks') || '[]', window._safeJsonReviver);
 
         const newTask = {
             id: `task_${Date.now()}`,
@@ -391,7 +411,7 @@ window.FocusChat.NotifPrefs = {
     _key: 'focusai_notif_prefs',
 
     load() {
-        try { return JSON.parse(localStorage.getItem(this._key) || '{}'); }
+        try { return JSON.parse(localStorage.getItem(this._key) || '{}', window._safeJsonReviver); }
         catch { return {}; }
     },
     save(prefs) { localStorage.setItem(this._key, JSON.stringify(prefs)); },
@@ -447,7 +467,7 @@ window.FocusChat.openNotifPrefsModal = function() {
     if (desktopToggle) desktopToggle.checked  = Notification.permission === 'granted';
 
     // Aktif kanal seviyesi
-    const scope = window._dcCurrentGroupScope;
+    const scope = getDcCurrentGroupScope();
     const scopeKey = scope ? `${scope.type}:${scope.id}` : null;
     if (channelLevel && scopeKey) {
         channelLevel.value = window.FocusChat.NotifPrefs.getChannelLevel(scopeKey);
@@ -474,7 +494,7 @@ window.FocusChat.saveNotifPrefs = function() {
 
     localStorage.setItem('focusai_notif_sound', sound ? 'true' : 'false');
 
-    const scope = window._dcCurrentGroupScope;
+    const scope = getDcCurrentGroupScope();
     if (scope) np.setChannelLevel(`${scope.type}:${scope.id}`, chanLevel);
 
     if (desktop && Notification.permission === 'default') {
@@ -546,13 +566,13 @@ window.FocusChat.showEditHistory = async function(msgId) {
     const list  = document.getElementById('edit-history-list');
     if (!modal || !list || !window.FocusSupabase) return;
 
-    list.innerHTML = '<div style="color:rgba(255,255,255,0.3);font-size:12px;padding:8px 0;">Yükleniyor...</div>';
+    list.innerHTML = '<div class="u-color-rgba2552552550p3_font-size-12px_padding-8px0">Yükleniyor...</div>';
     modal.classList.remove('hidden');
 
     const { data: msg } = await window.FocusSupabase
         .from('messages').select('text, edit_history, created_at').eq('id', msgId).maybeSingle();
 
-    if (!msg) { list.innerHTML = '<div style="color:rgba(255,255,255,0.3);font-size:12px;">Bulunamadı.</div>'; return; }
+    if (!msg) { list.innerHTML = '<div class="u-color-rgba2552552550p3_font-size-12px">Bulunamadı.</div>'; return; }
 
     const history  = Array.isArray(msg.edit_history) ? msg.edit_history : [];
     const esc = window.escapeHtml;
@@ -567,13 +587,16 @@ window.FocusChat.showEditHistory = async function(msgId) {
     list.innerHTML = '';
     entries.forEach(entry => {
         const row = document.createElement('div');
-        row.style.cssText = 'background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 12px;';
+        row.style.background = 'rgba(255,255,255,0.04)';
+        row.style.border = '1px solid rgba(255,255,255,0.08)';
+        row.style.borderRadius = '8px';
+        row.style.padding = '10px 12px';
         row.innerHTML = `
-            <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
-                <span style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.5);">${esc(entry.label)}</span>
-                <span style="font-size:10px;color:rgba(255,255,255,0.3);">${fmtDate(entry.date)}</span>
+            <div class="u-display-flex_justify-content-space-between_margin-bottom-5">
+                <span class="u-font-size-11px_font-weight-600_color-rgba2552552550p5">${esc(entry.label)}</span>
+                <span class="u-font-size-10px_color-rgba2552552550p3">${fmtDate(entry.date)}</span>
             </div>
-            <div style="font-size:13px;color:rgba(255,255,255,0.85);line-height:1.5;">${esc(entry.text || '')}</div>
+            <div class="u-font-size-13px_color-rgba2552552550p85_line-height-1p5">${esc(entry.text || '')}</div>
         `;
         list.appendChild(row);
     });
@@ -641,7 +664,12 @@ window.FocusChat.showEditHistory = async function(msgId) {
         const c = avatarColor(username);
         const el = document.createElement('div');
         el.className = 'hc-feed-av';
-        el.style.cssText = `width:${size}px;height:${size}px;background:${c.bg};color:${c.color};border:1px solid ${c.border};font-size:${Math.floor(size * 0.35)}px;`;
+        el.style.width = `${size}px`;
+        el.style.height = `${size}px`;
+        el.style.background = c.bg;
+        el.style.color = c.color;
+        el.style.border = `1px solid ${c.border}`;
+        el.style.fontSize = `${Math.floor(size * 0.35)}px`;
         el.textContent = avatarInitials(username);
         return el;
     }
@@ -692,16 +720,16 @@ window.FocusChat.showEditHistory = async function(msgId) {
         const countEl   = document.getElementById('hc-focus-active-count');
         if (!membersEl) return;
 
-        const target = window._activeChatTarget;
+        const target = getActiveChatTarget();
         const groupData = (target?.type === 'group' && typeof window.getMyGroupsDataCache === 'function')
             ? window.getMyGroupsDataCache()[target.code] : null;
 
         if (!groupData?.members) {
-            membersEl.innerHTML = '<span style="font-size:11px;color:rgba(255,255,255,0.25)">Üye verisi yükleniyor...</span>';
+            membersEl.innerHTML = '<span class="u-font-size-11px_color-rgba2552552550p25">Üye verisi yükleniyor...</span>';
             return;
         }
 
-        const me = (() => { try { return JSON.parse(localStorage.getItem('focusai_social_user')); } catch { return null; } })();
+        const me = (() => { try { return JSON.parse(localStorage.getItem('focusai_social_user'), window._safeJsonReviver); } catch { return null; } })();
         const presence = (typeof window.getCommunityPresenceState === 'function') ? window.getCommunityPresenceState() : {};
 
         const memberList = Object.entries(groupData.members).map(([username, data]) => {
@@ -713,11 +741,10 @@ window.FocusChat.showEditHistory = async function(msgId) {
         if (countEl) countEl.textContent = online.length || memberList.length;
 
         const toShow = online.length ? online : memberList.slice(0, 8);
-        membersEl.innerHTML = toShow.map(m => {
-            const c = avatarColor(m.username);
+        membersEl.innerHTML = toShow.map((m, i) => {
             return `
-                <div class="hc-member-chip">
-                    <div class="hc-chip-av" style="background:${c.bg};color:${c.color};border:1px solid ${c.border};">${window.escapeHtml(avatarInitials(m.username))}</div>
+                <div class="hc-member-chip" data-chip-idx="${i}">
+                    <div class="hc-chip-av">${window.escapeHtml(avatarInitials(m.username))}</div>
                     <div class="hc-chip-info">
                         <div class="hc-chip-name">${window.escapeHtml(m.displayName)}</div>
                         <div class="hc-chip-detail">${m.xp} XP</div>
@@ -725,6 +752,16 @@ window.FocusChat.showEditHistory = async function(msgId) {
                     <div class="hc-chip-dot${m.isOnline ? '' : ' idle'}"></div>
                 </div>`;
         }).join('');
+        membersEl.querySelectorAll('.hc-member-chip').forEach(chip => {
+            const i = parseInt(chip.dataset.chipIdx, 10);
+            const c = avatarColor(toShow[i].username);
+            const av = chip.querySelector('.hc-chip-av');
+            if (av) {
+                av.style.background = c.bg;
+                av.style.color = c.color;
+                av.style.border = '1px solid ' + c.border;
+            }
+        });
     }
 
     // ─── Tab yönetimi (yalnızca sohbet durumu kaldı) ───
@@ -846,7 +883,7 @@ window.FocusChat.showEditHistory = async function(msgId) {
     if (titleEl) {
         new MutationObserver(() => {
             const txt = titleEl.textContent.replace(/^[#\s]+/, '').trim();
-            const target = window._activeChatTarget;
+            const target = getActiveChatTarget();
             if (target && txt) hcOnChannelOpen(target.roomId, txt);
         }).observe(titleEl, { childList: true, characterData: true, subtree: true });
     }

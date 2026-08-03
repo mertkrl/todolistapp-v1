@@ -1,0 +1,68 @@
+/* Planlama — Ders Planı Atama Davetleri (.pg-lpa-) — style.css'ten çıkarıldı */
+
+.pg-lpa-invites { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+/* Sınıf Paneli'ndeki .cp-asg (Ödev kartı) ile AYNI düz/minimalist dil — öğrenci
+   görünümünde ikisi tek listede yan yana olduğu için aynı "aile" hissi vermeli, sadece
+   sol kenarlık rengi (mor) ve rozet ile ayrışmalı. */
+.pg-lpa-invite-card {
+    display: flex; flex-direction: column; gap: 8px;
+    background: rgba(255,255,255,.022); border: 1px solid rgba(255,255,255,.06);
+    border-left: 2px solid rgba(162,155,254,0.5);
+    border-radius: 13px; padding: 14px 16px;
+    transition: border-color .15s, background .15s;
+}
+.pg-lpa-invite-card:hover { border-color: rgba(217,177,106,.28); background: rgba(255,255,255,.035); }
+.pg-lpa-invite-top { display: flex; align-items: center; gap: 10px; }
+.pg-lpa-invite-top > i { font-size: 16px; color: #a78bfa; flex-shrink: 0; }
+.pg-lpa-invite-body { flex: 1; min-width: 0; }
+.pg-lpa-invite-title { font-size: 12.5px; font-weight: 700; color: #fff; }
+.pg-lpa-invite-meta { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+.pg-lpa-teacher-note {
+    margin-top: 4px; font-size: 11.5px; color: #ddd; background: rgba(255,255,255,0.04);
+    border-radius: 7px; padding: 5px 8px; display: flex; align-items: flex-start; gap: 5px;
+}
+.pg-lpa-invite-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.pg-lpa-invite-actions-right { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+.pg-lpa-mini-btn {
+    display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600;
+    color: var(--text-muted); background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 7px; padding: 6px 9px; cursor: pointer; transition: background .15s, color .15s;
+}
+.pg-lpa-mini-btn:hover { color: #fff; background: rgba(255,255,255,0.08); }
+.pg-lpa-mini-btn.pg-lpa-reject:hover { color: #ff6b6b; background: rgba(255,107,107,0.1); }
+.pg-pv-assign-delete-btn:hover { color: #ff6b6b; background: rgba(255,107,107,0.1); }
+.pg-pv-assign-edit-btn:hover { color: #74b9ff; background: rgba(116,185,255,0.1); }
+.pg-lpa-mini-btn.pg-lpa-revise:hover { color: #feca57; background: rgba(254,202,87,0.1); }
+.pg-lpa-mini-btn.pg-lpa-accept {
+    color: #1d160a; background: linear-gradient(180deg, #e3bd75, #cf9f52); border-color: transparent; font-weight: 700;
+}
+.pg-lpa-mini-btn.pg-lpa-accept:hover { opacity: 0.9; background: linear-gradient(180deg, #e3bd75, #cf9f52); color: #1d160a; }
+
+.pg-lpa-invite-preview.hidden { display: none; }
+
+
+
+.pg-lpa-note-box { display: flex; flex-direction: column; gap: 6px; padding-top: 4px; border-top: 1px dashed rgba(255,255,255,0.1); }
+.pg-lpa-note-inp {
+    width: 100%; box-sizing: border-box; min-height: 34px; resize: vertical; font-size: 12px;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 7px;
+    color: #fff; padding: 6px 9px; font-family: inherit;
+}
+.pg-lpa-note-actions { display: flex; justify-content: flex-end; gap: 6px; }
+.pg-lpa-note-actions .control-btn { font-size: 11px; padding: 5px 10px; }
+
+/* ── Öğretmen: Ders Planları sekme çubuğu (Aktif / Revize / Reddedilenler) ── */
+.pg-lpa-tabs-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+.pg-lpa-create-btn { font-size: 12px; flex-shrink: 0; white-space: nowrap; }
+.pg-lpa-tabs { display: flex; gap: 4px; margin-bottom: 0; }
+.pg-lpa-tab-btn {
+    font-size: 11.5px; font-weight: 600; color: var(--text-muted); background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07); border-radius: 8px; padding: 6px 11px; cursor: pointer;
+    display: flex; align-items: center; gap: 5px; transition: background .15s, color .15s;
+}
+.pg-lpa-tab-btn:hover { color: #fff; background: rgba(255,255,255,0.06); }
+.pg-lpa-tab-btn.active { color: #fff; background: rgba(162,155,254,0.14); border-color: rgba(162,155,254,0.35); }
+.pg-lpa-tab-count {
+    font-size: 10px; font-weight: 700; background: rgba(255,255,255,0.1); border-radius: 999px;
+    padding: 1px 6px; color: #fff;
+}

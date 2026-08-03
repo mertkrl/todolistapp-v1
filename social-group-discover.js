@@ -1,3 +1,4 @@
+import { setupGroupRecentConversationsSupabase } from './social-dm-notifications.js';
 // social-group-discover.js
 // social.js'ten çıkarıldı (Faz 5/6): Global Açık Grupları Keşfetme Motoru
 // (Discover Groups) — kategori/filtre/sıralama, kaydedilen gruplar, herkese
@@ -45,7 +46,7 @@
         // Supabase grupları için üye kaydındaki userId, 'community-presence' Realtime
         // Presence durumuyla; Firebase grupları için kullanıcı adı, eski online cache'iyle eşleştirilir.
         window.computeActiveNowCount = (groupData) => computeActiveNowCount(groupData); // Faz 5: social-group-details.js için
-        function computeActiveNowCount(groupData) {
+export function computeActiveNowCount(groupData) {
             const members = groupData.members || {};
             if (groupData._supaId) window.registerPresenceWatchIds?.(Object.values(members).map(m => m?.userId).filter(Boolean));
             const presenceState = (groupData._supaId && window.getCommunityPresenceState) ? window.getCommunityPresenceState() : null;
@@ -209,7 +210,7 @@
         // (ve social.js'teki eşdeğer eski kod yolu) sessizce TypeError atıyordu. Gerçek bağımlılık
         // doğrulaması sırasında bulundu, burada düzeltildi.
         window.computeUserInterestCategoriesSupabase = () => computeUserInterestCategoriesSupabase();
-        function computeUserInterestCategoriesSupabase() {
+export function computeUserInterestCategoriesSupabase() {
             // _myGroupsDataCache bare olarak bu dosyanın kapsamında yok (social.js'in kendi
             // özel kapsamında) — window.getMyGroupsDataCache() köprüsü zaten var, onu kullan
             // (ayrı bulunan bağımlılık doğrulama sırasında bulunan bir başka ReferenceError).
@@ -273,7 +274,7 @@
                     }
                     // Akış içerik kararı (2026-07-05): kaldırıldı.
                     if (typeof window.loadUserGroupsForDc === 'function') window.loadUserGroupsForDc();
-                    if (typeof window.setupGroupRecentConversationsSupabase === 'function') window.setupGroupRecentConversationsSupabase();
+                    if (typeof window.setupGroupRecentConversationsSupabase === 'function') setupGroupRecentConversationsSupabase();
                     if (_savedGroupsCache[targetCode]) {
                         await toggleSaveGroupSupabase(targetCode);
                     }
@@ -290,7 +291,7 @@
 
         // Gruba katılım başarılı olduğunda gösterilen "Hoşgeldin" karşılama modalı —
         // tanıtım modalındaki temel bilgilerin bir kısmını tekrarlayarak tutarlılık sağlar
-        function showGroupWelcomeModal(groupCode, groupData) {
+export function showGroupWelcomeModal(groupCode, groupData) {
             document.getElementById('group-preview-modal')?.remove();
             document.getElementById('group-welcome-modal')?.remove();
 
@@ -303,12 +304,12 @@
             overlay.id = 'group-welcome-modal';
             overlay.className = 'focusai-confirm-overlay';
             overlay.innerHTML = `
-                <div class="focusai-confirm-box" style="max-width:440px; width:90%; text-align:center; position:relative; padding:28px;">
-                    <div style="font-size:42px; margin-bottom:10px;">🎉</div>
-                    <h2 style="font-size:19px; margin:0 0 8px 0; color:#fff;">"${esc(groupData.name || '')}" Topluluğuna Hoş Geldin!</h2>
-                    <p style="color:var(--text-muted); font-size:13px; line-height:1.5; margin:0 0 16px 0;">${esc(groupData.description || 'Bu topluluğun bir parçası oldun. Hedeflerine birlikte ulaşın!')}</p>
+                <div class="focusai-confirm-box u-max-width-440px_width-90pct_text-align-center_position-rel" >
+                    <div class="u-font-size-42px_margin-bottom-10px">🎉</div>
+                    <h2 class="u-font-size-19px_margin-008px0_color-hfff">"${esc(groupData.name || '')}" Topluluğuna Hoş Geldin!</h2>
+                    <p class="u-color-var-text-muted_font-size-13px_line-height-1p5_margin">${esc(groupData.description || 'Bu topluluğun bir parçası oldun. Hedeflerine birlikte ulaşın!')}</p>
 
-                    <div style="display:flex; gap:10px; margin-bottom:18px;">
+                    <div class="u-display-flex_gap-10px_margin-bottom-18px">
                         <div class="glass-panel si-flex1-pad">
                             <div class="si-header-title">${groupData.weeklyGoal || 0}</div>
                             <div class="si-meta"><i class="fa-solid fa-bullseye"></i> dk/hafta hedef</div>
@@ -320,11 +321,11 @@
                         </div>` : ''}
                     </div>
 
-                    <p style="font-size:12px; color:var(--text-muted); margin:0 0 18px 0;">
+                    <p class="u-font-size-12px_color-var-text-muted_margin-0018px0">
                         <i class="fa-solid fa-circle-info"></i> Metin kanallarından sohbet edebilir, üyelerle birlikte odaklanma seanslarına katılabilir ve grup hedefine katkı sağlayabilirsin.
                     </p>
 
-                    <button id="gwm-start-btn" class="primary-btn" style="width:100%; padding:12px; font-size:14px;"><i class="fa-solid fa-rocket"></i> Başlayalım</button>
+                    <button id="gwm-start-btn" class="primary-btn u-width-100pct_padding-12px_font-size-14px" ><i class="fa-solid fa-rocket"></i> Başlayalım</button>
                 </div>
             `;
 
@@ -338,7 +339,7 @@
 
         // Bir grubun "tanıtım" modalını açar — gruba henüz üye olmayan kullanıcıya
         // gruba neden katılması gerektiğini gösteren bilgi kartı (Keşfet kartına tıklayınca açılır)
-        function showGroupPreviewModal(groupCode, groupData) {
+export function showGroupPreviewModal(groupCode, groupData) {
             document.getElementById('group-preview-modal')?.remove();
 
             const esc = _escapeHtml;
@@ -371,41 +372,41 @@
             const avatarsHtml = memberEntries.slice(0, AVATAR_PREVIEW_LIMIT).map(([uname, m]) => {
                 const initial = (m.displayName || uname).charAt(0).toUpperCase();
                 const color = m.avatarColor || '6c5ce7';
-                return `<div title="${esc(m.displayName || uname)}" style="width:34px; height:34px; border-radius:50%; background:#${color}; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; color:#fff; border:2px solid rgba(20,20,35,0.9); margin-left:-8px; flex-shrink:0;">${esc(initial)}</div>`;
+                return `<div class="gpm-avatar-preview u-width-34px_height-34px_border-radius-50pct_display-flex_al" data-avatar-color="${color}" title="${esc(m.displayName || uname)}" >${esc(initial)}</div>`;
             }).join('');
             const extraCount = memberCount - Math.min(memberCount, AVATAR_PREVIEW_LIMIT);
             const extraAvatarHtml = extraCount > 0
-                ? `<div style="width:34px; height:34px; border-radius:50%; background:rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:var(--text-muted); border:2px solid rgba(20,20,35,0.9); margin-left:-8px; flex-shrink:0;">+${extraCount}</div>`
+                ? `<div class="u-width-34px_height-34px_border-radius-50pct_background-rgba">+${extraCount}</div>`
                 : '';
 
             let footerBtnHtml;
             if (isFull) {
-                footerBtnHtml = `<button class="primary-btn" disabled style="width:100%; padding:12px; font-size:14px; background: rgba(255,255,255,0.04); color: var(--text-muted); border: 1px solid rgba(255,255,255,0.06); cursor: not-allowed;"><i class="fa-solid fa-lock"></i> Grup Dolu</button>`;
+                footerBtnHtml = `<button class="primary-btn u-width-100pct_padding-12px_font-size-14px_background-rgba25" disabled ><i class="fa-solid fa-lock"></i> Grup Dolu</button>`;
             } else if (groupData.requireApproval) {
-                footerBtnHtml = `<button id="gpm-join-btn" class="primary-btn" style="width:100%; padding:12px; font-size:14px; background: rgba(116, 185, 255, 0.15); color: #74b9ff; border: 1px solid rgba(116, 185, 255, 0.3);"><i class="fa-solid fa-paper-plane"></i> Katılım İsteği Gönder</button>`;
+                footerBtnHtml = `<button id="gpm-join-btn" class="primary-btn u-width-100pct_padding-12px_font-size-14px_background-rgba11" ><i class="fa-solid fa-paper-plane"></i> Katılım İsteği Gönder</button>`;
             } else {
-                footerBtnHtml = `<button id="gpm-join-btn" class="primary-btn" style="width:100%; padding:12px; font-size:14px; background: rgba(46, 213, 115, 0.15); color: #2ed573; border: 1px solid rgba(46, 213, 115, 0.3);"><i class="fa-solid fa-arrow-right-to-bracket"></i> Gruba Katıl</button>`;
+                footerBtnHtml = `<button id="gpm-join-btn" class="primary-btn u-width-100pct_padding-12px_font-size-14px_background-rgba46" ><i class="fa-solid fa-arrow-right-to-bracket"></i> Gruba Katıl</button>`;
             }
 
             const overlay = document.createElement('div');
             overlay.id = 'group-preview-modal';
             overlay.className = 'focusai-confirm-overlay';
             overlay.innerHTML = `
-                <div class="focusai-confirm-box" style="max-width:440px; width:90%; text-align:left; position:relative; padding:24px;">
-                    <button id="gpm-close-btn" style="position:absolute; top:12px; right:14px; background:none; border:none; color:var(--text-muted); font-size:18px; cursor:pointer; line-height:1;">&times;</button>
-                    <button id="gpm-save-btn" title="${isSaved ? 'Kaydedildi' : 'Sonra bakmak için kaydet'}" style="position:absolute; top:12px; right:42px; background:none; border:none; color:${isSaved ? '#ffd166' : 'var(--text-muted)'}; font-size:18px; cursor:pointer; line-height:1;"><i class="fa-${isSaved ? 'solid' : 'regular'} fa-star"></i></button>
+                <div class="focusai-confirm-box u-max-width-440px_width-90pct_text-align-left_position-relat" >
+                    <button id="gpm-close-btn" class="u-position-absolute_top-12px_right-14px_background-none_bord">&times;</button>
+                    <button id="gpm-save-btn" title="${isSaved ? 'Kaydedildi' : 'Sonra bakmak için kaydet'}" class="u-position-absolute_top-12px_right-42px_background-none_bord"><i class="fa-${isSaved ? 'solid' : 'regular'} fa-star"></i></button>
 
-                    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:6px;">
+                    <div class="u-display-flex_align-items-center_gap-8px_flex-wrap-wrap_mar-2">
                         ${categoryTag ? `<span class="discover-category-tag">${categoryTag}</span>` : ''}
                         ${isNew ? `<span class="discover-new-badge">Yeni</span>` : ''}
-                        ${groupData.requireApproval ? `<span style="font-size:11px; padding:2px 8px; border-radius:6px; background:rgba(255,159,67,0.15); color:#ff9f43; border:1px solid rgba(255,159,67,0.3);"><i class="fa-solid fa-lock"></i> Onaylı Katılım</span>` : `<span style="font-size:11px; padding:2px 8px; border-radius:6px; background:rgba(46,213,115,0.1); color:#2ed573; border:1px solid rgba(46,213,115,0.25);"><i class="fa-solid fa-globe"></i> Herkese Açık</span>`}
-                        ${activeNow > 0 ? `<span style="font-size:11px; padding:2px 8px; border-radius:6px; background:rgba(46,213,115,0.1); color:#2ed573; border:1px solid rgba(46,213,115,0.25);"><i class="fa-solid fa-circle" style="font-size:8px;"></i> ${activeNow} aktif</span>` : ''}
+                        ${groupData.requireApproval ? `<span class="u-font-size-11px_padding-2px8px_border-radius-6px_background-2"><i class="fa-solid fa-lock"></i> Onaylı Katılım</span>` : `<span class="u-font-size-11px_padding-2px8px_border-radius-6px_background"><i class="fa-solid fa-globe"></i> Herkese Açık</span>`}
+                        ${activeNow > 0 ? `<span class="u-font-size-11px_padding-2px8px_border-radius-6px_background"><i class="fa-solid fa-circle u-font-size-8px" ></i> ${activeNow} aktif</span>` : ''}
                     </div>
 
-                    <h2 style="font-size:20px; margin:0 0 8px 0; color:#fff;">${esc(groupData.name || '')}</h2>
-                    <p style="color:var(--text-muted); font-size:13px; line-height:1.5; margin:0 0 16px 0;">${esc(groupData.description || 'Bu grup için henüz bir açıklama eklenmemiş.')}</p>
+                    <h2 class="u-font-size-20px_margin-008px0_color-hfff">${esc(groupData.name || '')}</h2>
+                    <p class="u-color-var-text-muted_font-size-13px_line-height-1p5_margin">${esc(groupData.description || 'Bu grup için henüz bir açıklama eklenmemiş.')}</p>
 
-                    <div style="display:flex; gap:10px; margin-bottom:16px;">
+                    <div class="u-display-flex_gap-10px_margin-bottom-16px">
                         <div class="glass-panel si-flex1-pad">
                             <div class="si-header-title">${memberCount}/${window.GROUP_LIMITS.MAX_MEMBERS_PER_GROUP}</div>
                             <div class="si-meta"><i class="fa-solid fa-users"></i> Üye</div>
@@ -415,22 +416,28 @@
                             <div class="si-meta"><i class="fa-solid fa-bullseye"></i> dk/hafta hedef</div>
                         </div>
                         <div class="glass-panel si-flex1-pad">
-                            <div class="si-header-title"><i class="fa-solid fa-crown" style="color:#ffd166;"></i></div>
-                            <div style="font-size:11px; color:var(--text-muted); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${esc(ownerName)}">@${esc(ownerName)}</div>
+                            <div class="si-header-title"><i class="fa-solid fa-crown u-color-hffd166" ></i></div>
+                            <div title="${esc(ownerName)}" class="u-font-size-11px_color-var-text-muted_margin-top-2px_overflo">@${esc(ownerName)}</div>
                         </div>
                     </div>
 
                     ${memberCount > 0 ? `
-                    <div style="display:flex; align-items:center; margin-bottom:6px; padding-left:8px;">
+                    <div class="u-display-flex_align-items-center_margin-bottom-6px_padding-">
                         ${avatarsHtml}${extraAvatarHtml}
                     </div>` : ''}
-                    ${createdAgoText ? `<div style="font-size:11px; color:var(--text-muted); margin-bottom:18px;"><i class="fa-regular fa-clock"></i> ${createdAgoText}</div>` : '<div style="margin-bottom:18px;"></div>'}
+                    ${createdAgoText ? `<div class="u-font-size-11px_color-var-text-muted_margin-bottom-18px"><i class="fa-regular fa-clock"></i> ${createdAgoText}</div>` : '<div class="u-margin-bottom-18px"></div>'}
 
                     ${footerBtnHtml}
                 </div>
             `;
 
             document.body.appendChild(overlay);
+
+            overlay.querySelectorAll('.gpm-avatar-preview[data-avatar-color]').forEach(av => {
+                av.style.background = `#${av.dataset.avatarColor}`;
+            });
+            const _gpmSaveBtn = overlay.querySelector('#gpm-save-btn');
+            if (_gpmSaveBtn) _gpmSaveBtn.style.color = isSaved ? '#ffd166' : 'var(--text-muted)';
 
             const close = () => overlay.remove();
             overlay.querySelector('#gpm-close-btn')?.addEventListener('click', close);
@@ -452,7 +459,7 @@
         window.showGroupPreviewModal = showGroupPreviewModal;
 
         // Bildirim panelinden "Kaydettiklerim" listesindeki bir gruba tıklayınca tanıtım modalını aç
-        window.openSavedGroupPreview = function (groupCode) {
+export function openSavedGroupPreview(groupCode) {
             if (!cachedDiscoverGroupsSnapshot) return;
             const gSnap = cachedDiscoverGroupsSnapshot.child(groupCode);
             if (gSnap.exists()) showGroupPreviewModal(groupCode, gSnap.val());
@@ -469,7 +476,7 @@
                 : "";
             const activeNow = computeActiveNowCount(groupData);
             const activeNowHtml = activeNow > 0
-                ? ` · <span class="si-green"><i class="fa-solid fa-circle" style="font-size:7px;"></i> ${activeNow} aktif</span>`
+                ? ` · <span class="si-green"><i class="fa-solid fa-circle u-font-size-7px" ></i> ${activeNow} aktif</span>`
                 : "";
             const isSaved = !!_savedGroupsCache[groupCode];
 
@@ -488,14 +495,14 @@
                     </div>
                 </div>
                 <div class="discover-card-actions">
-                    <button class="discover-save-btn" data-code="${groupCode}" title="${isSaved ? 'Kaydedildi' : 'Sonra bakmak için kaydet'}" style="background: ${isSaved ? 'rgba(255,209,102,0.12)' : 'rgba(255,255,255,0.04)'}; color: ${isSaved ? '#ffd166' : 'var(--text-muted)'}; border: 1px solid ${isSaved ? 'rgba(255,209,102,0.3)' : 'rgba(255,255,255,0.06)'};">
+                    <button class="discover-save-btn" data-code="${groupCode}" title="${isSaved ? 'Kaydedildi' : 'Sonra bakmak için kaydet'}">
                         <i class="fa-${isSaved ? 'solid' : 'regular'} fa-star"></i>
                     </button>
                     ${isFull
-                        ? `<button class="primary-btn" disabled style="padding: 5px 12px; font-size: 11px; background: rgba(255,255,255,0.04); color: var(--text-muted); border: 1px solid rgba(255,255,255,0.06); cursor: not-allowed;">
+                        ? `<button class="primary-btn u-padding-5px12px_font-size-11px_background-rgba2552552550p0" disabled >
                             <i class="fa-solid fa-lock"></i> Dolu
                         </button>`
-                        : `<button class="primary-btn quick-join-discover-btn" data-code="${groupCode}" style="padding: 5px 12px; font-size: 11px; background: rgba(46, 213, 115, 0.15); color: #2ed573; border: 1px solid rgba(46, 213, 115, 0.3);">
+                        : `<button class="primary-btn quick-join-discover-btn u-padding-5px12px_font-size-11px_background-rgba462131150p15" data-code="${groupCode}" >
                             <i class="fa-solid fa-plus"></i> Katıl
                         </button>`
                     }
@@ -516,6 +523,11 @@
 
             // Kaydet/Kaydı kaldır butonu
             const saveBtn = discoverCard.querySelector(".discover-save-btn");
+            if (saveBtn) {
+                saveBtn.style.background = isSaved ? 'rgba(255,209,102,0.12)' : 'rgba(255,255,255,0.04)';
+                saveBtn.style.color = isSaved ? '#ffd166' : 'var(--text-muted)';
+                saveBtn.style.border = `1px solid ${isSaved ? 'rgba(255,209,102,0.3)' : 'rgba(255,255,255,0.06)'}`;
+            }
             saveBtn?.addEventListener("click", (e) => {
                 e.stopPropagation();
                 toggleSaveGroup(groupCode);
@@ -624,7 +636,7 @@
         // Önbelleğe alınmış grup verisinden Keşfet listesini ve önerileri çizer
         // (aynı eksik-köprü bulgusu: window.renderDiscoverGroups da yazılmamıştı.)
         window.renderDiscoverGroups = () => renderDiscoverGroups();
-        function renderDiscoverGroups() {
+export function renderDiscoverGroups() {
             const discoverContainer = document.getElementById("global-discover-groups");
             const recommendationsContainer = document.getElementById("discover-recommendations");
             if (!discoverContainer || !currentUser || !cachedDiscoverGroupsSnapshot) return;
@@ -646,7 +658,7 @@
             });
 
             if (candidates.length === 0) {
-                discoverContainer.innerHTML = `<p style="color:var(--text-muted); font-size:12px; text-align:center; padding:15px; margin:0;">Keşfedilecek açık grup bulunamadı.</p>`;
+                discoverContainer.innerHTML = `<p class="u-color-var-text-muted_font-size-12px_text-align-center_padd">Keşfedilecek açık grup bulunamadı.</p>`;
                 if (recommendationsContainer) recommendationsContainer.style.display = "none";
                 return;
             }
@@ -704,7 +716,7 @@
             }
 
             if (mainList.length === 0) {
-                discoverContainer.innerHTML = `<p style="color:var(--text-muted); font-size:12px; text-align:center; padding:15px; margin:0;">${(discoverFilterHasSlot || discoverFilterActiveOnly) ? "Filtrelere uyan grup bulunamadı." : "Katılabileceğiniz açık grup kalmadı 🏔️"}</p>`;
+                discoverContainer.innerHTML = `<p class="u-color-var-text-muted_font-size-12px_text-align-center_padd">${(discoverFilterHasSlot || discoverFilterActiveOnly) ? "Filtrelere uyan grup bulunamadı." : "Katılabileceğiniz açık grup kalmadı 🏔️"}</p>`;
                 return;
             }
 

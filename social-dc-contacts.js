@@ -1,3 +1,11 @@
+import { dcShowConfirm } from './social-dc-confirm-toasts.js';
+import { getFriends, sendFriendRequest } from './social-friends-notifications.js';
+
+import { markDmRead, hasUnreadDm } from './social-dm-notifications.js';
+
+import { _resolveProfileByUsername } from './social-dc-profile-resolve.js';
+import { getLastAvatarClick } from './state/last-avatar-click-store.js';
+import { getDB, getUser } from './social-misc-pure-utils.js';
 // social-dc-contacts.js
 // social.js'ten çıkarıldı (Faz E, 2026-07-23): kişi listesi doldurma
 // (syncDcContactList), DM sohbetine geçiş (goToDmChat) ve mini profil
@@ -6,14 +14,14 @@
 // profil click-delegation — vardı, o kod social.js'te BİLİNÇLİ OLARAK
 // bırakıldı), burada tek dosyada birleştirildi.
 //
-// Dış bağımlılıklar (window.* üzerinden): window.getDB, window.getUser,
+// Dış bağımlılıklar (window.* üzerinden): getDB, getUser,
 // window._escapeHtml, window.dcShowToast, window.openDcDmRoom,
 // window.openSetupModalAsEdit, window.avatarImgHtml, window._sanitizeHexColor,
-// window.avatarFallbackSrc, window.hasUnreadDm, window.markDmRead,
-// window.isBlockedEitherWay, window.sendFriendRequest, window.toggleUserBlocked,
-// window.dcShowConfirm, window.getFriends (gerçek global, social-friends-
+// window.avatarFallbackSrc, hasUnreadDm, markDmRead,
+// window.isBlockedEitherWay, sendFriendRequest, window.toggleUserBlocked,
+// window.dcShowConfirm, getFriends (gerçek global, social-friends-
 // notifications.js'te tanımlı), window.getCommunityPresenceState,
-// window._lastAvatarClick (paylaşılan state, sadece okunuyor/property mutasyonu).
+// getLastAvatarClick() (paylaşılan state, sadece okunuyor/property mutasyonu).
 (function () {
 'use strict';
 
@@ -26,10 +34,7 @@
         const container = document.getElementById('sidebar-contacts-list');
         if (!container) return;
 
-        const friends = (typeof window.getFriends === 'function') ? window.getFriends() : (() => {
-            try { return JSON.parse(localStorage.getItem('focusai_friends') || '[]'); }
-            catch { return []; }
-        })();
+        const friends = getFriends();
 
         if (!friends.length) {
             container.innerHTML = `
@@ -76,12 +81,12 @@
             item.id = 'sb-contact-' + username;
 
             item.innerHTML = `
-                <div class="sb-contact-avatar" style="position:relative; flex-shrink:0;">
+                <div class="sb-contact-avatar u-position-relative_flex-shrink-0" >
                     ${window.avatarImgHtml(uData, 30, 'flex-shrink:0;')}
                     <span class="dc-dm-status-dot ${isOnline ? 'online' : 'offline'}"></span>
-                    ${typeof window.hasUnreadDm === 'function' && window.hasUnreadDm(username) ? '<span class="dc-unread-dot"></span>' : ''}
+                    ${typeof window.hasUnreadDm === 'function' && hasUnreadDm(username) ? '<span class="dc-unread-dot"></span>' : ''}
                 </div>
-                <div style="flex:1; min-width:0; overflow:hidden;">
+                <div class="u-flex-1_min-width-0_overflow-hidden">
                     <span class="dc-dm-name">${window._escapeHtml(uData.displayName)}</span>
                 </div>
             `;
@@ -90,13 +95,13 @@
                 document.querySelectorAll('.dc-dm-item').forEach(el => el.classList.remove('active'));
                 item.classList.add('active');
                 const now = Date.now();
-                if (window._lastAvatarClick.username === username && (now - window._lastAvatarClick.time) < 500) {
-                    window._lastAvatarClick.username = null; window._lastAvatarClick.time = 0;
+                if (getLastAvatarClick().username === username && (now - getLastAvatarClick().time) < 500) {
+                    getLastAvatarClick().username = null; getLastAvatarClick().time = 0;
                     document.querySelectorAll('.mini-profile-popup').forEach(p => p.remove());
                     goToDmChat(username, uData.displayName);
                     return;
                 }
-                window._lastAvatarClick.username = username; window._lastAvatarClick.time = now;
+                getLastAvatarClick().username = username; getLastAvatarClick().time = now;
                 openMiniProfile(username, uData, item);
             });
             container.appendChild(item);
@@ -131,7 +136,7 @@
             window.openDcDmRoom(username, displayName);
         }
 
-        if (typeof window.markDmRead === 'function') window.markDmRead(username);
+        if (typeof window.markDmRead === 'function') markDmRead(username);
 
         setTimeout(() => {
             document.getElementById('sidebar-chat-message-input')?.focus();
@@ -143,8 +148,8 @@
     function openMiniProfile(username, cachedData, anchorEl, groupMemberData) {
         document.querySelectorAll('.mini-profile-popup').forEach(p => p.remove());
 
-        const database = window.getDB();
-        const me = window.getUser();
+        const database = getDB();
+        const me = getUser();
         const esc = window._escapeHtml;
 
         // Engellenen (veya bizi engelleyen) kullanıcıların profili hiçbir
@@ -193,7 +198,7 @@
             const focusM   = focusMin % 60;
             const focusStr = focusH > 0 ? `${focusH}s ${focusM}dk` : `${focusM}dk`;
             const isMe     = me && me.username === username;
-            const isFriend = !isMe && (getFriends ? window.getFriends().includes(username) : false);
+            const isFriend = !isMe && (getFriends ? getFriends().includes(username) : false);
 
             const joinedAt = u.joinedAt ? new Date(u.joinedAt).toLocaleDateString('tr-TR', { day:'2-digit', month:'long', year:'numeric' }) : null;
             const groupJoinedAt = groupMemberData && groupMemberData.joinedAt ? new Date(groupMemberData.joinedAt).toLocaleDateString('tr-TR', { day:'2-digit', month:'long', year:'numeric' }) : null;
@@ -202,11 +207,11 @@
             const cgId = 'mp-cg-' + username;
 
             popup.innerHTML = `
-                <div class="mp-banner" style="background:linear-gradient(135deg,#${color}55,#${color}22);"></div>
+                <div class="mp-banner"></div>
                 <div class="mp-head-row">
                     <div class="mp-avatar-wrap">
                         <img class="mp-avatar" src="${esc(avatarUrl)}" onerror="this.onerror=null;this.src='${esc(window.avatarFallbackSrc(u.displayName || username, color))}';" alt="">
-                        <span class="mp-status-dot" style="background:${stColor};" title="${stLabel}"></span>
+                        <span class="mp-status-dot" title="${stLabel}"></span>
                     </div>
                     <div class="mp-names">
                         <span class="mp-display-name">${esc(u.displayName || username)}</span>
@@ -226,31 +231,35 @@
                             <span class="mp-stat-lbl">Odak</span>
                         </div>
                         <div class="mp-stat">
-                            <span class="mp-stat-val">${focusStreak}<span style="font-size:9px;font-weight:400"> gün</span></span>
+                            <span class="mp-stat-val">${focusStreak}<span class="u-font-size-9px_font-weight-400"> gün</span></span>
                             <span class="mp-stat-lbl">🔥 Seri</span>
                         </div>
                     </div>
                     <div class="mp-divider"></div>
-                    ${groupJoinedAt ? `<div class="mp-info-row"><i class="fa-solid fa-door-open"></i><span>Gruba katıldı: <b style="color:#fff;">${groupJoinedAt}</b></span></div>` : ''}
-                    ${joinedAt ? `<div class="mp-info-row"><i class="fa-solid fa-calendar-plus"></i><span>Platforma katıldı: <b style="color:#fff;">${joinedAt}</b></span></div>` : ''}
+                    ${groupJoinedAt ? `<div class="mp-info-row"><i class="fa-solid fa-door-open"></i><span>Gruba katıldı: <b class="u-color-hfff">${groupJoinedAt}</b></span></div>` : ''}
+                    ${joinedAt ? `<div class="mp-info-row"><i class="fa-solid fa-calendar-plus"></i><span>Platforma katıldı: <b class="u-color-hfff">${joinedAt}</b></span></div>` : ''}
                     <div class="mp-info-row"><i class="fa-solid fa-trophy"></i><span>Tamamlanan Hedef: <b class="si-yellow">${completedGoals}</b></span></div>
                     <div class="mp-divider"></div>
                     <div class="mp-section-label"><i class="fa-solid fa-users"></i> Ortak Gruplar</div>
                     <div class="mp-common-groups" id="${cgId}"><span class="mp-no-common">Yükleniyor...</span></div>
-                    ${!isMe ? `<div class="mp-actions" style="margin-top:8px;">
+                    ${!isMe ? `<div class="mp-actions u-margin-top-8px" >
                         <button class="mp-action-btn mp-dm-btn" title="Mesaj Gönder"><i class="fa-solid fa-message"></i> Mesaj</button>
-                        ${!isFriend ? `<button class="mp-action-btn mp-add-btn" title="Kişi Ekle"><i class="fa-solid fa-user-plus"></i></button>` : `<span class="mp-friend-badge"><i class="fa-solid fa-user-check"></i> Arkadaş</span>`}
-                        <button class="mp-action-btn mp-block-btn" title="Engelle"><i class="fa-solid fa-ban"></i></button>
-                    </div>` : `<div class="mp-actions" style="margin-top:8px;"><button class="mp-action-btn mp-edit-btn"><i class="fa-solid fa-pen-to-square"></i> Profili Düzenle</button></div>`}
+                        ${!isFriend ? `<button class="mp-action-btn mp-add-btn" title="Kişi Ekle" aria-label="Kişi Ekle"><i class="fa-solid fa-user-plus"></i></button>` : `<span class="mp-friend-badge"><i class="fa-solid fa-user-check"></i> Arkadaş</span>`}
+                        <button class="mp-action-btn mp-block-btn" title="Engelle" aria-label="Engelle"><i class="fa-solid fa-ban"></i></button>
+                    </div>` : `<div class="mp-actions u-margin-top-8px" ><button class="mp-action-btn mp-edit-btn"><i class="fa-solid fa-pen-to-square"></i> Profili Düzenle</button></div>`}
                 </div>
             `;
+            const bannerEl = popup.querySelector('.mp-banner');
+            if (bannerEl) bannerEl.style.background = `linear-gradient(135deg,#${color}55,#${color}22)`;
+            const statusDotEl = popup.querySelector('.mp-status-dot');
+            if (statusDotEl) statusDotEl.style.background = stColor;
 
             // Ortak grupları asenkron yükle
             (async () => {
                 const cgEl = document.getElementById(cgId);
                 if (!cgEl) return;
-                const database2 = window.getDB();
-                const me2 = window.getUser();
+                const database2 = getDB();
+                const me2 = getUser();
                 if (!database2 || !me2) { cgEl.innerHTML = '<span class="mp-no-common">—</span>'; return; }
                 const targetGroups = u.my_groups ? Object.keys(u.my_groups) : [];
                 if (!targetGroups.length) { cgEl.innerHTML = '<span class="mp-no-common">Ortak grup yok</span>'; return; }
@@ -268,12 +277,12 @@
                     goToDmChat(username, u.displayName || username);
                 });
                 popup.querySelector('.mp-add-btn')?.addEventListener('click', async () => {
-                    if (typeof window.sendFriendRequest === 'function') await window.sendFriendRequest(username);
+                    await sendFriendRequest(username);
                     close();
                 });
                 popup.querySelector('.mp-block-btn')?.addEventListener('click', () => {
                     if (typeof window.toggleUserBlocked !== 'function') return;
-                    window.dcShowConfirm({
+                    dcShowConfirm({
                         title: 'Kullanıcıyı Engelle',
                         message: `@${username} adlı kullanıcıyı engellemek istediğine emin misin? Engellediğin kullanıcılar artık seni hiçbir yerde göremez, sen de onu göremezsin. Engeli daha sonra Ayarlar > Engellenen Kullanıcılar bölümünden kaldırabilirsin.`,
                         confirmText: 'Engelle',

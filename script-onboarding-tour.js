@@ -278,12 +278,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 top = rect.bottom + gap;
                 left = rect.left + rect.width / 2 - ttW / 2;
                 arrowClass  = 'arrow-top';
-                arrowOffset = `left:${Math.min(Math.max(ttW / 2 - 7, 24), ttW - 38)}px;`;
+                arrowOffset = Math.min(Math.max(ttW / 2 - 7, 24), ttW - 38);
             } else {
                 top = rect.top - ttH - gap;
                 left = rect.left + rect.width / 2 - ttW / 2;
                 arrowClass  = 'arrow-bottom';
-                arrowOffset = `left:${Math.min(Math.max(ttW / 2 - 7, 24), ttW - 38)}px;`;
+                arrowOffset = Math.min(Math.max(ttW / 2 - 7, 24), ttW - 38);
             }
  
             left = Math.max(10, Math.min(left, vw - ttW - 10));
@@ -296,7 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
  
             if (arrow) {
                 arrow.className  = 'tour-tooltip-arrow ' + arrowClass;
-                arrow.style.cssText = arrowOffset;
+                arrow.style.left = arrowOffset + 'px';
                 arrow.style.display = 'block';
             }
  
@@ -375,13 +375,13 @@ document.addEventListener('DOMContentLoaded', () => {
              setTimeout(() => {
                  const p = document.createElement('div');
                  p.className = 'tour-confetti-piece';
-                 p.style.cssText = `
-                     left:${Math.random() * 100}vw; top:-12px;
-                     background:${colors[Math.floor(Math.random() * colors.length)]};
-                     width:${Math.random() * 9 + 5}px; height:${Math.random() * 9 + 5}px;
-                     border-radius:${Math.random() > 0.5 ? '50%' : '3px'};
-                     animation-duration:${Math.random() * 2 + 1.8}s;
-                 `;
+                 p.style.left = Math.random() * 100 + 'vw';
+                p.style.top = '-12px';
+                p.style.background = colors[Math.floor(Math.random() * colors.length)];
+                p.style.width = Math.random() * 9 + 5 + 'px';
+                p.style.height = Math.random() * 9 + 5 + 'px';
+                p.style.borderRadius = Math.random() > 0.5 ? '50%' : '3px';
+                p.style.animationDuration = Math.random() * 2 + 1.8 + 's';
                  document.body.appendChild(p);
                  setTimeout(() => p.remove(), 4500);
              }, i * 25);

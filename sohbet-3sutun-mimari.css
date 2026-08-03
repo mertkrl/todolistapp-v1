@@ -1,0 +1,1122 @@
+/* style.css'ten çıkarıldı (Faz C, 2026-07-22). 3 Sütun Sohbet Paneli Mimarisi — devasa bir blok, sohbet panelinin tüm alt bileşenlerini kapsar (mesaj alanı, üye listesi, arama, davet, roller vb — 101 benzersiz seçici). NOT: link sidebar-social-panel-redesign.css'ten SONRA olmalı (social-sidebar-panel/sb-contact-card/sidebar-home-view çakışmaları var, bu dosya kazanmalı). */
+
+/* ═══════════════════════════════════════════════════
+   MİMARİSİ — 3 SÜTUN SOHBET PANELİ
+═══════════════════════════════════════════════════ */
+
+/* Ana panel genişliği artık 3 sütunu kapsar */
+/* NOT (2026-07-18): buradaki .social-sidebar-panel tanımı, sonraki (satır ~13476
+   civarı) tanımın aynı özellik kümesinin tamamını (+top/height) !important ile
+   tekrar tanımlaması yüzünden hiç uygulanmıyordu — ölü kod olarak kaldırıldı,
+   computed style ile doğrulandı (width/display/flex-direction/padding/overflow
+   değişmedi). */
+
+/* ── SÜTUN 1: Sunucu İkon Listesi ── */
+
+
+
+
+
+.dc-server-icon.active {
+    border-radius: 14px;
+    background: var(--primary-color, #D4900E);
+    color: #fff;
+}
+
+
+
+/* Aktif sunucu sol çizgisi */
+.dc-server-icon.active::before {
+    content: '';
+    position: absolute;
+    left: -10px;
+    width: 4px;
+    height: 70%;
+    background: #fff;
+    border-radius: 0 4px 4px 0;
+}
+
+
+
+
+#dc-group-icons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+}
+
+/* ── SÜTUN 2: Kanal Listesi ── */
+.dc-channel-list {
+    width: 210px;
+    min-width: 210px;
+    background: rgba(255, 255, 255, 0.02);
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid rgba(255,255,255,0.04);
+    flex-shrink: 0;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Kullanıcı profil çubuğu */
+.dc-user-zone {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    background: rgba(0,0,0,0.25);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    user-select: none;
+}
+.dc-user-zone:hover { background: transparent; }
+.dc-user-zone:active { background: transparent; }
+
+.dc-user-avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+.dc-user-status-dot {
+    position: absolute;
+    bottom: 0; right: 0;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: #2ed573;
+    border: 2px solid #0f0c28;
+}
+.dc-user-info { flex: 1; min-width: 0; }
+.dc-username {
+    font-size: 13px; font-weight: 600;
+    color: #fff;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.dc-usertag {
+    font-size: 10px; color: rgba(255,255,255,0.3);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+
+
+/* Arama çubuğu */
+.dc-search-bar {
+    display: flex; align-items: center; gap: 6px;
+    margin: 8px 10px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 6px;
+    padding: 5px 8px;
+}
+.dc-search-bar i { color: rgba(255,255,255,0.3); font-size: 11px; flex-shrink:0; }
+.dc-search-bar i#dc-global-search-btn { cursor: pointer; transition: color 0.15s; }
+.dc-search-bar i#dc-global-search-btn:hover { color: rgba(255,255,255,0.55); }
+.dc-search-bar input {
+    flex: 1; background: transparent; border: none;
+    color: #fff; font-size: 12px; outline: none;
+    min-width: 0;
+}
+.dc-search-bar input::placeholder { color: rgba(255,255,255,0.25); }
+.dc-search-bar button {
+    background: transparent; border: none;
+    color: rgba(255,255,255,0.3); cursor: pointer;
+    font-size: 12px; padding: 0; flex-shrink: 0;
+    transition: color 0.2s;
+}
+.dc-search-bar button:hover { color: rgba(255,255,255,0.55); }
+
+/* ── Tüm sohbetlerde ara butonu ── */
+.dc-global-search-btn {
+    display: flex; align-items: center; gap: 8px;
+    margin: 0 10px 8px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 6px;
+    padding: 6px 10px;
+    color: rgba(255,255,255,0.4);
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+.dc-global-search-btn:hover { background: rgba(212,144,14,0.12); color: rgba(255,255,255,0.55); }
+
+/* ── Tüm sohbetlerde arama modalı ── */
+.dc-global-search-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex; align-items: flex-start; justify-content: center;
+    padding-top: 8vh;
+    z-index: 100000;
+    backdrop-filter: blur(2px);
+}
+.dc-global-search-modal {
+    background: rgba(22,18,55,0.97);
+    border: 1px solid rgba(212,144,14,0.3);
+    border-radius: 14px;
+    width: min(520px, 92vw);
+    max-height: 76vh;
+    display: flex; flex-direction: column;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    overflow: hidden;
+}
+.dc-global-search-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.4);
+}
+.dc-global-search-input {
+    flex: 1; background: transparent; border: none; outline: none;
+    color: #fff; font-size: 14px;
+}
+.dc-global-search-input::placeholder { color: rgba(255,255,255,0.3); }
+.dc-global-search-close {
+    background: none; border: none; color: rgba(255,255,255,0.4);
+    cursor: pointer; font-size: 14px; padding: 4px;
+}
+.dc-global-search-close:hover { color: #ff7675; }
+.dc-global-search-results { overflow-y: auto; padding: 8px; }
+.dc-global-search-empty {
+    text-align: center; color: rgba(255,255,255,0.25);
+    font-size: 13px; padding: 30px 16px;
+}
+.dc-global-search-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 9px 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.dc-global-search-item:hover { background: rgba(212,144,14,0.15); }
+.dc-global-search-avatar {
+    width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0;
+}
+.dc-global-search-body { min-width: 0; flex: 1; }
+.dc-global-search-meta {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    font-size: 11px; margin-bottom: 2px;
+}
+.dc-global-search-sender { color: #fff; font-weight: 700; }
+.dc-global-search-chat { color: rgba(255,255,255,0.55); }
+.dc-global-search-time { color: rgba(255,255,255,0.3); margin-left: auto; }
+.dc-global-search-snippet {
+    font-size: 12px; color: rgba(255,255,255,0.6);
+    overflow: hidden; text-overflow: ellipsis;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+}
+.dc-global-search-hl {
+    background: rgba(254,202,87,0.35); color: #feca57; border-radius: 2px;
+}
+
+/* Bölüm başlığı */
+.dc-section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 12px 4px;
+    font-size: 10px; font-weight: 700;
+    color: rgba(255,255,255,0.35);
+    text-transform: uppercase; letter-spacing: 0.8px;
+}
+.dc-section-add-btn {
+    background: transparent; border: none;
+    color: rgba(255,255,255,0.3); cursor: pointer;
+    font-size: 13px; padding: 2px 4px;
+    border-radius: 4px; transition: color 0.2s;
+    flex-shrink: 0;
+}
+.dc-section-add-btn:hover { color: #fff; }
+.dc-dm-list::-webkit-scrollbar { width: 4px; }
+.dc-dm-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+.dc-dm-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 6px 8px; border-radius: 6px;
+    cursor: pointer; transition: background 0.15s;
+    position: relative;
+}
+.dc-dm-item:hover { background: rgba(255,255,255,0.07); }
+.dc-dm-item.active { background: rgba(212,144,14,0.25); }
+.dc-dm-item img { width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; }
+.dc-dm-name { font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dc-dm-item:hover .dc-dm-name,
+.dc-dm-item.active .dc-dm-name { color: #fff; }
+
+
+/* Çevrimiçi/çevrimdışı durumunu net biçimde ayırt eden rozet ve etiket */
+.dc-dm-status-dot {
+    position: absolute; bottom: -1px; right: -1px;
+    width: 9px; height: 9px; border-radius: 50%;
+    border: 2px solid #161235;
+}
+.dc-dm-status-dot.online  { background: #2ed573; box-shadow: 0 0 6px rgba(46,213,115,0.55); }
+.dc-dm-status-dot.offline { background: #6b7280; }
+
+.dc-dm-status-label {
+    font-size: 10px;
+    font-weight: 600;
+    flex-shrink: 0;
+    margin-left: auto;
+    padding: 2px 8px;
+    border-radius: 10px;
+    white-space: nowrap;
+}
+.dc-dm-item:not(.is-offline) .dc-dm-status-label {
+    color: #2ed573;
+    background: rgba(46,213,115,0.12);
+}
+.dc-dm-item.is-offline .dc-dm-status-label {
+    color: rgba(255,255,255,0.4);
+    background: rgba(255,255,255,0.05);
+}
+
+/* Çevrimdışı arkadaşları görsel olarak soluklaştır */
+.dc-dm-item.is-offline { opacity: 0.55; }
+.dc-dm-item.is-offline:hover { opacity: 0.85; }
+.dc-dm-item.is-offline .dc-dm-name { color: rgba(255,255,255,0.45); }
+.dc-dm-item.is-offline:hover .dc-dm-name { color: rgba(255,255,255,0.7); }
+
+/* Arkadaşlar listesi (online-friend-bubble) için aynı online/offline ayrımı */
+.online-friend-bubble:not(.is-offline) .dc-dm-status-label {
+    color: #2ed573;
+    background: rgba(46,213,115,0.12);
+}
+.online-friend-bubble.is-offline .dc-dm-status-label {
+    color: rgba(255,255,255,0.4);
+    background: rgba(255,255,255,0.05);
+}
+.online-friend-bubble.is-offline { opacity: 0.55; }
+.online-friend-bubble.is-offline:hover { opacity: 0.85; }
+
+/* Aktivite tepki butonu (mini "+" / mevcut emoji) ve açılır emoji seçici kabarcık */
+
+
+.activity-react-toggle-btn.is-active { background: rgba(212,144,14,0.22); border-color: rgba(212,144,14,0.5); }
+
+.activity-reaction-picker {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 0;
+    display: flex; gap: 4px;
+    background: rgba(20,18,46,0.96);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    padding: 6px 8px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    z-index: 50;
+    opacity: 0; transform: translateY(6px) scale(0.92);
+    transform-origin: bottom left;
+    transition: opacity 0.16s ease, transform 0.16s cubic-bezier(0.34,1.56,0.64,1);
+    pointer-events: none;
+}
+.activity-reaction-picker.is-open { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+
+
+.arp-emoji-btn.is-active { background: rgba(212,144,14,0.25); }
+
+
+@keyframes arp-fly-up {
+    0%   { opacity: 1; transform: translate(-50%, 0) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -42px) scale(1.6); }
+}
+
+/* Sosyal Toast Bildirimleri (.social-toast) — social-color-toast.css'e taşındı */
+.dc-empty-state {
+    font-size: 12px; color: rgba(255,255,255,0.2);
+    text-align: center; padding: 20px 10px; line-height: 1.6;
+}
+
+/* Grup başlığı */
+.dc-guild-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 14px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    cursor: pointer; flex-shrink: 0;
+    background: rgba(0,0,0,0.2);
+}
+.dc-guild-header:hover { background: rgba(255,255,255,0.03); }
+.dc-guild-name-text { font-size: 14px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dc-guild-settings-btn {
+    background: transparent; border: none;
+    color: rgba(255,255,255,0.4); cursor: pointer;
+    font-size: 12px; padding: 2px; flex-shrink: 0; transition: color 0.2s;
+}
+.dc-guild-settings-btn:hover { color: #fff; }
+
+/* Kanal scroll alanı */
+.dc-guild-channels-scroll {
+    flex: 1; overflow-y: auto; padding: 6px 0 70px;
+}
+.dc-guild-channels-scroll::-webkit-scrollbar { width: 4px; }
+.dc-guild-channels-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
+
+/* Kategori başlığı */
+.dc-category-header {
+    display: flex; align-items: center; gap: 4px;
+    padding: 12px 8px 3px 12px;
+    font-size: 10px; font-weight: 700;
+    color: rgba(255,255,255,0.35);
+    text-transform: uppercase; letter-spacing: 0.7px;
+    cursor: pointer; user-select: none;
+}
+.dc-category-header:hover { color: rgba(255,255,255,0.6); }
+.dc-category-arrow { font-size: 9px; transition: transform 0.2s; flex-shrink: 0; }
+.dc-category-arrow.open { transform: rotate(90deg); }
+
+/* Kanal öğeleri */
+.dc-channels-list { padding: 2px 6px; }
+.dc-channel-item {
+    display: flex; align-items: center; gap: 7px;
+    padding: 5px 8px; border-radius: 4px;
+    cursor: pointer; transition: background 0.15s;
+    color: rgba(255,255,255,0.45);
+    font-size: 13px; font-weight: 500;
+    position: relative;
+}
+.dc-channel-item:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.8); }
+.dc-channel-item.active { background: rgba(212,144,14,0.3); color: #fff; font-weight: 600; }
+/* Kanal Öğesi İkon/İsim/Sessize Al (.dc-ch-) -> chat-misc-widgets.css'e taşındı */
+
+/* Üye listesi */
+.dc-members-list { padding: 2px 8px 6px; }
+.dc-member-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 4px 6px; border-radius: 4px;
+    cursor: pointer; transition: background 0.15s;
+}
+.dc-member-item:hover { background: rgba(255,255,255,0.05); }
+.dc-member-item img { width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0; }
+.dc-member-name { font-size: 12px; color: rgba(255,255,255,0.55); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dc-member-item:hover .dc-member-name { color: #fff; }
+.dc-member-item.is-offline { opacity: 0.5; }
+.dc-member-item.is-offline:hover { opacity: 0.8; }
+
+/* ── SÜTUN 3: Sohbet Alanı ── */
+.dc-chat-area {
+    flex: 1; display: flex; flex-direction: column;
+    background: rgba(14,14,15,0.92);
+    min-width: 0; position: relative;
+}
+
+.dc-chat-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 14px;
+    height: 46px; min-height: 46px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    background: rgba(0,0,0,0.2);
+    flex-shrink: 0;
+}
+
+/* Grup istatistik paneli: sohbeti kapatmadan, sağdan kayarak açılan panel.
+   Discord'un sağ üye listesi paneli gibi — modal-overlay değil, sohbet
+   görünür/etkileşilebilir kalır. */
+
+.dc-analytics-panel.dc-panel-open {
+    transform: translateX(0);
+    pointer-events: auto;
+}
+
+@media (max-width: 640px) {
+    /* Mobilde sağdan değil, alttan kayan bottom-sheet — sohbet üstte görünür kalır */
+    
+    .dc-analytics-panel.dc-panel-open { transform: translateY(0); }
+    
+}
+.dc-back-btn {
+    background: transparent; border: none;
+    color: rgba(255,255,255,0.4); cursor: pointer;
+    font-size: 14px; padding: 4px 6px;
+    border-radius: 4px; transition: color 0.2s;
+}
+.dc-back-btn:hover { color: #fff; background: rgba(255,255,255,0.07); }
+.dc-channel-icon { font-size: 14px; color: rgba(255,255,255,0.3); }
+.dc-chat-title { font-size: 14px; font-weight: 700; color: #fff; }
+.dc-chat-subtitle { font-size: 11px; color: rgba(255,255,255,0.3); }
+.dc-icon-action-btn {
+    background: transparent; border: none;
+    color: rgba(255,255,255,0.35); cursor: pointer;
+    font-size: 14px; padding: 5px 6px;
+    border-radius: 4px; transition: color 0.2s, background 0.2s;
+}
+.dc-icon-action-btn:hover { color: #fff; background: rgba(255,255,255,0.08); }
+
+/* Dokunmatik ekranlarda WCAG'ın önerdiği ~40-44px dokunma alanı için büyütülür
+   (masaüstünde mevcut kompakt görünüm korunur, sadece mobilde genişler). */
+@media (max-width: 768px) {
+    .dc-icon-action-btn, .dc-send-btn {
+        min-width: 40px;
+        min-height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+/* Mesaj akışı */
+.dc-messages-stream {
+    flex: 1; overflow-y: auto;
+    padding: 12px 14px;
+    display: flex; flex-direction: column; gap: 4px;
+}
+.dc-messages-stream::-webkit-scrollbar { width: 5px; }
+.dc-messages-stream::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+
+/* ── Tarih ayırıcılar ── */
+.dc-date-separator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 12px 0 6px;
+}
+.dc-date-separator-line {
+    flex: 1;
+    height: 1px;
+    background: rgba(255,255,255,0.07);
+}
+.dc-date-separator-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.35);
+    white-space: nowrap;
+    background: rgba(255,255,255,0.04);
+    padding: 2px 10px;
+    border-radius: 20px;
+}
+
+/* ── Yeni mesaj balonu animasyonu ── */
+@keyframes dcMsgFadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.dc-msg-animate-in { animation: dcMsgFadeIn 0.28s ease-out; }
+
+/* ── Çevrimiçi durum noktası (mesaj avatarı / başlık) ── */
+.dc-msg-status-dot {
+    position: absolute; bottom: -1px; right: -1px;
+    width: 9px; height: 9px; border-radius: 50%;
+    border: 2px solid #161235;
+    box-sizing: content-box;
+}
+.dc-header-status-dot {
+    position: absolute; bottom: -2px; right: -2px;
+    width: 8px; height: 8px; border-radius: 50%;
+    border: 2px solid rgba(0,0,0,0.25);
+    box-sizing: content-box;
+}
+
+/* ── Mesaj tepki (reaksiyon) pilleri ── */
+.dc-msg-reactions {
+    display: flex; flex-wrap: wrap; gap: 4px;
+    margin-top: 4px;
+}
+.dc-msg-reaction-pill {
+    display: flex; align-items: center; gap: 4px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 2px 8px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: transform 0.12s ease, background 0.12s ease;
+    color: #fff;
+}
+.dc-msg-reaction-pill:hover { transform: scale(1.06); background: rgba(255,255,255,0.12); }
+.dc-msg-reaction-pill.is-mine {
+    background: rgba(212,144,14,0.22);
+    border-color: var(--dc-accent, #D4900E);
+}
+.dc-msg-reaction-count { font-size: 11px; color: rgba(255,255,255,0.6); font-weight: 600; }
+
+/* ── Mesaj reaksiyon picker (hover üzerinde açılan emoji şeridi) ── */
+.dc-msg-reaction-picker {
+    bottom: calc(100% + 6px);
+    top: auto;
+}
+/* ── Mesaja tepki için tam emoji seçici (kompozisyon emoji picker'ıyla aynı görünüm) ── */
+.dc-msg-reaction-picker-full {
+    width: 240px;
+    max-height: 220px;
+    z-index: 70;
+}
+
+/* Sohbet Tema/Duvar Kağıdı Seçici (.dc-theme-, .dc-wallpaper-) -> chat-theme-wallpaper-picker.css'e taşındı */
+
+/* ── Sohbet duvar kağıdı (mesaj akışı arka planı) ── */
+
+
+
+
+
+/* Emoji Seçici (.dc-emoji-) -> chat-misc-widgets.css'e taşındı */
+
+/* @Bahsetme Öneri Listesi + Vurgusu (.dc-mention-, .dc-mention) -> chat-misc-widgets.css'e taşındı */
+
+/* ── Yükleniyor iskeleti ── */
+.dc-skeleton-wrap { display: flex; flex-direction: column; gap: 14px; padding-top: 6px; }
+.dc-msg-skeleton-row { display: flex; align-items: center; gap: 10px; }
+.dc-msg-skeleton-row.right { flex-direction: row-reverse; }
+.dc-skel-avatar {
+    width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+    background: rgba(255,255,255,0.06);
+    animation: dcSkeletonPulse 1.4s ease-in-out infinite;
+}
+.dc-skel-bubble {
+    height: 34px; border-radius: 12px;
+    background: rgba(255,255,255,0.06);
+    animation: dcSkeletonPulse 1.4s ease-in-out infinite;
+}
+@keyframes dcSkeletonPulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.9; }
+}
+
+/* ── Aşağı kaydır butonu ── */
+.dc-scroll-bottom-btn {
+    position: absolute;
+    right: 18px;
+    bottom: 78px;
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: rgba(212,144,14,0.85);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+    z-index: 20;
+    transition: background 0.15s, transform 0.15s;
+}
+.dc-scroll-bottom-btn:hover { background: rgba(212,144,14,1); transform: translateY(-2px); }
+
+/* ── Okunmamışlara hızlı atlama butonu ── */
+.dc-jump-unread-btn {
+    position: absolute;
+    left: 50%;
+    top: 10px;
+    transform: translateX(-50%);
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    background: rgba(212,144,14,0.9);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #1c1408;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+    z-index: 20;
+    transition: background 0.15s, transform 0.15s;
+}
+.dc-jump-unread-btn:hover { background: rgba(212,144,14,1); transform: translateX(-50%) translateY(-2px); }
+
+/* Sabitlenmiş Mesaj Banner'ı (.dc-pinned-) -> chat-misc-widgets.css'e taşındı */
+
+.dc-scroll-bottom-badge {
+    position: absolute; top: -4px; right: -4px;
+    min-width: 18px; height: 18px; padding: 0 4px;
+    border-radius: 9px;
+    background: #ff4757;
+    color: #fff;
+    font-size: 10px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 0 2px #161235;
+}
+
+/* ── Mesaj Giriş Çubuğu ─────────────────────────────── */
+.dc-chat-input-bar {
+    padding: 10px 12px 14px;
+    background: transparent;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    flex-shrink: 0;
+}
+
+/* Input satırı — tek birleşik pill */
+.dc-input-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 12px;
+    padding: 4px 4px 4px 6px;
+    transition: border-color 0.2s;
+}
+.dc-input-row:focus-within {
+    border-color: rgba(212,144,14,0.45);
+}
+
+/* Oda araç butonları — input satırının solunda, ayrı grup */
+.dc-room-action-btns {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow: hidden;
+    max-width: 0;
+    opacity: 0;
+    margin-right: 0;
+    transition: max-width 0.3s ease, opacity 0.25s ease, margin-right 0.3s ease;
+}
+.dc-room-action-btns.visible {
+    max-width: 120px;
+    overflow: visible;
+    opacity: 1;
+    margin-right: 6px;
+}
+
+
+
+
+
+
+/* Mesaj input — parent'ın arkaplanını kullanır */
+.dc-message-input {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 13px;
+    padding: 7px 6px;
+    outline: none;
+    font-family: inherit;
+    resize: none;
+    overflow-y: auto;
+    max-height: 120px;
+    line-height: 1.35;
+}
+.dc-message-input::placeholder { color: rgba(255,255,255,0.22); }
+.dc-message-input:disabled { cursor: not-allowed; opacity: 0.4; }
+.dc-message-input:disabled::placeholder { color: rgba(255,255,255,0.15); }
+
+/* Gönder butonu */
+.dc-send-btn {
+    background: var(--primary-color);
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+    transition: opacity 0.2s, transform 0.15s;
+}
+.dc-send-btn:hover { opacity: 0.85; transform: scale(1.05); }
+.dc-send-btn:disabled { cursor: not-allowed; opacity: 0.35; transform: none; }
+
+.dc-leave-bar {
+    display: none;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 10px 12px;
+    border-top: 1px solid rgba(46,213,115,0.10);
+    background: rgba(14, 14, 16, 0.92);
+    backdrop-filter: blur(6px);
+    flex-shrink: 0;
+    z-index: 5;
+    animation: slideUpBar 0.3s ease;
+}
+@keyframes slideUpBar {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.dc-leave-bar-inner {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    background: rgba(46, 213, 115, 0.06);
+    border: 1px solid rgba(46, 213, 115, 0.18);
+    border-radius: 12px;
+    padding: 10px 14px;
+    backdrop-filter: blur(6px);
+}
+.dc-leave-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    flex: 1;
+}
+.dc-live-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #2ed573;
+    box-shadow: 0 0 8px rgba(46,213,115,0.8);
+    flex-shrink: 0;
+    animation: pulse-dot 1.8s ease-in-out infinite;
+}
+.dc-leave-bar-text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+.dc-leave-bar-badge {
+    font-size: 9px;
+    font-weight: 700;
+    color: #2ed573;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    opacity: 0.8;
+}
+.dc-leave-bar-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.dc-leave-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    background: rgba(255, 107, 107, 0.12);
+    border: 1px solid rgba(255, 107, 107, 0.28);
+    color: #ff6b6b;
+    border-radius: 50%;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+}
+.dc-leave-btn:hover {
+    background: rgba(255, 107, 107, 0.30);
+    color: #fff;
+    box-shadow: 0 0 12px rgba(255, 107, 107, 0.35);
+    transform: scale(1.08);
+}
+
+/* Boş ekran */
+.dc-chat-empty {
+    position: absolute; inset: 0;
+    display: none; /* JS tarafından flex olarak set edilir */
+    flex-direction: column;
+    align-items: center; justify-content: center;
+    color: rgba(255,255,255,0.2); font-size: 13px;
+    pointer-events: none;
+    text-align: center;
+}
+#sidebar-live-chat-room,
+#sidebar-home-view { display: none !important; } /* Artık kullanılmıyor, DC panelleri geçerli */
+
+/* hidden-sidebar açıkken flex göster */
+.social-sidebar-panel:not(.hidden-sidebar) {
+    display: flex !important;
+}
+
+/* Responsive: 700px altında 2 sütuna düş */
+@media (max-width: 700px) {
+    .social-sidebar-panel { width: 100vw !important; }
+    
+    .dc-channel-list { width: 170px; min-width: 170px; }
+}
+@media (max-width: 480px) {
+    .dc-channel-list { display: none; }
+    
+}
+
+/* ── DİSCORD MİMARİSİ DÜZELTME PAKETİ ── */
+
+/* Panel boyutu küçültüldü, eski !important'lar eziyor */
+.social-sidebar-panel {
+    width: 560px !important;
+    max-width: 99vw !important;
+    display: flex !important;
+    flex-direction: row !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    top: 0 !important;
+    height: 100vh !important;
+}
+.social-sidebar-panel.hidden-sidebar {
+    transform: translateX(100%) !important;
+}
+.social-sidebar-panel:not(.hidden-sidebar) {
+    transform: translateX(0) !important;
+}
+
+/* Ana sayfa paneli düzeltme */
+#dc-home-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+/* Kanal listesi esnek yükseklik */
+.dc-channel-list {
+    width: 190px !important;
+    min-width: 190px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+}
+
+/* Guild panel flex düzeltme */
+#dc-guild-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+/* DM listesi scroll düzeltme */
+.dc-dm-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px 6px 80px;
+}
+
+/* Arama çubuğu altı boşluk */
+.dc-search-bar {
+    margin: 8px 8px 4px !important;
+    flex-shrink: 0;
+}
+
+/* Server list yükseklik */
+
+
+/* Chat alan genişliği */
+.dc-chat-area {
+    flex: 1 !important;
+    min-width: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+}
+
+/* Mesaj akışı düzeltme */
+.dc-messages-stream {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 10px 12px !important;
+}
+
+/* Mikrofon butonunu gizle */
+#dc-mute-btn {
+    display: none !important;
+}
+
+/* Eski sidebar elemanlarını tamamen gizle */
+#sidebar-home-view, #sidebar-live-chat-room {
+    display: none !important;
+}
+
+/* Boş ekran konumlandırma */
+.dc-chat-empty {
+    position: absolute !important;
+    inset: 46px 0 0 0 !important;
+}
+
+/* Guild channels scroll */
+.dc-guild-channels-scroll {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    min-height: 0 !important;
+}
+
+/* Alt kullanıcı çubuğu her zaman altta */
+
+
+/* Responsive */
+@media (max-width: 560px) {
+    .social-sidebar-panel { width: 100vw !important; }
+    .dc-channel-list { width: 160px !important; min-width: 160px !important; }
+}
+@media (max-width: 400px) {
+    
+    .dc-channel-list { display: none !important; }
+}
+
+/* Grup Ağacı (.dc-groups-tree, .dc-tree-) -> chat-misc-widgets.css'e taşındı */
+
+/* Yetki/Rol Etiketleri (.role-badge) — misc-small-widgets.css'e taşındı */
+
+/* Grup Yetki Yönetimi (.gm-) -> social-group-roles-permissions.css'e taşındı */
+.dc-subchan-locked {
+    opacity: 0.75;
+}
+
+
+
+/* ─── KANAL ⋮ BUTONU ─────────────────────────────────── */
+.ch-more-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 3px 6px;
+    border-radius: 6px;
+    color: rgba(255,255,255,0.4);
+    font-size: 13px;
+    opacity: 0;
+    transition: opacity 0.15s, background 0.15s, color 0.15s;
+    flex-shrink: 0;
+    line-height: 1;
+}
+.dc-channel-item:hover .ch-more-btn,
+.dc-channel-cat-header:hover .ch-more-btn {
+    opacity: 1;
+}
+.ch-more-btn:hover {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+}
+
+/* ─── KANAL CONTEXT MENÜSÜ ───────────────────────────── */
+.ch-ctx-menu {
+    position: fixed;
+    z-index: 99995;
+    background: linear-gradient(145deg, #16132a, #1e1a35);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 6px;
+    min-width: 180px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.55), 0 0 0 1px rgba(212,144,14,0.1);
+    opacity: 0;
+    transform: scale(0.94) translateY(4px);
+    transform-origin: top left;
+    transition: opacity 0.16s ease, transform 0.16s cubic-bezier(0.34,1.4,0.64,1);
+    pointer-events: none;
+}
+.ch-ctx-menu.ch-ctx-menu--open {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    pointer-events: all;
+}
+.ch-ctx-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 8px 10px;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.75);
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.12s, color 0.12s;
+}
+.ch-ctx-item:hover { background: rgba(212,144,14,0.15); color: #fff; }
+.ch-ctx-icon {
+    width: 26px; height: 26px;
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    background: rgba(255,255,255,0.06);
+    flex-shrink: 0;
+}
+.ch-ctx-item.item-rename .ch-ctx-icon { background: rgba(212,144,14,0.2); color: #D4900E; }
+.ch-ctx-item.item-lock   .ch-ctx-icon { background: rgba(255,159,67,0.15); color: #ff9f43; }
+.ch-ctx-item.item-perm   .ch-ctx-icon { background: rgba(116,185,255,0.15); color: #74b9ff; }
+.ch-ctx-item.item-delete { color: rgba(255,118,117,0.85); }
+.ch-ctx-item.item-delete:hover { background: rgba(255,71,87,0.12); color: #ff6b6b; }
+.ch-ctx-item.item-delete .ch-ctx-icon { background: rgba(255,71,87,0.15); color: #ff4757; }
+
+/* ─── INLINE RENAME INPUT ────────────────────────────── */
+.ch-inline-rename-input {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(212,144,14,0.5);
+    border-radius: 5px;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 6px;
+    outline: none;
+    width: 100%;
+    min-width: 0;
+}
+
+/* Kullanıcı Detay Mini Profil Açma Butonu (.chat-user-detail-trigger) — chat-reply-bar.css'e taşındı */
+
+/* Üye Listesindeki Kullanıcı Satırları İçin Tıklama Efekti */
+.dc-dm-item, .mgmt-member-row {
+    position: relative;
+    cursor: pointer;
+}
+
+/* Duyuru Kanalı Kilitli Chat Mesaj Alanı (.chat-locked-container) — chat-reply-bar.css'e taşındı */
+
+/* ── Mesaj Yazar Satırı Detay Butonu ─────────────────── */
+
+
+
+
+
+
+
+
+/* Genel hidden class */
+.hidden { display: none !important; }
+/* Oda içi kontrol butonları için (gf-pause-btn vb. `hidden` class'ını
+   syncSharedFocusTimerUI() zaten çalışma-durumuna göre kullanıyor —
+   çakışmasın diye ayrı bir class) */
+.cw-controls-hidden { display: none !important; }
+/* Sıralama/Seri/Bugün sekmeli kartı (bento-card--rankings) — üç panel arasında
+   içerik uzunluğu (satır sayısı) farklı olduğu için sekme değişince kart
+   büzülüp genişliyor, hatta fade-out sırasında eski+yeni panel aynı anda
+   akışta kalıp aşağı-yukarı zıplıyordu. Çözüm: panelleri ortak bir kutuda
+   üst üste (position:absolute) bindirip kutuya sabit yükseklik vermek —
+   böylece sekme değişimi sadece opaklık geçişi, layout hiç oynamıyor
+   (2026-07-13). */
+/* Liderlik Paneli Sekme Stack'i (.rankings-panels-stack) — misc-small-widgets.css'e taşındı */
+
+/* Kişi kartında okunmamış pill */
+.sb-contact-card .dc-unread-pill { margin-right: 4px; }
+
+/* Kişi kartında ... profil butonu */
+.sb-contact-card { position: relative; }
+.sb-contact-detail-btn {
+    display: none;
+    position: absolute;
+    right: 45px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(212,144,14,0.15);
+    border: 1px solid rgba(212,144,14,0.3);
+    color: rgba(255,255,255,0.55);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    z-index: 2;
+}
+.sb-contact-card:hover .sb-contact-detail-btn {
+    display: flex;
+    align-items: center;
+}
+.sb-contact-detail-btn:hover {
+    background: var(--primary-color);
+    color: #fff;
+    border-color: var(--primary-color);
+}
+
+
+/* Oda Presence Şeridi (.room-presence-, .presence-) -> room-presence-strip.css'e taşındı */
+
+/* Arkadaşlar sekmesi veya sohbet sidebar'ı açıkken sabit butonları gizle */
+body:has(#arkadaslar.active) #theme-toggle-wrapper,
+body:has(#arkadaslar.active) #floating-quick-add-btn,
+body:has(.social-sidebar-panel:not(.hidden-sidebar)) #theme-toggle-wrapper,
+body:has(.social-sidebar-panel:not(.hidden-sidebar)) #floating-quick-add-btn {
+    display: none !important;
+}

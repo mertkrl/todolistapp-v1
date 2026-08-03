@@ -1,0 +1,85 @@
+/* Planlama — Dönüm Noktası Yorum/Onay/İstatistik Widget'ları (.pg-comment-, .pg-mention, .pg-approval-, .pg-stats-) — style.css'ten 3 parça halinde çıkarıldı */
+
+/* ===== Yorum Konusu + Onay Çubuğu ===== */
+.pg-comment-thread { padding: 10px 12px; }
+
+/* Approval bar */
+.pg-approval-bar {
+    display: flex; align-items: center; gap: 8px;
+    padding-bottom: 8px; margin-bottom: 8px;
+    border-bottom: 1px solid var(--b1,rgba(255,255,255,0.06));
+    flex-wrap: wrap;
+}
+.pg-approval-label { font-size: 11px; color: var(--t2,#888); display: flex; align-items: center; gap: 4px; }
+.pg-approval-badges { display: flex; gap: 4px; flex-wrap: wrap; flex: 1; }
+.pg-approval-avatar {
+    width: 22px; height: 22px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 700; color: #fff; cursor: default;
+}
+.pg-approval-count { font-size: 11px; color: #4ade80; font-weight: 600; }
+.pg-approval-empty { font-size: 11px; color: var(--t2,#888); }
+.pg-approval-btn {
+    padding: 3px 10px; border-radius: 6px;
+    border: 1px solid var(--b2,rgba(255,255,255,0.11));
+    background: transparent; color: var(--t2,#888);
+    font-size: 11px; font-weight: 600; cursor: pointer;
+    font-family: inherit; display: flex; align-items: center; gap: 4px;
+    transition: all .18s; white-space: nowrap;
+}
+.pg-approval-btn:hover, .pg-approval-btn.approved { background: rgba(74,222,128,.1); color: #4ade80; border-color: rgba(74,222,128,.3); }
+
+/* ===== Yorum Listesi + Form ===== */
+.pg-comment-list { margin-bottom: 10px; }
+.pg-comment-empty { font-size: 12px; color: var(--t2,#888); text-align: center; padding: 10px 0; }
+.pg-comment { display: flex; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--b1,rgba(255,255,255,0.04)); }
+.pg-comment:last-child { border-bottom: none; }
+.pg-comment-avatar {
+    width: 26px; height: 26px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700; color: #fff; flex-shrink: 0;
+}
+.pg-comment-body { flex: 1; min-width: 0; }
+.pg-comment-meta { display: flex; align-items: baseline; gap: 6px; margin-bottom: 2px; }
+.pg-comment-author { font-size: 12px; font-weight: 700; color: var(--t1,#F2F2F2); }
+.pg-comment-time   { font-size: 10px; color: var(--t2,#888); }
+.pg-comment-text   { font-size: 12px; color: rgba(255,255,255,0.7); line-height: 1.5; word-break: break-word; }
+.pg-mention        { color: #a78bfa; font-weight: 600; }
+
+/* Comment form */
+.pg-comment-form { border-top: 1px solid var(--b1,rgba(255,255,255,0.06)); padding-top: 8px; }
+.pg-comment-input-wrap { display: flex; gap: 6px; align-items: flex-end; }
+.pg-comment-input { flex: 1; font-size: 12px !important; padding: 7px 10px !important; min-height: 60px; resize: none; }
+.pg-comment-send-btn {
+    width: 32px; height: 32px; border-radius: 8px;
+    border: 1px solid var(--a,#D4900E); background: var(--a10,rgba(212,144,14,.10));
+    color: var(--a,#D4900E); cursor: pointer; display: flex;
+    align-items: center; justify-content: center; font-size: 14px;
+    transition: all .18s; flex-shrink: 0;
+}
+.pg-comment-send-btn:hover { background: var(--a,#D4900E); color: #000; }
+.pg-mention-hint { font-size: 10px; color: var(--t2,#888); margin-top: 4px; }
+
+/* ===== İstatistik Özeti ===== */
+.pg-stats-overview {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(120px,1fr));
+    gap: 10px; margin-bottom: 14px;
+}
+.pg-stats-mini {
+    background: var(--s2,#1E1E20);
+    border: 1px solid var(--b1,rgba(255,255,255,0.06));
+    border-radius: 10px; padding: 12px;
+    text-align: center;
+}
+.pg-stats-mini-n { font-size: 20px; font-weight: 800; }
+.pg-stats-mini-l { font-size: 11px; color: var(--t2,#888); margin-top: 2px; text-transform: uppercase; letter-spacing: .04em; }
+.pg-stats-goal-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 0; border-bottom: 1px solid var(--b1,rgba(255,255,255,0.06));
+}
+.pg-stats-goal-row:last-child { border-bottom: none; }
+.pg-stats-goal-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.pg-stats-goal-name { font-size: 12px; color: var(--t1,#F2F2F2); flex: 1; }
+.pg-stats-goal-bar-wrap { width: 80px; height: 4px; border-radius: 4px; background: rgba(255,255,255,0.07); overflow: hidden; }
+.pg-stats-goal-bar { height: 100%; border-radius: 4px; }
+.pg-stats-goal-pct { font-size: 11px; color: var(--t2,#888); min-width: 32px; text-align: right; }

@@ -1,0 +1,380 @@
+/* Alışkanlıklar (.habit-) — style.css'ten çıkarıldı */
+
+/* ===== Alışkanlık Listesi Çekirdeği ===== */
+.habit-filter-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-muted);
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: 0.3s;
+}
+
+.filter-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.filter-btn.active {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: #fff;
+    box-shadow: 0 4px 10px rgba(212, 144, 14, 0.4);
+}
+
+
+#habit-list { list-style: none; }
+
+/* ── Habit list toolbar ── */
+.habit-list-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 12px;
+}
+.habit-clean-btn {
+    background: none;
+    border: 1px solid rgba(225,112,85,0.25);
+    color: rgba(225,112,85,0.7);
+    font-size: 12px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.15s, color 0.15s;
+}
+.habit-clean-btn:hover { background: rgba(225,112,85,0.08); color: #e17055; }
+
+/* ── Habit list ── */
+.habit-list-clean {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.habit-list-clean > * { flex-shrink: 0; }
+
+/* ── Habit item ── */
+.habit-item {
+    background: rgba(255,255,255,0.025);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-left: 3px solid var(--primary-color);
+    padding: 14px 16px;
+    border-radius: 10px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    transition: background 0.15s;
+}
+.habit-item:hover .habit-side-actions { opacity: 1; }
+
+.habit-icon-wrapper {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: rgba(212,144,14,0.1);
+    color: var(--primary-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.habit-details {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+.habit-header-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.habit-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    line-height: 1.3;
+}
+.habit-streak {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--primary-color);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    opacity: 0.8;
+}
+.habit-category-tag {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.06);
+    color: var(--text-muted);
+    border: 1px solid rgba(255,255,255,0.07);
+    margin-left: auto;
+}
+
+
+
+/* Progress */
+.habit-progress-wrapper { width: 100%; }
+.habit-progress-container {
+    width: 100%;
+    height: 4px;
+    background: rgba(255,255,255,0.07);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 5px;
+}
+.habit-progress-fill {
+    height: 100%;
+    background: #2ed573;
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+.habit-progress-text {
+    font-size: 11px;
+    color: var(--text-muted);
+    display: block;
+    text-align: right;
+}
+
+/* Tracker dots */
+.habit-tracker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    max-height: 120px;
+    overflow-y: auto;
+}
+.habit-tracker::-webkit-scrollbar { width: 3px; }
+.habit-tracker::-webkit-scrollbar-track { background: transparent; }
+.habit-tracker::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+
+.tracker-dot {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.09);
+    transition: background 0.15s, border-color 0.15s;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+.tracker-dot.locked { cursor: default; opacity: 0.6; }
+.tracker-dot:not(.locked):hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.15); }
+.tracker-dot.today {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    background: rgba(212,144,14,0.1);
+}
+.tracker-dot.missed {
+    background: rgba(255,71,87,0.08);
+    border-color: rgba(255,71,87,0.25);
+    color: rgba(255,71,87,0.6);
+}
+
+/* Sağ aksiyon kolonu */
+.habit-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    flex-shrink: 0;
+}
+.complete-today-btn {
+    background: rgba(46,213,115,0.1);
+    color: #2ed573;
+    border: 1px solid rgba(46,213,115,0.22);
+    padding: 7px 14px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 12px;
+    transition: background 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    font-family: inherit;
+}
+.complete-today-btn.done:hover { background: rgba(46,213,115,0.28); }
+
+.habit-side-actions {
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+.edit-habit-btn,
+.habit-del-btn {
+    background: none;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 11px;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    font-family: inherit;
+}
+.edit-habit-btn:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.12); color: #fff; }
+.habit-del-btn { color: rgba(255,71,87,0.35); }
+.habit-del-btn:hover { background: rgba(255,71,87,0.08); border-color: rgba(255,71,87,0.2); color: #ff4757; }
+
+/* ── Alışkanlık Oluşturma Modali ── */
+.habit-modal-content {
+    max-width: 500px !important;
+    border-radius: 14px !important;
+}
+
+/* ===== Alışkanlık Premium Mini Kart (Hedef Detay içinde kullanılıyor) ===== */
+/* Alışkanlık Üst Başlık (İkon, İsim ve Bugün Durumu) */
+.habit-premium-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.habit-premium-title-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+}
+
+.habit-premium-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: rgba(200, 140, 230, 0.15);
+    color: #c88ce6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 14px;
+    box-shadow: inset 0 0 8px rgba(200, 140, 230, 0.1);
+}
+
+.habit-premium-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Bugünün Tiki (Interactive) */
+.habit-premium-today-check {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-muted);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: 0.3s;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.habit-premium-today-check:hover {
+    background: rgba(46, 213, 115, 0.1);
+    border-color: rgba(46, 213, 115, 0.3);
+    color: #2ed573;
+}
+
+.habit-premium-today-check.done {
+    background: rgba(46, 213, 115, 0.15);
+    border-color: #2ed573;
+    color: #2ed573;
+    box-shadow: 0 0 10px rgba(46, 213, 115, 0.2);
+}
+
+/* Alışkanlık İlerleme Çubuğu Bölümü */
+.habit-premium-progress-area {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+}
+
+.habit-premium-stats {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.habit-premium-stats strong {
+    color: #c88ce6;
+    font-weight: 700;
+    font-size: 13px;
+}
+
+.habit-premium-track {
+    height: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+}
+
+.habit-premium-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #D4900E, #c88ce6);
+    border-radius: 10px;
+    transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    box-shadow: 0 0 10px rgba(200, 140, 230, 0.4);
+}
+
+.habit-premium-fill::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    animation: habit-shine 2s infinite linear;
+}
+
+@keyframes habit-shine {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}

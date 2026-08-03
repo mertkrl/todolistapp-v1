@@ -4,12 +4,13 @@
 // Özel anahtar yalnızca bu cihazda (localStorage) tutulur; bu yüzden mesajlar
 // sadece anahtarın oluşturulduğu cihazda çözülebilir.
 // NOT: currentUser social.js'te tanımlı, mutable (login/logout'ta
-// yeniden atanıyor) — window.currentUser köprüsü BİLİNÇLİ OLARAK bırakıldı.
+// yeniden atanıyor) — getCurrentUser() köprüsü BİLİNÇLİ OLARAK bırakıldı.
 // Faz G Kategori 3: getUser/getDB artık social.js'ten gerçek import ile
 // alınıyor. Bunun güvenli olması için inline-module-loader.js'te bu dosya
 // social.js'ten SONRAYA taşındı (önceden ÖNCE yükleniyordu, statik import
 // social.js'i erken yükleyip modül init sırasını bozardı).
 import { getUser, getDB } from './social.js';
+import { getCurrentUser } from './state/current-user-store.js';
 (function () {
 'use strict';
 
@@ -112,10 +113,10 @@ async function getOrCreateE2EKeyPair() {
         // Her zaman güncel public key'i Supabase'e yaz.
         // Hard reset sonrası localStorage'da yeni private key oluşturulur;
         // eski Supabase kaydı kalırsa ECDH shared key uyuşmazlığı olur.
-        if (window.FocusSupabase && window.currentUser?.id) {
+        if (window.FocusSupabase && getCurrentUser()?.id) {
             window.FocusSupabase.from('profiles')
                 .update({ e2e_public_key: jwkPublic })
-                .eq('id', window.currentUser.id)
+                .eq('id', getCurrentUser().id)
                 .then(({ error }) => {
                     if (error) console.warn('[E2E] public key Supabase\'e yazılamadı:', error.message);
                 });

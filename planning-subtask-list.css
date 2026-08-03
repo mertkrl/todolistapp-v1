@@ -1,0 +1,27 @@
+/* Planlama — Alt Görev Listesi (.pg-subtask-) — style.css'ten çıkarıldı */
+
+/* Sub-task stili */
+.pg-subtask-list { margin: 6px 0 4px 0; display: flex; flex-direction: column; gap: 3px; }
+.pg-subtask-item { display: flex; align-items: center; gap: 6px; padding: 3px 0; }
+.pg-subtask-check {
+    width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid rgba(255,255,255,0.2);
+    flex-shrink: 0; cursor: pointer; transition: all .15s;
+}
+.pg-subtask-check.done { background: #4ade80; border-color: #4ade80; position: relative; }
+.pg-subtask-check.done::after { content:'✓'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:9px; color:#000; font-weight:800; }
+.pg-subtask-title { flex: 1; font-size: 12px; color: var(--t1,#F2F2F2); }
+.pg-subtask-item.done .pg-subtask-title { text-decoration: line-through; color: var(--t2,#888); }
+.pg-subtask-del {
+    background: none; border: none; color: var(--t2,#888); cursor: pointer;
+    font-size: 14px; line-height: 1; padding: 0 2px; opacity: 0; transition: opacity .15s;
+}
+.pg-subtask-item:hover .pg-subtask-del { opacity: 0.6; }
+.pg-subtask-del:hover { opacity: 1 !important; color: #f87171; }
+.pg-subtask-add-row { margin-top: 4px; }
+.pg-subtask-input {
+    width: 100%; background: transparent; border: none; border-bottom: 1px dashed var(--b2,rgba(255,255,255,0.1));
+    color: var(--t2,#888); font-size: 11px; outline: none; padding: 3px 0;
+    transition: border-color .15s;
+}
+.pg-subtask-input:focus { border-color: var(--a,#D4900E); color: var(--t1,#F2F2F2); }
+.pg-subtask-input::placeholder { color: var(--t2,#555); }

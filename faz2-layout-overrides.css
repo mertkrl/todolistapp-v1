@@ -1,0 +1,133 @@
+/* style.css'ten çıkarıldı (Faz C, 2026-07-22). FAZ 2 — Layout Yapısı Overrides (dock+topbar mimarisine geçiş). Global body flex-column, #app-sidebar, #v2-topbar, .app-container, .content-area, .page-section, .background-blobs, .dock z-index, #floating-quick-add-btn taban konumu. NOT: link app-shell-layout.css/focus-mode-page-shell.css/chat-fab-drag-room-pills.css'TEN SONRA olmalı (4 çakışma bulundu, bu dosya kazanmalı — daha SONRAKİ patch). */
+
+/* ============================================================
+   FAZ 2 — Layout Yapısı Overrides
+   Eski glass-panel sidebar yerini dock + topbar alıyor.
+   Tüm JS ID'leri ve page-section'lar korunuyor.
+   ============================================================ */
+
+/* Body: column (topbar üstte, content altta) */
+body {
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    align-items: stretch !important;
+    background: var(--bg) !important;
+    overflow: hidden !important;
+}
+
+/* Eski dekoratif arka plan kaldırıldı */
+.background-blobs { display: none !important; }
+
+/* App container: topbar'ın altında tam genişlik */
+.app-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: calc(100vh - 52px) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+/* Eski sidebar gizlendi - JS ID'leri hâlâ çalışıyor */
+#app-sidebar { display: none !important; }
+
+/* Content area: yeni layout için sıfırlandı */
+.content-area {
+    padding: 0 !important;
+    background: var(--bg) !important;
+}
+
+/* Page sections: yeni layout */
+.page-section {
+    height: 100%;
+    overflow-y: auto;
+    padding: 28px;
+    box-sizing: border-box;
+}
+
+/* Eski fixed theme toggle artık topbar'da */
+#theme-toggle-wrapper { display: none !important; }
+
+/* Topbar fixed değil, flow içinde */
+#v2-topbar {
+    position: relative;
+    z-index: 100;
+    flex-shrink: 0;
+}
+
+/* Topbar içindeki tema butonu */
+#v2-topbar #theme-toggle-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: var(--s2);
+    border: 1px solid var(--b1);
+    color: #feca57;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    font-size: 15px;
+}
+#v2-topbar #theme-toggle-btn:hover { background: var(--s3); }
+
+/* Topbar bildirim butonu */
+#v2-topbar #global-notif-btn {
+    position: relative;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: var(--s2);
+    border: 1px solid var(--b1);
+    color: var(--t2);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    font-size: 15px;
+}
+#v2-topbar #global-notif-btn:hover { background: var(--s3); color: var(--t1); }
+#v2-topbar #global-notif-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: #ff4757;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    min-width: 16px;
+    height: 16px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 3px;
+    line-height: 1;
+}
+
+/* Dock z-index (tooltips üstte görünsün) */
+.dock { z-index: 50; }
+
+/* Floating quick add: dock'un üstünde konumlandır */
+#floating-quick-add-btn {
+    bottom: 24px !important;
+    right: 24px !important;
+}
+
+/* Focus mode uyumluluğu */
+body.focus-mode-active .app-container {
+    height: 100vh !important;
+}
+body.focus-mode-active #v2-topbar {
+    display: none;
+}
+
+/* Takvim fullscreen uyumluluğu */
+body.has-cal-fullscreen .app-container {
+    height: calc(100vh - 52px) !important;
+}

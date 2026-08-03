@@ -1,0 +1,147 @@
+/* style.css'ten çıkarıldı (Faz C, 2026-07-22). Sohbet sistemi FAZ 1-3 geliştirmeleri: rol rozetleri, duyuru kanalı, dosya eki, global arama, kayıt modalı rol seçimi, pinlenmiş mesajlar, ileti picker, düzenlendi etiketi, analitik panel, kanal temaları, üye aktivite detayı. */
+
+/* ══════════════════════════════════════════════════════════
+   FAZ 1: SOHBET SİSTEMİ GELİŞTİRMELERİ
+   ══════════════════════════════════════════════════════════ */
+
+/* Rol Rozetleri (.dc-role-) -> chat-misc-widgets.css'e taşındı */
+
+/* ── Duyuru kanalı stil ── */
+.dc-subchan-announcement .dc-ch-name {
+    color: #fdcb6e;
+}
+.dc-subchan-announcement:hover {
+    background: rgba(253, 203, 110, 0.08) !important;
+}
+.dc-subchan-announcement.active {
+    background: rgba(253, 203, 110, 0.15) !important;
+}
+
+/* ── Dosya eki bileşeni ── */
+.dc-msg-attachment {
+    margin-top: 6px;
+    max-width: 260px;
+}
+.dc-msg-attachment img {
+    max-width: 100%;
+    max-height: 220px;
+    border-radius: 8px;
+    display: block;
+    cursor: pointer;
+    object-fit: cover;
+    transition: opacity 0.15s;
+}
+.dc-msg-attachment img:hover { opacity: 0.9; }
+
+/* ── Global mesaj arama paneli ── */
+/* Sohbet İçi Genel Arama (.focuschat-global-search/.fgs-*) — misc-small-widgets.css'e taşındı */
+
+/* ── Kayıt modalı rol seçimi ── */
+
+
+
+
+/* Dosya Yükleme (.dc-file-) -> chat-misc-widgets.css'e taşındı */
+
+/* ══════════════════════════════════════════════════════════
+   FAZ 2: EĞİTİM & KURUM ÖZELLİKLERİ
+   ══════════════════════════════════════════════════════════ */
+
+/* Anket Kartı (.poll-) -> poll-card.css'e taşındı */
+
+/* ── Günlük Özet Formu ── */
+.ds-field { display: flex; flex-direction: column; gap: 5px; }
+.ds-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.7);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* DND/Bildirim Toggle Switch (.toggle-switch/.toggle-slider) — misc-small-widgets.css'e taşındı */
+
+/* ── Mesaj hover: Görev oluştur butonu ── */
+
+
+/* ── Sınıf tipi rozeti (grup listesinde) ── */
+
+
+/* ── Ödev kartı (assignments) ── */
+
+
+
+
+
+
+/* ── Chat input Faz 2 butonları (Anket, Özet) ── */
+.dc-notif-btn {
+    padding: 6px 8px;
+    border-radius: 6px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: rgba(255,255,255,0.5);
+    font-size: 14px;
+    transition: color 0.15s, background 0.15s;
+    flex-shrink: 0;
+}
+
+
+.dc-notif-btn:hover   { color: #fdcb6e; background: rgba(253,203,110,0.1); }
+
+
+/* ══════════════════════════════════════════════════════════
+   FAZ 3: Gelişmiş Sohbet Araçları
+   ══════════════════════════════════════════════════════════ */
+
+/* ── Pinlenmiş Mesajlar Paneli ── */
+
+.dc-pins-panel.hidden { display: none; }
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ── Mesaj İletme Picker ── */
+
+
+
+
+
+
+/* ── Mesaj düzenlendi etiketi — tıklanabilir ── */
+.dc-msg-edited-tag {
+    font-size: 10px;
+    color: rgba(255,255,255,0.3);
+    margin-left: 4px;
+    transition: color 0.15s;
+}
+.dc-msg-edited-tag:hover { color: #a29bfe; text-decoration: underline; }
+
+/* ── Analitikler paneli arka plan ── */
+
+
+/* ── Kanal temaları — per-channel badge ── */
+
+
+/* Hybrid Chat UI (.hc-*, .dc-sys-card) -> hybrid-chat-ui.css'e taşındı */
+
+/* Üye listesinde aktivite detayı */
+.dc-member-activity-detail {
+    font-size: 9px;
+    color: rgba(255,255,255,0.22);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 1px;
+}

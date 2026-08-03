@@ -1,3 +1,4 @@
+import { fmtShort } from './planning-utils.js';
 // ─── PLANLAMA SİHİRBAZI — Planlayıcı Takvim Yardımcıları ───────────────
 // planning-milestone-wizard.js dosyasından çıkarıldı (Faz H/I devamı,
 // 2026-07-26). Adım 4'teki günlük/haftalık/aylık planlayıcı takvim
@@ -70,8 +71,8 @@ export function _wzPlanToolbar(count, label, cat, quickBtns) {
     const pct = count > 0 ? 100 : 0; // sadece "seçildi" gösterimi
     return `<div class="pg-wz-plan-toolbar">
         <div class="pg-wz-plan-counter-wrap">
-            <span class="pg-wz-plan-counter" style="color:${count > 0 ? cat.color : '#555'};">
-                ${count > 0 ? `<i class="ti ti-check" style="color:${cat.color};"></i> ${count} ${label} seçildi` : `<i class="ti ti-hand-click"></i> Planlayacağın ${label}leri seç`}
+            <span class="pg-wz-plan-counter${count > 0 ? ' has-sel' : ''}">
+                ${count > 0 ? `<i class="ti ti-check"></i> ${count} ${label} seçildi` : `<i class="ti ti-hand-click"></i> Planlayacağın ${label}leri seç`}
             </span>
         </div>
         <div class="pg-wz-plan-quick-btns">
@@ -79,6 +80,63 @@ export function _wzPlanToolbar(count, label, cat, quickBtns) {
             ${count > 0 ? `<button class="pg-wz-plan-qbtn pg-wz-plan-qbtn-clear" data-action="clear" type="button"><i class="ti ti-x"></i> Temizle</button>` : ''}
         </div>
     </div>`;
+}
+
+// Faz CSP: _wzPlanToolbar/_wzDailyCalHTML/_wzWeeklyCalHTML/_wzMonthlyCalHTML'nin
+// döndürdüğü statik HTML üzerinde kategori rengine bağlı stilleri doğrudan
+// .style özellik ataması ile uygular. root, HTML'in yerleştirildiği kapsayıcıdır.
+export function _wzApplyPlannerCalColors(root, cat) {
+    const counterEl = root.querySelector('.pg-wz-plan-counter');
+    if (counterEl) {
+        const hasSel = counterEl.classList.contains('has-sel');
+        counterEl.style.color = hasSel ? cat.color : '#555';
+        const checkIcon = counterEl.querySelector('.ti-check');
+        if (checkIcon) checkIcon.style.color = cat.color;
+    }
+    // Günlük görünüm
+    root.querySelectorAll('.pg-wz-plan-day.selected').forEach(dayEl => {
+        dayEl.style.background = cat.color + '33';
+        dayEl.style.borderColor = cat.color;
+        dayEl.style.color = cat.color;
+        dayEl.style.fontWeight = '700';
+    });
+    // Haftalık görünüm
+    root.querySelectorAll('.pg-wz-plan-week').forEach(weekEl => {
+        const sel = weekEl.classList.contains('selected');
+        if (sel) {
+            weekEl.style.background = cat.color + '18';
+            weekEl.style.borderColor = cat.color;
+        }
+        const datesEl = weekEl.querySelector('.pg-wz-week-dates');
+        if (datesEl && sel) { datesEl.style.color = cat.color; datesEl.style.fontWeight = '700'; }
+        const badgeEl = weekEl.querySelector('.pg-wz-week-current-badge');
+        if (badgeEl) {
+            badgeEl.style.color = cat.color;
+            badgeEl.style.borderColor = cat.color + '44';
+            badgeEl.style.background = cat.color + '15';
+        }
+        const iconEl = weekEl.querySelector('.pg-wz-week-icon');
+        if (iconEl) iconEl.style.color = sel ? cat.color : '#444';
+        if (sel) {
+            weekEl.querySelectorAll('.pg-wz-week-day-dot.active').forEach(dotEl => { dotEl.style.background = cat.color; });
+        }
+    });
+    // Aylık görünüm
+    root.querySelectorAll('.pg-wz-plan-month-card').forEach(cardEl => {
+        const sel = cardEl.classList.contains('selected');
+        if (sel) {
+            cardEl.style.background = cat.color + '20';
+            cardEl.style.borderColor = cat.color;
+        }
+        const abbrEl = cardEl.querySelector('.pg-wz-month-abbr');
+        if (abbrEl && sel) abbrEl.style.color = cat.color;
+        const fullEl = cardEl.querySelector('.pg-wz-month-full');
+        if (fullEl && sel) { fullEl.style.color = cat.color; fullEl.style.fontWeight = '700'; }
+        const checkEl = cardEl.querySelector('.pg-wz-month-check');
+        if (checkEl && sel) checkEl.style.background = cat.color;
+        const iconEl = checkEl?.querySelector('i');
+        if (iconEl) { iconEl.style.color = sel ? '#fff' : '#444'; iconEl.style.fontSize = '14px'; }
+    });
 }
 
 export function _wzDailyCalHTML(start, end, units, cat) {
@@ -112,8 +170,7 @@ export function _wzDailyCalHTML(start, end, units, cat) {
             const dow  = (dObj.getDay() + 6) % 7; // 5=Ct, 6=Pz
             const isWE = dow === 5 || dow === 6;
             let cls = `pg-wz-plan-day${inR ? ' in-range' : ' out-range'}${sel ? ' selected' : ''}${isT ? ' today' : ''}${isWE && inR ? ' weekend' : ''}`;
-            cells += `<div class="${cls}"${inR ? ` data-unit="${ds}" role="button"` : ''}
-                style="${sel ? `background:${cat.color}33;border-color:${cat.color};color:${cat.color};font-weight:700;` : ''}">
+            cells += `<div class="${cls}"${inR ? ` data-unit="${ds}" role="button"` : ''}>
                 ${d}${isT ? '<div class="pg-wz-plan-today-dot"></div>' : ''}
             </div>`;
         }
@@ -154,16 +211,15 @@ export function _wzWeeklyCalHTML(start, end, units, cat) {
         const dayDots = Array.from({length:7}, (_,i) => {
             const day = new Date(w.start); day.setDate(day.getDate() + i);
             const inR = day >= start && day <= end;
-            return `<div class="pg-wz-week-day-dot${inR?' active':''}" style="${inR && sel ? `background:${cat.color};` : ''}"></div>`;
+            return `<div class="pg-wz-week-day-dot${inR?' active':''}"></div>`;
         }).join('');
-        return `<div class="pg-wz-plan-week${sel?' selected':''}${w.isCurrent?' current':''}" data-unit="${w.key}" role="button"
-            style="${sel ? `background:${cat.color}18;border-color:${cat.color};` : ''}">
+        return `<div class="pg-wz-plan-week${sel?' selected':''}${w.isCurrent?' current':''}" data-unit="${w.key}" role="button">
             <div class="pg-wz-week-main">
-                <div class="pg-wz-week-dates" style="${sel ? `color:${cat.color};font-weight:700;` : ''}">${window.fmtShort(w.start)} — ${window.fmtShort(w.end)}</div>
-                ${w.isCurrent ? `<span class="pg-wz-week-current-badge" style="color:${cat.color};border-color:${cat.color}44;background:${cat.color}15;">Bu Hafta</span>` : ''}
+                <div class="pg-wz-week-dates">${fmtShort(w.start)} — ${fmtShort(w.end)}</div>
+                ${w.isCurrent ? `<span class="pg-wz-week-current-badge">Bu Hafta</span>` : ''}
             </div>
             <div class="pg-wz-week-day-dots">${dayDots}</div>
-            <i class="ti ${sel?'ti-check':'ti-plus'} pg-wz-week-icon" style="${sel?`color:${cat.color}`:'color:#444'};"></i>
+            <i class="ti ${sel?'ti-check':'ti-plus'} pg-wz-week-icon"></i>
         </div>`;
     }).join('');
 
@@ -201,13 +257,12 @@ export function _wzMonthlyCalHTML(start, end, units, cat) {
         const daysInRange = rEnd >= rStart
             ? Math.ceil((rEnd - rStart) / 86400000) + 1
             : 0;
-        return `<div class="pg-wz-plan-month-card${sel?' selected':''}" data-unit="${m.key}" role="button"
-            style="${sel ? `background:${cat.color}20;border-color:${cat.color};` : ''}">
-            <div class="pg-wz-month-abbr" style="${sel ? `color:${cat.color};` : ''}">${m.abbr}</div>
-            <div class="pg-wz-month-full" style="${sel ? `color:${cat.color};font-weight:700;` : ''}">${m.label}</div>
+        return `<div class="pg-wz-plan-month-card${sel?' selected':''}" data-unit="${m.key}" role="button">
+            <div class="pg-wz-month-abbr">${m.abbr}</div>
+            <div class="pg-wz-month-full">${m.label}</div>
             <div class="pg-wz-month-days-hint">${daysInRange} gün</div>
-            <div class="pg-wz-month-check" style="${sel ? `background:${cat.color};` : ''}">
-                <i class="ti ${sel ? 'ti-check' : 'ti-plus'}" style="color:${sel ? '#fff' : '#444'};font-size:14px;"></i>
+            <div class="pg-wz-month-check">
+                <i class="ti ${sel ? 'ti-check' : 'ti-plus'}"></i>
             </div>
         </div>`;
     }).join('');
@@ -222,6 +277,7 @@ export function _wzBindPlannerCal(wrap, ms, det, cat) {
         const calWrap = document.getElementById('pg-wz-s4-cal-wrap');
         if (!calWrap) return;
         calWrap.innerHTML = _wzPlannerCalHTML(ms, msIdx, cat, det);
+        _wzApplyPlannerCalColors(calWrap, cat);
         _wzBindPlannerCal(calWrap, ms, det, cat);
     };
 
@@ -295,8 +351,9 @@ export function _wzBindPlannerCal(wrap, ms, det, cat) {
             const lbl = wizardState.planMode === 'daily' ? 'gün' : wizardState.planMode === 'weekly' ? 'hafta' : 'ay';
             counter.style.color = n > 0 ? cat.color : '#555';
             counter.innerHTML = n > 0
-                ? `<i class="ti ti-check" style="color:${cat.color};"></i> ${n} ${lbl} seçildi`
+                ? `<i class="ti ti-check"></i> ${n} ${lbl} seçildi`
                 : `<i class="ti ti-hand-click"></i> Planlayacağın ${lbl}leri seç`;
+            if (n > 0) counter.querySelector('.ti-check')?.style.setProperty('color', cat.color);
             // Temizle butonunu göster/gizle
             const clearBtn = wrap.querySelector('[data-action="clear"]');
             if (!clearBtn && n > 0) rerender();

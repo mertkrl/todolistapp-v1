@@ -1,0 +1,21 @@
+/* style.css'ten çıkarıldı (Faz C, 2026-07-22). Planlama Mod Seçimi Modalı (#pg-mode-select-overlay .modal-*). */
+
+/* ================================================================
+   PLANLAMA — MOD SEÇİMİ MODALI
+   ================================================================ */
+#pg-mode-select-overlay .modal-content {
+    border-radius: 14px !important;
+}
+#pg-mode-select-overlay .modal-header {
+    padding: 18px 22px 14px !important;
+    border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+    margin-bottom: 0 !important;
+}
+#pg-mode-select-overlay .modal-header h2 { font-size: 16px; font-weight: 700; color: #fff; }
+#pg-mode-select-overlay .modal-body { padding: 20px 22px !important; }
+#pg-mode-select-overlay .modal-footer {
+    padding: 14px 22px 18px !important;
+    border-top: 1px solid rgba(255,255,255,0.06) !important;
+    margin-top: 0 !important;
+    gap: 8px;
+}

@@ -1,0 +1,27 @@
+/* ── Klavye odak göstergesi güvenlik ağı ──────────────────────────────────
+   Tam erişilebilirlik denetiminde (bkz. proje notları) 37 ayrı CSS kuralının
+   `outline: none` (bazıları `!important` ile) uyguladığı ama YERİNE hiçbir
+   görsel odak göstergesi (box-shadow/border-color değişimi) koymadığı tespit
+   edildi — klavye ile Tab'layan bir kullanıcı, o input/select/textarea/
+   butona geldiğini HİÇBİR ŞEKİLDE göremiyordu (WCAG 2.4.7 ihlali).
+   37 kuralı tek tek düzeltmek yerine (yüksek risk: her birinin bağlamını
+   yanlış anlayıp görsel bozukluk yaratma ihtimali), tek bir genel
+   :focus-visible güvenlik ağı ekledik:
+     - :focus-visible SADECE klavye navigasyonunda tetiklenir (fare
+       tıklamasında değil) — "her tıklamada çirkin outline" sorunu olmaz.
+     - CSS özgüllüğü (specificity) sayesinde, zaten kendi özel odak stiline
+       sahip 26 kural bu genel kuralı ETKİLEMEZ (kendi class-seçicileri daha
+       özgül, kazanırlar) — sadece hiç göstergesi OLMAYAN elementlerde devreye
+       girer.
+     - `!important` gerekli çünkü bazı mevcut kurallar zaten `outline: none
+       !important` kullanıyor; bu güvenlik ağının onları da ezebilmesi lazım. */
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+button:focus-visible,
+a:focus-visible,
+[tabindex]:focus-visible,
+[contenteditable]:focus-visible {
+    outline: 2px solid var(--primary-color, #D4900E) !important;
+    outline-offset: 2px !important;
+}

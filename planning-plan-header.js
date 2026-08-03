@@ -1,3 +1,4 @@
+import { fmtDate, fmtShort, getCat } from './planning-utils.js';
 // ─── PLANVIEW: HEADER / STEPPER ────────────────────────────────────
 // planning.js dosyasından çıkarıldı (Faz 6, YÜKSEK riskli küme — planning.js
 // içindeki en yoğun çıkarma, 27 dış çağrı noktası + 9 paylaşımlı state):
@@ -38,25 +39,31 @@ import { _pvRenderWizard, _localToday, _normYMD } from './planning-wizard.js';
     window._pvRenderHeader = _pvRenderHeader; // planning.js için
     export function _pvRenderHeader(g) {
         window._pvUpdateConflictBanner(g);
-        const cat = window.getCat(g.category);
+        const cat = getCat(g.category);
         const pct = g.progress_pct || 0;
         const el  = document.getElementById('pg-pv-goal-info');
         if (!el) return;
         el.innerHTML = `
-            <div class="pg-pv-goal-cat-dot" style="background:${cat.color};color:${cat.color};"></div>
+            <div class="pg-pv-goal-cat-dot"></div>
             <div>
                 <div class="pg-pv-goal-title-text">${window.esc(g.title)}</div>
                 <div class="pg-pv-goal-meta">
                     <span>${cat.icon} ${cat.label}</span>
-                    ${g.deadline ? `<span>·</span><span><i class="ti ti-calendar-due"></i> ${window.fmtDate(g.deadline)}</span>` : ''}
+                    ${g.deadline ? `<span>·</span><span><i class="ti ti-calendar-due"></i> ${fmtDate(g.deadline)}</span>` : ''}
                 </div>
             </div>
             <div class="pg-pv-goal-progress-wrap">
                 <div class="pg-pv-goal-progress-bar">
-                    <div class="pg-pv-goal-progress-fill" style="width:${pct}%;background:${cat.color};"></div>
+                    <div class="pg-pv-goal-progress-fill"></div>
                 </div>
-                <span class="pg-pv-goal-pct" style="color:${cat.color};">${pct}%</span>
+                <span class="pg-pv-goal-pct"></span>
             </div>`;
+        const _catDot = el.querySelector('.pg-pv-goal-cat-dot');
+        if (_catDot) { _catDot.style.background = cat.color; _catDot.style.color = cat.color; }
+        const _progFill = el.querySelector('.pg-pv-goal-progress-fill');
+        if (_progFill) { _progFill.style.width = pct + '%'; _progFill.style.background = cat.color; }
+        const _pctEl = el.querySelector('.pg-pv-goal-pct');
+        if (_pctEl) { _pctEl.style.color = cat.color; _pctEl.textContent = pct + '%'; }
 
         // Seq toggle sync — ders planında anlamsız (aşamalar öğretmen tarafından serbestçe eklenir), gizle
         const seqCheck = document.getElementById('pg-pv-seq-check');
@@ -131,7 +138,7 @@ import { _pvRenderWizard, _localToday, _normYMD } from './planning-wizard.js';
                     </button>`;
                 document.getElementById('pg-pv-invite-later-btn')?.addEventListener('click', async () => {
                     const btn = document.getElementById('pg-pv-invite-later-btn');
-                    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader" style="animation:spin .8s linear infinite;display:inline-block;"></i>'; }
+                    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader u-animation-spinp8slinearinfinite_display-inline-block" ></i>'; }
                     try {
                         const { roomId, inviteCode } = await window.PlanningCollab.enableCollab(g.id, g.title);
                         window._updateGoalCollabState?.(g.id, { collab_room_id: roomId, invite_code: inviteCode, is_collaborative: true });
@@ -160,7 +167,7 @@ import { _pvRenderWizard, _localToday, _normYMD } from './planning-wizard.js';
         if (codeEl) codeEl.textContent = inviteCode || '—';
 
         const membersEl = document.getElementById('pg-pv-collab-members');
-        if (membersEl) membersEl.innerHTML = '<p style="font-size:12px;color:var(--text-muted);">Henüz katılan yok. Kodu paylaştıktan sonra arkadaşın <strong>Odaya Katıl</strong> seçeneğinden bu kodu girince burada görünür.</p>';
+        if (membersEl) membersEl.innerHTML = '<p class="u-font-size-12px_color-var-text-muted">Henüz katılan yok. Kodu paylaştıktan sonra arkadaşın <strong>Odaya Katıl</strong> seçeneğinden bu kodu girince burada görünür.</p>';
 
         const copyBtn = document.getElementById('pg-pv-collab-copy-btn');
         if (copyBtn && !copyBtn._pvBound) {
@@ -184,44 +191,9 @@ import { _pvRenderWizard, _localToday, _normYMD } from './planning-wizard.js';
     // ── Left: Stepper ─────────────────────────
     window._pvRenderStepper = _pvRenderStepper; // planning-wizard.js için
     window._pvRenderStepper = _pvRenderStepper; // planning.js için
-    export function _pvRenderStepper(g) {
-        document.getElementById('pg-pv-body')?.classList.toggle('pg-pv-no-stages', window._pvIsLessonPlan(g));
-        const el  = document.getElementById('pg-pv-stepper');
-        if (!el) return;
-        // Takvimden saat saat eklenen görevlerin aynası olan milestone'lar burada da
-        // hariç tutulur — gerçek bir "aşama" değiller, sol listede aşama gibi görünüp
-        // kafa karıştırmasınlar diye (bkz. _pvIsMirrorMs).
-        const ms  = (g.milestones || []).filter(m => !window._pvIsMirrorMs(m));
-        const cat = window.getCat(g.category);
-
-        // Wizard active and in dates step → keep showing chat even with milestones
-        const wizActive = window.__getPvWiz() && window.__getPvWiz().step !== 'done' && window.__getPvWiz().step !== null;
-
-        // Ders planı: "kaç aşamaya bölmek istersiniz" sohbet sihirbazı hiç gösterilmez —
-        // öğretmen aşamaları doğrudan, tamamen opsiyonel olarak ekler.
-        if (window._pvIsLessonPlan(g)) {
-            document.querySelector('.pg-pv-panel-header')?.style.removeProperty('display');
-            document.getElementById('pg-pv-overall-progress')?.style.removeProperty('display');
-            window.__setPvWiz(null);
-        } else if (!ms.length || wizActive) {
-            // Show wizard if not already in wizard flow
-            if (!window.__getPvWiz()) window.__setPvWiz({ step: 'welcome' });
-            _pvRenderWizard(g, el);
-            // Hide normal panel chrome while in wizard
-            document.querySelector('.pg-pv-panel-header')?.style.setProperty('display','none');
-            document.getElementById('pg-pv-quick-add-ms')?.style.setProperty('display','none');
-            document.getElementById('pg-pv-overall-progress')?.style.setProperty('display','none');
-            return;
-        }
-        // Milestones exist & wizard done — restore normal chrome
-        document.querySelector('.pg-pv-panel-header')?.style.removeProperty('display');
-        document.getElementById('pg-pv-overall-progress')?.style.removeProperty('display');
-        window.__setPvWiz(null);
-
-        const allTasks = FocusStorage.get('tasks', []).filter(t => String(t.parentGoal) === String(g.id));
-        const today    = _localToday();
-
-        el.innerHTML = ms.map((m, i) => {
+    // _pvRenderStepper'dan ayrılan: tek bir milestone'un stepper kartı HTML'ini üretir.
+    // Faz S devamı, dev fonksiyon refactoru.
+    function _pvBuildStepperItemHtml(m, i, ms, g, cat, allTasks, today) {
             const isActive = m.id === window.__getPvActiveMsId();
             const isLocked = window.__getPvSeqMode() && i > 0 && !ms[i - 1].done && !m.done;
             const stsDone  = (m.subtasks || []).filter(s => s.done).length;
@@ -251,22 +223,22 @@ import { _pvRenderWizard, _localToday, _normYMD } from './planning-wizard.js';
             let statusBadge = '';
             if (m.done)        statusBadge = `<span class="pg-pv-ms-badge done">✓ Tamamlandı</span>`;
             else if (isLocked) statusBadge = `<span class="pg-pv-ms-badge locked"><i class="ti ti-lock"></i> Kilitli</span>`;
-            else if (isActive) statusBadge = `<span class="pg-pv-ms-badge active" style="--ms-color:${cat.color};">▶ Aktif</span>`;
+            else if (isActive) statusBadge = `<span class="pg-pv-ms-badge active" data-ms-color-active="1">▶ Aktif</span>`;
 
             // Date range label
             const timeLabel = (m.start_time || m.end_time) ? ` · ${m.start_time || ''}${m.end_time ? '–'+m.end_time : ''}` : '';
             const dateRange = (m.start_date && m.due_date)
-                ? `${window.fmtShort(m.start_date)} → ${window.fmtShort(m.due_date)}${timeLabel}`
-                : m.due_date ? `Bitiş: ${window.fmtShort(m.due_date)}${timeLabel}` : '';
+                ? `${fmtShort(m.start_date)} → ${fmtShort(m.due_date)}${timeLabel}`
+                : m.due_date ? `Bitiş: ${fmtShort(m.due_date)}${timeLabel}` : '';
 
             return `
             ${i > 0 ? `<div class="pg-pv-step-connector${ms[i-1].done?' done':''}"></div>` : ''}
             <div class="pg-pv-step-item${isActive?' active':''}${m.done?' done':''}${isLocked?' locked':''}"
-                data-pvms="${m.id}" style="${isActive?`--ms-color:${cat.color};`:''}"
+                data-pvms="${m.id}"
                 ${isLocked ? 'title="Sıralı modda önceki aşama tamamlanmadan açılamaz"' : ''}>
 
                 <div class="pg-pv-step-top">
-                    <div class="pg-pv-step-num" style="${isActive||m.done?`background:${cat.color};color:#000;`:''}">
+                    <div class="pg-pv-step-num" data-step-num-highlight="${(isActive||m.done) ? '1' : '0'}">
                         ${m.done ? '✓' : i + 1}
                     </div>
                     <div class="pg-pv-step-body">
@@ -280,7 +252,7 @@ import { _pvRenderWizard, _localToday, _normYMD } from './planning-wizard.js';
                 ${(stTotal || mTasks.length) ? `
                 <div class="pg-pv-step-progress-row">
                     <div class="pg-pv-step-progress-bar">
-                        <div class="pg-pv-step-progress-fill" style="width:${stPct}%;background:${cat.color};"></div>
+                        <div class="pg-pv-step-progress-fill" data-step-progress-fill></div>
                     </div>
                     <span class="pg-pv-step-progress-pct">${stPct}%</span>
                 </div>` : ''}
@@ -292,8 +264,11 @@ import { _pvRenderWizard, _localToday, _normYMD } from './planning-wizard.js';
                     ${daysInfo ? `<span class="pg-pv-step-stat${m.due_date < today && !m.done ? ' overdue' : ''}"><i class="ti ti-hourglass"></i> ${daysInfo}</span>` : ''}
                 </div>
             </div>`;
-        }).join('');
+    }
 
+    // _pvRenderStepper'dan ayrılan: stepper kartlarının tıklama (takvimde vurgulama) olayını bağlar.
+    // Faz S devamı, dev fonksiyon refactoru.
+    function _pvWireStepperClicks(el, g) {
         // Click to highlight milestone date on calendar
         el.querySelectorAll('[data-pvms]').forEach(item => {
             item.addEventListener('click', () => {
@@ -312,4 +287,62 @@ import { _pvRenderWizard, _localToday, _normYMD } from './planning-wizard.js';
                 window._pvRenderDayPanel(g, window.__getPvSelectedDate());
             });
         });
+    }
+
+    export function _pvRenderStepper(g) {
+        document.getElementById('pg-pv-body')?.classList.toggle('pg-pv-no-stages', window._pvIsLessonPlan(g));
+        const el  = document.getElementById('pg-pv-stepper');
+        if (!el) return;
+        // Takvimden saat saat eklenen görevlerin aynası olan milestone'lar burada da
+        // hariç tutulur — gerçek bir "aşama" değiller, sol listede aşama gibi görünüp
+        // kafa karıştırmasınlar diye (bkz. _pvIsMirrorMs).
+        const ms  = (g.milestones || []).filter(m => !window._pvIsMirrorMs(m));
+        const cat = getCat(g.category);
+
+        // Wizard active and in dates step → keep showing chat even with milestones
+        const wizActive = window.__getPvWiz() && window.__getPvWiz().step !== 'done' && window.__getPvWiz().step !== null;
+
+        // Ders planı: "kaç aşamaya bölmek istersiniz" sohbet sihirbazı hiç gösterilmez —
+        // öğretmen aşamaları doğrudan, tamamen opsiyonel olarak ekler.
+        if (window._pvIsLessonPlan(g)) {
+            document.querySelector('.pg-pv-panel-header')?.style.removeProperty('display');
+            document.getElementById('pg-pv-overall-progress')?.style.removeProperty('display');
+            window.__setPvWiz(null);
+        } else if (!ms.length || wizActive) {
+            // Show wizard if not already in wizard flow
+            if (!window.__getPvWiz()) window.__setPvWiz({ step: 'welcome' });
+            _pvRenderWizard(g, el);
+            // Hide normal panel chrome while in wizard
+            document.querySelector('.pg-pv-panel-header')?.style.setProperty('display','none');
+            document.getElementById('pg-pv-quick-add-ms')?.classList.add('is-hidden');
+            document.getElementById('pg-pv-overall-progress')?.style.setProperty('display','none');
+            return;
+        }
+        // Milestones exist & wizard done — restore normal chrome
+        document.querySelector('.pg-pv-panel-header')?.style.removeProperty('display');
+        document.getElementById('pg-pv-overall-progress')?.style.removeProperty('display');
+        window.__setPvWiz(null);
+
+        const allTasks = FocusStorage.get('tasks', []).filter(t => String(t.parentGoal) === String(g.id));
+        const today    = _localToday();
+
+        el.innerHTML = ms.map((m, i) => _pvBuildStepperItemHtml(m, i, ms, g, cat, allTasks, today)).join('');
+
+        ms.forEach((m, i) => {
+            const isActive = m.id === window.__getPvActiveMsId();
+            const itemEl = el.querySelector(`[data-pvms="${m.id}"]`);
+            if (!itemEl) return;
+            if (isActive) itemEl.style.setProperty('--ms-color', cat.color);
+            const numEl = itemEl.querySelector('[data-step-num-highlight="1"]');
+            if (numEl) { numEl.style.background = cat.color; numEl.style.color = '#000'; }
+            const activeBadge = itemEl.querySelector('[data-ms-color-active="1"]');
+            if (activeBadge) activeBadge.style.setProperty('--ms-color', cat.color);
+            const stsDone  = (m.subtasks || []).filter(s => s.done).length;
+            const stTotal  = (m.subtasks || []).length;
+            const stPct    = stTotal ? Math.round(stsDone / stTotal * 100) : (m.done ? 100 : 0);
+            const fillEl = itemEl.querySelector('[data-step-progress-fill]');
+            if (fillEl) { fillEl.style.width = stPct + '%'; fillEl.style.background = cat.color; }
+        });
+
+        _pvWireStepperClicks(el, g);
     }

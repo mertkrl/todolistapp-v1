@@ -6,23 +6,24 @@
 // Dış bağımlılıklar salt-okunur köprülerle çözüldü:
 // - currentUser → window._dcGetChatContext().currentUser (social.js'te tanımlı,
 //   burada hiç yazılmıyor)
-// - _cwRoomSupaChannel → window._cwGetRoomChannel() (social.js'te tanımlı,
-//   burada hiç yazılmıyor — sadece ch.send() için okunuyor)
+// - _cwRoomSupaChannel → state/cw-current-room-store.js (gerçek import,
+//   sadece ch.send() için okunuyor)
 // - _escapeHtml → window.escapeHtml (storage-manager.js, zaten global)
 // - _throttleAction → window._throttleAction (zaten köprülüydü)
 //
 // gfBreakChatPath dışarıdan (openSharedFocusOverlay/closeGroupFocusOverlay,
 // social.js'te kalıyor) YAZILIYOR — bu yüzden window.gfSetBreakChatPath()
 // setter'ı eklendi (gfIsRunning/gfSetRunning ile aynı desen).
+import { getCwRoomSupaChannel } from './state/cw-current-room-store.js';
 let gfBreakChatRef = null;
 let gfBreakChatPath = null; // { ref: 'cw_rooms'|'challenge', path }
 
-function gfSetBreakChatPath(path) {
+export function gfSetBreakChatPath(path) {
     gfBreakChatPath = path;
 }
 window.gfSetBreakChatPath = gfSetBreakChatPath;
 
-function gfAppendChatMessage(msg) {
+export function gfAppendChatMessage(msg) {
     const msgsEl = document.getElementById('gf-break-chat-messages');
     if (!msgsEl || !msg) return;
     const emptyEl = msgsEl.querySelector('.cws-bc-empty');
@@ -45,7 +46,7 @@ window.gfAppendChatMessage = gfAppendChatMessage;
 
 let gfBcSavedPos = null; // { top, left } — kullanıcının bıraktığı konum
 
-function gfAlignBreakChat() {
+export function gfAlignBreakChat() {
     const chatEl = document.getElementById('gf-break-chat');
     if (!chatEl) return;
     // Kullanıcı daha önce manuel konumlandırdıysa o konuma dön
@@ -71,7 +72,7 @@ window.gfAlignBreakChat = gfAlignBreakChat;
 
 let _gfBcSupaChannel = null; // Supabase mola sohbeti realtime kanalı
 
-function gfToggleBreakChat(show) {
+export function gfToggleBreakChat(show) {
     const chatEl = document.getElementById('gf-break-chat');
     if (!chatEl) return;
 
@@ -103,7 +104,7 @@ function gfToggleBreakChat(show) {
 }
 window.gfToggleBreakChat = gfToggleBreakChat;
 
-function gfSendBreakMessage() {
+export function gfSendBreakMessage() {
     const input = document.getElementById('gf-break-msg-input');
     const currentUser = window._dcGetChatContext().currentUser;
     if (!input || !input.value.trim() || !gfBreakChatPath || !currentUser) return;
@@ -111,7 +112,7 @@ function gfSendBreakMessage() {
 
     if (gfBreakChatPath.ref === 'focus_session_supabase') {
         // Broadcast üzerinden gönder — oda modu kanalı
-        const ch = window._cwGetRoomChannel();
+        const ch = getCwRoomSupaChannel();
         if (!ch) return;
         const text = input.value.trim().slice(0, 240);
         const displayName = currentUser?.displayName || currentUser?.username || 'Kullanıcı';
@@ -127,7 +128,7 @@ function gfSendBreakMessage() {
 window.gfSendBreakMessage = gfSendBreakMessage;
 
 let gfBreakChatBound = false;
-function gfEnsureBreakChatBindings() {
+export function gfEnsureBreakChatBindings() {
     if (gfBreakChatBound) return;
     gfBreakChatBound = true;
     const input = document.getElementById('gf-break-msg-input');

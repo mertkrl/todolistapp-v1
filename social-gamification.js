@@ -7,10 +7,14 @@
     // Client tamamlanan öğeleri benzersiz ref'lerle olay olarak bildirir;
     // sunucu miktarı kendisi belirler, mükerrerleri reddeder, tavan uygular.
     // window.getLocalXP çevrimdışı/migration-öncesi görüntüleme yedeği olarak kalır.
-    window._myServerXP = null;
+import { getCurrentUser } from './state/current-user-store.js';
+import { getMyServerXP, setMyServerXP } from './state/my-server-xp-store.js';
+import { getMyLeagueState, setMyLeagueState } from './state/my-league-state-store.js';
+import { getMySeasonState, setMySeasonState } from './state/my-season-state-store.js';
+    setMyServerXP(null);
 
-    function getServerXP() {
-        return (typeof window._myServerXP === 'number') ? window._myServerXP : window.getLocalXP();
+export function getServerXP() {
+        return (typeof getMyServerXP() === 'number') ? getMyServerXP() : window.getLocalXP();
     }
     window.getServerXP = getServerXP;
 
@@ -20,15 +24,15 @@
     let _xpFlushBusy = false;
     let _xpFlushTimer = null;
 
-    function _xpGet(key, def) {
+export function _xpGet(key, def) {
         try {
             return typeof FocusStorage !== 'undefined'
                 ? FocusStorage.get(key, def)
-                : (JSON.parse(localStorage.getItem('focusai_' + key)) ?? def);
+                : (JSON.parse(localStorage.getItem('focusai_' + key), window._safeJsonReviver) ?? def);
         } catch { return def; }
     }
     window._xpGet = _xpGet;
-    function _xpSet(key, val) {
+export function _xpSet(key, val) {
         try {
             if (typeof FocusStorage !== 'undefined') FocusStorage.set(key, val);
             else localStorage.setItem('focusai_' + key, JSON.stringify(val));
@@ -54,13 +58,13 @@
         try {
             const tasks = typeof FocusStorage !== 'undefined'
                 ? FocusStorage.get('tasks', [])
-                : JSON.parse(localStorage.getItem('focusai_tasks') || '[]');
+                : JSON.parse(localStorage.getItem('focusai_tasks') || '[]', window._safeJsonReviver);
             (Array.isArray(tasks) ? tasks : []).filter(t => t && t.completed && t.id != null)
                 .forEach(t => out.push({ kind: t.parentHabit ? 'habit' : 'task', ref: 'task:' + t.id }));
 
             const hl = typeof FocusStorage !== 'undefined'
                 ? FocusStorage.get('highlight_history', {})
-                : JSON.parse(localStorage.getItem('focusai_highlight_history') || '{}');
+                : JSON.parse(localStorage.getItem('focusai_highlight_history') || '{}', window._safeJsonReviver);
             Object.entries(hl || {}).filter(([, h]) => h && h.completed)
                 .forEach(([date]) => out.push({ kind: 'highlight', ref: 'hl:' + date }));
         } catch {}
@@ -95,7 +99,7 @@
         // finishFocusSession bu durumda eski (artık XP vermeyen) yola düşer —
         // uygulama akışı bozulmaz, sadece o seans XP kazandırmaz.
         async startFocusSession() {
-            if (!window.FocusSupabase || !window.currentUser?.id) return null;
+            if (!window.FocusSupabase || !getCurrentUser()?.id) return null;
             try {
                 const { data, error } = await window.FocusSupabase.rpc('start_focus_session');
                 if (error) throw error;
@@ -108,7 +112,7 @@
         async finishFocusSession(sessionId, claimedMinutes) {
             const m = Math.round(Number(claimedMinutes) || 0);
             if (m < 1) return;
-            if (!sessionId || !window.FocusSupabase || !window.currentUser?.id) {
+            if (!sessionId || !window.FocusSupabase || !getCurrentUser()?.id) {
                 // Doğrulanmış seans yoksa eski yola düş (057 sonrası sunucu XP vermez,
                 // ama en azından kuyruk/queue akışı tutarlı kalır).
                 this.awardFocus(m);
@@ -119,7 +123,7 @@
                     p_session_id: sessionId, p_claimed_minutes: m
                 });
                 if (error) throw error;
-                if (data && typeof data.xp === 'number') window._myServerXP = data.xp;
+                if (data && typeof data.xp === 'number') setMyServerXP(data.xp);
                 if ((data?.awarded || 0) > 0) {
                     const arena = document.getElementById('dc-home-view');
                     if (arena && arena.offsetParent !== null && typeof window.renderHomeSummary === 'function') {
@@ -138,7 +142,7 @@
         // Hata sessizce yutulur — heartbeat kaçırmak seansı bozmaz, sadece o
         // aralık ödül tavanına eklenmez.
         async heartbeat(sessionId) {
-            if (!sessionId || !window.FocusSupabase || !window.currentUser?.id) return;
+            if (!sessionId || !window.FocusSupabase || !getCurrentUser()?.id) return;
             try { await window.FocusSupabase.rpc('heartbeat_focus_session', { p_session_id: sessionId }); }
             catch {}
         },
@@ -152,7 +156,7 @@
             _xpFlushTimer = setTimeout(() => this.flush(), 800);
         },
         async flush() {
-            if (_xpFlushBusy || !window.FocusSupabase || !window.currentUser?.id || !navigator.onLine) return;
+            if (_xpFlushBusy || !window.FocusSupabase || !getCurrentUser()?.id || !navigator.onLine) return;
             const queue = _xpGet(_XP_QUEUE_KEY, []);
             if (!queue.length) return;
             _xpFlushBusy = true;
@@ -165,7 +169,7 @@
                 okKeys.forEach(k => { awarded[k] = 1; });
                 _xpSet(_XP_AWARDED_KEY, awarded);
                 _xpSet(_XP_QUEUE_KEY, _xpGet(_XP_QUEUE_KEY, []).filter(e => !okKeys.has(e.kind + '|' + e.ref)));
-                if (typeof data.xp === 'number') window._myServerXP = data.xp;
+                if (typeof data.xp === 'number') setMyServerXP(data.xp);
                 if ((data.awarded || 0) > 0) {
                     // Arena açıksa skoru anında tazele
                     const arena = document.getElementById('dc-home-view');
@@ -183,7 +187,7 @@
     // Haftalık XP = toplam XP - hafta başı anlık görüntüsü (week_xp_base).
     // Hafta pazartesi başlar; devrilme lazy yapılır: kullanıcı yeni haftada
     // ilk kez geldiğinde geçen haftanın sonucu hesaplanıp lige işlenir.
-    const LEAGUES = [
+export const LEAGUES = [
         { id: 1, name: 'Bronz',  color: '#cd7f32', icon: 'fa-shield-halved' },
         { id: 2, name: 'Gümüş',  color: '#c0c4cc', icon: 'fa-shield-halved' },
         { id: 3, name: 'Altın',  color: '#feca57', icon: 'fa-shield-halved' },
@@ -191,16 +195,15 @@
         { id: 5, name: 'Elmas',  color: '#74b9ff', icon: 'fa-gem' }
     ];
     // Lig başına yükselme eşiği (haftalık XP) — üst liglerde çıta yükselir. Elmas son lig.
-    const LEAGUE_PROMOTE_XP = [400, 500, 600, 700, Infinity];
+export const LEAGUE_PROMOTE_XP = [400, 500, 600, 700, Infinity];
     window.LEAGUE_PROMOTE_XP = LEAGUE_PROMOTE_XP;
     const LEAGUE_DEMOTE_XP = 150; // bu değerin altında kalan bir alt lige düşer (Bronz hariç)
-    window.FOCUSAI_LEAGUES = LEAGUES;
 
-    function leagueOf(id) { return LEAGUES[Math.min(Math.max((id || 1), 1), LEAGUES.length) - 1]; }
+export function leagueOf(id) { return LEAGUES[Math.min(Math.max((id || 1), 1), LEAGUES.length) - 1]; }
     window.leagueOf = leagueOf;
 
     // Sıralama kartının üst çubuğunu/köşe rengini kullanıcının o anki ligine göre temalar.
-    function applyRankingsCardTheme(leagueId) {
+export function applyRankingsCardTheme(leagueId) {
         const card = document.querySelector('.bento-card--rankings');
         if (!card) return;
         card.style.setProperty('--rank-league-color', leagueOf(leagueId).color);
@@ -208,31 +211,31 @@
     window.applyRankingsCardTheme = applyRankingsCardTheme;
 
     // İçinde bulunulan haftanın pazartesi tarihi, yerel saatle 'YYYY-MM-DD'
-    function _leagueWeekStartIso(d = new Date()) {
+export function _leagueWeekStartIso(d = new Date()) {
         const x = new Date(d);
         x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); // Pzt=0
         return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`;
     }
     window._leagueWeekStartIso = _leagueWeekStartIso;
 
-    function _leagueDaysLeft() {
+export function _leagueDaysLeft() {
         return 7 - ((new Date().getDay() + 6) % 7); // Pzt→7 ... Paz→1
     }
     window._leagueDaysLeft = _leagueDaysLeft;
 
     // Kendi haftalık durumum (renderHomeSummary/leaderboard "ben" satırı için)
     // { weekStart, base, league } — ensureWeeklyLeague doldurur.
-    window._myLeagueState = null;
+    setMyLeagueState(null);
 
-    function getMyWeeklyXP() {
-        const st = window._myLeagueState;
+export function getMyWeeklyXP() {
+        const st = getMyLeagueState();
         if (!st) return 0;
         return Math.max(0, getServerXP() - (st.base || 0));
     }
     window.getMyWeeklyXP = getMyWeeklyXP;
 
-    async function ensureWeeklyLeague() {
-        if (!window.FocusSupabase || !window.currentUser?.id) return;
+export async function ensureWeeklyLeague() {
+        if (!window.FocusSupabase || !getCurrentUser()?.id) return;
         try {
             // Faz A: devrilme sunucuda hesaplanır (051 — league_rollover RPC).
             // Önce bekleyen XP olaylarını gönder ki geçen haftanın son seansları sayılsın.
@@ -241,9 +244,9 @@
             if (error) { console.warn('[Lig] league_rollover RPC hatası', error.message); return; }
             if (!r || r.error) return;
 
-            if (typeof r.xp === 'number') window._myServerXP = r.xp;
-            window._myLeagueState = { weekStart: r.week_start, base: r.base || 0, league: r.league || 1 };
-            applyRankingsCardTheme(window._myLeagueState.league);
+            if (typeof r.xp === 'number') setMyServerXP(r.xp);
+            setMyLeagueState({ weekStart: r.week_start, base: r.base || 0, league: r.league || 1 });
+            applyRankingsCardTheme(getMyLeagueState().league);
 
             if (r.status !== 'rolled') return;
 
@@ -276,27 +279,27 @@
     // RPC'si): yeni ayda ilk gelen client kapanan sezon(lar)ı alır ve sezon
     // sonu ekranını gösterir. Sezon rozetleri season_results'tan türetilir.
     const _SEASON_MONTHS = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
-    window._mySeasonState = null; // { season:'YYYY-MM', seasonXp } — geçmiş haftaların toplamı (bu hafta hariç)
+    setMySeasonState(null); // { season:'YYYY-MM', seasonXp } — geçmiş haftaların toplamı (bu hafta hariç)
 
-    function _seasonLabel(seasonKey) {
+export function _seasonLabel(seasonKey) {
         const [y, m] = String(seasonKey || '').split('-').map(Number);
         return m >= 1 && m <= 12 ? `${_SEASON_MONTHS[m - 1]} ${y}` : seasonKey;
     }
     window._seasonLabel = _seasonLabel;
 
-    function _seasonDaysLeft() {
+export function _seasonDaysLeft() {
         const now = new Date();
         const end = new Date(now.getFullYear(), now.getMonth() + 1, 1);
         return Math.max(1, Math.ceil((end - now) / 86400000));
     }
     window._seasonDaysLeft = _seasonDaysLeft;
 
-    async function ensureSeason() {
-        if (!window.FocusSupabase || !window.currentUser?.id) return;
+export async function ensureSeason() {
+        if (!window.FocusSupabase || !getCurrentUser()?.id) return;
         try {
             const { data: r, error } = await window.FocusSupabase.rpc('ensure_season');
             if (error || !r || r.error) return; // 052 uygulanmadıysa sezon bölümü sessizce pasif
-            window._mySeasonState = { season: r.current, seasonXp: r.season_xp || 0 };
+            setMySeasonState({ season: r.current, seasonXp: r.season_xp || 0 });
             const closed = Array.isArray(r.closed) ? r.closed : [];
             if (closed.length) _showSeasonFinale(closed[closed.length - 1]);
             if (typeof window.renderHomeSummary === 'function') window.renderHomeSummary();
@@ -324,7 +327,7 @@
                         <span class="sf-label">Sezon XP</span>
                     </div>
                     <div class="season-finale-stat">
-                        <span class="sf-num" style="color:${L.color};"><i class="fa-solid ${L.icon}"></i> ${L.name}</span>
+                        <span class="sf-num sf-num--league"><i class="fa-solid ${L.icon}"></i> ${L.name}</span>
                         <span class="sf-label">En yüksek lig</span>
                     </div>
                     <div class="season-finale-stat">
@@ -333,11 +336,12 @@
                     </div>
                 </div>
                 <p class="season-finale-sub">Bu sonuç kalıcı sezon geçmişine işlendi — rozet dolabında yerini aldı. Yeni sezon başladı, sayaçlar sıfır: zirve yeniden paylaşılıyor! 🚀</p>
-                <button class="primary-btn" style="width:100%;" data-close>Yeni Sezona Başla</button>
+                <button class="primary-btn u-width-100pct" data-close>Yeni Sezona Başla</button>
             </div>`;
         wrap.addEventListener('click', (e) => {
             if (e.target === wrap || e.target.closest('[data-close]')) wrap.remove();
         });
+        wrap.querySelector('.sf-num--league').style.color = L.color;
         document.body.appendChild(wrap);
         window.playNotificationSound('alert');
         window.postActivity(`${_seasonLabel(s.season)} sezonunu ${L.name} Ligi'nde tamamladı! 🏁`);
@@ -350,7 +354,7 @@
         try {
             const fh = typeof FocusStorage !== 'undefined'
                 ? (FocusStorage.get('focus_history', {}) || {})
-                : JSON.parse(localStorage.getItem('focusai_focus_history') || '{}');
+                : JSON.parse(localStorage.getItem('focusai_focus_history') || '{}', window._safeJsonReviver);
             let streak = 0;
             const sd = new Date();
             if (!(Number(fh[window._dhsDateKey(sd)]) > 0)) sd.setDate(sd.getDate() - 1);
@@ -383,7 +387,7 @@
         });
     });
 
-    function renderStreakRace(users) {
+export function renderStreakRace(users) {
         const el = document.getElementById('streak-race-list');
         if (!el) return;
         const list = (users || []).map(u => ({
@@ -392,7 +396,7 @@
         })).sort((a, b) => (b.streak || 0) - (a.streak || 0));
 
         if (!list.length) {
-            el.innerHTML = `<li style="text-align:center; color:var(--text-muted); font-size:13px; padding:20px;">Arkadaş ekle, serileri yarıştır! 🔥</li>`;
+            el.innerHTML = `<li class="u-text-align-center_color-var-text-muted_font-size-13px_padd">Arkadaş ekle, serileri yarıştır! 🔥</li>`;
             return;
         }
         const topStreak = Math.max(list[0]?.streak || 0, 1);
@@ -401,18 +405,26 @@
             const flames = s >= 30 ? '🔥🔥🔥' : s >= 7 ? '🔥🔥' : s >= 1 ? '🔥' : '·';
             const pct = Math.max(2, Math.round((s / topStreak) * 100));
             return `
-                <li class="lb-row${u.isMe ? ' lb-row--me' : ''}" style="animation-delay:${Math.min(i, 15) * 35}ms;">
+                <li class="lb-row${u.isMe ? ' lb-row--me' : ''}">
                     <span class="lb-rank">${i + 1}</span>
                     ${window.avatarImgHtml(u, 32, 'flex-shrink:0;')}
                     <div class="lb-main">
                         <div class="lb-name-line">
                             <span class="lb-name">${window._escapeHtml(u.displayName || u.username)}${u.isMe ? '<span class="lb-me-tag"> (Sen)</span>' : ''}</span>
-                            <span class="lb-xp" style="color:#ff6b6b;">${flames} ${s} gün</span>
+                            <span class="lb-xp u-color-hff6b6b" >${flames} ${s} gün</span>
                         </div>
-                        <div class="lb-bar"><div class="lb-bar-fill" style="width:${pct}%; background:linear-gradient(90deg, rgba(255,107,107,0.5), #ff6b6b);"></div></div>
+                        <div class="lb-bar"><div class="lb-bar-fill u-background-linear-gradient90degrgba2551071070p5hff6b6b" ></div></div>
                     </div>
                 </li>`;
         }).join('');
+        el.querySelectorAll('.lb-row').forEach((row, i) => {
+            row.style.animationDelay = (Math.min(i, 15) * 35) + 'ms';
+        });
+        el.querySelectorAll('.lb-bar-fill').forEach((fill, i) => {
+            const s = list[i]?.streak || 0;
+            const pct = Math.max(2, Math.round((s / topStreak) * 100));
+            fill.style.width = pct + '%';
+        });
     }
     window.renderStreakRace = renderStreakRace;
 
@@ -423,7 +435,7 @@
     // (dcChatEnabled() sunucudaki aynı plan kontrolüyle örtüşüyor — bkz. 062
     // migration); katılım grubun tüm üyelerine açık. Sunucu bitiş zamanı
     // geçince lazy olarak sonuçlandırır (diğer lig/sezon/düello desenleriyle aynı).
-    async function renderGroupTournament(groupId) {
+export async function renderGroupTournament(groupId) {
         const el = document.getElementById('group-tournament-card');
         if (!el || !groupId || !window.FocusSupabase) { if (el) el.innerHTML = ''; return; }
         try {
@@ -434,15 +446,15 @@
 
             if (data.status === 'none') {
                 el.innerHTML = `
-                    <div class="glass-panel" style="padding:14px; border:1px solid rgba(255,159,67,0.18); border-radius:12px;">
-                        <h3 style="font-size:14px; margin:0 0 6px; color:#fff;"><i class="fa-solid fa-trophy" style="color:#feca57;"></i> Mini Turnuva</h3>
-                        <p class="si-muted-sm" style="margin:0 0 10px;">Grubun içinde kısa süreli bir XP yarışması başlat — kim önde bitirecek?</p>
+                    <div class="glass-panel u-padding-14px_border-1pxsolidrgba255159670p18_border-radius" >
+                        <h3 class="u-font-size-14px_margin-006px_color-hfff"><i class="fa-solid fa-trophy u-color-hfeca57" ></i> Mini Turnuva</h3>
+                        <p class="si-muted-sm u-margin-0010px" >Grubun içinde kısa süreli bir XP yarışması başlat — kim önde bitirecek?</p>
                         ${canStart
-                            ? `<div style="display:flex; gap:6px;">
+                            ? `<div class="u-display-flex_gap-6px">
                                  <button class="control-btn secondary btn-md" data-gt-start="3">3 Gün</button>
                                  <button class="control-btn secondary btn-md" data-gt-start="7">7 Gün</button>
                                </div>`
-                            : `<span style="font-size:11.5px; color:var(--text-muted);"><i class="fa-solid fa-lock"></i> Turnuva başlatmak Premium/Kurumsal özelliği — katılım herkese açık kalacak.</span>`}
+                            : `<span class="u-font-size-11p5px_color-var-text-muted"><i class="fa-solid fa-lock"></i> Turnuva başlatmak Premium/Kurumsal özelliği — katılım herkese açık kalacak.</span>`}
                     </div>`;
                 el.querySelectorAll('[data-gt-start]').forEach(b => b.addEventListener('click', () => _startGroupTournament(groupId, parseInt(b.dataset.gtStart, 10))));
                 return;
@@ -466,26 +478,30 @@
                                 <span class="lb-name">${window._escapeHtml(r.display_name || r.username)}${r.is_me ? '<span class="lb-me-tag"> (Sen)</span>' : ''}</span>
                                 <span class="lb-xp">${xp} XP</span>
                             </div>
-                            <div class="lb-bar"><div class="lb-bar-fill${r.is_me ? ' lb-bar-fill--me' : ''}" style="width:${pct}%"></div></div>
+                            <div class="lb-bar"><div class="lb-bar-fill${r.is_me ? ' lb-bar-fill--me' : ''}" data-w="${pct}"></div></div>
                         </div>
                     </li>`;
             }).join('');
 
             const joinBtn = (!finished && !data.i_joined)
-                ? `<button class="control-btn secondary btn-md" data-gt-join="${data.tournament_id}" style="margin-top:8px;">Turnuvaya Katıl</button>`
+                ? `<button class="control-btn secondary btn-md u-margin-top-8px" data-gt-join="${data.tournament_id}" >Turnuvaya Katıl</button>`
                 : '';
 
             el.innerHTML = `
-                <div class="glass-panel" style="padding:14px; border:1px solid rgba(255,159,67,0.18); border-radius:12px;">
-                    <h3 style="font-size:14px; margin:0 0 4px; color:#fff; display:flex; align-items:center; justify-content:space-between;">
-                        <span><i class="fa-solid fa-trophy" style="color:#feca57;"></i> Mini Turnuva</span>
-                        <small style="color:var(--text-muted); font-weight:600;">${finished ? 'Bitti' : `${daysLeft} gün kaldı`}</small>
+                <div class="glass-panel u-padding-14px_border-1pxsolidrgba255159670p18_border-radius" >
+                    <h3 class="u-font-size-14px_margin-004px_color-hfff_display-flex_align-">
+                        <span><i class="fa-solid fa-trophy u-color-hfeca57" ></i> Mini Turnuva</span>
+                        <small class="u-color-var-text-muted_font-weight-600">${finished ? 'Bitti' : `${daysLeft} gün kaldı`}</small>
                     </h3>
-                    ${finished ? `<p class="si-muted-sm" style="margin:0 0 8px;">🎉 ${window._escapeHtml(rows.find(r => r.user_id === data.winner_id)?.display_name || rows.find(r => r.user_id === data.winner_id)?.username || 'Biri')} turnuvayı kazandı!</p>` : ''}
-                    <ul style="list-style:none; display:flex; flex-direction:column; gap:8px; margin:0; padding:0;">${rowsHtml}</ul>
+                    ${finished ? `<p class="si-muted-sm u-margin-008px" >🎉 ${window._escapeHtml(rows.find(r => r.user_id === data.winner_id)?.display_name || rows.find(r => r.user_id === data.winner_id)?.username || 'Biri')} turnuvayı kazandı!</p>` : ''}
+                    <ul class="u-list-style-none_display-flex_flex-direction-column_gap-8px">${rowsHtml}</ul>
                     ${joinBtn}
-                    ${finished && canStart ? `<button class="control-btn secondary btn-md" data-gt-start="3" style="margin-top:8px;">Yeni Turnuva Başlat (3 Gün)</button>` : ''}
+                    ${finished && canStart ? `<button class="control-btn secondary btn-md u-margin-top-8px" data-gt-start="3" >Yeni Turnuva Başlat (3 Gün)</button>` : ''}
                 </div>`;
+
+            el.querySelectorAll('.lb-bar-fill').forEach(fill => {
+                fill.style.width = fill.dataset.w + '%';
+            });
 
             el.querySelectorAll('[data-gt-join]').forEach(b => b.addEventListener('click', () => _joinGroupTournament(groupId, b.dataset.gtJoin)));
             el.querySelectorAll('[data-gt-start]').forEach(b => b.addEventListener('click', () => _startGroupTournament(groupId, parseInt(b.dataset.gtStart, 10))));

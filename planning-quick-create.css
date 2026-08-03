@@ -1,0 +1,133 @@
+/* Planlama Sihirbazı — Hızlı Oluşturma Modalı (.pg-qc-) — style.css'ten çıkarıldı */
+
+/* ===== Ana Panel ===== */
+/* ══════════════════════════════════════════════
+   PLANLAMA SİHİRBAZI — Premium v2
+   ══════════════════════════════════════════════ */
+
+/* ── Overlay ─────────────────────────────────── */
+/* ── Quick Create Modal ────────────────────── */
+.pg-qc-overlay {
+    position: fixed; inset: 0; z-index: 9600;
+    background: rgba(0,0,0,.72); backdrop-filter: blur(14px);
+    display: flex; align-items: center; justify-content: center; padding: 16px;
+}
+.pg-qc-overlay.hidden { display: none; }
+
+.pg-qc-panel {
+    background: #1a1a1a; border: 1px solid rgba(255,255,255,.08);
+    border-radius: 20px; width: 100%; max-width: 480px;
+    padding: 28px 28px 22px; box-shadow: 0 24px 80px rgba(0,0,0,.6);
+    animation: pg-qc-in .22s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes pg-qc-in {
+    from { opacity: 0; transform: scale(.94) translateY(10px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.pg-qc-header {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px;
+}
+.pg-qc-header-left { display: flex; align-items: center; gap: 12px; }
+.pg-qc-logo {
+    width: 38px; height: 38px; border-radius: 10px;
+    background: rgba(212,144,14,.15); border: 1px solid rgba(212,144,14,.25);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--a, #D4900E); font-size: 18px; flex-shrink: 0;
+}
+.pg-qc-title { font-size: 16px; font-weight: 700; color: #fff; }
+.pg-qc-sub   { font-size: 12px; color: #666; margin-top: 1px; }
+.pg-qc-close-btn {
+    width: 30px; height: 30px; border-radius: 8px; border: none;
+    background: rgba(255,255,255,.05); color: #888; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; font-size: 14px;
+    transition: all .15s;
+}
+.pg-qc-close-btn:hover { background: rgba(255,255,255,.1); color: #fff; }
+
+.pg-qc-field {
+    position: relative; margin-bottom: 18px;
+}
+.pg-qc-title-input {
+    width: 100%; padding: 13px 50px 13px 16px; border-radius: 12px;
+    border: 1.5px solid rgba(255,255,255,.08); background: rgba(255,255,255,.04);
+    color: #fff; font-size: 15px; font-weight: 500; outline: none;
+    transition: border-color .15s; box-sizing: border-box;
+}
+.pg-qc-title-input::placeholder { color: #444; }
+.pg-qc-title-input:focus { border-color: rgba(212,144,14,.5); }
+.pg-qc-title-input.error { border-color: #ef4444; animation: shake .3s; }
+.pg-qc-char {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    font-size: 11px; color: #444;
+}
+
+.pg-qc-section-label {
+    font-size: 11px; font-weight: 600; color: #555; text-transform: uppercase;
+    letter-spacing: .06em; margin-bottom: 8px;
+}
+.pg-qc-opt { text-transform: none; font-weight: 400; color: #444; letter-spacing: 0; }
+
+.pg-qc-cat-row {
+    display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px;
+}
+.pg-qc-cat-chip {
+    display: flex; align-items: center; gap: 5px;
+    padding: 5px 12px; border-radius: 20px; cursor: pointer;
+    border: 1.5px solid rgba(255,255,255,.1); background: rgba(255,255,255,.03);
+    font-size: 12px; font-weight: 600; color: #888; transition: all .14s; white-space: nowrap;
+}
+.pg-qc-cat-chip:hover {
+    border-color: var(--cat-color, #888);
+    background: color-mix(in srgb, var(--cat-color, #888) 8%, transparent);
+}
+.pg-qc-cat-chip.selected {
+    border-color: var(--cat-color, #888); color: var(--cat-color, #fff);
+    background: color-mix(in srgb, var(--cat-color, #888) 15%, transparent);
+}
+
+.pg-qc-dl-row {
+    display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px;
+}
+.pg-qc-dl-btn {
+    padding: 5px 12px; border-radius: 20px; font-size: 12px; cursor: pointer;
+    border: 1.5px solid rgba(255,255,255,.1); background: rgba(255,255,255,.03);
+    color: #888; transition: all .14s;
+}
+.pg-qc-dl-btn:hover  { border-color: var(--a,#D4900E); color: var(--a,#D4900E); }
+.pg-qc-dl-btn.selected { border-color: var(--a,#D4900E); color: var(--a,#D4900E); background: rgba(212,144,14,.08); }
+
+.pg-qc-date-input {
+    width: 100%; padding: 9px 12px; border-radius: 10px; box-sizing: border-box;
+    border: 1.5px solid rgba(255,255,255,.08); background: rgba(255,255,255,.03);
+    color: #ccc; font-size: 13px; outline: none; margin-bottom: 20px; transition: border-color .15s;
+    color-scheme: dark;
+}
+.pg-qc-date-input:focus { border-color: rgba(212,144,14,.4); }
+.pg-qc-date-input::-webkit-datetime-edit { color: #ccc; }
+.pg-qc-date-input::-webkit-datetime-edit-fields-wrapper { color: #ccc; }
+.pg-qc-date-input::-webkit-datetime-edit-text,
+.pg-qc-date-input::-webkit-datetime-edit-day-field,
+.pg-qc-date-input::-webkit-datetime-edit-month-field,
+.pg-qc-date-input::-webkit-datetime-edit-year-field { color: #ccc; background: transparent; }
+.pg-qc-date-input::-webkit-calendar-picker-indicator { filter: invert(0.7) brightness(1.2); cursor: pointer; }
+
+.pg-qc-footer {
+    display: flex; align-items: center; justify-content: flex-end; gap: 10px;
+}
+
+
+.pg-qc-create-btn {
+    display: flex; align-items: center; gap: 5px;
+    padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600;
+    background: var(--a, #D4900E); color: #000; border: none; cursor: pointer;
+    transition: all .15s;
+}
+.pg-qc-create-btn:hover { filter: brightness(1.1); }
+
+/* ===== Ortak Çalışma Rozeti ===== */
+/* ── Quick Create collab badge ───────────────── */
+.pg-qc-collab-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: rgba(6,214,160,.15); color: #06d6a0;
+    border-radius: 20px; padding: 2px 10px; font-size: 12px; font-weight: 600;
+}

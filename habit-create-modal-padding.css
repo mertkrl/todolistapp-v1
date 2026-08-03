@@ -1,0 +1,19 @@
+/* style.css'ten çıkarıldı (Faz C, 2026-07-22). Alışkanlık Oluşturma Modalı padding düzenlemeleri (#habit-create-modal .modal-header/.modal-body/.modal-footer). */
+
+#habit-create-modal .modal-header {
+    padding: 16px 22px 14px !important;
+    border-bottom: 1px solid var(--b1, rgba(255,255,255,0.06)) !important;
+}
+#habit-create-modal .modal-header h2 { font-size: 16px; font-weight: 700; }
+#habit-create-modal .modal-body {
+    padding: 20px 22px !important;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+#habit-create-modal .modal-footer {
+    padding: 14px 22px 18px !important;
+    border-top: 1px solid var(--b1, rgba(255,255,255,0.06)) !important;
+    justify-content: flex-end;
+    gap: 8px;
+}

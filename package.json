@@ -7,7 +7,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "sw:sync": "python3 scripts/update-sw-file-list.py && ./scripts/update-sw-version.sh",
+    "prebuild": "npm run sw:sync",
+    "postbuild": "python3 scripts/postbuild-sw-precache.py"
   },
   "devDependencies": {
     "vite": "^6.4.3"

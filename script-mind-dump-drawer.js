@@ -44,8 +44,8 @@ function renderCalMindDump() {
     const mindDumpItems = getMindDumpsRef() || FocusStorage.get('mind_dumps', []);
 
     if (!mindDumpItems || mindDumpItems.length === 0) {
-        calMindDumpList.innerHTML = `<li style="background: transparent !important; border: 1px dashed rgba(255,255,255,0.15) !important; color: rgba(255,255,255,0.4) !important; justify-content: center !important; cursor: default !important;">
-            <i class="fa-solid fa-tray-empty" style="margin-right: 6px;"></i> Havuz şu an boş.
+        calMindDumpList.innerHTML = `<li class="u-background-transparentimportant_border-1pxdashedrgba255255">
+            <i class="fa-solid fa-tray-empty u-margin-right-6px" ></i> Havuz şu an boş.
         </li>`;
         return;
     }
@@ -59,11 +59,11 @@ function renderCalMindDump() {
         const itemText = escapeHtml(item.text || item);
 
         li.innerHTML = `
-            <span style="display: flex; align-items: center; gap: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 85%;">
-                <i class="fa-solid fa-grip-vertical" style="color: rgba(255,255,255,0.3); font-size: 11px; cursor: grab;"></i>
+            <span class="u-display-flex_align-items-center_gap-8px_overflow-hidden_te">
+                <i class="fa-solid fa-grip-vertical u-color-rgba2552552550p3_font-size-11px_cursor-grab" ></i>
                 ${itemText}
             </span>
-            <button class="cal-dump-plan-btn" title="Takvime Planla" style="background: transparent; border: none; color: #a29bfe; cursor: pointer; font-size: 13px; transition: transform 0.2s, color 0.2s;">
+            <button class="cal-dump-plan-btn u-background-transparent_border-none_color-ha29bfe_cursor-po" title="Takvime Planla" >
                 <i class="fa-solid fa-calendar-plus"></i>
             </button>
         `;

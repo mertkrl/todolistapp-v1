@@ -9,23 +9,24 @@ import { registerPresenceWatchIds } from './social-presence.js';
 import { isBlockedEitherWay } from './social-block-users.js';
 import { hasUnreadDm } from './social-dm-notifications.js';
 import { goToDmChat, openMiniProfile } from './social-dc-contacts.js';
+import { getCurrentUser } from './state/current-user-store.js';
 
 (function () {
 'use strict';
 
 // ── SOHBET PANELİ: PROFİL GÜNCELLEME ────────────────────────────────
 function updateSbProfile() {
-    if (!window.currentUser) return;
+    if (!getCurrentUser()) return;
     const avatarEl   = document.getElementById('sb-sidebar-avatar');
     const nameEl     = document.getElementById('sb-sidebar-name');
     const dotEl      = document.getElementById('sb-online-dot');
     const labelEl    = document.getElementById('sb-status-label');
     const unameEl    = document.getElementById('sb-sidebar-username');
-    const color      = window.currentUser.avatarColor || '6c5ce7';
-    const name       = window.currentUser.displayName || window.currentUser.username || 'Sen';
-    const statusColor = window.currentUser.statusColor || '#2ed573';
+    const color      = getCurrentUser().avatarColor || '6c5ce7';
+    const name       = getCurrentUser().displayName || getCurrentUser().username || 'Sen';
+    const statusColor = getCurrentUser().statusColor || '#2ed573';
 
-    const avatarUrl = window.currentUser.customAvatar
+    const avatarUrl = getCurrentUser().customAvatar
         || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=${color}&color=fff&size=80`;
 
     if (avatarEl) {
@@ -39,11 +40,11 @@ function updateSbProfile() {
 
     // #kullanıcıadı elementi varsa göster, yoksa nameEl'in yanına ekle
     if (unameEl) {
-        unameEl.textContent = window.currentUser.username ? `#${window.currentUser.username}` : '';
+        unameEl.textContent = getCurrentUser().username ? `#${getCurrentUser().username}` : '';
     }
 
     const statusLabels = { online: 'Çevrimiçi', away: 'Meşgul', dnd: 'Rahatsız Etme', offline: 'Görünmez' };
-    if (labelEl) labelEl.textContent = statusLabels[window.currentUser.status || 'online'] || 'Çevrimiçi';
+    if (labelEl) labelEl.textContent = statusLabels[getCurrentUser().status || 'online'] || 'Çevrimiçi';
 
     setTimeout(() => {
         const gBadge = document.getElementById('sb-groups-badge');
@@ -70,7 +71,7 @@ function syncSidebarContacts() {
         return;
     }
 
-    if (window.FocusSupabase && window.currentUser?.id) {
+    if (window.FocusSupabase && getCurrentUser()?.id) {
         listEl.innerHTML = '';
         if (badgeEl) badgeEl.textContent = friends.length;
 
@@ -96,19 +97,20 @@ function syncSidebarContacts() {
 
                     const unread = hasUnreadDm(username);
                     card.innerHTML = `
-                        <div class="sb-contact-avatar" style="background:#${color}; position:relative;" title="Profili Gör">
+                        <div class="sb-contact-avatar u-position-relative" title="Profili Gör">
                             ${window._escapeHtml(displayName.charAt(0).toUpperCase())}
                             <span class="sb-contact-dot${isOnline ? ' online' : ''}"></span>
                         </div>
                         <div class="sb-contact-info" title="Sohbete git">
                             <div class="sb-contact-name">${window._escapeHtml(displayName)}</div>
-                            <div class="sb-contact-username" style="font-size:11px; color:rgba(255,255,255,0.35);">#${window._escapeHtml(username)}</div>
+                            <div class="sb-contact-username u-font-size-11px_color-rgba2552552550p35" >#${window._escapeHtml(username)}</div>
                             <div class="sb-contact-status">${isOnline ? '🟢 Çevrimiçi' : '⚫ Çevrimdışı'}</div>
                         </div>
                         ${unread ? '<span class="dc-unread-pill"></span>' : ''}
-                        ${isOnline ? '<button class="sb-contact-focus-btn" title="Birlikte Odaklan"><i class="fa-solid fa-bolt"></i></button>' : ''}
-                        <button class="sb-contact-detail-btn" title="Profili Gör"><i class="fa-solid fa-ellipsis"></i></button>
+                        ${isOnline ? '<button class="sb-contact-focus-btn" title="Birlikte Odaklan" aria-label="Birlikte Odaklan"><i class="fa-solid fa-bolt"></i></button>' : ''}
+                        <button class="sb-contact-detail-btn" title="Profili Gör" aria-label="Profili Gör"><i class="fa-solid fa-ellipsis"></i></button>
                     `;
+                    card.querySelector('.sb-contact-avatar').style.background = '#' + color;
 
                     const openDM = () => {
                         if (typeof goToDmChat === 'function') goToDmChat(username, displayName);

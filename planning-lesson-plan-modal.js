@@ -1,3 +1,5 @@
+import { getCat, msUid } from './planning-utils.js';
+import { getCurrentUser } from './state/current-user-store.js';
 // ─── PLANLAMA — DERS PLANI OLUŞTURMA MODALI ────────────────────────────
 // planning.js dosyasından çıkarıldı (Faz 2, 2026-07-20). Mod seçim ekranı
 // (Bireysel Hedef / Ders Planı) + Ders Planı modalının tüm adımları:
@@ -19,7 +21,7 @@
 // - _wzCheckLessonPlanGroups → window._wzCheckLessonPlanGroups()
 // - window.msUid / window.getCat → planning-utils.js (zaten global)
 // - window.addGlobalTask / FocusStorage / window.FocusSupabase /
-//   window.currentUser → zaten global
+//   getCurrentUser() → zaten global
 
 export function openModeSelect() {
     document.getElementById('pg-mode-select-overlay')?.classList.remove('hidden');
@@ -222,7 +224,7 @@ window._lpSetTarget = _lpSetTarget;
 // tarih/durum bilgisi taşınmaz, çünkü şablon farklı dönemlerde yeniden tarihlenerek kullanılır.
 function _cloneMilestonesForTemplate(sourceMilestones) {
     return (sourceMilestones || []).map((m, i) => ({
-        id: window.msUid(), title: m.title, description: m.description || '',
+        id: msUid(), title: m.title, description: m.description || '',
         due_date: '', start_date: '', done: false, order: m.order ?? i,
         subtasks: (m.subtasks || []).map(s => ({ id: window.uid(), title: s.title, done: false, date: '' })),
     }));
@@ -294,7 +296,7 @@ function _pvSaveGoalAsTemplate(g) {
     if (!g?.milestones?.length && !templateTasks.length) { window.toast('Şablon olarak kaydetmek için önce en az bir aşama veya görev ekleyin 📋'); return; }
     const newGoal = {
         id: window.uid(), title: `${g.title} (Şablon)`, description: g.description || '',
-        category: g.category || 'egitim', color: g.color || window.getCat('egitim').color,
+        category: g.category || 'egitim', color: g.color || getCat('egitim').color,
         deadline: '', priority: g.priority || 2,
         status: 'active', progress_pct: 0,
         milestones: _cloneMilestonesForTemplate(g.milestones),
@@ -323,7 +325,7 @@ export function _lpSaveTemplate() {
 
     const newGoal = {
         id: window.uid(), title: name,
-        description: desc, category: 'egitim', color: window.getCat('egitim').color,
+        description: desc, category: 'egitim', color: getCat('egitim').color,
         deadline: '', priority: 2,
         status: 'active', progress_pct: 0, milestones: [],
         work_days: [], hours_per_week: 5,
@@ -344,7 +346,7 @@ export async function _lpLoadStudents() {
     const groupId = document.getElementById('pg-lp-group')?.value;
     const box = document.getElementById('pg-lp-students');
     if (!groupId || !box || !window.FocusSupabase) { _lpStudents = []; return; }
-    const sb = window.FocusSupabase, myId = window.currentUser?.id;
+    const sb = window.FocusSupabase, myId = getCurrentUser()?.id;
     box.innerHTML = '<div class="pg-cw-loading"><span class="pg-cw-pulse-dot"></span> Öğrenciler yükleniyor…</div>';
     let rows;
     try {
@@ -428,7 +430,7 @@ export function _lpSave() {
     const targets = isPersonal ? studentIds : [null];
     const createdGoals = targets.map(studentId => ({
         id: window.uid(), title: (isPersonal && targets.length > 1) ? `${planName} — ${nameOf(studentId)}` : planName,
-        description: desc || template?.description || '', category: 'egitim', color: window.getCat('egitim').color,
+        description: desc || template?.description || '', category: 'egitim', color: getCat('egitim').color,
         deadline: '', priority: 2,
         status: 'active', progress_pct: 0,
         milestones: template ? _cloneMilestonesForTemplate(template.milestones) : [],

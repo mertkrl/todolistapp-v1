@@ -1,0 +1,431 @@
+/* style.css'ten çıkarıldı (Faz C, 2026-07-22). Bugün Sekmesi Yeni Minimal Tasarım — .td-add-* (görev ekleme formu), .td-chip-*, .td-goal-*, .td-header, .td-progress-*. Git HEAD doğrulaması: orijinalde satır 17520'de — chat-fab-drag-room-pills.css ve faz2-layout-overrides.css'TEN SONRA, ama bugun-minimalist.css/bugun-tasarim-v2.css'TEN (21994/27437) ÖNCE gelmeliydi. */
+
+/* ============================================================
+   BUGÜN SEKMESİ — YENİ MİNİMAL TASARIM
+   ============================================================ */
+
+/* ── HEADER ── */
+.td-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    background: var(--s1);
+    border: 1px solid var(--b1);
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 8px;
+    flex-shrink: 0;
+}
+.td-header-left h2 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--t1);
+    margin-bottom: 3px;
+    line-height: 1.2;
+}
+.td-date {
+    font-size: 11px;
+    color: var(--t3);
+    font-weight: 400;
+}
+.td-header-right {
+    text-align: right;
+    flex-shrink: 0;
+    min-width: 130px;
+}
+.td-progress-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+/* Bugün sekmesi: ratio ve label dikey istif */
+#bugun .td-progress-meta {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-end !important;
+    justify-content: center !important;
+    gap: 4px !important;
+    margin-bottom: 0 !important;
+}
+.td-task-ratio {
+    font-size: 11px;
+    color: var(--t3);
+}
+.td-progress-pct {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--a);
+}
+
+.td-progress-fill {
+    height: 100%;
+    background: var(--a);
+    border-radius: 2px;
+    width: 0%;
+    transition: width 0.6s ease;
+}
+
+/* ── GÜNÜN HEDEFİ ── */
+.td-goal-card {
+    background: rgba(212,144,14,0.05);
+    border: 1px solid rgba(212,144,14,0.18);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    overflow: hidden;
+}
+.td-goal-setup,
+.td-goal-active,
+.td-goal-completed {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+}
+
+/* Setup: tam görünür input alanı */
+.td-goal-setup {
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+
+.td-goal-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--t1);
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+    min-width: 0;
+}
+.td-goal-input::placeholder { color: var(--t3); }
+.td-goal-select {
+    background: var(--s2);
+    border: 1px solid var(--b1);
+    border-radius: 7px;
+    padding: 7px 10px;
+    outline: none;
+    color: var(--t3);
+    font-size: 11px;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    max-width: 150px;
+}
+.td-goal-select option { background: var(--s2); }
+.td-goal-save-btn {
+    background: var(--a);
+    border: none;
+    color: #000;
+    height: 34px;
+    padding: 0 14px;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
+    transition: opacity 0.15s;
+    white-space: nowrap;
+}
+.td-goal-save-btn:hover { opacity: 0.85; }
+.td-goal-text {
+    flex: 1;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--t1);
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.td-goal-btns {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+}
+.td-goal-action {
+    background: none;
+    border: none;
+    color: var(--t3);
+    font-size: 12px;
+    cursor: pointer;
+    padding: 3px 5px;
+    border-radius: 4px;
+    transition: color 0.15s;
+}
+.td-goal-action:hover { color: var(--t2); }
+.td-goal-done-btn { color: #4ADE80 !important; }
+.td-goal-done-btn:hover { color: #22c55e !important; }
+
+
+
+/* ── STAT CHIPLERİ ── */
+.td-stats {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+.td-chip {
+    flex: 1;
+    background: var(--s1);
+    border: 1px solid var(--b1);
+    border-radius: 10px;
+    padding: 9px 12px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+.td-chip-val {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--t1);
+    line-height: 1;
+}
+.td-chip-lbl {
+    font-size: 10px;
+    color: var(--t3);
+    font-weight: 500;
+}
+.td-chip-done .td-chip-val { color: #4ADE80; }
+.td-chip-streak { flex: 0 0 auto; }
+.td-chip-streak .td-chip-val { color: var(--a); }
+
+/* ── BEKLEYEN CHİP DİKKAT ÇEKMEsi ── */
+@keyframes chip-pending-pulse {
+    0%   { box-shadow: 0 0 0 0   rgba(255,159,67,0.55), 0 0  0px 0px rgba(255,159,67,0); }
+    40%  { box-shadow: 0 0 0 5px rgba(255,159,67,0.18), 0 0 14px 2px rgba(255,159,67,0.12); }
+    100% { box-shadow: 0 0 0 0   rgba(255,159,67,0),    0 0  0px 0px rgba(255,159,67,0); }
+}
+@keyframes chip-pending-border {
+    0%, 100% { border-color: rgba(255,159,67,0.18); }
+    40%       { border-color: rgba(255,159,67,0.55); }
+}
+.td-chip-pending-active {
+    animation:
+        chip-pending-pulse  2.8s ease-in-out infinite,
+        chip-pending-border 2.8s ease-in-out infinite;
+}
+
+/* ── SAYI ROLL ANIMASYONU ── */
+@keyframes chip-roll-up {
+    0%   { opacity: 0; transform: translateY(10px) scale(0.85); filter: blur(2px); }
+    60%  { opacity: 1; transform: translateY(-2px) scale(1.04); filter: blur(0); }
+    100% { opacity: 1; transform: translateY(0)   scale(1);    filter: blur(0); }
+}
+@keyframes chip-roll-down {
+    0%   { opacity: 0; transform: translateY(-10px) scale(0.85); filter: blur(2px); }
+    60%  { opacity: 1; transform: translateY(2px)   scale(1.04); filter: blur(0); }
+    100% { opacity: 1; transform: translateY(0)     scale(1);    filter: blur(0); }
+}
+.td-chip-val {
+    display: inline-block; /* transform çalışsın */
+    will-change: transform, opacity;
+}
+.td-chip-val.rolling {
+    animation-duration: 380ms;
+    animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+    animation-fill-mode: both;
+}
+.td-chip-val.roll-up   { animation-name: chip-roll-up; }
+.td-chip-val.roll-down { animation-name: chip-roll-down; }
+
+/* ── TAMAMLANAN CHİP KUTLAMA — PREMİUM ── */
+
+/* 1. Chip'in kendisi: çarpıp geri gelsin, yeşil parlasın */
+@keyframes chip-done-celebrate {
+    0%   { transform: scale(1);    box-shadow: 0 0 0 0 rgba(74,222,128,0.7),  0 0 0px  0px rgba(74,222,128,0); }
+    18%  { transform: scale(1.12); box-shadow: 0 0 0 6px rgba(74,222,128,0.35), 0 0 18px 4px rgba(74,222,128,0.25); }
+    36%  { transform: scale(0.94); box-shadow: 0 0 0 10px rgba(74,222,128,0.1), 0 0 28px 6px rgba(74,222,128,0.15); }
+    54%  { transform: scale(1.04); box-shadow: 0 0 0 14px rgba(74,222,128,0),   0 0 36px 8px rgba(74,222,128,0.08); }
+    72%  { transform: scale(0.98); }
+    100% { transform: scale(1);    box-shadow: 0 0 0 0 rgba(74,222,128,0),     0 0 0px  0px rgba(74,222,128,0); }
+}
+.td-chip-done.celebrate {
+    animation: chip-done-celebrate 650ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    position: relative;
+}
+
+/* 2. Border flash: ani yeşil border → solar */
+@keyframes chip-border-flash {
+    0%   { border-color: rgba(74,222,128,0.9); }
+    60%  { border-color: rgba(74,222,128,0.3); }
+    100% { border-color: rgba(74,222,128,0.15); }
+}
+.td-chip-done.celebrate {
+    animation: chip-done-celebrate 650ms cubic-bezier(0.34, 1.56, 0.64, 1) both,
+               chip-border-flash  650ms ease-out both;
+}
+
+/* 3. Sayı: scale punch ayrıca */
+.td-chip-done.celebrate .td-chip-val {
+    animation: chip-val-punch 500ms cubic-bezier(0.34, 1.56, 0.64, 1) both 40ms;
+}
+@keyframes chip-val-punch {
+    0%   { transform: scale(1);    color: #4ADE80; text-shadow: none; }
+    30%  { transform: scale(1.35); color: #86EFAC; text-shadow: 0 0 12px rgba(74,222,128,0.8); }
+    65%  { transform: scale(0.9);  color: #4ADE80; text-shadow: 0 0 4px rgba(74,222,128,0.3); }
+    100% { transform: scale(1);    color: #4ADE80; text-shadow: none; }
+}
+
+/* 4. Parçacıklar — JS tarafından oluşturulan .chip-particle elementleri */
+.chip-particle {
+    position: fixed;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    animation: chip-particle-fly var(--dur, 700ms) cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+@keyframes chip-particle-fly {
+    0%   { transform: translate(0, 0) scale(1);   opacity: 1; }
+    70%  { opacity: 0.7; }
+    100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+}
+
+/* ── GÖREV BÖLÜMÜ ── */
+.td-tasks {
+    background: var(--s1);
+    border: 1px solid var(--b1);
+    border-radius: 12px;
+    overflow: visible; /* hidden yerine visible — saat picker dropdown'ları cliplanmasın */
+    flex: 1;
+}
+.td-tasks-hd {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--b1);
+}
+.td-tasks-title {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--t3);
+    letter-spacing: 0.8px;
+}
+.td-tasks-add-btn {
+    background: none;
+    border: none;
+    color: var(--a);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: 'Inter', sans-serif;
+    padding: 3px 8px;
+    border-radius: 6px;
+    transition: background 0.15s;
+}
+.td-tasks-add-btn:hover { background: var(--a10); }
+
+/* ── GÖREV EKLEME FORMU ── */
+.td-add-form {
+    border-bottom: 1px solid var(--b1);
+    padding: 10px 14px;
+    background: var(--s2);
+}
+.td-add-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+.td-add-input {
+    flex: 1;
+    background: var(--s3);
+    border: 1px solid var(--b1);
+    border-radius: 7px;
+    padding: 7px 12px;
+    color: var(--t1);
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    transition: border-color 0.15s;
+}
+.td-add-input:focus { border-color: var(--a); }
+.td-add-input::placeholder { color: var(--t3); }
+.td-add-submit {
+    background: var(--a);
+    border: none;
+    color: #000;
+    width: 32px;
+    height: 32px;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: opacity 0.15s;
+}
+.td-add-submit:hover { opacity: 0.85; }
+.td-add-opts {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+.td-add-sel {
+    background: var(--s3);
+    border: 1px solid var(--b1);
+    border-radius: 6px;
+    color: var(--t2);
+    font-size: 11px;
+    font-family: 'Inter', sans-serif;
+    padding: 4px 8px;
+    outline: none;
+    cursor: pointer;
+}
+.td-add-sel option { background: var(--s2); }
+.td-add-time {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: var(--t3);
+}
+.td-add-time-sep { color: var(--t3); }
+
+/* Bugün sayfasındaki task-list-wrapper için padding */
+#bugun .task-list-wrapper { padding: 0; }
+#bugun #task-list { margin: 0; padding: 0; }
+
+/* ── BUGÜN SEKMESİ: kompakt task item override ── */
+#bugun .task-item {
+    padding: 8px 12px;
+    margin-bottom: 2px;
+    border-radius: 8px;
+    background: transparent;
+    border: none;
+    border-left: 3px solid transparent;
+    border-bottom: 1px solid var(--b1);
+}
+#bugun .task-item:last-child { border-bottom: none; }
+#bugun .task-item:hover { background: var(--s2); border-bottom-color: transparent; }
+#bugun .task-item.priority-high  { border-left-color: #F87171; }
+#bugun .task-item.priority-medium{ border-left-color: #D4900E; }
+#bugun .task-item.priority-low   { border-left-color: #4ADE80; }
+#bugun .task-item.completed      { opacity: 0.45; }
+#bugun .task-item.completed .task-text { text-decoration: line-through; }
+#bugun .task-text  { font-size: 12px; }
+#bugun .task-left  { gap: 10px; }
+#bugun .task-checkbox { width: 15px; height: 15px; border-radius: 4px; flex-shrink: 0; }
+#bugun .task-item-right { gap: 6px; }
+
+/* Floating + butonu — güvenlik katmanı */
+#floating-quick-add-btn {
+    pointer-events: auto !important;
+    z-index: 9999 !important;
+    display: flex !important;
+}
+body:has(#arkadaslar.page-section.active) #floating-quick-add-btn { display: none !important; }

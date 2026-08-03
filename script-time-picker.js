@@ -26,7 +26,7 @@ for (let h = 0; h < 24; h++) {
 }
 // 23:59 sınırı tamamen kaldırıldı, menü 23:30'dan sonra otomatik 00:00'a atlamaya hazır.
 
-function updateEndPicker(inputIdPrefix, newTime) {
+export function updateEndPicker(inputIdPrefix, newTime) {
     const display = document.getElementById(`${inputIdPrefix}-display`);
     const input = document.getElementById(inputIdPrefix);
     const dropdown = document.getElementById(`${inputIdPrefix}-dropdown`);
@@ -45,7 +45,7 @@ function updateEndPicker(inputIdPrefix, newTime) {
 }
 window.updateEndPicker = updateEndPicker;
 
-function initCustomTimePicker(boxId, displayId, inputId, dropdownId, onChangeCallback = null) {
+export function initCustomTimePicker(boxId, displayId, inputId, dropdownId, onChangeCallback = null) {
     const box = document.getElementById(boxId);
     const display = document.getElementById(displayId);
     const input = document.getElementById(inputId);
@@ -90,7 +90,7 @@ function initCustomTimePicker(boxId, displayId, inputId, dropdownId, onChangeCal
         else if (dropdown.scrollTop + dropdown.clientHeight > dropdown.scrollHeight - 10) {
             dropdown.scrollTop -= oneCycleHeight;
         }
-    });
+    }, { passive: true });
 
     box.addEventListener('click', (e) => {
         e.stopPropagation();

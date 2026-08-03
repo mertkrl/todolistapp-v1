@@ -1,0 +1,57 @@
+/* Collab Plan Davet Kartı (.cpi-) — style.css'ten çıkarıldı */
+
+/* ══ Collab Plan Invite Card (gelen davet) ══ */
+.cpi-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    width: min(360px, 92vw);
+    padding: 32px 28px 24px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,.2);
+}
+.cpi-avatar-row { display: flex; justify-content: center; margin-bottom: 12px; }
+.cpi-from-avatar {
+    width: 52px; height: 52px; border-radius: 50%;
+    background: var(--a); color: #fff;
+    font-size: 17px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+}
+.cpi-from-name  { margin: 0 0 2px; font-size: 16px; font-weight: 700; color: var(--text); }
+.cpi-label      { margin: 0 0 10px; font-size: 12px; color: var(--text-muted); }
+.cpi-goal-title {
+    margin: 0 0 22px;
+    font-size: 14px; font-weight: 600; color: var(--a);
+    background: rgba(124,110,255,.08);
+    border: 1px solid rgba(124,110,255,.2);
+    border-radius: 8px; padding: 8px 14px;
+    display: inline-block;
+}
+.cpi-actions { display: flex; gap: 10px; justify-content: center; }
+.cpi-btn-reject {
+    flex: 1; max-width: 120px;
+    padding: 10px 0; border-radius: 10px;
+    background: var(--bg2); border: 1px solid var(--border);
+    color: var(--text-muted); font-size: 13px; cursor: pointer;
+    transition: background .15s;
+}
+.cpi-btn-reject:hover { background: var(--border); }
+.cpi-btn-accept {
+    flex: 1; max-width: 150px;
+    padding: 10px 0; border-radius: 10px;
+    background: var(--a); border: none;
+    color: #fff; font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: opacity .15s;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.cpi-btn-accept:disabled { opacity: .6; cursor: default; }
+.cpi-btn-accept:hover:not(:disabled) { opacity: .88; }
+.cpi-status-msg { margin-top: 12px; font-size: 12px; color: #f87171; min-height: 16px; }
+
+.cpi-spinner {
+    width: 14px; height: 14px; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,.3);
+    border-top-color: #fff;
+    display: inline-block;
+    animation: spin .7s linear infinite;
+}

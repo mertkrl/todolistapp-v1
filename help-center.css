@@ -1,0 +1,35 @@
+/* ── Yardım Merkezi (Faz 3 onboarding) ── */
+.help-shortcuts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    text-align: left;
+}
+.help-shortcut-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    font-size: 13px;
+    color: var(--text-muted);
+}
+.help-kbd-group {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    flex-shrink: 0;
+}
+.help-shortcut-row kbd {
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    color: #fff;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 5px;
+    padding: 2px 6px;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.2);
+}

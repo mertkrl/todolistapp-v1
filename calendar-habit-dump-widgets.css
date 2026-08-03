@@ -1,0 +1,62 @@
+/* ==========================================================================
+   ZİHİN ÇÖPLÜĞÜ ÇEKMECESİ VE YATAY RUTİN BANDI TASARIMI
+   ========================================================================== */
+
+/* 1. Yatay Alışkanlık Bandı Tasarımı */
+
+.calendar-habits-band {
+    min-width: 0;
+    overflow: hidden;
+}
+
+
+
+
+
+.cal-habit-band-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 160px;
+    max-width: 200px;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+.cal-habit-band-card:hover {
+    background: rgba(255, 255, 255, 0.06);
+    transform: translateY(-2px);
+    border-color: rgba(200, 140, 230, 0.4);
+}
+.cal-habit-band-card.completed {
+    border-color: rgba(46, 213, 115, 0.4);
+    background: rgba(46, 213, 115, 0.05);
+}
+
+/* 2. Zihin Çöplüğü Çekmecesi İçi Öğeler */
+
+.cal-dump-drag-item {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 10px 12px;
+    border-radius: 10px;
+    color: #fff;
+    font-size: 13px;
+    cursor: grab;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+.cal-dump-drag-item:hover {
+    background: rgba(212, 144, 14, 0.15);
+    border-color: rgba(212, 144, 14, 0.4);
+    transform: translateX(2px);
+}
+.cal-dump-drag-item:active {
+    cursor: grabbing;
+}

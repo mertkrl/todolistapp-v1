@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Hatalı cümle düzeltildi ve daha mantıklı hale getirildi
         const warningText = pendingTasks.length > 0
-            ? `⚠️ Bu hedefe bağlı <strong style="color:#ff9f43;">${pendingTasks.length} aktif görev</strong> var. Yine de hedefi tamamlamak istiyor musunuz?`
+            ? `⚠️ Bu hedefe bağlı <strong class="u-color-hff9f43">${pendingTasks.length} aktif görev</strong> var. Yine de hedefi tamamlamak istiyor musunuz?`
             : 'Bu ana hedefi başarıyla tamamlandı (Başarı) olarak işaretlemek istiyor musunuz?';
 
             showPremiumModal({

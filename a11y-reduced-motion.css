@@ -1,0 +1,13 @@
+/* ── Sosyal bölümdeki sürekli tekrarlanan animasyonlar için hareket
+   azaltma tercihi: "kullanıcıyı sürekli uyaranda tutma" felsefesiyle
+   çelişen, kapatılamayan sonsuz pulse/blink efektleri sistemde hiç
+   yönetilmiyordu. Durum bilgisi (çevrimiçi/canlı/eşli çalışma) yerinde
+   kalır, sadece sonsuz titreşim durur. ── */
+@media (prefers-reduced-motion: reduce) {
+    .scw-status-card.pair-mode,
+    .dc-ss-live-icon,
+    .gf-metro-station.active .gf-metro-dot,
+    .dhs-anim {
+        animation: none !important;
+    }
+}

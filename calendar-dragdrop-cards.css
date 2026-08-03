@@ -1,0 +1,103 @@
+/* style.css'ten çıkarıldı (Faz C, 2026-07-22). Premium Sürükleme Ghost + Haftalık/Günlük Gelişmiş Kartlar — Günlük Event Bloğu (.deb-*), Haftalık Event Chip (.wec-*), .cal-task, .daily-event. */
+
+/* ================================================================
+   PREMIUM SÜRÜKLEME GHOST + HAFTALIK/GÜNLÜK GELİŞMİŞ KARTLAR
+   ================================================================ */
+
+
+/* Haftalık chip — hedef ikonu (sol üst) */
+.wec-goal-badge {
+    position: absolute;
+    bottom: 3px; left: 8px;
+    font-size: 8px;
+    color: rgba(255,255,255,0.85);
+    pointer-events: none;
+    line-height: 1;
+    filter: drop-shadow(0 0 3px rgba(0,0,0,0.4));
+}
+
+/* Günlük blok — hedef ikonu */
+.deb-goal-badge {
+    position: absolute;
+    top: 5px; right: 44px;
+    font-size: 9px;
+    color: rgba(255,255,255,0.85);
+    pointer-events: none;
+    line-height: 1;
+    filter: drop-shadow(0 0 3px rgba(0,0,0,0.4));
+}
+
+/* Aylık görünüm — hedef dot'u hafif büyük ve parlak */
+.cal-task-dot-goal {
+    width: 9px !important;
+    height: 9px !important;
+    border-radius: 3px !important;
+}
+
+/* Sınıf ödevi noktası — diğer kategorilerden ayrışsın diye elmas şeklinde */
+.cal-task-dot-assignment {
+    width: 8px !important;
+    height: 8px !important;
+    border-radius: 2px !important;
+    transform: rotate(45deg);
+}
+
+/* Haftalık chip öncelik köşe noktası */
+.wec-cat-dot {
+    position: absolute;
+    top: 4px; right: 4px;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    box-shadow: 0 0 5px currentColor;
+    pointer-events: none;
+}
+
+/* Günlük blok öncelik köşe noktası */
+.deb-prio-dot {
+    position: absolute;
+    top: 5px; right: 30px;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    box-shadow: 0 0 5px currentColor;
+    pointer-events: none;
+}
+
+/* — Günlük Blok Yeniden Tasarım — */
+.deb-inner {
+    display: flex; flex-direction: column; gap: 3px;
+    height: 100%; justify-content: center;
+    padding-left: 4px;
+}
+.deb-header {
+    display: flex; align-items: center; gap: 6px;
+}
+.deb-check {
+    width: 16px; height: 16px; border-radius: 5px; flex-shrink: 0;
+    border: 2px solid rgba(255,255,255,0.35);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s;
+    background: rgba(255,255,255,0.05);
+}
+.deb-check:hover { background: rgba(255,255,255,0.2); transform: scale(1.12); }
+.deb-check.done { background: rgba(46,213,115,0.8); border-color: #2ed573; }
+.deb-check.done i { font-size: 8px; color: #fff; }
+.deb-title {
+    font-size: 12px; font-weight: 700; color: #fff;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1;
+    transition: opacity 0.3s;
+}
+/* removed: superseded by new completed styles */
+.deb-time {
+    font-size: 9px; opacity: 0.7; font-weight: 500;
+    display: flex; align-items: center; gap: 3px;
+    padding-left: 22px;
+}
+.deb-del {
+    position: absolute; right: 5px; top: 5px;
+    background: rgba(255,71,87,0.0); border: none;
+    color: rgba(255,255,255,0.25); font-size: 9px; cursor: pointer;
+    border-radius: 4px; padding: 2px 4px;
+    transition: all 0.15s; opacity: 0;
+}
+.daily-event-block:hover .deb-del { opacity: 1; color: #ff6b81; background: rgba(255,71,87,0.15); }

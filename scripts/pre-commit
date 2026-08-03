@@ -21,3 +21,5 @@ if [ "${#staged_js[@]}" -eq 0 ]; then
 fi
 
 python3 scripts/check-innerhtml-gate.py "${staged_js[@]}"
+python3 scripts/check-window-bridge-baseline.py "${staged_js[@]}"
+python3 scripts/check-duplicate-window-bridges.py

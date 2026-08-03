@@ -16,9 +16,10 @@
 // - toast, render, _recalcProgress, renderMilestoneList, refreshDetailSummary,
 //   _initDetailProgress, _notifyLocal → window.*
 // - detailGoalId (salt-okunur) → window._pgGetDetailGoalId()
-// - FocusStorage / window.FocusSupabase / window.currentUser → zaten global
+// - FocusStorage / window.FocusSupabase / getCurrentUser() → zaten global
 
-function _checkDeadlineNotifications() {
+import { getCurrentUser } from './state/current-user-store.js';
+export function _checkDeadlineNotifications() {
     if (Notification.permission !== 'granted') return;
     const now = new Date();
     window._pgGetGoals().filter(g => g.status === 'active' && g.deadline).forEach(g => {
@@ -54,9 +55,9 @@ function _debouncedRealtimeToast() {
     }, 800);
 }
 
-function _subscribeRealtime() {
-    if (!window.FocusSupabase || !window.currentUser) return;
-    const sb = window.FocusSupabase, uid = window.currentUser.id;
+export function _subscribeRealtime() {
+    if (!window.FocusSupabase || !getCurrentUser()) return;
+    const sb = window.FocusSupabase, uid = getCurrentUser().id;
 
     // Önceki kanalı temizle
     if (_realtimeChannel) { sb.removeChannel(_realtimeChannel); _realtimeChannel = null; }

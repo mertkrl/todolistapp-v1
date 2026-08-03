@@ -176,10 +176,9 @@
     });
     window.addEventListener('resize', () => { if (running) resize(); });
 
-    window.TsfFlame = {
-        setIntensity(t) {
-            intensity = Math.max(0, Math.min(1, t));
-            if (intensity > 0) start(); else stop();
-        }
-    };
+    function setFlameIntensity(t) {
+        intensity = Math.max(0, Math.min(1, t));
+        if (intensity > 0) start(); else stop();
+    }
+    window.TsfFlame = { setIntensity: setFlameIntensity };
 })();

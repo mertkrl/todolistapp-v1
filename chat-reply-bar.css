@@ -1,0 +1,95 @@
+/* ── REPLY BAR (input üstündeki yanıt önizleme) ─────────── */
+.chat-reply-bar-active {
+    background: rgba(212,144,14,0.12);
+    border-left: 3px solid var(--primary-color);
+    border-radius: 8px;
+    padding: 0;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+.chat-reply-bar-inner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px;
+}
+.chat-reply-bar-icon {
+    color: var(--primary-color);
+    font-size: 13px;
+    flex-shrink: 0;
+}
+.chat-reply-bar-text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+.chat-reply-bar-name {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+.chat-reply-bar-preview {
+    font-size: 11px;
+    color: var(--text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.chat-reply-bar-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    font-size: 13px;
+    flex-shrink: 0;
+    transition: color 0.15s, background 0.15s;
+}
+.chat-reply-bar-close:hover { color: #ff6b6b; background: rgba(255,107,107,0.1); }
+
+/* 👤 Kullanıcı Detay Mini Profil Açma Butonu */
+.chat-user-detail-trigger {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-muted);
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-size: 9px;
+    cursor: pointer;
+    margin-left: 5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    transition: all 0.2s ease;
+    vertical-align: middle;
+}
+
+.chat-user-detail-trigger:hover {
+    background: var(--primary-color);
+    color: #fff;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 8px rgba(212,144,14,0.5);
+}
+
+/* Duyuru Kanalı Kilitli Chat Mesaj Alanı */
+.chat-locked-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.25);
+    border-top: 1px solid var(--glass-border);
+    padding: 18px;
+    color: var(--text-muted);
+    font-size: 13px;
+    gap: 8px;
+    font-weight: 500;
+    border-radius: 0 0 16px 16px;
+}
+.chat-locked-container i {
+    color: #ff9f43;
+    font-size: 14px;
+}
+

@@ -1,0 +1,81 @@
+/* ================================================================
+   AYLIK TAKVİM HOVER POPUP
+   ================================================================ */
+#cal-hover-popup {
+    position: absolute;
+    z-index: 99998;
+    width: 240px;
+    background: rgba(18, 14, 42, 0.97);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 14px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.04);
+    backdrop-filter: blur(24px);
+    display: none;
+    overflow: hidden;
+    pointer-events: auto;
+}
+.chp-header {
+    padding: 10px 14px 8px;
+    font-size: 11px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.chp-body {
+    padding: 6px 0;
+    max-height: 260px;
+    overflow-y: auto;
+}
+.chp-body::-webkit-scrollbar { width: 3px; }
+.chp-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+.chp-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 5px 14px;
+    transition: background 0.12s;
+}
+.chp-row:hover { background: rgba(255,255,255,0.04); }
+.chp-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 4px;
+}
+.chp-text {
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.88);
+    line-height: 1.4;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.chp-done .chp-text { text-decoration: line-through; opacity: 0.45; }
+.chp-check { color: #2ed573; font-size: 9px; margin-right: 3px; }
+.chp-time {
+    font-size: 10px;
+    color: rgba(255,255,255,0.4);
+    font-weight: 400;
+}
+.chp-habit { color: rgba(255,255,255,0.6); font-size: 11px; }
+.chp-habit i { color: #2ed573; margin-right: 3px; font-size: 9px; }
+.chp-highlight .chp-text { color: #ff9f43; font-weight: 600; }
+.chp-more {
+    padding: 3px 14px 5px;
+    font-size: 10px;
+    color: rgba(255,255,255,0.3);
+    font-weight: 500;
+}
+.chp-footer {
+    padding: 7px 14px;
+    font-size: 10px;
+    color: rgba(255,255,255,0.25);
+    border-top: 1px solid rgba(255,255,255,0.05);
+    text-align: center;
+    letter-spacing: 0.3px;
+}

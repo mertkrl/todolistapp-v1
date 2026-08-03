@@ -1,0 +1,139 @@
+/* style.css'ten çıkarıldı (Faz C, 2026-07-22). Haftalık Chip — Google Calendar Tarzı Blok Tasarımı (.weekly-event-chip, .wec-*, .daily-event-block, .deb-*). NOT: Bu dosya calendar-week-day-view.css/calendar-event-cards.css/calendar-edit-chip-height.css'İN HEPSİNDEN SONRA yüklenmeli (en son güncel tasarım, kazanmalı). */
+
+/* ================================================================
+   HAFTALIK CHIP — GOOGLE CALENDAR TARZI BLOK TASARIMI
+   ================================================================ */
+
+.weekly-event-chip {
+    position: absolute !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    border-radius: 6px !important;
+    border-left-width: 4px !important;
+    border-top: 1px solid rgba(255,255,255,0.08) !important;
+    border-right: 1px solid rgba(255,255,255,0.05) !important;
+    border-bottom: 1px solid rgba(0,0,0,0.18) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    padding: 4px 7px 3px 9px !important;
+    gap: 2px !important;
+    overflow: hidden !important;
+    cursor: grab !important;
+    transition: transform 0.15s, box-shadow 0.15s !important;
+}
+.weekly-event-chip:hover {
+    transform: scale(1.025) !important;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.45) !important;
+    z-index: 15 !important;
+}
+.weekly-event-chip.priority-high {
+    background: linear-gradient(160deg, rgba(255,71,87,0.82), rgba(200,30,50,0.68)) !important;
+    border-left-color: #ff4757 !important;
+    box-shadow: 0 3px 10px rgba(255,71,87,0.3) !important;
+}
+.weekly-event-chip.priority-medium {
+    background: linear-gradient(160deg, rgba(212,144,14,0.82), rgba(160,100,0,0.68)) !important;
+    border-left-color: #D4900E !important;
+    box-shadow: 0 3px 10px rgba(212,144,14,0.3) !important;
+}
+.weekly-event-chip.priority-low {
+    background: linear-gradient(160deg, rgba(0,184,148,0.82), rgba(0,130,110,0.68)) !important;
+    border-left-color: #00b894 !important;
+    box-shadow: 0 3px 10px rgba(0,184,148,0.25) !important;
+}
+/* ── Tamamlanan: Haftalık chip ── */
+.weekly-event-chip.completed {
+    opacity: 0.62 !important;
+    filter: grayscale(20%) !important;
+}
+.weekly-event-chip.completed .wec-title {
+    text-decoration: line-through !important;
+    opacity: 0.7 !important;
+}
+.wec-time-done {
+    text-decoration: line-through;
+    opacity: 0.55;
+}
+/* Tamamlanan chip sol üstte büyük check rozeti */
+.wec-done-badge {
+    position: absolute;
+    top: 3px; left: 6px;
+    width: 14px; height: 14px;
+    background: rgba(46,213,115,0.9);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 7px; color: #fff;
+    box-shadow: 0 0 6px rgba(46,213,115,0.5);
+    flex-shrink: 0;
+    pointer-events: none;
+}
+
+/* ── Tamamlanan: Günlük blok ── */
+.daily-event-block.completed {
+    opacity: 0.65 !important;
+    filter: grayscale(15%) !important;
+}
+.daily-event-block.completed .deb-title {
+    text-decoration: line-through !important;
+    opacity: 0.6 !important;
+}
+.deb-time-done {
+    text-decoration: line-through;
+    opacity: 0.5;
+}
+/* Tamamlanan blok sağ üstte çift-check rozet */
+.deb-done-badge {
+    position: absolute;
+    top: 5px; right: 5px;
+    background: rgba(46,213,115,0.88);
+    border-radius: 20px;
+    padding: 2px 6px;
+    font-size: 9px; color: #fff;
+    font-weight: 700;
+    box-shadow: 0 0 8px rgba(46,213,115,0.4);
+    pointer-events: none;
+    line-height: 1.4;
+    display: flex; align-items: center; gap: 3px;
+}
+
+.wec-time {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    color: rgba(255,255,255,0.75);
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+.wec-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.35;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+/* removed: superseded by new completed styles */
+
+/* Günlük blok: kenar boşluklu, yuvarlak köşeli */
+.daily-event-block {
+    left: 6px !important;
+    right: 6px !important;
+    width: auto !important;
+    border-radius: 10px !important;
+    border-left-width: 4px !important;
+    box-sizing: border-box !important;
+}
+
+/* Çok saatli olayların hücre dışına taşmasına izin ver */
+.daily-hour-cell { overflow: visible; }
+.weekly-hour-cell { overflow: visible; }
+

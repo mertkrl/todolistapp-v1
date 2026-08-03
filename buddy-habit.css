@@ -1,0 +1,112 @@
+/* Alışkanlık Ortağı (.buddy-) — style.css'ten çıkarıldı */
+
+.buddy-habit-card {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    transition: transform 0.3s ease;
+}
+
+.buddy-habit-card:hover {
+    transform: translateY(-3px);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.buddy-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.buddy-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.buddy-users {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.buddy-avatar-group {
+    display: flex;
+    align-items: center;
+}
+
+.buddy-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid #1a163a;
+    margin-left: -10px;
+    position: relative;
+    z-index: 1;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+.buddy-avatar:first-child {
+    margin-left: 0;
+    z-index: 2;
+}
+
+.buddy-progress-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.buddy-progress-bar {
+    width: 100%;
+    height: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+}
+
+.buddy-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ff9f43, #feca57);
+    border-radius: 10px;
+    transition: width 0.5s ease;
+    box-shadow: 0 0 10px rgba(255, 159, 67, 0.5);
+}
+
+.buddy-progress-fill.success {
+    background: linear-gradient(90deg, #2ed573, #26b360);
+    box-shadow: 0 0 10px rgba(46, 213, 115, 0.5);
+}
+
+.buddy-progress-fill.danger {
+    background: linear-gradient(90deg, #ff4757, #ff6b81);
+    box-shadow: 0 0 10px rgba(255, 71, 87, 0.5);
+}
+
+.buddy-status-text {
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.buddy-status-waiting, .buddy-status-success {font-size:11px;padding:4px 10px;border-radius:12px;font-weight:600;letter-spacing:.5px}
+.buddy-status-waiting{background:rgba(255,165,2,.15);color:#ffa502;border:1px solid rgba(255,165,2,.3)}
+.buddy-status-success{background:rgba(46,213,115,.15);color:#2ed573;border:1px solid rgba(46,213,115,.3)}
+
+
+.buddy-offline-warning{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:4px 10px;border-radius:12px;font-weight:600;letter-spacing:.3px;background:rgba(255,71,87,.1);color:#ff6b81;border:1px solid rgba(255,71,87,.25);animation:pulse-soft 2s ease-in-out infinite;}
+.buddy-online-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:4px 10px;border-radius:12px;font-weight:600;letter-spacing:.3px;background:rgba(46,213,115,.1);color:#2ed573;border:1px solid rgba(46,213,115,.25);}
+@keyframes pulse-soft{0%,100%{opacity:1;}50%{opacity:0.65;}}
+
+.control-btn.primary.buddy-focus-btn:disabled{opacity:0.38;cursor:not-allowed;pointer-events:none;background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.08);color:rgba(255,255,255,0.3);box-shadow:none;transform:none !important;filter:none !important;}
+.control-btn.primary.buddy-focus-btn:disabled:hover{transform:none !important;box-shadow:none !important;background:rgba(255,255,255,0.06) !important;}

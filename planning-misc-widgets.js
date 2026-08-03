@@ -1,3 +1,5 @@
+import { CATEGORIES, deadlineLabel, getCat, progressRing } from './planning-utils.js';
+import { isBlocked } from './planning-dependency-graph.js';
 // planning-misc-widgets.js
 // planning.js'ten çıkarıldı (Faz 6): Sabitler (STATUS_META), Grid View render,
 // İstatistik Kartı, Animasyonlar, Push/Local Notification stub'ları — 5 ayrı
@@ -104,40 +106,40 @@ import { esc, getPgLoadedAtRef, getPgRenderCountRef, incPgRenderCountRef, openDe
     }
 
     function cardHTML(g) {
-        const cat=window.getCat(g.category), st=STATUS_META[g.status]||STATUS_META.active;
+        const cat=getCat(g.category), st=STATUS_META[g.status]||STATUS_META.active;
         const pct=g.progress_pct||0, ms=g.milestones||[];
         const msDone=ms.filter(m=>m.done).length, archived=g.status==='archived';
-        const dl=window.deadlineLabel(g.deadline);
+        const dl=deadlineLabel(g.deadline);
         const urgency  = archived ? '' : _deadlineUrgency(g.deadline);
-        const blocked  = !archived && window.isPlanningGoalBlocked(g.id);
+        const blocked  = !archived && isBlocked(g.id);
         const priLabel=['','🔴 Yüksek','🟡 Orta','🟢 Düşük'][g.priority]||'';
         return `
         <div class="pg-card${archived?' pg-card-archived':''}${urgency?' pg-card-'+urgency:''}${blocked?' pg-card-blocked':''}" data-id="${g.id}">
-            <div class="pg-card-stripe" style="background:${cat.color};"></div>
+            <div class="pg-card-stripe"></div>
             <div class="pg-card-body">
                 <div class="pg-card-top-row">
                     <div class="pg-card-badges">
-                        <span class="pg-cat-badge" style="background:${cat.color}22;color:${cat.color};border-color:${cat.color}44;">${cat.icon} ${cat.label}</span>
-                        <span class="pg-status-dot" style="color:${st.color};">● ${st.label}</span>
+                        <span class="pg-cat-badge">${cat.icon} ${cat.label}</span>
+                        <span class="pg-status-dot">● ${st.label}</span>
                         ${blocked?'<span class="pg-blocked-badge"><i class="ti ti-lock"></i> Bekliyor</span>':''}
                         ${g.context?.isTemplate?'<span class="pg-teacher-plan-badge" title="Bu bir ders planı şablonudur"><i class="ti ti-copy"></i> Şablon</span>':''}
                         ${(g.plan_mode==='lesson-plan' && !g.context?.isTemplate && !g.lpa_id)?(()=>{ const gName=(window._wzGetLessonPlanGroups()||[]).find(x=>x.id===g.context?.lessonPlanGroupId)?.name || 'Sınıf'; return g.context?.lessonPlanStudentId ? `<span class="pg-teacher-plan-badge" title="Kişiye özel ders planı"><i class="ti ti-user"></i> ${esc(gName)} — Kişiye Özel</span>` : `<span class="pg-teacher-plan-badge" title="Sınıfa özel ders planı"><i class="ti ti-users-group"></i> ${esc(gName)}</span>`; })():''}
-                        ${g.pending_accept?'<span class="pg-teacher-plan-badge" title="Saatleri düzenliyorsun — henüz kabul etmedin, Ders Planları listesinden Kabul Et\'e basman gerekiyor" style="color:#FF9F1C;border-color:rgba(255,159,28,.35);background:rgba(255,159,28,.1);"><i class="ti ti-clock-pause"></i> Taslak — Kabul Bekliyor</span>':((g.lpa_id || (g.collab_room_id && g.my_role && g.my_role!=='owner'))?'<span class="pg-teacher-plan-badge" title="Bu plan sana atandı"><i class="ti ti-school"></i> Öğretmen Planı</span>':'')}
+                        ${g.pending_accept?'<span class="pg-teacher-plan-badge u-color-hFF9F1C_border-color-rgba25515928p35_background-rgba" title="Saatleri düzenliyorsun — henüz kabul etmedin, Ders Planları listesinden Kabul Et\'e basman gerekiyor" ><i class="ti ti-clock-pause"></i> Taslak — Kabul Bekliyor</span>':((g.lpa_id || (g.collab_room_id && g.my_role && g.my_role!=='owner'))?'<span class="pg-teacher-plan-badge" title="Bu plan sana atandı"><i class="ti ti-school"></i> Öğretmen Planı</span>':'')}
                         ${(()=>{ if (!g.collab_room_id) return ''; const online=window.PlanningCollab?.isActive()&&window.PlanningCollab.goalId===g.id ? Object.keys(window.PlanningCollab.onlineUsers||{}).length : 0; return `<span class="pg-collab-chip" title="Ortak Planlama Aktif">${online>0?`<span class="pg-collab-online-dot"></span> ${online} çevrimiçi`:'<i class="ti ti-users"></i> İşbirliği'}</span>`; })()}
                     </div>
-                    ${window.progressRing(pct, cat.color)}
+                    ${progressRing(pct, cat.color)}
                 </div>
-                <h3 class="pg-card-title pg-card-open" data-id="${g.id}" style="cursor:pointer;" title="Detayları aç">${esc(g.title)}</h3>
+                <h3 class="pg-card-title pg-card-open u-cursor-pointer" data-id="${g.id}" title="Detayları aç">${esc(g.title)}</h3>
                 ${g.description?`<p class="pg-card-desc">${esc(g.description)}</p>`:''}
                 <div class="pg-card-meta-row">
                     ${dl?`<span class="pg-meta-chip"><i class="ti ti-calendar-due"></i> ${dl}</span>`:''}
                     ${ms.length>0
                         ?`<span class="pg-meta-chip"><i class="ti ti-flag-3"></i> ${msDone}/${ms.length} milestone</span>`
-                        :`<span class="pg-meta-chip" style="opacity:.3;"><i class="ti ti-flag-3"></i> Milestone yok</span>`}
+                        :`<span class="pg-meta-chip u-opacity-p3" ><i class="ti ti-flag-3"></i> Milestone yok</span>`}
                     ${priLabel?`<span class="pg-meta-chip">${priLabel}</span>`:''}
                 </div>
                 <div class="pg-card-footer">
-                    <button class="pg-act-btn pg-plan-btn" data-id="${g.id}" style="background:${cat.color}18;border-color:${cat.color}44;color:${cat.color};">
+                    <button class="pg-act-btn pg-plan-btn" data-id="${g.id}">
                         <i class="ti ti-layout-board-split"></i> Planla
                     </button>
                     <div class="pg-act-right">
@@ -152,6 +154,19 @@ import { esc, getPgLoadedAtRef, getPgRenderCountRef, incPgRenderCountRef, openDe
         </div>`;
     }
 
+    function _applyCardColors(cardEl, g) {
+        if (!cardEl) return;
+        const cat = getCat(g.category), st = STATUS_META[g.status]||STATUS_META.active;
+        const stripeEl = cardEl.querySelector('.pg-card-stripe');
+        if (stripeEl) stripeEl.style.background = cat.color;
+        const catBadge = cardEl.querySelector('.pg-cat-badge');
+        if (catBadge) { catBadge.style.background = cat.color+'22'; catBadge.style.color = cat.color; catBadge.style.borderColor = cat.color+'44'; }
+        const statusDot = cardEl.querySelector('.pg-status-dot');
+        if (statusDot) statusDot.style.color = st.color;
+        const planBtn = cardEl.querySelector('.pg-plan-btn');
+        if (planBtn) { planBtn.style.background = cat.color+'18'; planBtn.style.borderColor = cat.color+'44'; planBtn.style.color = cat.color; }
+    }
+
     function render() {
         const grid=document.getElementById('pg-cards-grid');
         const empty=document.getElementById('pg-empty-state');
@@ -163,11 +178,11 @@ import { esc, getPgLoadedAtRef, getPgRenderCountRef, incPgRenderCountRef, openDe
         const doneCount=statGoals.filter(g=>g.status==='completed').length;
         const avgPct=statGoals.length ? Math.round(statGoals.reduce((s,g)=>s+(g.progress_pct||0),0)/statGoals.length) : 0;
         if (statsEl) statsEl.innerHTML=`
-            <div class="pg-stat"><span class="pg-stat-n" style="color:#4ade80;">${activeCount}</span><span class="pg-stat-l">Aktif Hedef</span></div>
+            <div class="pg-stat"><span class="pg-stat-n u-color-h4ade80" >${activeCount}</span><span class="pg-stat-l">Aktif Hedef</span></div>
             <div class="pg-stat-sep"></div>
-            <div class="pg-stat"><span class="pg-stat-n" style="color:var(--a,#D4900E);">${avgPct}%</span><span class="pg-stat-l">Ort. İlerleme</span></div>
+            <div class="pg-stat"><span class="pg-stat-n u-color-var-ahD4900E" >${avgPct}%</span><span class="pg-stat-l">Ort. İlerleme</span></div>
             <div class="pg-stat-sep"></div>
-            <div class="pg-stat"><span class="pg-stat-n" style="color:#60a5fa;">${doneCount}</span><span class="pg-stat-l">Tamamlandı</span></div>`;
+            <div class="pg-stat"><span class="pg-stat-n u-color-h60a5fa" >${doneCount}</span><span class="pg-stat-l">Tamamlandı</span></div>`;
 
         let list = getPgGoals().filter(g => !g._pending_collab && g.plan_mode !== 'lesson-plan');
         const now = new Date();
@@ -224,14 +239,15 @@ import { esc, getPgLoadedAtRef, getPgRenderCountRef, incPgRenderCountRef, openDe
 
         if (list.length===0) {
             grid.innerHTML = isArchiveMode
-                ? `${archiveBanner}<div class="pg-ms-empty" style="padding:40px;"><i class="ti ti-archive"></i><br>Henüz arşivlenen hedef yok.</div>`
+                ? `${archiveBanner}<div class="pg-ms-empty u-padding-40px" ><i class="ti ti-archive"></i><br>Henüz arşivlenen hedef yok.</div>`
                 : isCompletedMode
-                    ? `${archiveBanner}<div class="pg-ms-empty" style="padding:40px;"><i class="ti ti-trophy"></i><br>Henüz tamamlanan hedef yok.</div>`
+                    ? `${archiveBanner}<div class="pg-ms-empty u-padding-40px" ><i class="ti ti-trophy"></i><br>Henüz tamamlanan hedef yok.</div>`
                     : '';
             if (empty) empty.style.display = list.length===0 && isAllMode ? 'flex' : 'none';
         } else {
             if (empty) empty.style.display='none';
             grid.innerHTML = archiveBanner + list.map(cardHTML).join('');
+            grid.querySelectorAll('.pg-card').forEach((cardEl, cIdx) => _applyCardColors(cardEl, list[cIdx]));
             _bindCardEvents(grid);
             // NOT: sayfa açılışında localden bir kez, ~600ms sonra sunucu birleştirmesinden
             // ve ~1200ms sonra realtime abonelikten olmak üzere render() birkaç kez daha
@@ -269,7 +285,7 @@ import { esc, getPgLoadedAtRef, getPgRenderCountRef, incPgRenderCountRef, openDe
         const el = document.getElementById('pg-stats-card-body');
         if (!el) return;
         if (getPgGoals().length===0) {
-            el.innerHTML='<p style="color:var(--t2,#888);font-size:13px;">Henüz hedef yok.</p>'; return;
+            el.innerHTML='<p class="u-color-var-t2h888_font-size-13px">Henüz hedef yok.</p>'; return;
         }
         const active=getPgGoals().filter(g=>g.status==='active').length;
         const done=getPgGoals().filter(g=>g.status==='completed').length;
@@ -282,22 +298,31 @@ import { esc, getPgLoadedAtRef, getPgRenderCountRef, incPgRenderCountRef, openDe
 
         el.innerHTML=`
         <div class="pg-stats-overview">
-            <div class="pg-stats-mini"><div class="pg-stats-mini-n" style="color:#4ade80;">${active}</div><div class="pg-stats-mini-l">Aktif</div></div>
-            <div class="pg-stats-mini"><div class="pg-stats-mini-n" style="color:#60a5fa;">${done}</div><div class="pg-stats-mini-l">Bitti</div></div>
-            <div class="pg-stats-mini"><div class="pg-stats-mini-n" style="color:var(--a,#D4900E);">${avgPct}%</div><div class="pg-stats-mini-l">Ort. İlerleme</div></div>
-            <div class="pg-stats-mini"><div class="pg-stats-mini-n" style="color:#a78bfa;">${doneMs}/${totalMs}</div><div class="pg-stats-mini-l">Milestone</div></div>
+            <div class="pg-stats-mini"><div class="pg-stats-mini-n u-color-h4ade80" >${active}</div><div class="pg-stats-mini-l">Aktif</div></div>
+            <div class="pg-stats-mini"><div class="pg-stats-mini-n u-color-h60a5fa" >${done}</div><div class="pg-stats-mini-l">Bitti</div></div>
+            <div class="pg-stats-mini"><div class="pg-stats-mini-n u-color-var-ahD4900E" >${avgPct}%</div><div class="pg-stats-mini-l">Ort. İlerleme</div></div>
+            <div class="pg-stats-mini"><div class="pg-stats-mini-n u-color-ha78bfa" >${doneMs}/${totalMs}</div><div class="pg-stats-mini-l">Milestone</div></div>
         </div>
         ${topGoals.length>0?`
-        <div style="font-size:11px;font-weight:700;color:var(--t2,#888);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">En İlerli Hedefler</div>
-        ${topGoals.map(g=>{
-            const cat=window.getCat(g.category);
-            return `<div class="pg-stats-goal-row">
-                <div class="pg-stats-goal-dot" style="background:${cat.color};"></div>
+        <div class="u-font-size-11px_font-weight-700_color-var-t2h888_text-trans">En İlerli Hedefler</div>
+        ${topGoals.map((g,gIdx)=>{
+            const cat=getCat(g.category);
+            return `<div class="pg-stats-goal-row" data-topgoal-idx="${gIdx}">
+                <div class="pg-stats-goal-dot"></div>
                 <span class="pg-stats-goal-name">${esc(g.title)}</span>
-                <div class="pg-stats-goal-bar-wrap"><div class="pg-stats-goal-bar" style="width:${g.progress_pct||0}%;background:${cat.color};"></div></div>
+                <div class="pg-stats-goal-bar-wrap"><div class="pg-stats-goal-bar"></div></div>
                 <span class="pg-stats-goal-pct">${g.progress_pct||0}%</span>
             </div>`;
         }).join('')}` : ''}`;
+        topGoals.forEach((g,gIdx) => {
+            const cat = getCat(g.category);
+            const rowEl = el.querySelector(`[data-topgoal-idx="${gIdx}"]`);
+            if (!rowEl) return;
+            const dotEl = rowEl.querySelector('.pg-stats-goal-dot');
+            if (dotEl) dotEl.style.background = cat.color;
+            const barEl = rowEl.querySelector('.pg-stats-goal-bar');
+            if (barEl) { barEl.style.width = (g.progress_pct||0) + '%'; barEl.style.background = cat.color; }
+        });
     }
 
     // ── Animasyonlar ──────────────────────────
@@ -310,8 +335,11 @@ import { esc, getPgLoadedAtRef, getPgRenderCountRef, incPgRenderCountRef, openDe
             p.className = 'pg-sparkle';
             const angle = (i / 8) * 360;
             const dist  = 24 + Math.random() * 16;
-            p.style.cssText = `left:${cx}px;top:${cy}px;--angle:${angle}deg;--dist:${dist}px;
-                background:${['#ffd166','#4ade80','#7c6eff','#ef476f','#60a5fa'][i%5]};`;
+            p.style.left = cx + 'px';
+            p.style.top = cy + 'px';
+            p.style.setProperty('--angle', angle + 'deg');
+            p.style.setProperty('--dist', dist + 'px');
+            p.style.background = ['#ffd166','#4ade80','#7c6eff','#ef476f','#60a5fa'][i%5];
             document.body.appendChild(p);
             setTimeout(() => p.remove(), 600);
         }
@@ -329,7 +357,7 @@ import { esc, getPgLoadedAtRef, getPgRenderCountRef, incPgRenderCountRef, openDe
     // addPlanningDependency/removePlanningDependency/getPlanningDependencies/
     // isPlanningGoalBlocked köprüleriyle erişilir. Bu modül planning.js'ten ÖNCE
     // yüklenmeli (bkz. inline-module-loader.js) çünkü init() içinde
-    // window.loadDependencies() senkron çağrılıyor.
+    // loadDependencies() senkron çağrılıyor.
 
     // ── 4.3 Push & Local Notifications ─────────
     window._notifyLocal = function _notifyLocal(title, body, tag) {

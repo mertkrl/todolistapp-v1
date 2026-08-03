@@ -1,0 +1,32 @@
+/* style.css'ten çıkarıldı (Faz C, 2026-07-22). Sosyal Modül Çevrimiçi Özellikler — Çevrimiçi Arkadaş Balonu (.online-friend-bubble), Ortak Çalışma Davet Butonu (.cw-invite-btn). */
+
+/* ═══════════════════════════════════════
+   SOCIAL MODULE - Çevrimiçi Özellikler
+═══════════════════════════════════════ */
+
+/* Sosyal Renk Seçici (.social-color-opt) — social-color-toast.css'e taşındı */
+
+.online-friend-bubble {
+    text-align: center;
+    min-width: 72px;
+    transition: transform 0.2s ease;
+}
+
+#social-profile-header { transition: opacity 0.3s ease; }
+#social-not-configured { transition: opacity 0.3s ease; }
+
+/* FocusAI Çevrimiçi Arkadaş Davet Butonu Tasarımı */
+.cw-invite-btn {
+    display: block;
+    width: 100%;
+    margin-top: 6px;
+    padding: 4px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #fff;
+    background: rgba(212, 144, 14, 0.2);
+    border: 1px solid rgba(212, 144, 14, 0.4);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}

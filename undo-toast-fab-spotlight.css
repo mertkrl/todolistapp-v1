@@ -1,0 +1,112 @@
+/* style.css'ten çıkarıldı (Faz C, 2026-07-22). Undo Toast (#undo-toast) + Sidebar Timer Badge (#timer-nav-badge) + Hızlı Görev Ekleme FAB & Spotlight Modal (#floating-quick-add-btn, #spotlight-quick-add-modal). */
+
+/* ── UNDO TOAST ── */
+#undo-toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(0);
+    background: #2d2d3a;
+    border: 1px solid rgba(212,144,14,0.4);
+    color: #fff;
+    padding: 14px 20px 18px 20px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    z-index: 999998;
+    min-width: 280px;
+    max-width: 90vw;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    opacity: 1;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    overflow: hidden;
+    font-family: 'Inter', sans-serif;
+}
+#undo-toast .undo-msg {
+    flex: 1;
+    font-size: 13px;
+    color: rgba(255,255,255,0.85);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+#undo-toast .undo-btn-action {
+    background: rgba(212,144,14,0.85);
+    border: none;
+    color: #fff;
+    padding: 7px 16px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: background 0.2s;
+}
+#undo-toast .undo-btn-action:hover { background: #D4900E; }
+#undo-toast .undo-bar {
+    position: absolute;
+    bottom: 0; left: 0;
+    height: 3px;
+    width: 100%;
+    background: #D4900E;
+    border-radius: 0 0 16px 16px;
+}
+
+/* ── SIDEBAR TİMER BADGE ── */
+#timer-nav-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-left: 8px;
+    background: rgba(46, 213, 115, 0.15);
+    border: 1px solid rgba(46, 213, 115, 0.35);
+    color: #2ed573;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 7px 2px 5px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+    vertical-align: middle;
+    font-family: 'Courier New', monospace;
+}
+#timer-nav-badge .tnb-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #2ed573;
+    flex-shrink: 0;
+    animation: tnbPulse 1.4s ease-in-out infinite;
+}
+@keyframes tnbPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(46,213,115,0.7); }
+    50%       { box-shadow: 0 0 0 5px rgba(46,213,115,0); }
+}
+
+/* --- HIZLI GÖREV EKLEME (FAB & SPOTLIGHT) EFEKTLERİ --- */
+#floating-quick-add-btn:hover {
+    transform: scale(1.1) rotate(90deg) !important;
+    box-shadow: 0 12px 30px rgba(212,144,14,0.6) !important;
+}
+
+#spotlight-quick-add-modal.hidden {
+    display: none !important;
+}
+
+#spotlight-quick-add-modal:not(.hidden) {
+    display: flex !important;
+    animation: spotlightFadeIn 0.2s ease-out forwards;
+}
+
+@keyframes spotlightFadeIn {
+    from { 
+        opacity: 0; 
+        transform: translateY(-20px) scale(0.95); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0) scale(1); 
+    }
+}

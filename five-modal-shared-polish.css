@@ -1,0 +1,195 @@
+/* style.css'ten çıkarıldı (Faz C, 2026-07-22). 5 Modal Ortak Görsel Cila — #goal-modal/#habit-create-modal/#event-create-modal/#evening-reflection-modal/#pg-mode-select-overlay için derinlik, focus glow, buton, kapat butonu stilleri. */
+
+/* ================================================================
+   5 MODAL — ORTAK GÖRSEL CİLA (derinlik, focus glow, buton, kapat btn)
+   ================================================================ */
+
+/* --- 3) Arka plan blur + cam kenarı highlight --- */
+#goal-modal.modal-overlay,
+#habit-create-modal.modal-overlay,
+#event-create-modal.modal-overlay,
+#evening-reflection-modal.modal-overlay,
+#pg-mode-select-overlay.modal-overlay {
+    backdrop-filter: blur(14px) !important;
+    -webkit-backdrop-filter: blur(14px) !important;
+}
+
+/* --- Nötr koyu zemin (sistemin geri kalanıyla tutarlı), amber sadece vurgu --- */
+#goal-modal .modal-content,
+#habit-create-modal .modal-content,
+#event-create-modal .modal-content,
+#evening-reflection-modal .modal-content,
+#pg-mode-select-overlay .modal-content {
+    background: var(--s2, #1E1E20) !important;
+    border: 1px solid var(--b2, rgba(255,255,255,0.11)) !important;
+    box-shadow: 0 20px 45px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.03) !important;
+}
+#goal-modal .modal-header,
+#habit-create-modal .modal-header,
+#event-create-modal .modal-header,
+#evening-reflection-modal .modal-header,
+#pg-mode-select-overlay .modal-header {
+    background: transparent !important;
+    border-bottom: 1px solid var(--b1, rgba(255,255,255,0.06)) !important;
+}
+#goal-modal .modal-footer,
+#habit-create-modal .modal-footer,
+#event-create-modal .modal-footer,
+#evening-reflection-modal .modal-footer,
+#pg-mode-select-overlay .modal-footer {
+    border-top: 1px solid var(--b1, rgba(255,255,255,0.06)) !important;
+}
+#goal-modal .modal-content input[type="text"],
+#goal-modal .modal-content input[type="date"],
+#goal-modal .modal-content input[type="number"],
+#goal-modal .modal-content textarea,
+#goal-modal .modal-content select,
+#habit-create-modal .modal-content input[type="text"],
+#habit-create-modal .modal-content input[type="date"],
+#habit-create-modal .modal-content input[type="number"],
+#habit-create-modal .modal-content textarea,
+#habit-create-modal .modal-content select,
+#event-create-modal .modal-content input[type="text"],
+#event-create-modal .modal-content input[type="date"],
+#event-create-modal .modal-content input[type="number"],
+#event-create-modal .modal-content textarea,
+#event-create-modal .modal-content select,
+#evening-reflection-modal .modal-content input[type="text"],
+#evening-reflection-modal .modal-content textarea,
+#pg-mode-select-overlay .modal-content input[type="text"] {
+    background: rgba(255,255,255,0.03) !important;
+    border: 1px solid var(--b2, rgba(255,255,255,0.11)) !important;
+}
+#goal-modal .form-label,
+#habit-create-modal .hm-label,
+#event-create-modal .hm-label,
+#evening-reflection-modal .form-label {
+    color: var(--t2, #888) !important;
+}
+#goal-modal .modal-content .btn-secondary,
+#goal-modal .modal-content button[class*="secondary"],
+#habit-create-modal .modal-content .btn-secondary,
+#habit-create-modal .modal-content button[class*="secondary"],
+#event-create-modal .modal-content .btn-secondary,
+#event-create-modal .modal-content button[class*="secondary"],
+#evening-reflection-modal .modal-content .btn-secondary,
+#evening-reflection-modal .modal-content button[class*="secondary"],
+#pg-mode-select-overlay .modal-content .btn-secondary,
+#pg-mode-select-overlay .modal-content button[class*="secondary"] {
+    background: rgba(255,255,255,0.04) !important;
+    border: 1px solid var(--b2, rgba(255,255,255,0.11)) !important;
+    color: rgba(255,255,255,0.7) !important;
+}
+#goal-modal .modal-content .btn-secondary:hover,
+#goal-modal .modal-content button[class*="secondary"]:hover,
+#habit-create-modal .modal-content .btn-secondary:hover,
+#habit-create-modal .modal-content button[class*="secondary"]:hover,
+#event-create-modal .modal-content .btn-secondary:hover,
+#event-create-modal .modal-content button[class*="secondary"]:hover,
+#evening-reflection-modal .modal-content .btn-secondary:hover,
+#evening-reflection-modal .modal-content button[class*="secondary"]:hover,
+#pg-mode-select-overlay .modal-content .btn-secondary:hover,
+#pg-mode-select-overlay .modal-content button[class*="secondary"]:hover {
+    background: rgba(255,255,255,0.08) !important;
+    border-color: rgba(255,255,255,0.2) !important;
+}
+
+/* --- Premium başlık: ince amber ikon rozeti + belirginleşen tipografi --- */
+#goal-modal .modal-header h2,
+#habit-create-modal .modal-header h2,
+#event-create-modal .modal-header h2,
+#evening-reflection-modal .modal-header h2,
+#pg-mode-select-overlay .modal-header h2 {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    letter-spacing: -0.01em;
+}
+#goal-modal .modal-header h2::before,
+#habit-create-modal .modal-header h2::before,
+#event-create-modal .modal-header h2::before,
+#evening-reflection-modal .modal-header h2::before,
+#pg-mode-select-overlay .modal-header h2::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--a, #D4900E);
+    box-shadow: 0 0 8px rgba(212,144,14,0.7);
+    flex-shrink: 0;
+}
+
+/* --- 4) Input focus glow + label vurgusu --- */
+#goal-modal .modal-content input:focus,
+#goal-modal .modal-content textarea:focus,
+#goal-modal .modal-content select:focus,
+#habit-create-modal .modal-content input:focus,
+#habit-create-modal .modal-content textarea:focus,
+#habit-create-modal .modal-content select:focus,
+#event-create-modal .modal-content input:focus,
+#event-create-modal .modal-content textarea:focus,
+#event-create-modal .modal-content select:focus,
+#evening-reflection-modal .modal-content input:focus,
+#evening-reflection-modal .modal-content textarea:focus,
+#evening-reflection-modal .modal-content select:focus,
+#pg-mode-select-overlay .modal-content input:focus,
+#pg-mode-select-overlay .modal-content textarea:focus,
+#pg-mode-select-overlay .modal-content select:focus {
+    box-shadow: 0 0 0 3px rgba(212,144,14,0.15) !important;
+}
+.form-group:focus-within .form-label,
+.hm-field:focus-within .hm-label {
+    color: var(--primary-color, #D4900E);
+    transition: color 0.2s ease;
+}
+
+/* --- 5) Primary/secondary buton cila --- */
+.modal-content .btn-primary,
+.modal-content button[class*="primary"],
+.modal-footer .btn-primary {
+    background: linear-gradient(135deg, var(--a, #D4900E) 0%, #f0b429 100%) !important;
+    box-shadow: 0 2px 10px rgba(212,144,14,0.25) !important;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease !important;
+}
+.modal-content .btn-primary:hover,
+.modal-footer .btn-primary:hover {
+    opacity: 1 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(212,144,14,0.4) !important;
+}
+.modal-content .btn-secondary,
+.modal-content button[class*="secondary"],
+.modal-footer .btn-secondary {
+    transition: background 0.15s ease, border-color 0.15s ease !important;
+}
+.modal-content .btn-secondary:hover,
+.modal-content button[class*="secondary"]:hover,
+.modal-footer .btn-secondary:hover {
+    background: var(--s3, rgba(255,255,255,0.08)) !important;
+    border-color: var(--b2, rgba(255,255,255,0.15)) !important;
+}
+
+/* --- 6) Kapat (X) butonu hover kırmızı ton --- */
+#goal-modal .modal-header .icon-btn,
+#habit-create-modal .modal-header .icon-btn,
+#event-create-modal .modal-header .icon-btn,
+#evening-reflection-modal .modal-header .icon-btn,
+#pg-mode-select-overlay .modal-header .icon-btn {
+    border-radius: 8px;
+    border: 1px solid transparent;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+}
+#goal-modal .modal-header .icon-btn:hover,
+#habit-create-modal .modal-header .icon-btn:hover,
+#event-create-modal .modal-header .icon-btn:hover,
+#evening-reflection-modal .modal-header .icon-btn:hover,
+#pg-mode-select-overlay .modal-header .icon-btn:hover {
+    background: rgba(248,113,113,0.1) !important;
+    border-color: rgba(248,113,113,0.3) !important;
+    color: #f87171 !important;
+}

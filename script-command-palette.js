@@ -240,15 +240,23 @@ import { escapeHtml } from './storage-manager.js';
          const el = document.createElement('div');
          el.className = 'cmd-item';
          el.innerHTML = `
-             <div class="cmd-item-icon" style="background:${iconBg}; color:${iconColor};">
+             <div class="cmd-item-icon">
                  <i class="fa-solid ${icon}"></i>
              </div>
              <div class="cmd-item-text">
                  <div class="cmd-item-title">${title}</div>
                  ${sub ? `<div class="cmd-item-sub">${escapeHtml(sub)}</div>` : ''}
              </div>
-             ${badge ? `<span class="cmd-item-badge" style="color:${badgeColor};background:${badgeBg||'rgba(255,255,255,.07)'}">${badge}</span>` : ''}
+             ${badge ? `<span class="cmd-item-badge">${badge}</span>` : ''}
          `;
+         const iconEl = el.querySelector('.cmd-item-icon');
+         iconEl.style.background = iconBg;
+         iconEl.style.color = iconColor;
+         const badgeEl = el.querySelector('.cmd-item-badge');
+         if (badgeEl) {
+             badgeEl.style.color = badgeColor;
+             badgeEl.style.background = badgeBg || 'rgba(255,255,255,.07)';
+         }
          el.addEventListener('click', onClick);
          results.appendChild(el);
      }
@@ -261,7 +269,7 @@ import { escapeHtml } from './storage-manager.js';
          if (!query) return safeText;
          const safeQuery = escapeHtml(query).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
          if (!safeQuery) return safeText;
-         return safeText.replace(new RegExp(`(${safeQuery})`, 'gi'), '<mark style="background:rgba(108,92,231,0.4);color:#fff;border-radius:3px;padding:0 2px;">$1</mark>');
+         return safeText.replace(new RegExp(`(${safeQuery})`, 'gi'), '<mark class="u-background-rgba108922310p4_color-hfff_border-radius-3px_pa">$1</mark>');
      }
  
      // Sidebar'a tıklanabilir search ikonu ekle (opsiyonel)
@@ -269,8 +277,19 @@ import { escapeHtml } from './storage-manager.js';
      if (logo) {
          const searchBtn = document.createElement('div');
          searchBtn.title = 'Ara (Ctrl+Shift+K)';
-         searchBtn.style.cssText = 'display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.05);border:1px solid var(--glass-border);border-radius:10px;padding:8px 14px;cursor:pointer;margin-bottom:20px;color:var(--text-muted);font-size:13px;transition:all 0.2s;';
-         searchBtn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i><span style="flex:1;">Ara...</span><kbd style="background:rgba(255,255,255,0.07);border:1px solid var(--glass-border);border-radius:4px;padding:2px 6px;font-size:10px;font-family:Poppins,sans-serif;">⌘⇧K</kbd>';       searchBtn.addEventListener('mouseenter', () => searchBtn.style.background = 'rgba(255,255,255,0.09)');
+         searchBtn.style.display = 'flex';
+         searchBtn.style.alignItems = 'center';
+         searchBtn.style.gap = '8px';
+         searchBtn.style.background = 'rgba(255,255,255,0.05)';
+         searchBtn.style.border = '1px solid var(--glass-border)';
+         searchBtn.style.borderRadius = '10px';
+         searchBtn.style.padding = '8px 14px';
+         searchBtn.style.cursor = 'pointer';
+         searchBtn.style.marginBottom = '20px';
+         searchBtn.style.color = 'var(--text-muted)';
+         searchBtn.style.fontSize = '13px';
+         searchBtn.style.transition = 'all 0.2s';
+         searchBtn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i><span class="u-flex-1">Ara...</span><kbd class="u-background-rgba2552552550p07_border-1pxsolidvar-glass-bord">⌘⇧K</kbd>';       searchBtn.addEventListener('mouseenter', () => searchBtn.style.background = 'rgba(255,255,255,0.09)');
          searchBtn.addEventListener('mouseleave', () => searchBtn.style.background = 'rgba(255,255,255,0.05)');
          searchBtn.addEventListener('click', openPalette);
          logo.after(searchBtn);

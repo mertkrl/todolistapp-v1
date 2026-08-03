@@ -1,0 +1,131 @@
+/* style.css'ten çıkarıldı (Faz C, 2026-07-22). Gün Serisi — Göreceli Alev Sistemi. Seri/en-iyi-seri oranına göre alev tier'ları (ember/warm/blaze/inferno) — #streak-badge.streak-tier-*, .task-item.drag-over, .task-time-badge, .td-tasks-add-btn. Git HEAD: orijinalde satır 17998. */
+
+/* ═══════════════════════════════════════════
+   GÜN SERİSİ — GÖRECELİ ALEV SİSTEMİ
+   Tier, mevcut seri / en iyi seri oranına göre:
+   ember  < %25
+   warm   %25–%49
+   blaze  %50–%74
+   inferno %75+
+   ═══════════════════════════════════════════ */
+
+/* — paylaşılan keyframe'ler — */
+@keyframes streak-icon-sway {
+    0%,100% { transform: rotate(-8deg) scale(1); }
+    50%      { transform: rotate( 8deg) scale(1.08); }
+}
+@keyframes streak-icon-sway-fast {
+    0%,100% { transform: rotate(-12deg) scale(1); }
+    50%      { transform: rotate( 12deg) scale(1.15); }
+}
+@keyframes streak-icon-tremor {
+    0%,100% { transform: rotate(-14deg) scale(1.05); }
+    25%      { transform: rotate( 14deg) scale(1.2); }
+    50%      { transform: rotate(-10deg) scale(1.1); }
+    75%      { transform: rotate( 10deg) scale(1.18); }
+}
+@keyframes streak-badge-breathe {
+    0%,100% { box-shadow: 0 0  4px 0 rgba(255,149,0,0.15); }
+    50%      { box-shadow: 0 0 10px 2px rgba(255,149,0,0.30); }
+}
+@keyframes streak-badge-blaze {
+    0%,100% { box-shadow: 0 0 5px 1px rgba(255,100,0,0.25), 0 0 10px 1px rgba(255,149,0,0.12); }
+    50%      { box-shadow: 0 0 10px 2px rgba(255,100,0,0.45), 0 0 18px 3px rgba(255,149,0,0.20); }
+}
+@keyframes streak-badge-inferno {
+    0%,100% { box-shadow: 0 0 8px 2px rgba(255,60,0,0.45), 0 0 16px 3px rgba(255,140,0,0.22); }
+    35%      { box-shadow: 0 0 14px 3px rgba(255,60,0,0.65), 0 0 24px 5px rgba(255,140,0,0.35); }
+}
+@keyframes streak-ring-spin {
+    from { transform: translate(-50%,-50%) rotate(0deg); }
+    to   { transform: translate(-50%,-50%) rotate(360deg); }
+}
+
+/* ── TIER 1: EMBER (< %25) ── */
+#streak-badge.streak-tier-ember {
+    background: rgba(255,149,0,0.06) !important;
+    border-color: rgba(255,149,0,0.22) !important;
+    animation: streak-badge-breathe 3.5s ease-in-out infinite;
+}
+#streak-badge.streak-tier-ember .fa-fire {
+    color: #D4900E !important;
+    animation: streak-icon-sway 3.5s ease-in-out infinite;
+    display: inline-block;
+}
+
+/* ── TIER 2: WARM (%25–%49) ── */
+#streak-badge.streak-tier-warm {
+    background: rgba(255,130,0,0.09) !important;
+    border-color: rgba(255,130,0,0.35) !important;
+    animation: streak-badge-breathe 2.5s ease-in-out infinite;
+}
+#streak-badge.streak-tier-warm .fa-fire {
+    color: #FF8C00 !important;
+    animation: streak-icon-sway 2.2s ease-in-out infinite;
+    display: inline-block;
+}
+
+/* ── TIER 3: BLAZE (%50–%74) ── */
+#streak-badge.streak-tier-blaze {
+    background: rgba(255,90,0,0.12) !important;
+    border-color: rgba(255,90,0,0.50) !important;
+    animation: streak-badge-blaze 1.8s ease-in-out infinite;
+}
+#streak-badge.streak-tier-blaze .fa-fire {
+    color: #FF5500 !important;
+    animation: streak-icon-sway-fast 1.4s ease-in-out infinite;
+    display: inline-block;
+    filter: drop-shadow(0 0 4px rgba(255,85,0,0.6));
+}
+#streak-badge.streak-tier-blaze .td-chip-val {
+    color: #FF7A30 !important;
+    text-shadow: 0 0 8px rgba(255,100,0,0.4);
+}
+
+/* ── TIER 4: INFERNO (%75+) ── */
+#streak-badge.streak-tier-inferno {
+    background: rgba(255,50,0,0.16) !important;
+    border-color: rgba(255,60,0,0.70) !important;
+    animation: streak-badge-inferno 1.4s ease-in-out infinite;
+}
+#streak-badge.streak-tier-inferno .fa-fire {
+    color: #FF3300 !important;
+    animation: streak-icon-tremor 0.9s ease-in-out infinite;
+    display: inline-block;
+    filter: drop-shadow(0 0 6px rgba(255,50,0,0.9));
+}
+#streak-badge.streak-tier-inferno .td-chip-val {
+    color: #FF5520 !important;
+    text-shadow: 0 0 10px rgba(255,60,0,0.7), 0 0 20px rgba(255,100,0,0.3);
+    animation: streak-val-flicker 1.2s ease-in-out infinite;
+}
+@keyframes streak-val-flicker {
+    0%,100% { opacity: 1; }
+    45%      { opacity: 0.82; }
+    50%      { opacity: 1; }
+    80%      { opacity: 0.88; }
+}
+
+
+/* td-tasks-hd: "Ekle" butonunu solda göster */
+.td-tasks-add-btn i {
+    font-size: 10px;
+}
+
+/* Task time badge — kompakt görev zaman etiketleri */
+.task-time-badge {
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 5px;
+    border: 1px solid rgba(255,255,255,0.1);
+    color: var(--t3);
+    background: var(--s2);
+    font-family: 'Inter', sans-serif;
+    white-space: nowrap;
+}
+
+/* Drag-over state */
+.task-item.drag-over {
+    border-color: var(--a) !important;
+    background: var(--a10) !important;
+}

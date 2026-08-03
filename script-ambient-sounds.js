@@ -1,7 +1,6 @@
 // Odak sesleri mikseri + Scene Bar (ortam seçici) — script.js'ten taşındı.
 // Tamamen kendi kapsülünde: ambientSounds/ambientActiveOrder/... hiçbir
-// dış dosyadan okunmuyor/yazılmıyor (window.saveAmbientState/ambientActiveOrder
-// hariç, onlar da bu dosyanın kendi içinde export ediliyor).
+// dış dosyadan okunmuyor/yazılmıyor.
 document.addEventListener('DOMContentLoaded', () => {
     // ============ ODAK SESLERİ MİKSER SİSTEMİ ============
     // Birden fazla ortam sesi aynı anda çalınabilir, her birinin kendi ses
@@ -33,7 +32,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // soundType -> { audio, gainNode, analyser, volume, eqFrame }
     const ambientSounds = new Map();
     let ambientActiveOrder = []; // en son açılan en sonda — arkaplan videosu bunu takip eder
-    window.ambientActiveOrder = ambientActiveOrder; // global erişim için
     let ambientCtx = null;
     let masterGainNode = null;
     let audioOnlyMode = false;
@@ -121,17 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
         hideAmbientAudioHint();
     });
 
-    // ============ ARKAPLAN VİDEOSU (global bg-video — artık kullanılmıyor, section video kullanılıyor) ============
-    function setAmbientVisuals(type) {
-        // Video artık #timer-scene-video üzerinden section içinde yönetiliyor
-        // syncScenePills() çağrısı bunu halleder — bu fonksiyon legacy uyumluluk için boş bırakıldı
-    }
-
-    function refreshAmbientVisuals() {
-        // legacy — syncScenePills ile yönetiliyor
-    }
-
-    // ============ CANLI EŞİTLEYİCİ ANİMASYONU ============
+// ============ CANLI EŞİTLEYİCİ ANİMASYONU ============
     function startAmbientEq(type) {
         const entry = ambientSounds.get(type);
         const row = document.querySelector(`.ambient-mixer-row[data-sound="${type}"]`);
@@ -253,12 +241,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         ambientActiveOrder = ambientActiveOrder.filter(t => t !== type);
         ambientActiveOrder.push(type);
-        window.ambientActiveOrder = ambientActiveOrder;
 
         document.querySelectorAll(`.sound-btn[data-sound="${type}"]`).forEach(b => b.classList.add('active'));
         document.querySelector('.sound-btn[data-sound="none"]')?.classList.remove('active');
 
-        refreshAmbientVisuals();
         renderAmbientMixerRows();
         saveAmbientState();
     }
@@ -276,7 +262,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         ambientActiveOrder = ambientActiveOrder.filter(t => t !== type);
-        window.ambientActiveOrder = ambientActiveOrder;
 
         document.querySelectorAll(`.sound-btn[data-sound="${type}"]`).forEach(b => b.classList.remove('active'));
         if (!ambientActiveOrder.length) {
@@ -284,7 +269,6 @@ document.addEventListener('DOMContentLoaded', () => {
             hideAmbientAudioHint();
         }
 
-        refreshAmbientVisuals();
         renderAmbientMixerRows();
         saveAmbientState();
     }
@@ -380,7 +364,6 @@ document.addEventListener('DOMContentLoaded', () => {
         toggle.addEventListener('change', function() {
             audioOnlyMode = this.checked;
             audioOnlyToggles.forEach(t => { t.checked = audioOnlyMode; });
-            refreshAmbientVisuals();
             saveAmbientState();
         });
     });

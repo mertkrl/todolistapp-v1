@@ -1,0 +1,100 @@
+/* style.css'ten çıkarıldı (Faz C, 2026-07-22). %100 Zoom Düzeltme — Scroll Kontrol Sistemi. Liste olan sekmelerin (#hedefler/#zihin-coplugu/#aliskanliklar/#takvim/#bugun .page-section.active) flex-column+overflow:hidden ile taşma önleme kuralları. NOT: link bugun-minimalist.css'ten ÖNCE olmalı (#bugun.page-section.active çakışması var, o kazanmalı). */
+
+/* ================================================
+   %100 ZOOM DÜZELTME – SCROLL KONTROL SİSTEMİ
+   Liste dolunca scroll gelir, aksi halde sayfa taşmaz.
+   ================================================ */
+
+/* Liste olan sekmeler: flex column + overflow hidden */
+#hedefler.page-section.active,
+#zihin-coplugu.page-section.active,
+#aliskanliklar.page-section.active,
+#takvim.page-section.active {
+    display: flex !important;
+    flex-direction: column;
+    overflow: hidden;
+}
+/* Bugün: flex column, görev listesi scrollable */
+#bugun.page-section.active {
+    display: flex !important;
+    flex-direction: column;
+    overflow: hidden;
+    gap: 0;
+}
+#bugun .td-tasks {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+}
+#bugun .task-list-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--b2) transparent;
+}
+
+/* Bugün: task listesi kalan alanı doldurur ve scroll edilebilir */
+.task-list-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    padding-bottom: 10px;
+}
+
+/* Hedefler: goals container scroll edilebilir */
+#hedefler #goals-container {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    padding-bottom: 10px;
+    padding-right: 10px;
+    scrollbar-gutter: stable;
+}
+
+/* Zihin Çöplüğü: dump listesi scroll edilebilir */
+.dump-list-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    padding-right: 10px;
+    scrollbar-gutter: stable;
+}
+
+/* Alışkanlıklar: habit listesi scroll edilebilir
+   Not: #habit-list'i saran ayrı bir .habit-list-wrapper elementi yok — liste
+   (#habit-list.habit-list-clean) kendisi scroll konteyneri, bu yüzden kural
+   doğrudan ona uygulanıyor. */
+#habit-list.habit-list-clean {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    padding-bottom: 10px;
+    padding-right: 10px;
+    scrollbar-gutter: stable;
+}
+
+/* Takvim: calendar view paneli kalan alanı doldurur */
+#takvim #cal-view-monthly.cal-view-panel.active,
+#takvim #cal-view-weekly.cal-view-panel.active,
+#takvim #cal-view-daily.cal-view-panel.active {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* Takvim sol panel: calendar-layout tam yüksekliği kullansın */
+#takvim .calendar-layout {
+    height: 100%;
+}
+
+/* Takvim sağ panel: eventler çoksa scroll edilebilir */
+
+
+/* Bugün: .td-tasks overflow düzeltmesi —
+   overflow: visible ile saat dropdown kırpılmaz,
+   .task-list-wrapper içindeki flex+scroll yine çalışır */
+#bugun .td-tasks {
+    overflow: visible !important;
+}

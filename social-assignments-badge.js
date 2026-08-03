@@ -10,10 +10,11 @@
 // erişebilmesi için paylaşılan, salt-okunur önbellek. `items` her zaman TÜM (açık) ödevleri
 // içerir (teslim edilmiş dahil, `done` alanıyla işaretli) — Takvim geçmiş/gelecek günleri de
 // gösterebilsin diye. Veri her yenilendiğinde 'focusai:assignments-updated' olayı yayınlanır.
+import { getCurrentUser } from './state/current-user-store.js';
 let _myPendingAssignments = [];
 window.FocusAssignments = { items: [], refresh: () => _refreshMyAssignmentsBadge() };
-async function _refreshMyAssignmentsBadge() {
-    if (!window.FocusSupabase || !window.currentUser?.id) return;
+export async function _refreshMyAssignmentsBadge() {
+    if (!window.FocusSupabase || !getCurrentUser()?.id) return;
     const badge = document.getElementById('dhs-assignments-badge');
     const setBadge = (n, warn) => {
         if (!badge) return;
@@ -25,7 +26,7 @@ async function _refreshMyAssignmentsBadge() {
     try {
         const { data: memberships } = await window.FocusSupabase
             .from('group_members').select('group_id, groups(id, code, name, classroom_type)')
-            .eq('user_id', window.currentUser.id);
+            .eq('user_id', getCurrentUser().id);
         // "Sınıf Paneli" sekmesi (ve dolayısıyla ödev/görevlendirme özelliği) hem
         // classroom hem workplace tipi gruplarda aktif (bkz. social.js ~11581) —
         // sadece 'classroom' filtrelemek workplace (Ekip) gruplarındaki ödevlerin
@@ -42,14 +43,14 @@ async function _refreshMyAssignmentsBadge() {
         const { data: assignments } = await window.FocusSupabase
             .from('classroom_assignments').select('id, group_id, title, due_date, status, priority, target_user_ids, steps')
             .in('group_id', classroomGroups.map(g => g.id)).eq('status', 'active');
-        const mine = (assignments || []).filter(a => !a.target_user_ids || a.target_user_ids.includes(window.currentUser.id));
+        const mine = (assignments || []).filter(a => !a.target_user_ids || a.target_user_ids.includes(getCurrentUser().id));
         if (!mine.length) {
             _myPendingAssignments = []; window.FocusAssignments.items = []; setBadge(0);
             window.dispatchEvent(new CustomEvent('focusai:assignments-updated'));
             return;
         }
         const { data: subs } = await window.FocusSupabase
-            .from('assignment_submissions').select('assignment_id').eq('user_id', window.currentUser.id)
+            .from('assignment_submissions').select('assignment_id').eq('user_id', getCurrentUser().id)
             .in('assignment_id', mine.map(a => a.id));
         const doneIds = new Set((subs || []).map(s => s.assignment_id));
         // Çok adımlı ödev/ders planı (steps var): "teslim" yerine "tüm adımlar tamamlandı mı"
@@ -60,7 +61,7 @@ async function _refreshMyAssignmentsBadge() {
         if (multiStepMine.length) {
             const { data: stepRows } = await window.FocusSupabase
                 .from('assignment_step_progress').select('assignment_id, step_id')
-                .eq('user_id', window.currentUser.id).eq('done', true)
+                .eq('user_id', getCurrentUser().id).eq('done', true)
                 .in('assignment_id', multiStepMine.map(a => a.id));
             (stepRows || []).forEach(r => (myStepDoneByAsg[r.assignment_id] = myStepDoneByAsg[r.assignment_id] || new Set()).add(r.step_id));
         }

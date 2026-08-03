@@ -1,0 +1,88 @@
+/* ── Profil Dropdown Menü ─────────────────────────────────── */
+.profile-dropdown-menu {
+    position: fixed;
+    top: 52px;
+    right: 12px;
+    z-index: 99999;
+    background: rgba(14,14,16,0.97);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+    padding: 10px;
+    min-width: 220px;
+    backdrop-filter: blur(20px);
+    animation: pdm-in 0.15s ease;
+}
+@keyframes pdm-in {
+    from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.pdm-user-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px 12px;
+}
+.pdm-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #D4900E, #c97c18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: #000;
+    flex-shrink: 0;
+}
+.pdm-user-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    line-height: 1.3;
+}
+.pdm-user-email {
+    font-size: 11px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+}
+.pdm-divider {
+    height: 1px;
+    background: rgba(255,255,255,0.07);
+    margin: 4px 0;
+}
+.pdm-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 13px;
+    font-family: inherit;
+    padding: 9px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.15s;
+    text-align: left;
+}
+.pdm-btn:hover { background: rgba(255,255,255,0.07); }
+.pdm-btn i { width: 16px; text-align: center; flex-shrink: 0; }
+.pdm-btn-danger { color: #ff4757; }
+.pdm-btn-danger:hover { background: rgba(255,71,87,0.1); }
+
+/* Madde 8 (2026-07-03): "Premium'a Yükselt" — sadece ücretsiz plandaki
+   kullanıcıya görünür (script.js updateProfileHeader), vurgulu altın ton. */
+.pdm-btn-upgrade {
+    color: #ffd166;
+    font-weight: 700;
+    background: rgba(255,209,102,0.08);
+    border: 1px solid rgba(255,209,102,0.25);
+}
+.pdm-btn-upgrade i { color: #ffd166; }
+.pdm-btn-upgrade:hover { background: rgba(255,209,102,0.18); }

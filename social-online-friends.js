@@ -1,13 +1,21 @@
+import { _resolveProfileByUsername } from './social-dc-profile-resolve.js';
+import { getFriends, showUnfriendConfirm } from './social-friends-notifications.js';
+
+import { hasUnreadDm } from './social-dm-notifications.js';
+
+import { getCurrentUser } from './state/current-user-store.js';
+import { getLastAvatarClick } from './state/last-avatar-click-store.js';
+import { getOnlineFriendsPresenceCb, setOnlineFriendsPresenceCb } from './state/online-friends-presence-cb-store.js';
 // ============================================================
 // FOCUSAI SOCIAL-ONLINE-FRIENDS.JS
 // social.js'ten çıkarılmış "Çevrimiçi Arkadaşlar" (yeni nesil dikey liste)
 // widget'ı: presence durumuna göre arkadaş listesini render eder.
-// window.currentUser, window.getFriends, window.isBlockedEitherWay,
+// getCurrentUser(), getFriends, window.isBlockedEitherWay,
 // window._resolveProfileByUsername, window._escapeHtml, window.avatarImgHtml,
-// window.hasUnreadDm, window.openBuddyFocusSettingsModal,
+// hasUnreadDm, window.openBuddyFocusSettingsModal,
 // window.showUnfriendConfirm, window.goToDmChat, window.openMiniProfile
 // gibi social.js globallerine bağımlı — ondan SONRA yüklenmeli.
-// window._onlineFriendsPresenceCb ve window._lastAvatarClick, social.js'in
+// window._onlineFriendsPresenceCb ve getLastAvatarClick(), social.js'in
 // geri kalanıyla PAYLAŞILAN durumdur (orada da okunuyor/yazılıyor) — bu
 // yüzden bare değil, window üzerinden erişiliyor.
 // ============================================================
@@ -15,11 +23,11 @@
 'use strict';
 
 function subscribeOnlineFriends() {
-    const currentUser = window.currentUser;
+    const currentUser = getCurrentUser();
     if (!currentUser) return;
 
     // Önceki dinleyicileri temizle
-    if (window._onlineFriendsPresenceCb) { window.removeEventListener('focusai:presence-changed', window._onlineFriendsPresenceCb); window._onlineFriendsPresenceCb = null; }
+    if (getOnlineFriendsPresenceCb()) { window.removeEventListener('focusai:presence-changed', getOnlineFriendsPresenceCb()); setOnlineFriendsPresenceCb(null); }
 
     {
         const render = async () => {
@@ -44,7 +52,7 @@ function subscribeOnlineFriends() {
                 }
             });
 
-            const friends = window.getFriends();
+            const friends = getFriends();
             const allFriendData = await Promise.all(
                 friends
                     .filter(u => !(typeof window.isBlockedEitherWay === 'function' && window.isBlockedEitherWay(u)))
@@ -80,21 +88,21 @@ function subscribeOnlineFriends() {
             listEl.innerHTML = allFriendData.map(f => `
             <div class="online-friend-bubble${f.online ? '' : ' is-offline'}">
                 <div class="si-row-g10">
-                    <div class="sb-friend-avatar-zone" data-username="${window._escapeHtml(f.username)}" data-name="${window._escapeHtml(f.displayName)}" style="position:relative; flex-shrink:0; cursor:pointer;" title="Profili görüntüle (çift tık: sohbeti aç)">
+                    <div class="sb-friend-avatar-zone u-position-relative_flex-shrink-0_cursor-pointer" data-username="${window._escapeHtml(f.username)}" data-name="${window._escapeHtml(f.displayName)}" title="Profili görüntüle (çift tık: sohbeti aç)">
                         ${window.avatarImgHtml(f, 34)}
                         <span class="dc-dm-status-dot ${f.online ? 'online' : 'offline'}"></span>
-                        ${window.hasUnreadDm(f.username) ? '<span class="dc-unread-dot"></span>' : ''}
+                        ${hasUnreadDm(f.username) ? '<span class="dc-unread-dot"></span>' : ''}
                     </div>
-                    <div class="sb-friend-name-zone" data-username="${window._escapeHtml(f.username)}" data-name="${window._escapeHtml(f.displayName)}" style="cursor:pointer;" title="Profili görüntüle">
-                        <div style="font-size:13px; color:#fff; font-weight:600; max-width:90px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${window._escapeHtml(f.displayName)}</div>
+                    <div class="sb-friend-name-zone u-cursor-pointer" data-username="${window._escapeHtml(f.username)}" data-name="${window._escapeHtml(f.displayName)}" title="Profili görüntüle">
+                        <div class="u-font-size-13px_color-hfff_font-weight-600_max-width-90px_o">${window._escapeHtml(f.displayName)}</div>
                         <div class="dc-dm-status-label">${f.online ? 'Çevrimiçi' : 'Çevrimdışı'}</div>
                     </div>
                 </div>
-                <div style="display:flex; gap:6px; margin-top:6px;">
-                    <button class="cw-invite-btn${!f.online ? ' cw-invite-btn--offline' : ''}" data-username="${window._escapeHtml(f.username)}" data-name="${window._escapeHtml(f.displayName)}" data-color="${window._escapeHtml(f.avatarColor || '6c5ce7')}" style="flex:1; font-size:11px; padding:5px 8px;" ${!f.online ? 'disabled title="Bu kullanıcı şu an çevrimdışı"' : ''}>
+                <div class="u-display-flex_gap-6px_margin-top-6px">
+                    <button class="cw-invite-btn${!f.online ? ' cw-invite-btn--offline' : ''} u-flex-1_font-size-11px_padding-5px8px" data-username="${window._escapeHtml(f.username)}" data-name="${window._escapeHtml(f.displayName)}" data-color="${window._escapeHtml(f.avatarColor || '6c5ce7')}" ${!f.online ? 'disabled title="Bu kullanıcı şu an çevrimdışı"' : ''}>
                         <i class="fa-solid fa-bolt"></i> Odak
                     </button>
-                    <button class="sb-dm-friend-btn" data-username="${window._escapeHtml(f.username)}" data-name="${window._escapeHtml(f.displayName)}" style="flex:1; font-size:11px; padding:5px 8px; background:rgba(108,92,231,0.15); border:1px solid rgba(108,92,231,0.2); color:#a29bfe; border-radius:8px; cursor:pointer; transition:background 0.18s;" onmouseenter="this.style.background='rgba(108,92,231,0.3)'" onmouseleave="this.style.background='rgba(108,92,231,0.15)'">
+                    <button class="sb-dm-friend-btn u-flex-1_font-size-11px_padding-5px8px_background-rgba108922 son-dm-friend-btn" data-username="${window._escapeHtml(f.username)}" data-name="${window._escapeHtml(f.displayName)}">
                         <i class="fa-solid fa-message"></i> DM
                     </button>
                     <button class="sb-unfriend-btn" data-username="${window._escapeHtml(f.username)}" data-name="${window._escapeHtml(f.displayName)}" title="Arkadaşlıktan Çıkar">
@@ -110,12 +118,12 @@ function subscribeOnlineFriends() {
                 zone.addEventListener('click', () => {
                     const username = zone.dataset.username;
                     const now = Date.now();
-                    if (window._lastAvatarClick.username === username && (now - window._lastAvatarClick.time) < 500) {
-                        window._lastAvatarClick.username = null; window._lastAvatarClick.time = 0;
+                    if (getLastAvatarClick().username === username && (now - getLastAvatarClick().time) < 500) {
+                        getLastAvatarClick().username = null; getLastAvatarClick().time = 0;
                         document.querySelectorAll('.mini-profile-popup').forEach(p => p.remove());
                         window.goToDmChat(username, zone.dataset.name); return;
                     }
-                    window._lastAvatarClick.username = username; window._lastAvatarClick.time = now;
+                    getLastAvatarClick().username = username; getLastAvatarClick().time = now;
                     window.openMiniProfile(username, null, zone);
                 });
             });
@@ -127,12 +135,12 @@ function subscribeOnlineFriends() {
             });
             listEl.querySelectorAll('.sb-unfriend-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
-                    window.showUnfriendConfirm(btn.dataset.username, btn.dataset.name || btn.dataset.username);
+                    showUnfriendConfirm(btn.dataset.username, btn.dataset.name || btn.dataset.username);
                 });
             });
         };
 
-        window._onlineFriendsPresenceCb = render;
+        setOnlineFriendsPresenceCb(render);
         window.addEventListener('focusai:presence-changed', render);
         render();
     }

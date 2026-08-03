@@ -29,6 +29,13 @@ import {
     _applyGroupTheme,
     _openGroupThemePicker,
 } from './social-group-session-calendar.js';
+import { renderGroupTournament } from './social-gamification.js';
+import { computeActiveNowCount } from './social-group-discover.js';
+import { sendGroupKudos, _maybeCelebrateGroupGoal } from './social-activity-feed.js';
+import { getGmMembersSupabaseChannel, setGmMembersSupabaseChannel } from './state/gm-members-channel-store.js';
+import { getGmCustomRolesSupabaseChannel, setGmCustomRolesSupabaseChannel } from './state/gm-custom-roles-channel-store.js';
+import { BUILTIN_ROLE_PERMS, getRolePriority, logGroupAuditSupabase, loadGroupCustomRolesMapSupabase, openGroupManagementModalSupabase } from './social-roles.js';
+import { _pickNewOwner } from './social-misc-pure-utils.js';
 
        let groupMembersListenerRef = null; // Canlı dinleyiciyi temizlemek için hafıza referansı
        let _managePermsListenerRef = null; // "Grup Yönetimi" butonu görünürlüğü için canlı izin dinleyicisi
@@ -74,99 +81,9 @@ import {
        // sadece `data`/`membersData`'yı OKUYUP DOM'a yazıyor, showGroupDetails'in 15+ paylaşılan
        // state değişkeninden HİÇBİRİNİ mutasyona uğratmıyor — bu yüzden `data`'yı açık parametre
        // olarak alan modül-seviyesi bir fonksiyona güvenle çıkarıldı (Faz H).
-       async function _renderGroupMembersPanel(data, membersData) {
-           const studyMembersContainer = document.getElementById("group-study-members");
-           const activeCountEl = document.getElementById("group-active-count");
-           if (!studyMembersContainer) return;
-
-           studyMembersContainer.innerHTML = "";
-           if (!membersData) return;
-
-           const usernames = Object.keys(membersData)
-               .filter(u => !(typeof window.isBlockedEitherWay === 'function' && window.isBlockedEitherWay(u)));
-           if (activeCountEl) activeCountEl.textContent = `${usernames.length} Üye`;
-
-           let totalGroupFocusMinutes = 0;
-           const leaderboardData = [];
-
-           const isSupabaseGroup = !!data._supaId;
-           if (isSupabaseGroup) window.registerPresenceWatchIds?.(usernames.map(u => membersData[u]?.userId).filter(Boolean));
-           const presenceState = isSupabaseGroup && window.getCommunityPresenceState ? window.getCommunityPresenceState() : null;
-           const supaCustomRoles = isSupabaseGroup ? await loadGroupCustomRolesMapSupabase(data._supaId) : null;
-
-           for (let memberUsername of usernames) {
-               const memberEntry = membersData[memberUsername] || {};
-               let uData;
-
-               const online = !!(presenceState && memberEntry.userId && presenceState[memberEntry.userId] && presenceState[memberEntry.userId].some(p => p.studying));
-               uData = {
-                   displayName: memberEntry.displayName || memberUsername,
-                   avatarColor: memberEntry.avatarColor,
-                   customAvatar: memberEntry.customAvatar,
-                   xp: memberEntry.xp || 0,
-                   userId: memberEntry.userId,
-                   online
-               };
-
-               const allTimeFocusMin = Math.floor((uData.xp || 0) / 10);
-               const weeklyFocusMin = Math.max(0, Math.floor(memberEntry.weeklyFocusMin || 0));
-               const activeDays = Math.max(0, Math.floor(memberEntry.activeDays || 0));
-               const prevWeekFocusMin = Math.max(0, Math.floor(memberEntry.prevWeekFocusMin || 0));
-               totalGroupFocusMinutes += weeklyFocusMin;
-
-               const role = (membersData[memberUsername] && membersData[memberUsername].role)
-                   || (data.createdBy === memberUsername ? 'admin' : 'member');
-               const focusMin = _groupLeaderboardMode === 'weekly' ? weeklyFocusMin : allTimeFocusMin;
-               leaderboardData.push({ username: memberUsername, uData, focusMin, allTimeFocusMin, weeklyFocusMin, activeDays, prevWeekFocusMin, role });
-
-               if (uData.online) {
-                   const mBox = document.createElement("div");
-                   mBox.className = "glass-element";
-                   mBox.style.cssText = "padding: 12px; display: flex; align-items: center; gap: 10px; border: 1px solid #2ed573; background: rgba(46, 213, 115, 0.05); border-radius: 8px;";
-                   const isSelf = memberUsername === currentUser.username;
-                   mBox.innerHTML = `
-                       ${avatarImgHtml({ ...uData, displayName: uData.displayName || memberUsername }, 30)}
-                       <div style="flex:1; min-width:0; text-align:left;">
-                           <div style="font-size:12px; font-weight:600; color:#fff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${_escapeHtml(uData.displayName || memberUsername)}</div>
-                           <div style="font-size:10px; color:#2ed573;"><i class="fa-solid fa-bolt"></i> Odaklanıyor</div>
-                       </div>
-                       ${isSelf ? '' : `<button class="group-kudos-btn" data-user-id="${uData.userId || ''}" data-username="${_escapeHtml(memberUsername)}" title="Alkış gönder" style="flex-shrink:0; background:none; border:none; cursor:pointer; font-size:16px; padding:4px; border-radius:6px; opacity:0.85;">👏</button>`}
-                   `;
-                   studyMembersContainer.appendChild(mBox);
-               }
-           }
-
-           const weeklyGoal = data.weeklyGoal || 1000;
-           const percent = Math.min(100, Math.floor((totalGroupFocusMinutes / weeklyGoal) * 100));
-
-           const fillEl = document.getElementById('group-goal-fill');
-           const percentText = document.getElementById('group-goal-percent');
-           const goalText = document.getElementById('group-goal-text');
-
-           if (fillEl) fillEl.style.strokeDashoffset = (238.76 * (1 - percent / 100)).toFixed(2);
-           if (percentText) percentText.textContent = '%' + percent;
-           if (goalText) goalText.textContent = `${formatFocusMinutes(totalGroupFocusMinutes)} / ${formatFocusMinutes(weeklyGoal)}`;
-
-           // ── EKİP BAŞARISI: haftalık hedef tamamlanınca kutlama ──
-           if (isSupabaseGroup && totalGroupFocusMinutes >= weeklyGoal && weeklyGoal > 0) {
-               _maybeCelebrateGroupGoal(data._supaId, data.name, totalGroupFocusMinutes, weeklyGoal);
-           }
-
-           // Mini turnuva kartı — presence güncellemeleri sık tetiklenebildiği için
-           // grup başına en fazla 20 sn'de bir tazelenir.
-           if (isSupabaseGroup && data._supaId && typeof window.renderGroupTournament === 'function') {
-               const now = Date.now();
-               if (!window._gtLastFetch[data._supaId] || now - window._gtLastFetch[data._supaId] > 20000) {
-                   window._gtLastFetch[data._supaId] = now;
-                   window.renderGroupTournament(data._supaId);
-               }
-           }
-
-           // Sıralamayı önceden hesapla (boş durum özetinde de kullanılacak)
-           leaderboardData.sort((a, b) => b.focusMin - a.focusMin);
-
-           // ── BU HAFTANIN YILDIZLARI — tek metrikli ("kim daha çok çalıştı") yarışı
-           // çeşitlendiren rozetler: sadece toplam dakika değil, tutarlılık ve ilerleme de ödüllendirilsin.
+       // _renderGroupMembersPanel'den ayrılan: haftanın yıldızları rozet paneli.
+       // Faz S devamı, dev fonksiyon refactoru.
+       function _renderGroupWeeklyBadges(leaderboardData, data) {
            const badgesEl = document.getElementById('group-weekly-badges');
            if (badgesEl) {
                const badges = [];
@@ -223,17 +140,22 @@ import {
                    addBadge('🔥', 'Düzenlilik Rekoru', atConsistent, `${atConsistent?.activeDays || 0} gün/hafta`, '#D4900E');
                }
 
-               badgesEl.innerHTML = badges.length > 0 ? badges.map(b => `
-                   <div class="grp-badge-chip">
+               badgesEl.innerHTML = badges.length > 0 ? badges.map((b, i) => `
+                   <div class="grp-badge-chip" data-badge-idx="${i}">
                        <span class="grp-badge-icon">${b.icon}</span>
                        <div>
                            <div class="grp-badge-label">${b.label}</div>
                            <div class="grp-badge-name">${_escapeHtml(b.name)}
-                               <span style="color:${b.color}; font-size:10px;"> ${b.detail}</span>
+                               <span class="grp-badge-detail"> ${b.detail}</span>
                            </div>
                        </div>
                    </div>`).join('')
                    : '';
+               badgesEl.querySelectorAll('.grp-badge-chip').forEach(chip => {
+                   const i = parseInt(chip.dataset.badgeIdx, 10);
+                   const detailEl = chip.querySelector('.grp-badge-detail');
+                   if (detailEl) detailEl.style.color = badges[i].color;
+               });
 
                // Kişisel başarılar (gscSessionsCache'den türetilen kalıcı unvanlar)
                if (currentUser) {
@@ -247,8 +169,11 @@ import {
                    }
                }
            }
+       }
 
-           // ── SENİN KONUMUN — pozitif rekabet için kullanıcının sırasını öne çıkar ──
+       // _renderGroupMembersPanel'den ayrılan: "Senin Konumun" kartı.
+       // Faz S devamı, dev fonksiyon refactoru.
+       function _renderGroupYourRankCard(leaderboardData, data) {
            const yourRankCard = document.getElementById('group-your-rank-card');
            if (yourRankCard) {
                const myIdx = leaderboardData.findIndex(m => m.username === currentUser.username);
@@ -277,7 +202,7 @@ import {
                    const rankLabel = _gdRankLabel(myIdx);
                    const subText = isFirst
                        ? 'Zirvedesin! Yerini korumak için odaklanmaya devam et.'
-                       : `Önündeki <b style="color:#fff;">${_escapeHtml(ahead.uData.displayName || ahead.username)}</b>'ı geçmek için <b style="color:#fff;">${formatFocusMinutes(gapMin)}</b> kaldı.`;
+                       : `Önündeki <b class="u-color-hfff">${_escapeHtml(ahead.uData.displayName || ahead.username)}</b>'ı geçmek için <b class="u-color-hfff">${formatFocusMinutes(gapMin)}</b> kaldı.`;
                    yourRankCard.innerHTML = `
                        <div class="gyr-rank">${rankLabel}</div>
                        <div class="gyr-info">
@@ -306,40 +231,11 @@ import {
                    }
                }
            }
+       }
 
-           if (studyMembersContainer.innerHTML === "") {
-               const topMember = leaderboardData[0];
-               if (totalGroupFocusMinutes === 0) {
-                   // Tamamen boş grup: pasif bir "henüz kayıt yok" mesajı yerine
-                   // doğrudan odaklanmaya başlatan bir CTA göster.
-                   studyMembersContainer.innerHTML = `
-                       <div style="grid-column: 1/-1; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; padding: 14px;">
-                           <p style="color:var(--text-muted); font-size:12px; margin:0; line-height:1.6; text-align:left;">Bu grupta bu hafta henüz odaklanma kaydı yok.<br>Liderlik tablosuna girecek ilk kişi sen ol!</p>
-                           <button id="group-empty-state-cta" class="control-btn primary" style="font-size:12px; padding:9px 16px; white-space:nowrap; flex-shrink:0;">
-                               <i class="fa-solid fa-bolt"></i> İlk Seansını Başlat
-                           </button>
-                       </div>`;
-                   const ctaBtn = document.getElementById('group-empty-state-cta');
-                   if (ctaBtn) {
-                       ctaBtn.onclick = () => {
-                           if (typeof window.switchTab === 'function') window.switchTab('zamanlayici');
-                       };
-                   }
-               } else {
-                   const summaryHtml = `Bu grup bu hafta <b style="color:#fff;">${formatFocusMinutes(totalGroupFocusMinutes)}</b> odaklandı.<br>En çok odaklanan: <b style="color:#fff;">${_escapeHtml(topMember.uData.displayName || topMember.username)}</b> (${formatFocusMinutes(topMember.focusMin)})`;
-                   studyMembersContainer.innerHTML = `
-                       <div style="grid-column: 1/-1; text-align:center; padding: 14px 10px;">
-                           <p style="color:var(--text-muted); font-size:12px; margin: 0 0 6px 0;">Şu an grupta aktif çalışan kimse yok.</p>
-                           <p style="color:var(--text-muted); font-size:12px; margin:0; line-height:1.6;">${summaryHtml}</p>
-                       </div>`;
-               }
-           }
-
-           // Onboarding kartını: sıralama verisi yoksa göster, varsa gizle
-           const onboardingCard = document.getElementById('group-overview-onboarding');
-           if (onboardingCard) onboardingCard.classList.toggle('hidden', leaderboardData.length > 0);
-
-           // ── SIRALAMA (Leaderboard) ──
+       // _renderGroupMembersPanel'den ayrılan: sıralama (leaderboard) listesi render'ı.
+       // Faz S devamı, dev fonksiyon refactoru.
+       function _renderGroupLeaderboardList(leaderboardData, data, membersData, isSupabaseGroup, supaCustomRoles) {
            const leaderboardEl = document.getElementById("group-leaderboard-list");
            const leaderboardEmpty = document.getElementById("group-leaderboard-empty");
            if (leaderboardEmpty) leaderboardEmpty.classList.toggle('hidden', leaderboardData.length > 0);
@@ -357,7 +253,7 @@ import {
                    const isSelfRow = m.username === currentUser.username;
 
                    return `
-                       <div class="group-leaderboard-row${idx < 3 ? ' top-rank' : ''}" data-username="${_escapeHtml(m.username)}" style="cursor:pointer;">
+                       <div class="group-leaderboard-row${idx < 3 ? ' top-rank' : ''} u-cursor-pointer" data-username="${_escapeHtml(m.username)}" >
                            <div class="glb-rank">${rankLabel}</div>
                            ${avatarImgHtml({ ...m.uData, displayName }, 34)}
                            <div class="glb-info">
@@ -365,16 +261,20 @@ import {
                                    ${_escapeHtml(displayName)}
                                    ${m.uData.online ? '<span class="glb-online-dot" title="Çevrimiçi"></span>' : ''}
                                </div>
-                               <div class="glb-role" style="color:#${_escapeHtml(roleColor)};">${_escapeHtml(roleName)}</div>
+                               <div class="glb-role" data-role-color="${_escapeHtml(roleColor)}">${_escapeHtml(roleName)}</div>
                            </div>
-                           ${isSelfRow ? '' : `<button class="group-kudos-btn" data-user-id="${m.uData.userId || ''}" data-username="${_escapeHtml(m.username)}" title="Alkış gönder" style="flex-shrink:0; background:none; border:none; cursor:pointer; font-size:15px; padding:4px; border-radius:6px; opacity:0.7;">👏</button>`}
+                           ${isSelfRow ? '' : `<button class="group-kudos-btn u-flex-shrink-0_background-none_border-none_cursor-pointer_f" data-user-id="${m.uData.userId || ''}" data-username="${_escapeHtml(m.username)}" title="Alkış gönder" >👏</button>`}
                            <div class="glb-time">${formatFocusMinutes(m.focusMin)}</div>
                        </div>
                    `;
                }).join("");
 
+               leaderboardEl.querySelectorAll(".glb-role").forEach(el => {
+                   el.style.color = '#' + el.dataset.roleColor;
+               });
+
                if (leaderboardData.length === 0) {
-                   leaderboardEl.innerHTML = `<p style="color:var(--text-muted); font-size:12px; text-align:center; margin:10px 0;">Henüz üye yok.</p>`;
+                   leaderboardEl.innerHTML = `<p class="u-color-var-text-muted_font-size-12px_text-align-center_marg">Henüz üye yok.</p>`;
                } else {
                    leaderboardEl.querySelectorAll(".group-leaderboard-row").forEach(row => {
                        row.addEventListener("click", () => {
@@ -388,6 +288,146 @@ import {
            }
        }
 
+       async function _renderGroupMembersPanel(data, membersData) {
+           const studyMembersContainer = document.getElementById("group-study-members");
+           const activeCountEl = document.getElementById("group-active-count");
+           if (!studyMembersContainer) return;
+
+           studyMembersContainer.innerHTML = "";
+           if (!membersData) return;
+
+           const usernames = Object.keys(membersData)
+               .filter(u => !(typeof window.isBlockedEitherWay === 'function' && window.isBlockedEitherWay(u)));
+           if (activeCountEl) activeCountEl.textContent = `${usernames.length} Üye`;
+
+           let totalGroupFocusMinutes = 0;
+           const leaderboardData = [];
+
+           const isSupabaseGroup = !!data._supaId;
+           if (isSupabaseGroup) window.registerPresenceWatchIds?.(usernames.map(u => membersData[u]?.userId).filter(Boolean));
+           const presenceState = isSupabaseGroup && window.getCommunityPresenceState ? window.getCommunityPresenceState() : null;
+           const supaCustomRoles = isSupabaseGroup ? await loadGroupCustomRolesMapSupabase(data._supaId) : null;
+
+           for (let memberUsername of usernames) {
+               const memberEntry = membersData[memberUsername] || {};
+               let uData;
+
+               const online = !!(presenceState && memberEntry.userId && presenceState[memberEntry.userId] && presenceState[memberEntry.userId].some(p => p.studying));
+               uData = {
+                   displayName: memberEntry.displayName || memberUsername,
+                   avatarColor: memberEntry.avatarColor,
+                   customAvatar: memberEntry.customAvatar,
+                   xp: memberEntry.xp || 0,
+                   userId: memberEntry.userId,
+                   online
+               };
+
+               const allTimeFocusMin = Math.floor((uData.xp || 0) / 10);
+               const weeklyFocusMin = Math.max(0, Math.floor(memberEntry.weeklyFocusMin || 0));
+               const activeDays = Math.max(0, Math.floor(memberEntry.activeDays || 0));
+               const prevWeekFocusMin = Math.max(0, Math.floor(memberEntry.prevWeekFocusMin || 0));
+               totalGroupFocusMinutes += weeklyFocusMin;
+
+               const role = (membersData[memberUsername] && membersData[memberUsername].role)
+                   || (data.createdBy === memberUsername ? 'admin' : 'member');
+               const focusMin = _groupLeaderboardMode === 'weekly' ? weeklyFocusMin : allTimeFocusMin;
+               leaderboardData.push({ username: memberUsername, uData, focusMin, allTimeFocusMin, weeklyFocusMin, activeDays, prevWeekFocusMin, role });
+
+               if (uData.online) {
+                   const mBox = document.createElement("div");
+                   mBox.className = "glass-element";
+                   mBox.style.padding = "12px";
+                   mBox.style.display = "flex";
+                   mBox.style.alignItems = "center";
+                   mBox.style.gap = "10px";
+                   mBox.style.border = "1px solid #2ed573";
+                   mBox.style.background = "rgba(46, 213, 115, 0.05)";
+                   mBox.style.borderRadius = "8px";
+                   const isSelf = memberUsername === currentUser.username;
+                   mBox.innerHTML = `
+                       ${avatarImgHtml({ ...uData, displayName: uData.displayName || memberUsername }, 30)}
+                       <div class="u-flex-1_min-width-0_text-align-left">
+                           <div class="u-font-weight-600_color-hfff_font-size-12px_overflow-hidden_">${_escapeHtml(uData.displayName || memberUsername)}</div>
+                           <div class="u-font-size-10px_color-h2ed573"><i class="fa-solid fa-bolt"></i> Odaklanıyor</div>
+                       </div>
+                       ${isSelf ? '' : `<button class="group-kudos-btn u-flex-shrink-0_background-none_border-none_cursor-pointer_f-2" data-user-id="${uData.userId || ''}" data-username="${_escapeHtml(memberUsername)}" title="Alkış gönder" >👏</button>`}
+                   `;
+                   studyMembersContainer.appendChild(mBox);
+               }
+           }
+
+           const weeklyGoal = data.weeklyGoal || 1000;
+           const percent = Math.min(100, Math.floor((totalGroupFocusMinutes / weeklyGoal) * 100));
+
+           const fillEl = document.getElementById('group-goal-fill');
+           const percentText = document.getElementById('group-goal-percent');
+           const goalText = document.getElementById('group-goal-text');
+
+           if (fillEl) fillEl.style.strokeDashoffset = (238.76 * (1 - percent / 100)).toFixed(2);
+           if (percentText) percentText.textContent = '%' + percent;
+           if (goalText) goalText.textContent = `${formatFocusMinutes(totalGroupFocusMinutes)} / ${formatFocusMinutes(weeklyGoal)}`;
+
+           // ── EKİP BAŞARISI: haftalık hedef tamamlanınca kutlama ──
+           if (isSupabaseGroup && totalGroupFocusMinutes >= weeklyGoal && weeklyGoal > 0) {
+               _maybeCelebrateGroupGoal(data._supaId, data.name, totalGroupFocusMinutes, weeklyGoal);
+           }
+
+           // Mini turnuva kartı — presence güncellemeleri sık tetiklenebildiği için
+           // grup başına en fazla 20 sn'de bir tazelenir.
+           if (isSupabaseGroup && data._supaId && typeof window.renderGroupTournament === 'function') {
+               const now = Date.now();
+               if (!window._gtLastFetch[data._supaId] || now - window._gtLastFetch[data._supaId] > 20000) {
+                   window._gtLastFetch[data._supaId] = now;
+                   renderGroupTournament(data._supaId);
+               }
+           }
+
+           // Sıralamayı önceden hesapla (boş durum özetinde de kullanılacak)
+           leaderboardData.sort((a, b) => b.focusMin - a.focusMin);
+
+           // ── BU HAFTANIN YILDIZLARI — tek metrikli ("kim daha çok çalıştı") yarışı
+           // çeşitlendiren rozetler: sadece toplam dakika değil, tutarlılık ve ilerleme de ödüllendirilsin.
+           _renderGroupWeeklyBadges(leaderboardData, data);
+
+           // ── SENİN KONUMUN — pozitif rekabet için kullanıcının sırasını öne çıkar ──
+           _renderGroupYourRankCard(leaderboardData, data);
+
+           if (studyMembersContainer.innerHTML === "") {
+               const topMember = leaderboardData[0];
+               if (totalGroupFocusMinutes === 0) {
+                   // Tamamen boş grup: pasif bir "henüz kayıt yok" mesajı yerine
+                   // doğrudan odaklanmaya başlatan bir CTA göster.
+                   studyMembersContainer.innerHTML = `
+                       <div class="u-grid-column-1-1_display-flex_align-items-center_justify-co">
+                           <p class="u-color-var-text-muted_font-size-12px_margin-0_line-height-1">Bu grupta bu hafta henüz odaklanma kaydı yok.<br>Liderlik tablosuna girecek ilk kişi sen ol!</p>
+                           <button id="group-empty-state-cta" class="control-btn primary u-font-size-12px_padding-9px16px_white-space-nowrap_flex-shr" >
+                               <i class="fa-solid fa-bolt"></i> İlk Seansını Başlat
+                           </button>
+                       </div>`;
+                   const ctaBtn = document.getElementById('group-empty-state-cta');
+                   if (ctaBtn) {
+                       ctaBtn.onclick = () => {
+                           if (typeof window.switchTab === 'function') window.switchTab('zamanlayici');
+                       };
+                   }
+               } else {
+                   const summaryHtml = `Bu grup bu hafta <b class="u-color-hfff">${formatFocusMinutes(totalGroupFocusMinutes)}</b> odaklandı.<br>En çok odaklanan: <b class="u-color-hfff">${_escapeHtml(topMember.uData.displayName || topMember.username)}</b> (${formatFocusMinutes(topMember.focusMin)})`;
+                   studyMembersContainer.innerHTML = `
+                       <div class="u-grid-column-1-1_text-align-center_padding-14px10px">
+                           <p class="u-color-var-text-muted_font-size-12px_margin-006px0">Şu an grupta aktif çalışan kimse yok.</p>
+                           <p class="u-color-var-text-muted_font-size-12px_margin-0_line-height-1-2">${summaryHtml}</p>
+                       </div>`;
+               }
+           }
+
+           // Onboarding kartını: sıralama verisi yoksa göster, varsa gizle
+           const onboardingCard = document.getElementById('group-overview-onboarding');
+           if (onboardingCard) onboardingCard.classList.toggle('hidden', leaderboardData.length > 0);
+
+           // ── SIRALAMA (Leaderboard) ──
+           _renderGroupLeaderboardList(leaderboardData, data, membersData, isSupabaseGroup, supaCustomRoles);
+       }
+
        // Grup detay panelinin (Genel Bakış/Sıralama/Takvim/Geçmiş/Sınıf) tüm
        // innerHTML iskeletini üreten SAF fonksiyon — hiçbir closure state'ini
        // (groupMembersListenerRef vb.) okumaz/mutasyona uğratmaz, sadece
@@ -395,26 +435,26 @@ import {
        // çıkarıldı (2026-07-27).
        function _renderGroupDetailsPanelHtml(code, data, _showOverviewTab, _gtabActiveCls) {
         return `
-             <div style="border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px;">
-                 <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 15px;">
-                     <div style="flex: 1; min-width: 0; display: flex; gap: 14px; align-items: flex-start;">
+             <div class="u-border-bottom-1pxsolidrgba2552552550p05_padding-bottom-15p">
+                 <div class="u-display-flex_justify-content-space-between_align-items-fle">
+                     <div class="u-flex-1_min-width-0_display-flex_gap-14px_align-items-flex-">
                          ${window.groupAvatarHtml(code, data.name, 54)}
-                         <div style="flex: 1; min-width: 0;">
-                             <h2 id="active-group-name" style="font-size: 22px; margin-bottom: 5px; color: #fff; margin-top:0;">-</h2>
-                             <p id="active-group-desc" style="color: var(--text-muted); font-size: 14px; margin: 0 0 10px 0;">-</p>
+                         <div class="u-flex-1_min-width-0-2">
+                             <h2 id="active-group-name" class="u-font-size-22px_margin-bottom-5px_color-hfff_margin-top-0">-</h2>
+                             <p id="active-group-desc" class="u-color-var-text-muted_font-size-14px_margin-0010px0">-</p>
                          </div>
                      </div>
-                     <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
-                         <button id="group-theme-btn" class="control-btn secondary hidden" style="padding: 6px 10px; font-size: 12px;" title="Grup teması">
+                     <div class="u-display-flex_gap-8px_flex-wrap-wrap_justify-content-flex-e">
+                         <button id="group-theme-btn" class="control-btn secondary hidden u-padding-6px10px_font-size-12px" title="Grup teması" aria-label="Grup teması">
                              <i class="fa-solid fa-palette"></i>
                          </button>
-                         <button id="group-manage-perms-btn" class="control-btn secondary hidden" style="padding: 6px 12px; font-size: 12px; white-space: nowrap;">
+                         <button id="group-manage-perms-btn" class="control-btn secondary hidden u-padding-6px12px_font-size-12px_white-space-nowrap" >
                              <i class="fa-solid fa-users-gear"></i> Grup Yönetimi
                          </button>
-                         <button id="group-invite-friend-btn" class="control-btn secondary" style="padding: 6px 12px; font-size: 12px; white-space: nowrap;" title="Arkadaşını gruba davet et">
+                         <button id="group-invite-friend-btn" class="control-btn secondary u-padding-6px12px_font-size-12px_white-space-nowrap" title="Arkadaşını gruba davet et">
                              <i class="fa-solid fa-user-plus"></i> Davet Et
                          </button>
-                         <button id="group-leave-btn" class="control-btn secondary hidden" style="padding: 6px 12px; font-size: 12px; white-space: nowrap;">
+                         <button id="group-leave-btn" class="control-btn secondary hidden u-padding-6px12px_font-size-12px_white-space-nowrap" >
                              <i class="fa-solid fa-door-open"></i> Ayrıl
                          </button>
                      </div>
@@ -425,13 +465,13 @@ import {
              <div id="group-announcement-banner" class="group-announcement-banner hidden">
                  <i class="fa-solid fa-thumbtack"></i>
                  <span id="group-announcement-text"></span>
-                 <button id="group-announcement-edit-btn" class="icon-btn hidden" title="Duyuruyu düzenle"><i class="fa-solid fa-pen"></i></button>
+                 <button id="group-announcement-edit-btn" class="icon-btn hidden" title="Duyuruyu düzenle" aria-label="Duyuruyu düzenle"><i class="fa-solid fa-pen"></i></button>
              </div>
              <div id="group-announcement-editor" class="group-announcement-editor hidden">
                  <textarea id="group-announcement-input" maxlength="200" placeholder="Grup için bir duyuru yaz (örn: Cuma akşamı ortak seans var!)"></textarea>
-                 <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:6px;">
-                     <button id="group-announcement-cancel-btn" class="control-btn secondary" style="font-size:11px; padding:5px 10px;">Vazgeç</button>
-                     <button id="group-announcement-save-btn" class="control-btn primary" style="font-size:11px; padding:5px 10px;">Kaydet</button>
+                 <div class="u-display-flex_gap-8px_justify-content-flex-end_margin-top-6">
+                     <button id="group-announcement-cancel-btn" class="control-btn secondary u-font-size-11px_padding-5px10px" >Vazgeç</button>
+                     <button id="group-announcement-save-btn" class="control-btn primary u-font-size-11px_padding-5px10px" >Kaydet</button>
                  </div>
              </div>
 
@@ -465,57 +505,57 @@ import {
 
                  ${(data.classroomType === 'classroom' || data.classroomType === 'workplace') ? '' : `
                  <!-- Haftalık hedef ring progress -->
-                 <div style="display:grid; grid-template-columns:auto 1fr; gap:16px; align-items:center; padding:14px; background:rgba(108,92,231,0.05); border:1px solid rgba(108,92,231,0.15); border-radius:14px;">
+                 <div class="u-display-grid_grid-template-columns-auto1fr_gap-16px_align-">
                      <!-- SVG ring -->
-                     <div style="position:relative; width:90px; height:90px; flex-shrink:0;">
-                         <svg width="90" height="90" viewBox="0 0 90 90" style="transform:rotate(-90deg);">
+                     <div class="u-position-relative_width-90px_height-90px_flex-shrink-0">
+                         <svg width="90" height="90" viewBox="0 0 90 90" class="u-transform-rotate-90deg">
                              <circle cx="45" cy="45" r="38" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="8"/>
                              <circle id="group-goal-fill" cx="45" cy="45" r="38" fill="none"
-                                 stroke="var(--primary-color)" stroke-width="8"
-                                 stroke-linecap="round"
-                                 stroke-dasharray="238.76"
-                                 stroke-dashoffset="238.76"
-                                 style="transition: stroke-dashoffset 0.6s ease;"/>
+ stroke="var(--primary-color)" stroke-width="8"
+ stroke-linecap="round"
+ stroke-dasharray="238.76"
+ stroke-dashoffset="238.76"
+ / class="u-transition-stroke-dashoffset0p6sease">
                          </svg>
-                         <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-                             <span id="group-goal-percent" style="font-size:15px; font-weight:700; color:#fff; line-height:1;">%0</span>
-                             <span style="font-size:9px; color:var(--text-muted); margin-top:2px;">Hedef</span>
+                         <div class="u-position-absolute_inset-0_display-flex_flex-direction-colu">
+                             <span id="group-goal-percent" class="u-font-size-15px_font-weight-700_color-hfff_line-height-1">%0</span>
+                             <span class="u-font-size-9px_color-var-text-muted_margin-top-2px">Hedef</span>
                          </div>
                      </div>
                      <div>
-                         <div style="font-size:13px; font-weight:600; color:#fff; margin-bottom:4px;"><i class="fa-solid fa-bullseye" style="color:var(--primary-color);"></i> Haftalık Topluluk Hedefi</div>
+                         <div class="u-font-size-13px_font-weight-600_color-hfff_margin-bottom-4p"><i class="fa-solid fa-bullseye u-color-var-primary-color" ></i> Haftalık Topluluk Hedefi</div>
                          <div class="si-muted-sm">Grup Çalışma Süresi:</div>
-                         <div id="group-goal-text" style="font-size:14px; font-weight:600; color:#fff; margin-top:2px;">0 / 0 dk</div>
+                         <div id="group-goal-text" class="u-font-size-14px_font-weight-600_color-hfff_margin-top-2px">0 / 0 dk</div>
                      </div>
                  </div>`}
 
                  ${(data.classroomType === 'classroom' || data.classroomType === 'workplace') ? '' : `
                  <!-- MİNİ TURNUVA (premium özellik, 062) — grup içi kısa süreli yarışma.
                       renderGroupTournament() doldurur; grup Supabase grubu değilse boş kalır. -->
-                 <div id="group-tournament-card" style="margin-top:14px;"></div>`}
+                 <div id="group-tournament-card" class="u-margin-top-14px"></div>`}
 
                  <!-- BU HAFTANIN YILDIZLARI -->
-                 <div id="group-weekly-badges" style="display:flex; gap:8px; flex-wrap:wrap; margin-top:14px;"></div>
+                 <div id="group-weekly-badges" class="u-display-flex_gap-8px_flex-wrap-wrap_margin-top-14px"></div>
 
                  <!-- Kişisel başarı unvanlarım -->
-                 <div id="group-my-achievements" style="display:none; flex-wrap:wrap; gap:6px; margin-top:10px;"></div>
+                 <div id="group-my-achievements" class="u-display-none_flex-wrap-wrap_gap-6px_margin-top-10px"></div>
 
                  ${(data.classroomType === 'classroom' || data.classroomType === 'workplace') ? '' : `
                  <!-- Canlı Çalışan Üyeler -->
-                 <div class="glass-panel" style="margin-top:14px; padding:14px; border:1px solid rgba(255,255,255,0.07); border-radius:12px;">
-                     <h3 style="font-size:14px; margin:0 0 10px; display:flex; align-items:center; gap:8px; color:#fff;">
-                         <i class="fa-solid fa-circle" style="color:#74b9ff; font-size:8px;"></i> Canlı Çalışan Üyeler
+                 <div class="glass-panel u-margin-top-14px_padding-14px_border-1pxsolidrgba2552552550" >
+                     <h3 class="u-font-size-14px_margin-0010px_display-flex_align-items-cent">
+                         <i class="fa-solid fa-circle u-color-h74b9ff_font-size-8px" ></i> Canlı Çalışan Üyeler
                      </h3>
-                     <div id="group-study-members" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(130px, 1fr)); gap:10px;"></div>
+                     <div id="group-study-members" class="u-display-grid_grid-template-columns-repeatauto-fillminmax13"></div>
                  </div>`}
 
                  <!-- Boş durum: grup yeni kurulduğunda yol gösterici -->
                  <div id="group-overview-onboarding" class="grp-onboarding-card hidden">
-                     <i class="fa-solid fa-rocket" style="font-size:28px; color:var(--primary-color); margin-bottom:10px;"></i>
-                     <p style="font-size:14px; font-weight:600; color:#fff; margin:0 0 6px;">Grubun henüz başlıyor!</p>
-                     <p style="font-size:12px; color:var(--text-muted); margin:0 0 14px; line-height:1.5;">İlk seansını Takvim sekmesinden planla, arkadaşlarını davet et ve birlikte odaklanmaya başlayın.</p>
-                     <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
-                         <button class="control-btn secondary" data-action="onboarding-goto-calendar-tab" style="font-size:12px;">
+                     <i class="fa-solid fa-rocket u-font-size-28px_color-var-primary-color_margin-bottom-10px" ></i>
+                     <p class="u-font-size-14px_font-weight-600_color-hfff_margin-006px">Grubun henüz başlıyor!</p>
+                     <p class="u-font-size-12px_color-var-text-muted_margin-0014px_line-hei">İlk seansını Takvim sekmesinden planla, arkadaşlarını davet et ve birlikte odaklanmaya başlayın.</p>
+                     <div class="u-display-flex_gap-8px_flex-wrap-wrap_justify-content-center">
+                         <button class="control-btn secondary u-font-size-12px" data-action="onboarding-goto-calendar-tab" >
                              <i class="fa-solid fa-calendar-plus"></i> Seans Planla
                          </button>
                      </div>
@@ -523,52 +563,52 @@ import {
 
                  ${(data.classroomType === 'classroom' || data.classroomType === 'workplace') ? '' : `
                  <!-- Son Aktivite -->
-                 <div style="margin-top:16px;">
-                     <h3 style="font-size:13px; font-weight:600; color:rgba(255,255,255,0.6); text-transform:uppercase; letter-spacing:0.5px; margin:0 0 10px;">
-                         <i class="fa-solid fa-bolt" style="color:var(--primary-color); font-size:11px;"></i> Son Aktivite
+                 <div class="u-margin-top-16px">
+                     <h3 class="u-font-size-13px_font-weight-600_color-rgba2552552550p6_text">
+                         <i class="fa-solid fa-bolt u-color-var-primary-color_font-size-11px" ></i> Son Aktivite
                      </h3>
-                     <div id="group-activity-feed" style="display:flex; flex-direction:column; gap:6px;"></div>
+                     <div id="group-activity-feed" class="u-display-flex_flex-direction-column_gap-6px"></div>
                  </div>`}
              </div>` : ''}
 
              <!-- SIRALAMA -->
              <div id="group-gtab-leaderboard" class="group-detail-tab-content${_gtabActiveCls('leaderboard')}">
-                 <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:12px;">
-                     <h3 style="font-size:15px; margin:0; display:flex; align-items:center; gap:8px; color:#fff;">
-                         <i class="fa-solid fa-ranking-star" style="color:var(--primary-color);"></i> Odaklanma Sıralaması
+                 <div class="u-display-flex_align-items-center_justify-content-space-betw-10">
+                     <h3 class="u-font-size-15px_margin-0_display-flex_align-items-center_ga">
+                         <i class="fa-solid fa-ranking-star u-color-var-primary-color" ></i> Odaklanma Sıralaması
                      </h3>
-                     <div id="group-leaderboard-mode-tabs" style="display:flex; gap:4px; background:rgba(255,255,255,0.04); border-radius:8px; padding:3px;">
-                         <button class="glb-mode-btn" data-mode="weekly" style="font-size:11px; padding:5px 10px; border-radius:6px; border:none; cursor:pointer; background:transparent; color:var(--text-muted); font-weight:600;">Bu Hafta</button>
-                         <button class="glb-mode-btn" data-mode="alltime" style="font-size:11px; padding:5px 10px; border-radius:6px; border:none; cursor:pointer; background:transparent; color:var(--text-muted); font-weight:600;">Tüm Zamanlar</button>
+                     <div id="group-leaderboard-mode-tabs" class="u-display-flex_gap-4px_background-rgba2552552550p04_border-r">
+                         <button class="glb-mode-btn u-font-size-11px_padding-5px10px_border-radius-6px_border-no" data-mode="weekly" >Bu Hafta</button>
+                         <button class="glb-mode-btn u-font-size-11px_padding-5px10px_border-radius-6px_border-no" data-mode="alltime" >Tüm Zamanlar</button>
                      </div>
                  </div>
-                 <p id="group-leaderboard-mode-hint" style="font-size:11px; color:var(--text-muted); margin:-6px 0 10px 0;"></p>
-                 <div id="group-leaderboard-list" style="display:flex; flex-direction:column; gap:8px;"></div>
-                 <div id="group-leaderboard-empty" class="grp-onboarding-card hidden" style="margin-top:8px;">
-                     <i class="fa-solid fa-hourglass-start" style="font-size:24px; color:var(--primary-color); margin-bottom:8px;"></i>
-                     <p style="font-size:13px; font-weight:600; color:#fff; margin:0 0 4px;">Henüz sıralama yok</p>
-                     <p style="font-size:12px; color:var(--text-muted); margin:0;">Üyeler odaklandıkça sıralama burada oluşur.</p>
+                 <p id="group-leaderboard-mode-hint" class="u-font-size-11px_color-var-text-muted_margin-6px010px0"></p>
+                 <div id="group-leaderboard-list" class="u-display-flex_flex-direction-column_gap-8px"></div>
+                 <div id="group-leaderboard-empty" class="grp-onboarding-card hidden u-margin-top-8px" >
+                     <i class="fa-solid fa-hourglass-start u-font-size-24px_color-var-primary-color_margin-bottom-8px" ></i>
+                     <p class="u-font-size-13px_font-weight-600_color-hfff_margin-004px">Henüz sıralama yok</p>
+                     <p class="u-font-size-12px_color-var-text-muted_margin-0">Üyeler odaklandıkça sıralama burada oluşur.</p>
                  </div>
              </div>
 
              <!-- TAKVİM -->
              <div id="group-gtab-calendar" class="group-detail-tab-content${_gtabActiveCls('calendar')}">
-                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
-                     <h3 style="font-size: 15px; margin: 0; display: flex; align-items: center; gap: 8px; color: #fff;">
-                         <i class="fa-solid fa-calendar-week" style="color: #a29bfe;"></i> Haftalık Seans Takvimi
+                 <div class="u-display-flex_align-items-center_justify-content-space-betw-11">
+                     <h3 class="u-font-size-15px_margin-0_display-flex_align-items-center_ga-2">
+                         <i class="fa-solid fa-calendar-week u-color-ha29bfe-2" ></i> Haftalık Seans Takvimi
                      </h3>
                  </div>
 
                  <!-- Hafta navigasyonu (Bugün en üstte, sağda; ok+etiket ortalanmış) -->
-                 <div style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; margin-bottom: 14px;">
+                 <div class="u-display-grid_grid-template-columns-1frauto1fr_align-items-">
                      <span></span>
-                     <div style="display: flex; align-items: center; justify-content: center; gap: 14px;">
-                         <button id="gsc-prev-week" class="icon-btn" style="color: var(--text-muted); font-size: 12px;" title="Önceki hafta"><i class="fa-solid fa-chevron-left"></i></button>
-                         <span id="gsc-week-label" style="font-size: 12px; color: var(--text-muted); min-width: 140px; text-align: center;"></span>
-                         <button id="gsc-next-week" class="icon-btn" style="color: var(--text-muted); font-size: 12px;" title="Sonraki hafta"><i class="fa-solid fa-chevron-right"></i></button>
+                     <div class="u-display-flex_align-items-center_justify-content-center_gap-2">
+                         <button id="gsc-prev-week" class="icon-btn u-color-var-text-muted_font-size-12px" title="Önceki hafta" aria-label="Önceki hafta"><i class="fa-solid fa-chevron-left"></i></button>
+                         <span id="gsc-week-label" class="u-font-size-12px_color-var-text-muted_min-width-140px_text-a"></span>
+                         <button id="gsc-next-week" class="icon-btn u-color-var-text-muted_font-size-12px" title="Sonraki hafta" aria-label="Sonraki hafta"><i class="fa-solid fa-chevron-right"></i></button>
                      </div>
-                     <div style="display: flex; justify-content: flex-end;">
-                         <button id="gsc-today-btn" class="control-btn secondary" style="font-size:11px; padding:5px 10px;">Bugün</button>
+                     <div class="u-display-flex_justify-content-flex-end">
+                         <button id="gsc-today-btn" class="control-btn secondary u-font-size-11px_padding-5px10px" >Bugün</button>
                      </div>
                  </div>
 
@@ -579,30 +619,30 @@ import {
                  <div class="gsc-day-detail" id="gsc-day-detail"></div>
 
                  <!-- İstatistikler -->
-                 <div class="gsc-stats-row cols-4" style="margin-top: 18px;">
+                 <div class="gsc-stats-row cols-4 u-margin-top-18px" >
                      <div class="gsc-stat-card">
                          <div class="gsc-stat-val" id="gsc-stat-planned">0</div>
                          <div class="gsc-stat-label">Bu hafta planlandı</div>
                      </div>
                      <div class="gsc-stat-card">
-                         <div class="gsc-stat-val" id="gsc-stat-done" style="color: var(--primary-color);">0</div>
+                         <div class="gsc-stat-val u-color-var-primary-color-2" id="gsc-stat-done" >0</div>
                          <div class="gsc-stat-label">Tamamlandı</div>
                      </div>
                      <div class="gsc-stat-card">
-                         <div class="gsc-stat-val" id="gsc-stat-rsvp" style="color: #74b9ff;">0</div>
+                         <div class="gsc-stat-val u-color-h74b9ff" id="gsc-stat-rsvp" >0</div>
                          <div class="gsc-stat-label">Katılımım var</div>
                      </div>
                      <div class="gsc-stat-card">
-                         <div class="gsc-stat-val" id="gsc-stat-reliability" style="color: #74b9ff;">–</div>
+                         <div class="gsc-stat-val u-color-h74b9ff" id="gsc-stat-reliability" >–</div>
                          <div class="gsc-stat-label">Katılım Oranım</div>
-                         <div id="gsc-stat-reliability-note" style="font-size:9px; color:rgba(255,255,255,0.3); margin-top:2px;"></div>
+                         <div id="gsc-stat-reliability-note" class="u-font-size-9px_color-rgba2552552550p3_margin-top-2px"></div>
                      </div>
                  </div>
              </div>
 
              <!-- GEÇMİŞ (tamamlanan seanslar) -->
              <div id="group-gtab-history" class="group-detail-tab-content${_gtabActiveCls('history')}">
-                 <div id="group-history-list" style="display:flex; flex-direction:column; gap:8px;"></div>
+                 <div id="group-history-list" class="u-display-flex_flex-direction-column_gap-8px"></div>
              </div>
 
              <!-- SINIF / EKİP PANELİ (Faz 3 — kurumsal; renderClassroomTab doldurur) -->
@@ -970,7 +1010,7 @@ import {
 
                        if (isInstitutional) {
                            // Sınıf/ders ve iş yeri/ekip gruplarında sahip, devir edilecek kişiyi kendi seçer.
-                           const chosenId = await window._pickNewOwner(others, data.name);
+                           const chosenId = await _pickNewOwner(others, data.name);
                            if (!chosenId) return;
                            newOwner = others.find(m => m.user_id === chosenId);
                            if (!newOwner) return;
@@ -1143,7 +1183,7 @@ import {
         if (data._supaId) {
             _groupOverviewPresenceHandler = () => {
                 const statEl = document.getElementById("group-overview-active-now");
-                if (statEl) statEl.textContent = window.computeActiveNowCount(data);
+                if (statEl) statEl.textContent = computeActiveNowCount(data);
             };
             window.addEventListener('focusai:presence-changed', _groupOverviewPresenceHandler);
         }
@@ -1182,13 +1222,13 @@ import {
                try { window.FocusSupabase.removeChannel(window._announcementSupabaseChannel); } catch (_) { console.warn('[FocusAI] sessiz hata:', _); }
                window._announcementSupabaseChannel = null;
            }
-           if (window._gmMembersSupabaseChannel) {
-               try { window.FocusSupabase.removeChannel(window._gmMembersSupabaseChannel); } catch (_) { console.warn('[FocusAI] sessiz hata:', _); }
-               window._gmMembersSupabaseChannel = null;
+           if (getGmMembersSupabaseChannel()) {
+               try { window.FocusSupabase.removeChannel(getGmMembersSupabaseChannel()); } catch (_) { console.warn('[FocusAI] sessiz hata:', _); }
+               setGmMembersSupabaseChannel(null);
            }
-           if (window._gmCustomRolesSupabaseChannel) {
-               try { window.FocusSupabase.removeChannel(window._gmCustomRolesSupabaseChannel); } catch (_) { console.warn('[FocusAI] sessiz hata:', _); }
-               window._gmCustomRolesSupabaseChannel = null;
+           if (getGmCustomRolesSupabaseChannel()) {
+               try { window.FocusSupabase.removeChannel(getGmCustomRolesSupabaseChannel()); } catch (_) { console.warn('[FocusAI] sessiz hata:', _); }
+               setGmCustomRolesSupabaseChannel(null);
            }
            if (_groupLeaderboardLiveChannel) {
                try { window.FocusSupabase.removeChannel(_groupLeaderboardLiveChannel); } catch (_) { console.warn('[FocusAI] sessiz hata:', _); }
@@ -1204,10 +1244,10 @@ import {
            const activePanel = document.getElementById('active-group-panel');
            if (activePanel) {
                activePanel.innerHTML = `
-                   <div style="text-align: center; padding: 40px 20px; color: var(--text-muted);">
-                       <i class="fa-solid fa-people-group" style="font-size: 32px; margin-bottom: 15px; color: var(--primary-color); opacity: 0.7;"></i>
-                       <p style="margin: 0; font-size: 14px;">Henüz aktif bir grubunuz yok.</p>
-                       <p style="margin: 5px 0 0 0; font-size: 12px; opacity: 0.7;">Yandaki listeden bir gruba katılabilir veya yeni bir grup oluşturabilirsiniz.</p>
+                   <div class="u-text-align-center_padding-40px20px_color-var-text-muted">
+                       <i class="fa-solid fa-people-group u-font-size-32px_margin-bottom-15px_color-var-primary-color_" ></i>
+                       <p class="u-margin-0_font-size-14px">Henüz aktif bir grubunuz yok.</p>
+                       <p class="u-margin-5px000_font-size-12px_opacity-0p7">Yandaki listeden bir gruba katılabilir veya yeni bir grup oluşturabilirsiniz.</p>
                    </div>
                `;
            }

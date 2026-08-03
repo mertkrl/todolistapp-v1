@@ -1,0 +1,234 @@
+/* style.css'ten çıkarıldı (Faz C, 2026-07-22). FAZ 3 — Zamanlayıcı Sekmesi Bridge CSS. #zamanlayici .timer-modes mod seçici, #focus-mode-btn, #focus-task-name, #pomodoro-counter, #save-timer-settings-btn override katmanı. Git HEAD: orijinalde satır 18128 — timer-core-widget.css/timer-floating-widgets.css/timer-scene-immersive-mode.css'TEN SONRA gelmeliydi (3 çakışma bulundu, bu dosya kazanmalı). */
+
+/* ============================================================
+   FAZ 3 — ZAMANLAYICI SEKMESİ BRIDGE CSS
+   ============================================================ */
+
+/* ── Mod Seçici ── */
+#zamanlayici .timer-modes {
+    background: var(--s2) !important;
+    border: 1px solid var(--b1) !important;
+    border-radius: 12px !important;
+    padding: 5px !important;
+    gap: 4px !important;
+    margin-bottom: 20px !important;
+}
+#zamanlayici .mode-btn {
+    background: transparent !important;
+    color: var(--t3) !important;
+    border-radius: 8px !important;
+    padding: 8px 16px !important;
+    font-size: 13px !important;
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 500 !important;
+    transition: all 0.2s !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+#zamanlayici .mode-btn:hover {
+    background: var(--s3) !important;
+    color: var(--t1) !important;
+}
+#zamanlayici .mode-btn.active {
+    background: var(--a) !important;
+    color: #000 !important;
+    font-weight: 700 !important;
+    box-shadow: none !important;
+}
+
+/* ── Timer Controls (Başlat / Duraklat / Sıfırla) ── */
+#zamanlayici .timer-controls {
+    gap: 10px !important;
+    margin-top: 4px !important;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+/* Start butonu — yeşil (anlamlı renk: "git") */
+#zamanlayici .control-btn.primary {
+    background: #22c55e !important;
+    color: #fff !important;
+    border-radius: 10px !important;
+    padding: 12px 28px !important;
+    font-size: 14px !important;
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 600 !important;
+    box-shadow: none !important;
+    border: none !important;
+    transition: opacity 0.2s !important;
+}
+#zamanlayici .control-btn.primary:hover {
+    opacity: 0.88 !important;
+    transform: none !important;
+}
+/* Pause butonu — amber */
+#zamanlayici .control-btn#pause-btn {
+    background: var(--a) !important;
+    color: #000 !important;
+    border-radius: 10px !important;
+    padding: 12px 28px !important;
+    font-size: 14px !important;
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 600 !important;
+    box-shadow: none !important;
+    border: none !important;
+}
+#zamanlayici .control-btn#pause-btn:hover {
+    opacity: 0.88 !important;
+    transform: none !important;
+}
+/* Reset & secondary butonlar */
+#zamanlayici .control-btn.secondary {
+    background: var(--s2) !important;
+    color: var(--t2) !important;
+    border: 1px solid var(--b1) !important;
+    border-radius: 10px !important;
+    padding: 12px 20px !important;
+    font-size: 14px !important;
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 500 !important;
+    box-shadow: none !important;
+    transition: all 0.2s !important;
+}
+#zamanlayici .control-btn.secondary:hover {
+    background: var(--s3) !important;
+    color: var(--t1) !important;
+    transform: none !important;
+}
+/* Odaklanmayı Bitir butonu */
+#zamanlayici #finish-early-btn {
+    background: rgba(74,222,128,0.1) !important;
+    color: #4ADE80 !important;
+    border: 1px solid rgba(74,222,128,0.25) !important;
+    border-radius: 10px !important;
+    padding: 12px 20px !important;
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 600 !important;
+    font-size: 13px !important;
+}
+/* Odak Modu butonu (header'daki) */
+#focus-mode-btn {
+    background: var(--s2) !important;
+    color: var(--t2) !important;
+    border: 1px solid var(--b1) !important;
+    border-radius: 8px !important;
+    font-size: 13px !important;
+    font-family: 'Inter', sans-serif !important;
+    transition: all 0.2s !important;
+}
+#focus-mode-btn:hover {
+    background: var(--s3) !important;
+    color: var(--t1) !important;
+}
+
+/* ── Timer SVG Ring ── */
+#zamanlayici .timer-ring-bg {
+    stroke: var(--b1) !important;
+    stroke-width: 6 !important;
+}
+#zamanlayici .timer-ring-progress {
+    stroke: var(--a) !important;
+    stroke-width: 6 !important;
+    filter: none !important;
+}
+#zamanlayici .timer-circle.running .timer-ring-progress {
+    filter: drop-shadow(0 0 6px rgba(212,144,14,0.5)) !important;
+}
+#zamanlayici .timer-circle.breathing-active .timer-ring-progress {
+    stroke: #4ADE80 !important;
+    filter: none !important;
+}
+/* Timer rakamları */
+#zamanlayici #minutes,
+#zamanlayici #seconds {
+    color: var(--t1) !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 60px !important;
+    font-weight: 700 !important;
+}
+#zamanlayici .colon {
+    color: var(--t2) !important;
+}
+
+/* ── Pomodoro Sayacı ── */
+#pomodoro-counter {
+    color: var(--t3) !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 12px !important;
+    letter-spacing: 0.5px !important;
+}
+
+/* ── Focus Quote ── */
+.focus-quote {
+    color: var(--t3) !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 12px !important;
+    font-style: italic !important;
+}
+
+/* ── Aktif Odak Görevi (başlıktan gelince gösterilen) ── */
+.active-focus-task {
+    background: rgba(212,144,14,0.07) !important;
+    border: 1px solid rgba(212,144,14,0.25) !important;
+    border-radius: 10px !important;
+    box-shadow: none !important;
+}
+.active-focus-task .focus-label { color: var(--t3) !important; font-size: 12px !important; }
+#focus-task-name { color: var(--t1) !important; font-size: 14px !important; }
+
+/* ── Görev Seçici (timer task dropdown) ── */
+.active-task-selector {
+    background: var(--s2) !important;
+    border: 1px solid var(--b1) !important;
+    border-radius: 10px !important;
+    backdrop-filter: none !important;
+    color: var(--t2) !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 13px !important;
+    max-width: 380px !important;
+    transition: border-color 0.2s !important;
+}
+.active-task-selector:hover {
+    border-color: var(--b2) !important;
+}
+.timer-task-dropdown {
+    background: var(--s2) !important;
+    border: 1px solid var(--b1) !important;
+    border-radius: 10px !important;
+    backdrop-filter: none !important;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4) !important;
+}
+.timer-task-dropdown .dropdown-header {
+    color: var(--t3) !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.8px !important;
+    text-transform: uppercase !important;
+}
+
+/* ── Ayarlar Paneli (+/- butonları) ── */
+#zamanlayici .num-btn {
+    background: var(--s2) !important;
+    border: 1px solid var(--b1) !important;
+    color: var(--t2) !important;
+    border-radius: 6px !important;
+    transition: all 0.15s !important;
+}
+#zamanlayici .num-btn:hover {
+    background: var(--a10) !important;
+    border-color: var(--a) !important;
+    color: var(--a) !important;
+}
+
+/* Pomodoro input sayı kutusu */
+
+/* Timer Settings Modal içindeki Kaydet butonu */
+#save-timer-settings-btn {
+    background: var(--a) !important;
+    color: #000 !important;
+    border: none !important;
+    border-radius: 8px !important;
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 700 !important;
+    box-shadow: none !important;
+}

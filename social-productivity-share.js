@@ -1,17 +1,17 @@
 // social-productivity-share.js — social.js'ten ayrıldı (Faz 2 modülerleştirme).
 // ── ÜRETKENLİK PAYLAŞMA SİSTEMİ ──────────────────────────
-// window.currentUser (social.js her reassignment'ta senkron tutuyor) ve
+// getCurrentUser() (social.js her reassignment'ta senkron tutuyor) ve
 // window.__getActiveGroupIdRef (social.js'teki salt-okunur closure değişkeni
 // için köprü) kullanılıyor.
-(function () {
-'use strict';
-
-function getProductivityStats() {
+import { getCurrentUser } from './state/current-user-store.js';
+import { getDcState } from './state/dc-state-store.js';
+import { getDcCurrentGroupScope } from './state/dc-current-group-scope-store.js';
+export function getProductivityStats() {
     try {
         // Tamamlanan görevler (completedAt alanı olmayabilir, sadece completed flag'i kontrol et)
         const tasks = typeof FocusStorage !== 'undefined'
             ? FocusStorage.get('tasks', [])
-            : JSON.parse(localStorage.getItem('focusai_tasks') || '[]');
+            : JSON.parse(localStorage.getItem('focusai_tasks') || '[]', window._safeJsonReviver);
         const completedCount = (Array.isArray(tasks) ? tasks : [])
             .filter(t => t.completed === true).length;
 
@@ -26,7 +26,7 @@ function getProductivityStats() {
 window.getProductivityStats = getProductivityStats;
 
 function buildProductivityMessage(stats) {
-    const name = window.currentUser ? (window.currentUser.displayName || window.currentUser.username) : 'Kullanıcı';
+    const name = getCurrentUser() ? (getCurrentUser().displayName || getCurrentUser().username) : 'Kullanıcı';
     const taskPart = stats.completedToday > 0
         ? `${stats.completedToday} görev tamamlamış durumda ✅`
         : null;
@@ -60,7 +60,7 @@ if (shareProductivityBtn && productivityPopup) {
 
 if (prodSendBtn) {
     prodSendBtn.addEventListener('click', () => {
-        const _st3 = window._dcState || {};
+        const _st3 = getDcState() || {};
         const _grp3  = _st3.groupCode || (window.__getActiveGroupIdRef ? window.__getActiveGroupIdRef() : null);
         const _room3 = _st3.roomId || null;
         const _chan3  = _st3.chanId || null;
@@ -69,11 +69,11 @@ if (prodSendBtn) {
         if (!text) return;
 
         // Supabase grubunda açık bir sohbet varsa, mesajı oraya yaz
-        if (window._dcCurrentGroupScope && window.FocusSupabase && window.currentUser?.id) {
+        if (getDcCurrentGroupScope() && window.FocusSupabase && getCurrentUser()?.id) {
             window.FocusSupabase.from('messages').insert({
-                scope_type: window._dcCurrentGroupScope.type,
-                scope_id:   window._dcCurrentGroupScope.id,
-                sender_id:  window.currentUser.id,
+                scope_type: getDcCurrentGroupScope().type,
+                scope_id:   getDcCurrentGroupScope().id,
+                sender_id:  getCurrentUser().id,
                 text
             }).then(({ error }) => {
                 if (error) { console.error('[FocusAI] verimlilik paylaşımı hatası', error); return; }
@@ -89,5 +89,3 @@ if (prodCancelBtn) {
         productivityPopup.classList.remove('visible');
     });
 }
-
-})();

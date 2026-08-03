@@ -8,6 +8,16 @@ window.escapeHtml = function escapeHtml(str) {
         .replace(/'/g, '&#39;');
 };
 
+// JSON.parse reviver — localStorage/import edilen dosyalardaki `__proto__`/
+// `constructor`/`prototype` anahtarlarını (prototype pollution girişimi) atar.
+// Object.assign/spread ile merge edilen verilerde bu anahtarlar Object.prototype'ı
+// kirletebilirdi; savunma amaçlı, gerçekçi saldırı zaten XSS gerektirir ama ucuz.
+function _safeJsonReviver(key, value) {
+    if (key === '__proto__' || key === 'constructor' || key === 'prototype') return undefined;
+    return value;
+}
+window._safeJsonReviver = _safeJsonReviver;
+
 const FocusStorage = (() => {
     const PREFIX = 'focusai_';
 
@@ -16,7 +26,7 @@ const FocusStorage = (() => {
         try {
             const raw = localStorage.getItem(PREFIX + key);
             if (raw === null || raw === undefined) return fallback;
-            return JSON.parse(raw);
+            return JSON.parse(raw, _safeJsonReviver);
         } catch (e) {
             console.warn(`[FocusStorage] Okuma hatası → "${key}":`, e.message);
             return fallback;
@@ -111,16 +121,14 @@ const FocusStorage = (() => {
         const banner = document.createElement('div');
         banner.id = 'focusai-quota-banner';
         banner.innerHTML = `
-            <i class="fa-solid fa-triangle-exclamation" style="color:#fff;"></i>
+            <i class="fa-solid fa-triangle-exclamation u-color-hfff" ></i>
             <span>Depolama alanı doldu! Yeni veriler kaydedilemiyor.</span>
-            <button class="focusai-quota-banner-export"
-                style="margin-left:10px;padding:4px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.4);
-                       background:rgba(255,255,255,0.15);color:#fff;cursor:pointer;font-size:12px;font-family:Poppins,sans-serif;">
+            <button class="focusai-quota-banner-export u-margin-left-10px_padding-4px14px_border-radius-8px_border-"
+ >
                 Şimdi Yedekle
             </button>
-            <button class="focusai-quota-banner-dismiss"
-                style="margin-left:6px;padding:4px 10px;border:none;background:transparent;
-                       color:rgba(255,255,255,0.5);cursor:pointer;font-size:16px;line-height:1;">
+            <button class="focusai-quota-banner-dismiss u-margin-left-6px_padding-4px10px_border-none_background-tra"
+ >
                 ×
             </button>
         `;
@@ -147,16 +155,14 @@ const FocusStorage = (() => {
                     const banner = document.createElement('div');
                     banner.id = 'focusai-quota-banner';
                     banner.innerHTML = `
-                        <i class="fa-solid fa-hard-drive" style="color:#fff;"></i>
+                        <i class="fa-solid fa-hard-drive u-color-hfff" ></i>
                         <span>Depolama %${pct} dolu. Veri kaybını önlemek için yedek al.</span>
-                        <button class="focusai-quota-banner-export"
-                            style="margin-left:10px;padding:4px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.4);
-                                   background:rgba(255,255,255,0.15);color:#fff;cursor:pointer;font-size:12px;font-family:Poppins,sans-serif;">
+                        <button class="focusai-quota-banner-export u-margin-left-10px_padding-4px14px_border-radius-8px_border-"
+ >
                             Yedekle
                         </button>
-                        <button class="focusai-quota-banner-dismiss"
-                            style="margin-left:6px;padding:4px 10px;border:none;background:transparent;
-                                   color:rgba(255,255,255,0.5);cursor:pointer;font-size:16px;line-height:1;">
+                        <button class="focusai-quota-banner-dismiss u-margin-left-6px_padding-4px10px_border-none_background-tra"
+ >
                             ×
                         </button>
                     `;
@@ -256,7 +262,7 @@ const DataManager = (() => {
 
             reader.onload = (e) => {
                 try {
-                    const parsed = JSON.parse(e.target.result);
+                    const parsed = JSON.parse(e.target.result, _safeJsonReviver);
 
                     if (parsed._appName !== 'FocusAI' || !parsed._schema || !Array.isArray(parsed.tasks)) {
                         reject(new Error('Bu dosya FocusAI yedeği değil veya tanınmayan bir formatta.')); return;

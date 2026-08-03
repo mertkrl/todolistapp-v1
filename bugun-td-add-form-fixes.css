@@ -1,0 +1,49 @@
+/* style.css'ten çıkarıldı (Faz C, 2026-07-22). FAZ 2 — Bugün Sekmesi Ek Düzeltmeleri (#td-add-form saat picker z-index/layout, #streak-badge, #highlight-contract-display). Git HEAD doğrulaması: orijinalde satır 17950'de — bugun-yeni-minimal-tasarim.css'TEN SONRA, bugun-minimalist.css/bugun-tasarim-v2.css'TEN ÖNCE gelmeliydi. */
+
+/* ============================================================
+   FAZ 2 — BUGÜN SEKMESİ EK DÜZELTMELERİ
+   ============================================================ */
+
+/* Saat picker dropdown — td-tasks overflow:visible ile çalışsın, z-index üstte kalsın */
+#td-add-form .custom-time-dropdown {
+    z-index: 9998 !important;
+}
+
+/* td-add-form açıldığında flex layout kullan (Faz R: class-tabanlı) */
+#td-add-form:not(.is-hidden) {
+    display: flex !important;
+    flex-direction: column;
+}
+
+/* Bugün: time-box'un içindeki dropdown'lar için position context */
+#td-add-form .td-add-time {
+    position: relative;
+}
+#td-add-form .time-box {
+    position: relative;
+}
+
+/* Günlük hedef kartı — powerup modal tetikleyicisi */
+#highlight-contract-display {
+    font-size: 11px;
+    color: var(--a);
+    background: var(--a10);
+    border: 1px solid rgba(212,144,14,0.2);
+    border-radius: 6px;
+    padding: 3px 8px;
+    margin-top: 2px;
+}
+
+/* Bugün header'ı — tam genişlik, mobilde dikey */
+#bugun .td-header {
+    flex-wrap: wrap;
+}
+
+/* Streak badge — görünür yap */
+#streak-badge {
+    display: flex; /* JS override eder gerekirse */
+    position: relative;
+    overflow: visible;
+    isolation: isolate;
+    transition: border-color 0.6s ease, background 0.6s ease, box-shadow 0.6s ease;
+}

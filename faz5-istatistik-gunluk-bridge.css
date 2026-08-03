@@ -1,0 +1,288 @@
+/* style.css'ten çıkarıldı (Faz C, 2026-07-22). FAZ 5 — İstatistikler + Günlük Sekmeleri Bridge CSS. #istatistikler zaman filtre çubuğu/grafik, #gunluk yansıma kütüphanesi, #bugun ek düzeltmeler. Git HEAD: orijinalde satır 18630. */
+
+/* ============================================================
+   FAZ 5 — İSTATİSTİKLER + GÜNLÜK SEKMELERİ BRIDGE CSS
+   ============================================================ */
+
+/* ── Zaman Filtre Çubuğu ── */
+#istatistikler .stats-filter-bar {
+    background: var(--s2) !important;
+    border: 1px solid var(--b1) !important;
+    border-radius: 10px !important;
+    padding: 4px !important;
+    gap: 2px !important;
+    backdrop-filter: none !important;
+}
+#istatistikler .stats-filter-btn {
+    background: transparent !important;
+    color: var(--t3) !important;
+    border-radius: 7px !important;
+    padding: 6px 16px !important;
+    font-size: 12px !important;
+    font-family: 'Inter', sans-serif !important;
+    transition: all 0.15s !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+#istatistikler .stats-filter-btn:hover {
+    background: var(--s3) !important;
+    color: var(--t1) !important;
+}
+#istatistikler .stats-filter-btn.active {
+    background: var(--a) !important;
+    color: #000 !important;
+    font-weight: 700 !important;
+    box-shadow: none !important;
+}
+
+/* ── Üretkenlik Skoru Kartı ── */
+#istatistikler .productivity-score-card {
+    background: var(--s1) !important;
+    border: 1px solid var(--b1) !important;
+    border-radius: var(--r) !important;
+    backdrop-filter: none !important;
+}
+#istatistikler .score-ring-bg {
+    stroke: var(--b2) !important;
+}
+#istatistikler .score-value {
+    color: var(--t1) !important;
+    font-family: 'Inter', sans-serif !important;
+}
+#istatistikler .score-label {
+    color: var(--t3) !important;
+    font-family: 'Inter', sans-serif !important;
+}
+#istatistikler .score-meta h3 {
+    color: var(--t1) !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 14px !important;
+}
+#istatistikler .score-meta p {
+    color: var(--t2) !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 12px !important;
+}
+#istatistikler #score-message {
+    color: var(--t2) !important;
+}
+
+/* ── Mini Stat Kartları ── */
+#istatistikler .stats-mini-cards .stat-card {
+    border-radius: 12px !important;
+    transition: border-color 0.15s !important;
+}
+#istatistikler .stats-mini-cards .stat-card:hover {
+    transform: none !important;
+    box-shadow: none !important;
+    border-color: var(--b2) !important;
+}
+#istatistikler .stat-info h4 {
+    color: var(--t3) !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+}
+#istatistikler .stat-value {
+    color: var(--t1) !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 18px !important;
+}
+#istatistikler .stat-trend { font-family: 'Inter', sans-serif !important; }
+#istatistikler .stat-icon-wrapper {
+    border-radius: 10px !important;
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 15px !important;
+}
+
+/* ── Isı Haritası Kartı ── */
+#istatistikler .heatmap-card {
+    background: var(--s1) !important;
+    border: 1px solid var(--b1) !important;
+    border-radius: var(--r) !important;
+    backdrop-filter: none !important;
+    padding: 18px 20px !important;
+}
+#istatistikler .heatmap-header h3 {
+    color: var(--t1) !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+}
+#istatistikler .heatmap-subtitle {
+    color: var(--t3) !important;
+    font-family: 'Inter', sans-serif !important;
+}
+#istatistikler .heatmap-days-label span {
+    color: var(--t3) !important;
+    font-size: 9px !important;
+}
+#istatistikler .hm-day {
+    background: var(--s2) !important;
+    border-radius: 3px !important;
+    transition: transform 0.1s !important;
+}
+#istatistikler .hm-day:hover { transform: scale(1.3) !important; }
+#istatistikler #heatmap-day-details {
+    background: var(--s2) !important;
+    border: 1px solid var(--b1) !important;
+    border-radius: 10px !important;
+}
+#istatistikler #heatmap-details-date {
+    color: var(--a) !important;
+    font-family: 'Inter', sans-serif !important;
+}
+#istatistikler #heatmap-details-content {
+    color: var(--t2) !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 12px !important;
+}
+
+/* ── Grafik Sekme Çubuğu ── */
+
+#istatistikler .chart-tab-btn {
+    background: transparent !important;
+    color: var(--t3) !important;
+    border-radius: 7px !important;
+    padding: 6px 14px !important;
+    font-size: 12px !important;
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 500 !important;
+    transition: all 0.15s !important;
+    border: none !important;
+}
+#istatistikler .chart-tab-btn:hover:not(.active) {
+    background: var(--s3) !important;
+    color: var(--t1) !important;
+}
+#istatistikler .chart-tab-btn.active {
+    background: var(--a) !important;
+    color: #000 !important;
+    font-weight: 700 !important;
+    box-shadow: none !important;
+}
+
+/* ── Grafik Konteynerleri ── */
+#istatistikler .chart-container {
+    background: var(--s1) !important;
+    border: 1px solid var(--b1) !important;
+    border-radius: var(--r) !important;
+    backdrop-filter: none !important;
+    padding: 16px !important;
+}
+#istatistikler .chart-container h3 {
+    color: var(--t1) !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    border-bottom: 1px solid var(--b1) !important;
+    padding-bottom: 10px !important;
+    margin-bottom: 12px !important;
+}
+
+/* ── Streak Kartları ── */
+
+
+
+
+
+
+
+#istatistikler .mini-bar-fill.purple { background: var(--a) !important; }
+#istatistikler .mini-bar-fill.green { background: #4ADE80 !important; }
+
+/* ── Rozet Vitrini ── */
+
+
+
+/* ── AI Analiz Kutusu ── */
+
+
+
+
+/* ── Kategori grafik tipi seçici ── */
+#category-chart-type {
+    background: var(--s2) !important;
+    border: 1px solid var(--b1) !important;
+    border-radius: 6px !important;
+    color: var(--t2) !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 11px !important;
+    padding: 4px 8px !important;
+    cursor: pointer !important;
+}
+
+/* ── Günlük Sekmesi (Zihin Kütüphanesi) ── */
+
+/* Arama + Filtre çubuğu */
+
+
+#gunluk #library-search-input {
+    color: var(--t1) !important;
+    font-family: 'Inter', sans-serif !important;
+}
+#gunluk #library-search-input::placeholder { color: var(--t3) !important; }
+#gunluk #library-filter-month,
+#gunluk #library-filter-year {
+    background: var(--s2) !important;
+    border: 1px solid var(--b1) !important;
+    border-radius: 8px !important;
+    color: var(--t2) !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 12px !important;
+    padding: 6px 12px !important;
+}
+
+/* Günlük değerlendir butonu */
+#btn-open-reflection-library {
+    background: var(--a) !important;
+    color: #000 !important;
+    border: none !important;
+    box-shadow: none !important;
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 700 !important;
+    border-radius: 8px !important;
+}
+#btn-open-reflection-library:hover {
+    opacity: 0.88 !important;
+    transform: none !important;
+}
+
+/* Raf başlık etiketi — zaten Faz 3'te bridgelenmiş, ek override */
+
+
+/* ── Task Item: Aksiyon Butonları + Layout Bridge ── */
+#bugun .task-item-right {
+    min-width: auto;
+    gap: 8px;
+}
+#bugun .mini-goal-select {
+    background: var(--s2) !important;
+    border: 1px solid var(--b1) !important;
+    color: var(--t3) !important;
+    font-size: 10px !important;
+    border-radius: 6px !important;
+    padding: 3px 6px !important;
+    max-width: 110px !important;
+}
+#bugun .mini-goal-select:hover { border-color: var(--a) !important; }
+#bugun .task-actions { gap: 2px; }
+#bugun .edit-btn,
+#bugun .focus-btn,
+#bugun .delete-btn {
+    font-size: 12px !important;
+    padding: 3px 5px;
+    border-radius: 4px;
+    transition: all 0.15s;
+}
+#bugun .drag-handle {
+    font-size: 11px;
+    color: var(--t3);
+    cursor: grab;
+}
+#bugun .drag-handle:hover { color: var(--t2); }
+#bugun .task-meta { gap: 4px; margin-top: 3px; }
+#bugun .task-left { gap: 8px; }

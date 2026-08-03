@@ -41,27 +41,40 @@ document.addEventListener('DOMContentLoaded', () => {
          const tasks = getTasksRef ? getTasksRef() : [];
 
          let rows = '';
+         let dotIdx = 0;
+         const dotStyles = [];
          if (hasHighlight) {
              const hl = (FocusStorage.get('highlight_history', {}))[dateStr];
              const hlText = hl ? (hl.text || 'Günün Hedefi') : 'Günün Hedefi';
-             rows += `<div class="chp-row chp-highlight"><span class="chp-dot" style="background:#ff9f43;box-shadow:0 0 5px #ff9f43;border-radius:3px;"></span><span class="chp-text">⭐ ${escapeHtml(hlText)}</span></div>`;
+             dotStyles.push({ background: '#ff9f43', boxShadow: '0 0 5px #ff9f43', borderRadius: '3px' });
+             rows += `<div class="chp-row chp-highlight"><span class="chp-dot" data-dot-idx="${dotIdx++}"></span><span class="chp-text">⭐ ${escapeHtml(hlText)}</span></div>`;
          }
          dayEvents.slice(0, 6).forEach(ev => {
              const t = tasks.find(t => String(t.id) === String(ev.id));
              const done = t && t.completed;
              const cc = getTaskColor(t);
              const timeStr = ev.timeStart ? `${ev.timeStart}${ev.timeEnd ? ' → ' + ev.timeEnd : ''}` : '';
-             rows += `<div class="chp-row${done ? ' chp-done' : ''}"><span class="chp-dot" style="background:${cc.border};box-shadow:0 0 4px ${cc.glow};${cc.isGoal ? 'border-radius:3px;' : ''}"></span><span class="chp-text">${done ? '<i class="fa-solid fa-check chp-check"></i> ' : ''}${escapeHtml(ev.text)}${timeStr ? '<span class="chp-time"> · ' + timeStr + '</span>' : ''}</span></div>`;
+             dotStyles.push({ background: cc.border, boxShadow: `0 0 4px ${cc.glow}`, borderRadius: cc.isGoal ? '3px' : '' });
+             rows += `<div class="chp-row${done ? ' chp-done' : ''}"><span class="chp-dot" data-dot-idx="${dotIdx++}"></span><span class="chp-text">${done ? '<i class="fa-solid fa-check chp-check"></i> ' : ''}${escapeHtml(ev.text)}${timeStr ? '<span class="chp-time"> · ' + timeStr + '</span>' : ''}</span></div>`;
          });
          if (dayEvents.length > 6) rows += `<div class="chp-more">+${dayEvents.length - 6} görev daha</div>`;
          dayHabits.slice(0, 3).forEach(h => {
              const cc = getCatColor(h.category || 'kisisel');
-             rows += `<div class="chp-row"><span class="chp-dot" style="background:${cc.border};opacity:0.7;"></span><span class="chp-text chp-habit"><i class="fa-solid fa-leaf"></i> ${escapeHtml(h.name)}</span></div>`;
+             dotStyles.push({ background: cc.border, opacity: '0.7' });
+             rows += `<div class="chp-row"><span class="chp-dot" data-dot-idx="${dotIdx++}"></span><span class="chp-text chp-habit"><i class="fa-solid fa-leaf"></i> ${escapeHtml(h.name)}</span></div>`;
          });
          if (dayHabits.length > 3) rows += `<div class="chp-more">+${dayHabits.length - 3} alışkanlık daha</div>`;
 
          const el = getChpEl();
          el.innerHTML = `<div class="chp-header">${dayName}</div><div class="chp-body">${rows}</div><div class="chp-footer">Tıkla → detay</div>`;
+         el.querySelectorAll('.chp-dot[data-dot-idx]').forEach(dot => {
+             const s = dotStyles[parseInt(dot.dataset.dotIdx, 10)];
+             if (!s) return;
+             dot.style.background = s.background || '';
+             if (s.boxShadow) dot.style.boxShadow = s.boxShadow;
+             if (s.borderRadius) dot.style.borderRadius = s.borderRadius;
+             if (s.opacity) dot.style.opacity = s.opacity;
+         });
          el.style.display = 'block';
          el.style.opacity = '0';
          el.style.transform = 'scale(0.92) translateY(4px)';

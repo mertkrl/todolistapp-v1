@@ -9,11 +9,11 @@ function _onlinePopoverOutsideClick(e) {
     if (panel.contains(e.target) || (badge && badge.contains(e.target))) return;
     _closeOnlinePeoplePopover();
 }
-function _closeOnlinePeoplePopover() {
+export function _closeOnlinePeoplePopover() {
     document.getElementById('arena-online-card')?.classList.remove('aoc-open');
     document.removeEventListener('click', _onlinePopoverOutsideClick, true);
 }
-function _toggleOnlinePeoplePopover(anchor) {
+export function _toggleOnlinePeoplePopover(anchor) {
     const panel = document.getElementById('arena-online-card');
     if (!panel) return;
     if (panel.classList.contains('aoc-open')) { _closeOnlinePeoplePopover(); return; }

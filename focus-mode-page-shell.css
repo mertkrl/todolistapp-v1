@@ -1,0 +1,196 @@
+/* style.css'ten çıkarıldı (Faz C, 2026-07-22). Odak Modu (body.focus-mode-active) Zamanlayıcı ghost-mode davranışları + TEMEL sayfa/sekme iskeleti (.page-section display kontrolü — TÜM sekme geçişlerinin dayandığı mekanizma, .content-area, .section-header, .summary-card). YÜKSEK ÖNEM: .page-section/.page-section.active kuralları uygulamanın tab-switching çekirdeğidir. */
+
+/* NOT: bu kurallar #zamanlayici'ye özgüdür. Eskiden "body.focus-mode-active
+   .section-header" gibi kapsamsız (global) seçiciler kullanılıyordu; bu da
+   .section-header/.date-display class'ı paylaşan DİĞER sekmelerin (örn. Sosyal'daki
+   sıralama/seri başlığı) odak modu sırasında yanlışlıkla soluklaşmasına/gizlenmesine
+   yol açıyordu. */
+body.focus-mode-active #zamanlayici .section-header {
+    position: fixed !important;
+    top: 30px !important;
+    right: auto !important;
+    margin: 0 !important;
+    z-index: 9999 !important;
+    width: 100% !important;
+    display: flex !important;
+    justify-content: center !important;
+}
+
+body.focus-mode-active #zamanlayici .section-header .header-text,
+body.focus-mode-active #zamanlayici .date-display {
+    display: none !important;
+}
+
+/* Odak Modu'na girer girmez (hareketsizlik/hayalet modu beklemeden) hemen
+   gizlenmesi gerekenler: profil etiketi/rozeti (ör. "Klasik Pomodoro" — hem
+   taze durumdaki tam bar hem de zamanlayıcı çalışırken görünen kompakt rozet)
+   ve zaten ayrı bir "Çıkış" butonu olduğu için gereksiz/üst üste binen
+   "Odak Modu" açma butonu. */
+body.focus-mode-active .timer-profile-bar,
+body.focus-mode-active .timer-active-profile-pill,
+body.focus-mode-active #focus-mode-btn {
+    display: none !important;
+}
+
+body.focus-mode-active .timer-container {
+    transform: scale(1.2);
+    border: none;
+    background: transparent;
+    padding: 0;
+    margin: 0;
+    box-shadow: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+body.focus-mode-active .timer-circle {
+    box-shadow: none !important;
+    border: none !important;
+    transition: all 0.6s ease;
+}
+
+body.focus-mode-active .timer-circle.running {
+    box-shadow: none !important;
+    border: none !important;
+    background: transparent !important;
+}
+
+body.ghost-mode-active {
+    cursor: none !important;
+}
+
+body.ghost-mode-active .timer-modes,
+body.ghost-mode-active .timer-controls,
+body.ghost-mode-active .ambient-panel,
+body.ghost-mode-active .active-focus-task {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-10px);
+    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Timer içindeki ambient panel ghost-mode'dan muaf — her zaman görünür kalmalı */
+body.ghost-mode-active .timer-ambient-panel,
+body.ghost-mode-active #zamanlayici .timer-container .ambient-panel,
+body.ghost-mode-active .amb2-panel {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transform: none !important;
+}
+
+/* Ghost modda hızlı ekle butonu gizlenir */
+body.ghost-mode-active #floating-quick-add-btn {
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.8);
+    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Odak/Çıkış butonu ghost modunda da HER ZAMAN erişilebilir kalmalı —
+   aksi halde kullanıcı odak modundan çıkamaz (imleç de gizlendiği için bulamaz). */
+body.ghost-mode-active #zamanlayici .section-header {
+    opacity: 0.45;
+    transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+body.ghost-mode-active #zamanlayici .section-header:hover,
+body.ghost-mode-active #zamanlayici .section-header:focus-within {
+    opacity: 1;
+}
+body.ghost-mode-active #focus-mode-btn {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+}
+
+body.ghost-mode-active.focus-mode-active .timer-container {
+    transform: scale(1.4);
+    transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+body.ghost-mode-active:not(.focus-mode-active) .timer-container {
+    transform: scale(1.05);
+    transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Odak modunda motivasyon sözü her zaman görünür olsun */
+body.focus-mode-active .focus-quote {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+body.ghost-mode-active .focus-quote {
+    font-size: 17px;
+    color: rgba(255, 255, 255, 0.85);
+    margin-bottom: 45px;
+    text-shadow: 0 4px 20px rgba(0,0,0,0.6);
+    letter-spacing: 0.5px;
+}
+
+body.ghost-mode-active .timer-circle {
+    box-shadow: none !important;
+    background: transparent;
+    border: none !important;
+    transition: all 0.6s ease;
+}
+
+body.ghost-mode-active .timer-circle.running {
+    box-shadow: none !important;
+    border: none !important;
+    background: transparent !important;
+}
+
+.content-area {
+    flex: 1;
+    padding: 16px 22px;
+    overflow-y: auto;
+    position: relative;
+    transition: 0.5s ease;
+}
+
+.page-section { display: none; animation: fadeIn 0.4s ease; height: 100%; }
+.page-section.active { display: block; }
+#zamanlayici.page-section.active { background: transparent; }
+
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 12px;
+    transition: all 0.5s ease;
+}
+
+.section-header h1 { font-size: 20px; font-weight: 700; margin-bottom: 2px; transition: color 0.3s; }
+.section-header p { color: var(--text-muted); font-size: 13px; }
+
+
+
+
+
+
+.summary-card .number { font-size: 22px; font-weight: 700; }
+
+
+
+
+
+
+
+
+
+
+
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}

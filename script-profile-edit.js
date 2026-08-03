@@ -213,7 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (emailEl && email) emailEl.textContent = email;
             if (avEl)  { avEl.textContent = initials; avEl.style.background = _peAvatarColor; }
             if (topAvEl) { topAvEl.textContent = initials; topAvEl.style.background = _peAvatarColor; }
-            if (finalAvatarUrl && avEl) avEl.innerHTML = `<img src="${escapeHtml(finalAvatarUrl)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="av">`;
+            if (finalAvatarUrl && avEl) avEl.innerHTML = `<img src="${escapeHtml(finalAvatarUrl)}" alt="av" class="u-width-100pct_height-100pct_object-fit-cover_border-radius-">`;
 
             if (peStatus) { peStatus.textContent = '✓ Profil başarıyla güncellendi.'; peStatus.style.color = '#2ed573'; }
             document.getElementById('pe-password').value        = '';

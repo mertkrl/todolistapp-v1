@@ -1,0 +1,39 @@
+/* Inter fontu artık index.html'de tek birleşik Google Fonts <link> etiketiyle (diğer
+   3 font ailesiyle birlikte, tek istekte) yükleniyor — buradaki @import KALDIRILDI çünkü
+   CSS @import render-blocking zincirini SERİLEŞTİRİR (tarayıcı önce bu dosyayı çözer,
+   SONRA import edileni ister) ve aynı fontu index.html'deki <link> ile İKİ KEZ indiriyordu. */
+
+:root {
+    /* === Mevcut token'lar (geriye dönük uyumluluk) === */
+    --text-color: #ffffff;
+    --text-muted: #a0a0b0;
+    --primary-color: #D4900E;
+    --glass-bg: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-hover: rgba(255, 255, 255, 0.1);
+
+    /* === Yeni Design System Token'ları (FocusAI v2) === */
+    --bg:#0E0E0F;
+    --s1:#161617;
+    --s2:#1E1E20;
+    --s3:#262629;
+    --b1:rgba(255,255,255,0.06);
+    --b2:rgba(255,255,255,0.11);
+    --a:#D4900E;
+    --a10:rgba(212,144,14,0.10);
+    --a20:rgba(212,144,14,0.20);
+    --g:#4ADE80;
+    --g10:rgba(74,222,128,0.10);
+    --bl:#60A5FA;
+    --bl10:rgba(96,165,250,0.10);
+    --pu:#A78BFA;
+    --pu10:rgba(167,139,250,0.10);
+    --re:#F87171;
+    --re10:rgba(248,113,113,0.10);
+    --t1:#F2F2F2;
+    --t2:#888;
+    --t3:#444;
+    --r:14px;
+    --rl:20px;
+}
+

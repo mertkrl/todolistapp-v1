@@ -173,13 +173,13 @@ import { showPremiumModal } from './script.js';
 
             card.innerHTML = `
                 <div class="group-card-header">
-                    <div class="group-card-title"><i class="fa-solid fa-layer-group" style="color: var(--primary-color);"></i> ${window.escapeHtml(group.name)}</div>
+                    <div class="group-card-title"><i class="fa-solid fa-layer-group u-color-var-primary-color-2" ></i> ${window.escapeHtml(group.name)}</div>
                     <div class="group-card-badge">${group.members} Üye</div>
                 </div>
-                <p style="font-size: 13px; color: var(--text-muted); line-height: 1.4;">${window.escapeHtml(group.desc)}</p>
+                <p class="u-font-size-13px_color-var-text-muted_line-height-1p4">${window.escapeHtml(group.desc)}</p>
                 <div class="group-card-stats">
-                    <span><i class="fa-solid fa-fire" style="color: #ff9f43;"></i> Hedef: %${Math.round((group.weeklyGoalCurrent / group.weeklyGoalMax) * 100)}</span>
-                    <span><i class="fa-solid fa-headset" style="color: #2ed573;"></i> ${group.activeMembers.length} Aktif</span>
+                    <span><i class="fa-solid fa-fire u-color-hff9f43-2" ></i> Hedef: %${Math.round((group.weeklyGoalCurrent / group.weeklyGoalMax) * 100)}</span>
+                    <span><i class="fa-solid fa-headset u-color-h2ed573-2" ></i> ${group.activeMembers.length} Aktif</span>
                 </div>
             `;
             container.appendChild(card);
@@ -192,7 +192,7 @@ import { showPremiumModal } from './script.js';
         if(!group) return;
 
         const nameEl = document.getElementById('active-group-name');
-        if (nameEl) nameEl.innerHTML = `${window.escapeHtml(group.name)} <i class="fa-solid fa-circle-check" style="color: #00b894; font-size: 16px;"></i>`;
+        if (nameEl) nameEl.innerHTML = `${window.escapeHtml(group.name)} <i class="fa-solid fa-circle-check u-color-h00b894_font-size-16px" ></i>`;
 
         const descEl = document.getElementById('active-group-desc');
         if (descEl) descEl.textContent = group.desc;
@@ -211,22 +211,25 @@ import { showPremiumModal } from './script.js';
 
         const membersContainer = document.getElementById('group-study-members');
         const gacEl = document.getElementById('group-active-count');
-        if (gacEl) gacEl.innerHTML = `<i class="fa-solid fa-circle" style="font-size: 8px;"></i> ${group.activeMembers.length} Aktif`;
+        if (gacEl) gacEl.innerHTML = `<i class="fa-solid fa-circle u-font-size-8px-2" ></i> ${group.activeMembers.length} Aktif`;
 
         if (membersContainer) {
             membersContainer.innerHTML = '';
             group.activeMembers.forEach(member => {
                 const memberDiv = document.createElement('div');
                 memberDiv.className = 'study-member';
-                const borderStyle = member.isMe ? `border: 2px solid var(--primary-color); box-shadow: 0 0 15px rgba(108, 92, 231, 0.4);` : `border: 2px solid #2ed573; box-shadow: 0 0 10px rgba(46, 213, 115, 0.2);`;
+                const borderStyle = member.isMe ? { border: '2px solid var(--primary-color)', boxShadow: '0 0 15px rgba(108, 92, 231, 0.4)' } : { border: '2px solid #2ed573', boxShadow: '0 0 10px rgba(46, 213, 115, 0.2)' };
 
                 memberDiv.innerHTML = `
-                    <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&background=${member.color.replace('#','')}&color=fff" style="${borderStyle}">
+                    <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&background=${member.color.replace('#','')}&color=fff">
                     <div class="study-member-info">
                         <span class="study-member-name">${window.escapeHtml(member.name)} ${member.isMe ? '(Sen)' : ''}</span>
                         <span class="study-member-status"><i class="fa-solid fa-bolt"></i> ${member.status}</span>
                     </div>
                 `;
+                const memberImg = memberDiv.querySelector('img');
+                memberImg.style.border = borderStyle.border;
+                memberImg.style.boxShadow = borderStyle.boxShadow;
                 membersContainer.appendChild(memberDiv);
             });
         }
@@ -244,19 +247,21 @@ import { showPremiumModal } from './script.js';
                 li.style.borderRadius = '12px';
                 li.style.border = user.isMe ? '1px solid rgba(108, 92, 231, 0.3)' : '1px solid var(--glass-border)';
 
-                let rankIcon = `<span style="color: var(--text-muted); font-weight: bold; width: 20px;">#${index + 1}</span>`;
-                if (index === 0) rankIcon = `<i class="fa-solid fa-medal" style="color: #f1c40f; width: 20px; font-size: 18px;"></i>`;
-                else if (index === 1) rankIcon = `<i class="fa-solid fa-medal" style="color: #bdc3c7; width: 20px; font-size: 18px;"></i>`;
-                else if (index === 2) rankIcon = `<i class="fa-solid fa-medal" style="color: #cd7f32; width: 20px; font-size: 18px;"></i>`;
+                let rankIcon = `<span class="u-color-var-text-muted_font-weight-bold_width-20px">#${index + 1}</span>`;
+                if (index === 0) rankIcon = `<i class="fa-solid fa-medal u-color-hf1c40f_width-20px_font-size-18px" ></i>`;
+                else if (index === 1) rankIcon = `<i class="fa-solid fa-medal u-color-hbdc3c7_width-20px_font-size-18px" ></i>`;
+                else if (index === 2) rankIcon = `<i class="fa-solid fa-medal u-color-hcd7f32_width-20px_font-size-18px" ></i>`;
 
                 li.innerHTML = `
-                    <div style="display: flex; align-items: center; gap: 15px;">
+                    <div class="u-display-flex_align-items-center_gap-15px">
                         ${rankIcon}
-                        <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random" style="width: 30px; height: 30px; border-radius: 50%;">
-                        <span style="color: #fff; font-weight: ${user.isMe ? '600' : '500'};">${window.escapeHtml(user.name)}</span>
+                        <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random" class="u-width-30px_height-30px_border-radius-50pct">
+                        <span class="cw-lb-name">${window.escapeHtml(user.name)}</span>
                     </div>
-                    <div style="color: #2ed573; font-weight: 600; font-size: 14px;">${user.score} XP</div>
+                    <div class="u-color-h2ed573_font-weight-600_font-size-14px">${user.score} XP</div>
                 `;
+                const nameSpan = li.querySelector('.cw-lb-name');
+                if (nameSpan) { nameSpan.style.color = '#fff'; nameSpan.style.fontWeight = user.isMe ? '600' : '500'; }
                 leaderboardContainer.appendChild(li);
             });
         }

@@ -1,3 +1,4 @@
+import { fmtDate } from './planning-utils.js';
 // social-institution-student-report.js
 // social-institution-panel.js'ten çıkarıldı (Faz refactor turu, 2. tur):
 // "Öğrenci Raporu (PDF)" üretici — Sınıf/Ekip Paneli'nin "Rapor" sekmesinden
@@ -33,77 +34,84 @@ const CP_CATEGORY_META = {
 // "Yazdır → PDF olarak kaydet" akışı kullanılıyor (harici kütüphane/CDN'siz,
 // Türkçe karakterler için en güvenilir yol — jsPDF gömülü fontlarda ı/ş/ğ gibi
 // karakterlerde sorun çıkarabiliyor).
-export async function _cpGenerateStudentReport({ data, isWork, memberLabel, assignments, subsByAsg, subGrades, stepDoneByAsg, submittedAtByAsgUser, scheduleRows, DAY_NAMES_TR, studentUserId, studentName }) {
-    // ── Odaklanma verisi: son 8 hafta günlük istatistik ──
-    // daily_stats'ın RLS'i sadece "user_id = auth.uid()" satırlarına izin verir; yönetici
-    // başka bir üyenin verisini isteyince doğrudan tablo sorgusu boş dönerdi — bu yüzden
-    // 096_group_member_daily_stats.sql'deki SECURITY DEFINER RPC kullanılıyor (grup admini
-    // veya kullanıcının kendisi için, stats_hidden_from_institution'a saygı gösterir).
-    const since = new Date(Date.now() - 56 * 24 * 3600 * 1000).toISOString().slice(0, 10);
-    const { data: dailyRows } = await window.FocusSupabase
-        .rpc('group_member_daily_stats', { p_group_id: data._supaId, p_user_id: studentUserId, p_since: since });
-    const rows = dailyRows || [];
-    const totalMinutes = rows.reduce((s, r) => s + (r.focus_minutes || 0), 0);
-    const activeDays = rows.filter(r => (r.focus_minutes || 0) > 0).length;
-    // Haftalık kova (bu hafta dahil son 8 hafta), en yeni en sonda
-    const weekBuckets = Array.from({ length: 8 }, () => 0);
-    const now = new Date();
-    rows.forEach(r => {
-        const daysAgo = Math.floor((now - new Date(r.stat_date)) / (24 * 3600 * 1000));
-        const bucket = 7 - Math.min(7, Math.floor(daysAgo / 7));
-        if (bucket >= 0) weekBuckets[bucket] += (r.focus_minutes || 0);
-    });
-
-    // ── Ödevler: bu öğrenciye atanmış olanlar + durumu ──
-    const myAssignments = assignments.filter(a => {
-        const targets = a.target_user_ids;
-        return !targets || !targets.length || targets.includes(studentUserId);
-    });
-    let completedCount = 0, lateCount = 0;
-    const asgRows = myAssignments.map(a => {
-        const isMultiStep = !!(a.steps && a.steps.length);
-        let completed;
-        if (isMultiStep) {
-            const doneSet = stepDoneByAsg[a.id]?.[studentUserId] || new Set();
-            completed = a.steps.every(s => doneSet.has(s.id));
-        } else {
-            completed = !!(subsByAsg[a.id] || []).includes(studentUserId);
-        }
-        const submittedAt = submittedAtByAsgUser[a.id]?.[studentUserId] || null;
-        const late = completed && a.due_date && submittedAt && new Date(submittedAt) > new Date(a.due_date);
-        const grade = subGrades[a.id]?.[studentUserId];
-        if (completed) completedCount++;
-        if (late) lateCount++;
-        return { title: a.title, due_date: a.due_date, completed, late, isMultiStep, grade };
-    }).sort((a, b) => (b.due_date || '').localeCompare(a.due_date || ''));
-    const completionRate = myAssignments.length ? Math.round((completedCount / myAssignments.length) * 100) : null;
-
-    // ── Bireysel alan dağılımı (kök neden analizi) ──
-    // Sınıf paneli sadece SINIF GENELİNDE kategori kırılımı gösteriyordu; bir öğrencinin
-    // "Ani Düşüş" ya da "Efor Karşılıksız" anomalisinin HANGİ alanda (Eğitim/Kariyer/...)
-    // yoğunlaştığını görmek, öğretmene "genel bir yorgunluk mu yoksa tek derse özgü bir
-    // sorun mu" ayrımını verir (bkz. performans analizi, 2026-07-11). 113 migration'ıyla
-    // group_member_daily_stats artık category_minutes de döndürüyor.
-    const catTotals = {};
-    rows.forEach(r => {
-        Object.entries(r.category_minutes || {}).forEach(([k, v]) => {
-            catTotals[k] = (catTotals[k] || 0) + (Number(v) || 0);
+// _cpGenerateStudentReport'tan ayrılan: rapor için gereken tüm veriyi hesaplar (DOM/pencere yazmaz).
+// Faz S devamı, dev fonksiyon refactoru.
+async function _cpComputeStudentReportData({ data, assignments, subsByAsg, subGrades, stepDoneByAsg, submittedAtByAsgUser, scheduleRows, studentUserId }) {
+        // ── Odaklanma verisi: son 8 hafta günlük istatistik ──
+        // daily_stats'ın RLS'i sadece "user_id = auth.uid()" satırlarına izin verir; yönetici
+        // başka bir üyenin verisini isteyince doğrudan tablo sorgusu boş dönerdi — bu yüzden
+        // 096_group_member_daily_stats.sql'deki SECURITY DEFINER RPC kullanılıyor (grup admini
+        // veya kullanıcının kendisi için, stats_hidden_from_institution'a saygı gösterir).
+        const since = new Date(Date.now() - 56 * 24 * 3600 * 1000).toISOString().slice(0, 10);
+        const { data: dailyRows } = await window.FocusSupabase
+            .rpc('group_member_daily_stats', { p_group_id: data._supaId, p_user_id: studentUserId, p_since: since });
+        const rows = dailyRows || [];
+        const totalMinutes = rows.reduce((s, r) => s + (r.focus_minutes || 0), 0);
+        const activeDays = rows.filter(r => (r.focus_minutes || 0) > 0).length;
+        // Haftalık kova (bu hafta dahil son 8 hafta), en yeni en sonda
+        const weekBuckets = Array.from({ length: 8 }, () => 0);
+        const now = new Date();
+        rows.forEach(r => {
+            const daysAgo = Math.floor((now - new Date(r.stat_date)) / (24 * 3600 * 1000));
+            const bucket = 7 - Math.min(7, Math.floor(daysAgo / 7));
+            if (bucket >= 0) weekBuckets[bucket] += (r.focus_minutes || 0);
         });
-    });
-    const catRows = Object.entries(catTotals)
-        .map(([category, minutes]) => ({ category, minutes }))
-        .filter(r => r.minutes > 0)
-        .sort((a, b) => b.minutes - a.minutes);
-    const catGrandTotal = catRows.reduce((s, r) => s + r.minutes, 0);
+    
+        // ── Ödevler: bu öğrenciye atanmış olanlar + durumu ──
+        const myAssignments = assignments.filter(a => {
+            const targets = a.target_user_ids;
+            return !targets || !targets.length || targets.includes(studentUserId);
+        });
+        let completedCount = 0, lateCount = 0;
+        const asgRows = myAssignments.map(a => {
+            const isMultiStep = !!(a.steps && a.steps.length);
+            let completed;
+            if (isMultiStep) {
+                const doneSet = stepDoneByAsg[a.id]?.[studentUserId] || new Set();
+                completed = a.steps.every(s => doneSet.has(s.id));
+            } else {
+                completed = !!(subsByAsg[a.id] || []).includes(studentUserId);
+            }
+            const submittedAt = submittedAtByAsgUser[a.id]?.[studentUserId] || null;
+            const late = completed && a.due_date && submittedAt && new Date(submittedAt) > new Date(a.due_date);
+            const grade = subGrades[a.id]?.[studentUserId];
+            if (completed) completedCount++;
+            if (late) lateCount++;
+            return { title: a.title, due_date: a.due_date, completed, late, isMultiStep, grade };
+        }).sort((a, b) => (b.due_date || '').localeCompare(a.due_date || ''));
+        const completionRate = myAssignments.length ? Math.round((completedCount / myAssignments.length) * 100) : null;
+    
+        // ── Bireysel alan dağılımı (kök neden analizi) ──
+        // Sınıf paneli sadece SINIF GENELİNDE kategori kırılımı gösteriyordu; bir öğrencinin
+        // "Ani Düşüş" ya da "Efor Karşılıksız" anomalisinin HANGİ alanda (Eğitim/Kariyer/...)
+        // yoğunlaştığını görmek, öğretmene "genel bir yorgunluk mu yoksa tek derse özgü bir
+        // sorun mu" ayrımını verir (bkz. performans analizi, 2026-07-11). 113 migration'ıyla
+        // group_member_daily_stats artık category_minutes de döndürüyor.
+        const catTotals = {};
+        rows.forEach(r => {
+            Object.entries(r.category_minutes || {}).forEach(([k, v]) => {
+                catTotals[k] = (catTotals[k] || 0) + (Number(v) || 0);
+            });
+        });
+        const catRows = Object.entries(catTotals)
+            .map(([category, minutes]) => ({ category, minutes }))
+            .filter(r => r.minutes > 0)
+            .sort((a, b) => b.minutes - a.minutes);
+        const catGrandTotal = catRows.reduce((s, r) => s + r.minutes, 0);
+    
+        // ── Ders programı (sınıfın haftalık programı — herkes için ortak) ──
+        const byDay = {};
+        (scheduleRows || []).forEach(r => { (byDay[r.day_of_week] = byDay[r.day_of_week] || []).push(r); });
+    
+        const fmtDate = (iso) => iso ? new Date(iso).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }) : '—';
+        const today = new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
+        return { totalMinutes, activeDays, weekBuckets, myAssignments, asgRows, completedCount, lateCount, completionRate, catRows, catGrandTotal, byDay, fmtDate, today, rows };
+}
 
-    // ── Ders programı (sınıfın haftalık programı — herkes için ortak) ──
-    const byDay = {};
-    (scheduleRows || []).forEach(r => { (byDay[r.day_of_week] = byDay[r.day_of_week] || []).push(r); });
-
-    const fmtDate = (iso) => iso ? new Date(iso).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }) : '—';
-    const today = new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
-
-    const html = `<!doctype html><html lang="tr"><head><meta charset="utf-8">
+// _cpGenerateStudentReport'tan ayrılan: hesaplanan veriden yazdırılabilir rapor HTML'ini üretir.
+// Faz S devamı, dev fonksiyon refactoru.
+function _cpBuildStudentReportHtml({ data, isWork, memberLabel, DAY_NAMES_TR, studentName, totalMinutes, activeDays, weekBuckets, myAssignments, asgRows, completedCount, lateCount, completionRate, catRows, catGrandTotal, byDay, fmtDate, today, rows }) {
+    return `<!doctype html><html lang="tr"><head><meta charset="utf-8">
     <title>${window._escapeHtml(studentName)} — ${isWork ? 'Çalışan' : 'Öğrenci'} Raporu</title>
     <style>
         * { box-sizing: border-box; }
@@ -171,12 +179,12 @@ export async function _cpGenerateStudentReport({ data, isWork, memberLabel, assi
                 <tr><td>${i === 7 ? 'Bu hafta' : `${7 - i} hafta önce`}</td><td>${formatFocusMinutes(v)}</td></tr>`).join('')}
             </tbody>
         </table>
-        <p class="muted" style="margin-top:10px; font-size:11px;">Bu tablo betimleyicidir; tek bir düşük hafta bir sorun anlamına gelmeyebilir — asıl anlamlı olan zaman içindeki tutarlılıktır.</p>` : `<p class="muted">Son 8 haftada kayıtlı odaklanma verisi bulunamadı.</p>`}
+        <p class="muted u-margin-top-10px_font-size-11px" >Bu tablo betimleyicidir; tek bir düşük hafta bir sorun anlamına gelmeyebilir — asıl anlamlı olan zaman içindeki tutarlılıktır.</p>` : `<p class="muted">Son 8 haftada kayıtlı odaklanma verisi bulunamadı.</p>`}
 
         <h2>Alan Dağılımı (Son 8 Hafta)</h2>
         ${catRows.length ? `
         <table>
-            <thead><tr><th>Alan</th><th>Toplam</th><th style="width:50%;">Pay</th></tr></thead>
+            <thead><tr><th>Alan</th><th>Toplam</th><th class="u-width-50pct">Pay</th></tr></thead>
             <tbody>
                 ${catRows.map(r => {
                     const meta = CP_CATEGORY_META[r.category] || { label: r.category, icon: '•', color: '#888' };
@@ -185,21 +193,33 @@ export async function _cpGenerateStudentReport({ data, isWork, memberLabel, assi
                 <tr>
                     <td>${meta.icon} ${window._escapeHtml(meta.label)}</td>
                     <td>${formatFocusMinutes(r.minutes)}</td>
-                    <td><div style="background:#eee; border-radius:4px; overflow:hidden; height:10px;"><div style="width:${pct}%; height:100%; background:${meta.color};"></div></div></td>
+                    <td><div class="u-background-heee_border-radius-4px_overflow-hidden_height-1"><div class="cp-bar-fill u-height-100pct" data-bar-pct="${pct}" data-bar-color="${window._escapeHtml(meta.color)}" ></div></div></td>
                 </tr>`;
                 }).join('')}
             </tbody>
         </table>
-        <p class="muted" style="margin-top:10px; font-size:11px;">Uygulamanın genel yaşam-alanı kategorileri (Eğitim/Kariyer/Kişisel gelişim...) — ders bazlı bir ayrım değildir. Bir anomalinin tek bir alanda mı yoksa genelde mi olduğunu ayırt etmek için kullanılabilir.</p>` : `<p class="muted">Son 8 haftada alan bazlı kayıtlı veri bulunamadı.</p>`}
+        <p class="muted u-margin-top-10px_font-size-11px" >Uygulamanın genel yaşam-alanı kategorileri (Eğitim/Kariyer/Kişisel gelişim...) — ders bazlı bir ayrım değildir. Bir anomalinin tek bir alanda mı yoksa genelde mi olduğunu ayırt etmek için kullanılabilir.</p>` : `<p class="muted">Son 8 haftada alan bazlı kayıtlı veri bulunamadı.</p>`}
 
         <p class="foot">FocusAI tarafından otomatik oluşturulmuştur · ${today}</p>
     </body></html>`;
+}
+
+export async function _cpGenerateStudentReport({ data, isWork, memberLabel, assignments, subsByAsg, subGrades, stepDoneByAsg, submittedAtByAsgUser, scheduleRows, DAY_NAMES_TR, studentUserId, studentName }) {
+    const { totalMinutes, activeDays, weekBuckets, myAssignments, asgRows, completedCount, lateCount, completionRate, catRows, catGrandTotal, byDay, fmtDate, today, rows } =
+        await _cpComputeStudentReportData({ data, assignments, subsByAsg, subGrades, stepDoneByAsg, submittedAtByAsgUser, scheduleRows, studentUserId });
+
+    const html = _cpBuildStudentReportHtml({ data, isWork, memberLabel, DAY_NAMES_TR, studentName, totalMinutes, activeDays, weekBuckets, myAssignments, asgRows, completedCount, lateCount, completionRate, catRows, catGrandTotal, byDay, fmtDate, today, rows });
+
 
     const win = window.open('', '_blank');
     if (!win) throw new Error('Açılır pencere engellendi. Lütfen tarayıcı ayarlarından izin ver.');
     win.document.open();
     win.document.write(html);
     win.document.close();
+    win.document.querySelectorAll('.cp-bar-fill').forEach(el => {
+        el.style.width = el.dataset.barPct + '%';
+        el.style.background = el.dataset.barColor;
+    });
     win.focus();
     setTimeout(() => { win.print(); }, 300);
 }

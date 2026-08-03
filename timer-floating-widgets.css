@@ -1,0 +1,292 @@
+/* style.css'ten çıkarıldı (Faz C, 2026-07-22). Zamanlayıcı Ek Widget'ları — Akıllı Yüzen Panel (teleport efekti), dock zamanlayıcı hover popup, mini ses kontrol popup'ı, aktif görev seçici dropdown/menü, floating-ambient-trigger. NOT: #floating-ambient-trigger asama-duzeltmeleri.css'te de var (!important ile), o her koşulda kazanır. */
+
+body.ghost-mode-active .pomodoro-counter { opacity: 0; transition: opacity 0.6s ease; }
+body.ghost-mode-active .active-task-selector { opacity: 0; pointer-events: none; transition: opacity 0.6s ease; }
+
+/* AMB2 Ambiance Kartları durum override'ları (.amb2-*) — timer-scene-immersive-mode.css'e taşındı */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Immersive Mod + Premium Ambient Arka Plan Videosu (.immersive-overlay, .premium-range, .ambient-visuals, #bg-video, #video-overlay) — timer-scene-immersive-mode.css'e taşındı */
+
+/* Premium Ambient Visuals + Takvim grid/Timer çemberi/Sosyal ana sayfa özeti/Bento grid/Grup kartı/Veri Dışa-İçe Aktar (karışık başlıksız blok) -> premium-ambient-misc-widgets.css'e taşındı (Faz C, 2026-07-22) */
+
+/* ============ SADECE ODAK MODUNDA TAM ŞEFFAFLIK ============ */
+body.focus-mode-active .app-container,
+body.focus-mode-active .timer-container {
+    background: transparent !important;
+    border: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: none !important;
+}
+
+body.focus-mode-active .background-blobs {
+    display: none !important;
+}
+
+/* ============ AKILLI YÜZEN PANEL (TELEPORT EFEKTİ) ============ */
+.ambient-panel.floating-ambient {
+    position: fixed;
+    bottom: 30px;
+    left: 30px;
+    margin-top: 0; /* Orijinaldeki üst boşluğu sıfırlıyoruz */
+    width: 380px; /* Panel genişletildi ve ferahlatıldı */
+    z-index: 9999;
+    background: rgba(15, 12, 41, 0.9);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.6); /* Daha derin bir gölge eklendi */
+    border: 1px solid var(--primary-color);
+    transform-origin: bottom left;
+    animation: floatIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* Ambient panel minimize durumu */
+.ambient-panel.ambient-minimized {
+    display: none;
+}
+
+/* "Ortak Odaklanma Arayüzüne Dön" — sadece arayüzden ayrılınca sağ altta belirir */
+#scw-return-shared-focus-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9995;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 18px;
+    border-radius: 30px;
+    border: 1px solid rgba(212,144,14,0.4);
+    background: linear-gradient(135deg, #D4900E, #b87a0a);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(212,144,14,0.35);
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+#scw-return-shared-focus-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(212,144,14,0.45);
+}
+
+/* "Odadasın" — artık dock'taki Sosyal ikonu üzerinde gösteriliyor. Kullanıcı
+   bir çalışma odasındayken ikon yeşile döner; üzerine gelince mini popup
+   ile oda adı ve "Odadan Ayrıl" butonu açılır. */
+.di.in-room {
+    color: #2ed573 !important;
+    background: rgba(46, 213, 115, 0.12) !important;
+}
+.di.in-room:hover .tip { display: none; }
+
+/* Zamanlayıcı çalışırken dock ikonu yeşile döner. */
+.di.timer-running {
+    color: #2ed573 !important;
+    background: rgba(46, 213, 115, 0.12) !important;
+}
+.di.timer-running i { animation: timerRunningPulse 2s ease-in-out infinite; }
+@keyframes timerRunningPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
+}
+
+/* Dock zamanlayıcı ikonu için hover popup'ı — .dock'un overflow-y:auto'su normal .tip'i
+   kırptığından, ayrı ve position:fixed bir katman olarak body köküne ekleniyor. */
+.dock-timer-hover-popup {
+    position: fixed;
+    z-index: 100000;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--s3);
+    border: 1px solid var(--b2);
+    border-radius: 10px;
+    padding: 10px 14px;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.45);
+    pointer-events: none;
+    color: var(--t1);
+    font-family: 'Inter', sans-serif;
+}
+.dock-timer-hover-popup.hidden { display: none; }
+.dock-timer-hover-popup i { color: #2ed573; font-size: 16px; }
+.dthp-title { font-size: 11px; color: var(--text-muted); font-weight: 600; white-space: nowrap; }
+.dthp-time { font-size: 14px; font-weight: 700; white-space: nowrap; }
+.dc-dock-room-popup {
+    position: fixed;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(14, 14, 16, 0.95);
+    border: 1px solid rgba(46, 213, 115, 0.18);
+    border-radius: 12px;
+    padding: 8px 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    white-space: nowrap;
+    opacity: 1;
+    transition: opacity .15s;
+    z-index: 99999;
+    font-family: 'Inter', sans-serif;
+}
+.dc-dock-room-popup.hidden {
+    opacity: 0;
+    pointer-events: none;
+    display: flex !important;
+}
+
+/* Floating ambient küçük köşe butonu */
+/* ── Yüzen Ses Kontrol Butonu ─────────────────────────────── */
+#floating-ambient-trigger {
+    position: fixed;
+    bottom: 105px;
+    left: 20px;
+    z-index: 9997;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+    user-select: none;
+}
+
+
+
+
+
+@keyframes fab-pulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(46,213,115,0.4); }
+    50%      { box-shadow: 0 0 0 5px rgba(46,213,115,0); }
+}
+
+/* ── Mini Ses Popup ───────────────────────────────────────── */
+
+@keyframes fab-popup-in {
+    from { opacity:0; transform: translateY(8px) scale(0.97); }
+    to   { opacity:1; transform: translateY(0) scale(1); }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@keyframes floatIn {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============ ZAMANLAYICI AKTİF GÖREV SEÇİCİ ============ */
+/* ============ ZAMANLAYICI AKTİF GÖREV SEÇİCİ ============ */
+.active-task-selector {
+    position: relative;
+    margin: 10px auto 35px auto; /* Alt boşluğu (35px) artırarak sayacı aşağı ittik */
+    padding: 12px 25px;
+    border-radius: 25px;
+    display: flex; 
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 100; /* Diğer her şeyin üstünde görünmesi için */
+    width: fit-content;
+}
+
+.active-task-selector:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+.active-task-selector span {
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+}
+
+/* Seçici tıklandığında açılan menü */
+.timer-task-dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 50%;
+    margin-left: -160px; /* Yana kaymayı önlemek için transform yerine sabit ortalama kullandık */
+    width: 320px; /* Biraz daha genişlettik */
+    max-height: 250px;
+    overflow-y: auto;
+    padding: 15px;
+    border-radius: 18px;
+    z-index: 1000;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+    background: rgba(15, 12, 41, 0.95); /* Daha koyu ve belirgin plan */
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Menünün sorunsuz açılıp kapanması ve tıklanabilirliği için */
+.timer-task-dropdown.hidden {
+    display: none !important;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.timer-task-dropdown .dropdown-header {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+.timer-todo-item {
+    padding: 12px;
+    border-radius: 12px;
+    margin-bottom: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.timer-todo-item:hover {
+    background: rgba(212, 144, 14, 0.3);
+    box-shadow: inset 3px 0 0 var(--primary-color);
+}
+
+.timer-todo-item .task-name {
+    font-size: 13px;
+    color: #fff;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

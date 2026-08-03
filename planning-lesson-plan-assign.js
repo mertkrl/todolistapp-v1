@@ -11,13 +11,12 @@
 //    satırı zaten blok içindeydi), social-friends-notifications.js bunu
 //    typeof-guard'lı çağırıyor, dosya nerede olursa olsun çalışmaya devam eder.
 import { getPgGoals, esc, persistGoals } from './planning.js';
+import { getCurrentUser } from './state/current-user-store.js';
 
     // ── Sınıfa / Öğrenciye Ata (lesson_plan_assignments) ──────
-    async function openAssignModal(goalId) {
-        const goal = getPgGoals().find(g => g.id === goalId);
-        if (!goal || !window.FocusSupabase || !window.currentUser) return;
-        const sb = window.FocusSupabase, uid = window.currentUser.id;
-
+    // openAssignModal'ın modal iskeleti oluşturma katmanı — overlay elementini kurup döner
+    // (henüz DOM'a eklenmemiş). Faz S devamı, dev fonksiyon refactoru.
+    function _buildAssignModalOverlay(goal) {
         document.getElementById('pg-assign-modal')?.remove();
         const overlay = document.createElement('div');
         overlay.id = 'pg-assign-modal';
@@ -27,12 +26,12 @@ import { getPgGoals, esc, persistGoals } from './planning.js';
             <div class="modal-content glass-panel pg-assign-modal-content">
                 <header class="modal-header">
                     <h2><i class="ti ti-school"></i> Ders Planını Ata</h2>
-                    <button id="pg-assign-close" class="icon-btn"><i class="fa-solid fa-xmark"></i></button>
+                    <button id="pg-assign-close" class="icon-btn" aria-label="Kapat"><i class="fa-solid fa-xmark"></i></button>
                 </header>
                 <div class="modal-body">
-                    <p class="pg-hint" style="margin-bottom:14px;">"${esc(goal.title)}" planını bir sınıfa veya öğrenciye ata.</p>
+                    <p class="pg-hint u-margin-bottom-14px" >"${esc(goal.title)}" planını bir sınıfa veya öğrenciye ata.</p>
                     <div id="pg-assign-loading" class="pg-cw-loading"><span class="pg-cw-pulse-dot"></span> Sınıflar yükleniyor…</div>
-                    <div id="pg-assign-body" style="display:none;">
+                    <div id="pg-assign-body" class="u-display-none">
                         <div class="form-group">
                             <label class="form-label">Sınıf</label>
                             <select id="pg-assign-group" class="premium-input modern-select pg-assign-select"></select>
@@ -43,7 +42,7 @@ import { getPgGoals, esc, persistGoals } from './planning.js';
                             <span class="pg-assign-all-label">Tüm sınıfa ata</span>
                         </label>
                         <div id="pg-assign-students" class="pg-assign-students"></div>
-                        <div class="form-group" style="margin-top:14px;">
+                        <div class="form-group u-margin-top-14px" >
                             <label class="form-label">Son tarih (opsiyonel)</label>
                             <input id="pg-assign-deadline" type="date" class="premium-input pg-assign-select" value="${today}">
                         </div>
@@ -53,6 +52,15 @@ import { getPgGoals, esc, persistGoals } from './planning.js';
                     <button type="button" id="pg-assign-confirm" class="pg-assign-confirm-btn" disabled><i class="ti ti-send"></i> Ata</button>
                 </div>
             </div>`;
+        return overlay;
+    }
+
+    async function openAssignModal(goalId) {
+        const goal = getPgGoals().find(g => g.id === goalId);
+        if (!goal || !window.FocusSupabase || !getCurrentUser()) return;
+        const sb = window.FocusSupabase, uid = getCurrentUser().id;
+
+        const overlay = _buildAssignModalOverlay(goal);
         document.body.appendChild(overlay);
 
         const close = () => overlay.remove();
@@ -152,7 +160,7 @@ import { getPgGoals, esc, persistGoals } from './planning.js';
                 await sb.from('notifications').insert(targetIds.map(userId => ({
                     user_id: userId,
                     type: 'lesson_plan_new',
-                    payload: { fromName: window.currentUser.displayName || window.currentUser.username, goalTitle: goal.title, groupId, groupCode },
+                    payload: { fromName: getCurrentUser().displayName || getCurrentUser().username, goalTitle: goal.title, groupId, groupCode },
                 })));
             } catch (e) {
                 console.warn('[FocusAI] lesson_plan_new bildirimi gönderilemedi:', e);
@@ -185,9 +193,9 @@ import { getPgGoals, esc, persistGoals } from './planning.js';
     };
     async function _pvRenderAssignmentStatus(g) {
         const box = document.getElementById('pg-pv-assign-status');
-        if (!box || !window.FocusSupabase || !window.currentUser) return;
+        if (!box || !window.FocusSupabase || !getCurrentUser()) return;
         if (g.context?.isTemplate) { box.classList.add('hidden'); return; }
-        const sb = window.FocusSupabase, myId = window.currentUser.id;
+        const sb = window.FocusSupabase, myId = getCurrentUser().id;
 
         let rows;
         try {
@@ -221,7 +229,7 @@ import { getPgGoals, esc, persistGoals } from './planning.js';
                     const groupCode = await _lpaGetGroupCode(sb, g.context?.lessonPlanGroupId);
                     await sb.from('notifications').insert([{
                         user_id: studentId, type: 'lesson_plan_new',
-                        payload: { fromName: window.currentUser.displayName || window.currentUser.username, goalTitle: g.title, resent: true, groupCode },
+                        payload: { fromName: getCurrentUser().displayName || getCurrentUser().username, goalTitle: g.title, resent: true, groupCode },
                     }]);
                     window.dcShowToast?.('Plan tekrar gönderildi.', 'success');
                     _pvRenderAssignmentStatus(g);
@@ -388,7 +396,7 @@ import { getPgGoals, esc, persistGoals } from './planning.js';
                     const groupCode = await _lpaGetGroupCode(sb, groupId);
                     await sb.from('notifications').insert([{
                         user_id: studentId, type: 'lesson_plan_new',
-                        payload: { fromName: window.currentUser.displayName || window.currentUser.username, goalTitle, resent: true, groupCode },
+                        payload: { fromName: getCurrentUser().displayName || getCurrentUser().username, goalTitle, resent: true, groupCode },
                     }]);
                     window.dcShowToast?.('Plan tekrar gönderildi.', 'success');
                     containerEl.dataset.lpaActiveTab = 'active';
@@ -403,8 +411,8 @@ import { getPgGoals, esc, persistGoals } from './planning.js';
     }
 
     async function renderGroupLessonPlanStatus(groupId, containerEl) {
-        if (!containerEl || !window.FocusSupabase || !window.currentUser) return;
-        const sb = window.FocusSupabase, myId = window.currentUser.id;
+        if (!containerEl || !window.FocusSupabase || !getCurrentUser()) return;
+        const sb = window.FocusSupabase, myId = getCurrentUser().id;
 
         let rows;
         try {
@@ -423,7 +431,7 @@ import { getPgGoals, esc, persistGoals } from './planning.js';
         if (!rows || !rows.length) {
             containerEl.innerHTML = `
                 <div class="pg-lpa-tabs-row">
-                    <p class="cp-hint" style="margin:0;">Bu sınıf için henüz atanmış bir ders planı yok.</p>
+                    <p class="cp-hint u-margin-0" >Bu sınıf için henüz atanmış bir ders planı yok.</p>
                     ${_lpaCreateBtnHtml}
                 </div>`;
             _lpaBindCreateBtn(containerEl);
@@ -457,8 +465,8 @@ import { getPgGoals, esc, persistGoals } from './planning.js';
         // FocusSupabase/currentUser henüz hazır değilse sonucu ÖNBELLEKLEME —
         // aksi halde erken (login tamamlanmadan) çağrılan init() bu boş sonucu
         // kalıcı olarak önbelleğe alır ve "Ders Planı" hiç görünmez.
-        if (!window.FocusSupabase || !window.currentUser) return [];
-        const sb = window.FocusSupabase, uid = window.currentUser.id;
+        if (!window.FocusSupabase || !getCurrentUser()) return [];
+        const sb = window.FocusSupabase, uid = getCurrentUser().id;
         try {
             const { data: memberships } = await sb
                 .from('group_members').select('group_id, role, groups(id, name, classroom_type)')

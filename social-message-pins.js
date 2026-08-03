@@ -1,3 +1,6 @@
+import { _normalizeSupabaseDmMessage, _normalizeSupabaseGroupMessage } from './social-dc-profile-resolve.js';
+import { getActiveChatTarget } from './state/active-chat-target-store.js';
+import { getDB, getUser } from './social-misc-pure-utils.js';
 // ─── SABİTLENMİŞ MESAJLAR ──────────────────────────────────────────────
 // social.js dosyasından çıkarıldı (Faz 2, 2026-07-19 — yüksek risk grubu).
 //
@@ -22,7 +25,12 @@ let _dcPinnedChannel         = null;  // `message_pins` tablosu realtime kanalı
 let _dcPinnedConversationId  = null;  // Sabitleme kanalının bağlı olduğu conversation id (DM)
 let _dcPinnedScope           = null;  // Sabitleme kanalının bağlı olduğu { type, id } (grup/kanal)
 
-function dcPinnedPathFor(chatPath) {
+export function isDcMsgPinned(msgKey) {
+    return !!_dcPinnedMsgs[msgKey];
+}
+window.isDcMsgPinned = isDcMsgPinned;
+
+export function dcPinnedPathFor(chatPath) {
     if (/\/messages$/.test(chatPath)) {
         // Grup/kanal mesaj yolu: ".../messages" -> ".../pinned"
         return chatPath.replace(/\/messages$/, '/pinned');
@@ -33,7 +41,7 @@ function dcPinnedPathFor(chatPath) {
 }
 window.dcPinnedPathFor = dcPinnedPathFor;
 
-function teardownDcPinned() {
+export function teardownDcPinned() {
     if (_dcPinnedRef) { _dcPinnedRef.off(); _dcPinnedRef = null; }
     _dcPinnedPath  = null;
     _dcPinnedMsgs  = {};
@@ -42,8 +50,8 @@ function teardownDcPinned() {
 }
 window.teardownDcPinned = teardownDcPinned;
 
-function setupDcPinned(chatPath) {
-    const database = window.getDB();
+export function setupDcPinned(chatPath) {
+    const database = getDB();
     if (!database) return;
     teardownDcPinned();
     _dcPinnedPath = dcPinnedPathFor(chatPath);
@@ -65,7 +73,7 @@ function setupDcPinned(chatPath) {
 window.setupDcPinned = setupDcPinned;
 
 // ─── SABİTLENMİŞ MESAJLAR (DM — Supabase `message_pins`) ───────────
-function teardownDmPinnedSupabase() {
+export function teardownDmPinnedSupabase() {
     if (_dcPinnedChannel) {
         window.FocusSupabase.removeChannel(_dcPinnedChannel);
         _dcPinnedChannel = null;
@@ -74,7 +82,7 @@ function teardownDmPinnedSupabase() {
 }
 window.teardownDmPinnedSupabase = teardownDmPinnedSupabase;
 
-function refreshDmPinned() {
+export function refreshDmPinned() {
     if (!_dcPinnedConversationId || !window.FocusSupabase) return;
     window.FocusSupabase
         .from('message_pins')
@@ -87,7 +95,7 @@ function refreshDmPinned() {
             const ctx = window._dcGetChatContext();
             await Promise.all((data || []).map(async row => {
                 if (!row.messages) return;
-                const m = window._normalizeSupabaseDmMessage(row.messages, ctx.otherProfile);
+                const m = _normalizeSupabaseDmMessage(row.messages, ctx.otherProfile);
                 let text = m.text || '';
                 if (m.enc) {
                     const otherUsername = m.username === ctx.currentUser.username
@@ -117,7 +125,7 @@ function refreshDmPinned() {
 }
 window.refreshDmPinned = refreshDmPinned;
 
-function setupDmPinnedSupabase(conversation) {
+export function setupDmPinnedSupabase(conversation) {
     teardownDcPinned();
     teardownDmPinnedSupabase();
     teardownGroupPinnedSupabase();
@@ -131,7 +139,7 @@ function setupDmPinnedSupabase(conversation) {
 window.setupDmPinnedSupabase = setupDmPinnedSupabase;
 
 // ─── SABİTLENMİŞ MESAJLAR (Grup/Kanal — Supabase `message_pins`) ───
-function teardownGroupPinnedSupabase() {
+export function teardownGroupPinnedSupabase() {
     if (_dcPinnedChannel) {
         window.FocusSupabase.removeChannel(_dcPinnedChannel);
         _dcPinnedChannel = null;
@@ -140,7 +148,7 @@ function teardownGroupPinnedSupabase() {
 }
 window.teardownGroupPinnedSupabase = teardownGroupPinnedSupabase;
 
-function refreshGroupPinned() {
+export function refreshGroupPinned() {
     if (!_dcPinnedScope || !window.FocusSupabase) return;
     const scope = _dcPinnedScope;
     window.FocusSupabase
@@ -155,7 +163,7 @@ function refreshGroupPinned() {
             _dcPinnedMsgs = {};
             await Promise.all((data || []).map(async row => {
                 if (!row.messages) return;
-                const m = await window._normalizeSupabaseGroupMessage(row.messages);
+                const m = await _normalizeSupabaseGroupMessage(row.messages);
                 _dcPinnedMsgs[row.message_id] = {
                     text: m.text || (m.enc ? (m.decryptedText || '') : ''),
                     displayName: m.displayName,
@@ -178,7 +186,7 @@ function refreshGroupPinned() {
 }
 window.refreshGroupPinned = refreshGroupPinned;
 
-function setupGroupPinnedSupabase(scope) {
+export function setupGroupPinnedSupabase(scope) {
     teardownDcPinned();
     teardownDmPinnedSupabase();
     teardownGroupPinnedSupabase();
@@ -191,8 +199,8 @@ function setupGroupPinnedSupabase(scope) {
 }
 window.setupGroupPinnedSupabase = setupGroupPinnedSupabase;
 
-function toggleDcPinMessage(msgKey, m) {
-    const user = window.getUser();
+export function toggleDcPinMessage(msgKey, m) {
+    const user = getUser();
     if (!user || !msgKey) return;
     const ctx = window._dcGetChatContext();
 
@@ -226,7 +234,7 @@ function toggleDcPinMessage(msgKey, m) {
         return;
     }
 
-    const database = window.getDB();
+    const database = getDB();
     if (!database || !ctx.msgPath) return;
     const ref = database.ref(`${dcPinnedPathFor(ctx.msgPath)}/${msgKey}`);
     if (_dcPinnedMsgs[msgKey]) {
@@ -243,7 +251,7 @@ function toggleDcPinMessage(msgKey, m) {
 }
 window.toggleDcPinMessage = toggleDcPinMessage;
 
-function renderDcPinnedBanner() {
+export function renderDcPinnedBanner() {
     const banner = document.getElementById('dc-pinned-banner');
     if (!banner) return;
     const keys = Object.keys(_dcPinnedMsgs);
@@ -255,9 +263,9 @@ function renderDcPinnedBanner() {
     if (_dcPinnedIndex >= keys.length) _dcPinnedIndex = 0;
     const key = keys[_dcPinnedIndex];
     const m = _dcPinnedMsgs[key];
-    const user = window.getUser();
+    const user = getUser();
     const ctx = window._dcGetChatContext();
-    const isDm = window._activeChatTarget && window._activeChatTarget.type === 'dm';
+    const isDm = getActiveChatTarget() && getActiveChatTarget().type === 'dm';
     const isAdminOrMod = !isDm && (ctx.role === 'admin' || ctx.role === 'moderator');
     const canUnpin = !!user && (isDm || isAdminOrMod || m.pinnedBy === user.username);
     const text = m.text || '';
@@ -269,8 +277,8 @@ function renderDcPinnedBanner() {
             <span class="dc-pinned-label">${keys.length > 1 ? `Sabitlenmiş mesaj (${_dcPinnedIndex + 1}/${keys.length})` : 'Sabitlenmiş mesaj'}</span>
             <span class="dc-pinned-text">${window.escapeHtml(m.displayName || m.username || '')}: ${window.escapeHtml(text.length > 80 ? text.slice(0, 80) + '…' : text)}</span>
         </div>
-        ${keys.length > 1 ? `<button class="dc-pinned-nav-btn" data-action="next-pin" title="Sonraki sabitlenmiş mesaj"><i class="fa-solid fa-chevron-down"></i></button>` : ''}
-        ${canUnpin ? `<button class="dc-pinned-unpin-btn" data-action="unpin" title="Sabitlemeyi kaldır"><i class="fa-solid fa-xmark"></i></button>` : ''}
+        ${keys.length > 1 ? `<button class="dc-pinned-nav-btn" data-action="next-pin" title="Sonraki sabitlenmiş mesaj" aria-label="Sonraki sabitlenmiş mesaj"><i class="fa-solid fa-chevron-down"></i></button>` : ''}
+        ${canUnpin ? `<button class="dc-pinned-unpin-btn" data-action="unpin" title="Sabitlemeyi kaldır" aria-label="Sabitlemeyi kaldır"><i class="fa-solid fa-xmark"></i></button>` : ''}
     `;
 
     banner.querySelector('[data-action="goto-pin"]').addEventListener('click', () => window.jumpToDcMsg(key));

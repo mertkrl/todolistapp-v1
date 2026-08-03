@@ -1,0 +1,82 @@
+/* ═══════════════════════════════════════════
+   ODA PRESENCE — Mini Profil Şeridi
+═══════════════════════════════════════════ */
+.room-presence-strip {
+    margin: 4px 0 8px 10px;
+    padding: 6px 8px;
+    background: rgba(116, 185, 255, 0.04);
+    border: 1px solid rgba(116, 185, 255, 0.12);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.presence-avatar-wrap {
+    position: relative;
+    flex-shrink: 0;
+}
+
+
+
+.room-presence-card:hover .presence-more-btn {
+    opacity: 1;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+
+
+.room-presence-card {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 6px;
+    border-radius: 7px;
+    transition: background 0.15s;
+    cursor: default;
+}
+
+.room-presence-card:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.presence-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+    border: 1.5px solid rgba(116, 185, 255, 0.3);
+}
+
+.presence-online-dot {
+    position: absolute;
+    bottom: -1px;
+    right: -1px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #2ed573;
+    border: 1.5px solid #0f0c28;
+    box-shadow: 0 0 4px #2ed573;
+}
+
+.presence-name {
+    flex: 1;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 500;
+}
+
+.presence-you-tag {
+    font-size: 9.5px;
+    color: #74b9ff;
+    background: rgba(116, 185, 255, 0.15);
+    padding: 1px 5px;
+    border-radius: 4px;
+    margin-left: 4px;
+    font-weight: 600;
+}

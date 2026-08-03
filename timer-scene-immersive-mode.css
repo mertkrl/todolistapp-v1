@@ -1,0 +1,552 @@
+/* ═══ TIMER SCENE ═══ */
+.timer-scene-section {
+    position: relative;
+    overflow: hidden;
+    min-height: calc(100vh - 56px);
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+#zamanlayici .timer-container {
+    align-self: center;
+}
+.timer-scene-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+    opacity: 0;
+    transition: opacity 1.2s ease;
+    pointer-events: none;
+}
+.timer-scene-video.active {
+    opacity: 1;
+}
+.timer-scene-dim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(10,10,20,0.55) 0%, rgba(10,10,20,0.35) 50%, rgba(10,10,20,0.7) 100%);
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 1.2s ease;
+    pointer-events: none;
+}
+.timer-scene-video.active ~ .timer-scene-dim,
+.timer-scene-section.has-scene .timer-scene-dim {
+    opacity: 1;
+}
+#zamanlayici .section-header,
+#zamanlayici .timer-container {
+    position: relative;
+    z-index: 2;
+}
+#zamanlayici.has-scene .timer-section-header h1,
+#zamanlayici.has-scene .timer-section-header p {
+    text-shadow: 0 1px 8px rgba(0,0,0,0.5);
+}
+
+/* ═══ AMB2 — AMBIANCE KARTLARI ═══ */
+
+
+
+
+
+
+
+
+
+
+
+
+.amb2-card.active {
+    border-color: var(--primary-color, #7c6ff7);
+    background: rgba(108,92,231,0.12);
+}
+
+
+
+
+.amb2-active-dot.hidden { display: none; }
+
+
+
+
+
+.amb2-card.active .amb2-toggle-btn {
+    background: rgba(108,92,231,0.3);
+    border-color: var(--primary-color, #7c6ff7);
+    color: #a29bfe;
+}
+
+.amb2-vol-row.hidden { display: none; }
+
+/* ═══ IMMERSİVE MOD ═══ */
+
+.immersive-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.premium-range {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 5px;
+    outline: none;
+}
+.premium-range:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(212,144,14,0.4); }
+
+.premium-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(212,144,14,0.5);
+    transition: 0.2s;
+}
+
+.premium-range::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+}
+
+/* Premium Video Arka Plan Konteyneri */
+.ambient-visuals {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* Tıklamaları engellemez, uygulamanın çalışmasını bozmaz */
+    z-index: 0; /* Her şeyin en arkasında durur */
+    overflow: hidden;
+}
+
+/* Videonun kendisi için ek stil */
+#bg-video {
+    object-position: center;
+    filter: saturate(1.2); /* Renkleri biraz daha canlı yapar */
+    transition: opacity 1s ease-in-out; /* Videolar arası geçişi yumuşatır */
+}
+
+/* Filtre katmanı: Videonun parlaklığını kırar ve dark mode ile bütünleştirir */
+#video-overlay {
+    transition: opacity 1s ease-in-out;
+}
+
+/* ================================================================
+   ZAMANLAYICI — Minimalist Yeniden Tasarım (Override)
+   ================================================================ */
+
+/* Section header */
+.timer-section-header { position: relative; z-index: 10; }
+
+/* ── Timer container ── */
+.timer-container {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    padding: 10px 40px 24px !important;
+    margin-top: 0 !important;
+    gap: 0 !important;
+}
+
+/* ── Mod seçici ── */
+#zamanlayici .timer-modes {
+    display: flex !important;
+    gap: 2px !important;
+    margin-bottom: 28px !important;
+    background: rgba(255,255,255,0.04) !important;
+    border: 1px solid rgba(255,255,255,0.07) !important;
+    padding: 4px !important;
+    border-radius: 10px !important;
+    align-items: center;
+}
+#zamanlayici .mode-btn {
+    background: transparent !important;
+    border: none !important;
+    color: var(--text-muted) !important;
+    padding: 7px 16px !important;
+    border-radius: 7px !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+    transition: background 0.15s, color 0.15s !important;
+    font-family: inherit !important;
+    box-shadow: none !important;
+}
+#zamanlayici .mode-btn:hover { color: #fff !important; background: rgba(255,255,255,0.06) !important; }
+#zamanlayici .mode-btn.active {
+    background: var(--primary-color) !important;
+    color: #fff !important;
+    box-shadow: none !important;
+}
+.timer-gear-btn {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.25);
+    font-size: 14px;
+    cursor: pointer;
+    padding: 7px 10px;
+    border-radius: 7px;
+    transition: color 0.15s, background 0.15s;
+    display: flex;
+    align-items: center;
+    margin-left: 2px;
+}
+.timer-gear-btn:hover { color: var(--primary-color); background: rgba(255,255,255,0.06); }
+
+/* ── Timer çemberi ── */
+#zamanlayici .timer-display-wrapper { margin-bottom: 20px !important; }
+
+#zamanlayici .timer-circle {
+    width: 240px !important;
+    height: 240px !important;
+    font-size: 58px !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: transparent !important;
+}
+
+#zamanlayici .timer-svg {
+    position: absolute;
+    top: 0; left: 0;
+}
+
+#zamanlayici .timer-ring-bg {
+    fill: none;
+    stroke: rgba(255,255,255,0.06);
+    stroke-width: 3;
+}
+#zamanlayici .timer-ring-progress {
+    fill: none;
+    stroke: var(--primary-color);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-dasharray: 691.15;
+    stroke-dashoffset: 0;
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+    transition: stroke-dashoffset 1s linear;
+    filter: none !important;
+}
+#zamanlayici .timer-circle.running .timer-ring-progress { filter: none !important; }
+
+/* Moda göre çember rengi: odaklanma mor, kısa mola yeşil, uzun mola turuncu */
+#zamanlayici .timer-circle.timer-mode-focus .timer-ring-progress { stroke: #a29bfe !important; }
+#zamanlayici .timer-circle.timer-mode-short .timer-ring-progress { stroke: #2ed573 !important; }
+#zamanlayici .timer-circle.timer-mode-long  .timer-ring-progress { stroke: #ff9f43 !important; }
+
+#zamanlayici .timer-text {
+    color: #fff;
+    font-size: 58px;
+    font-weight: 700;
+    letter-spacing: -1px;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ── Kontroller ── */
+#zamanlayici .timer-controls {
+    display: flex !important;
+    gap: 10px !important;
+    margin-bottom: 16px !important;
+}
+#zamanlayici .control-btn {
+    padding: 10px 24px !important;
+    border-radius: 8px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    box-shadow: none !important;
+}
+#zamanlayici .control-btn:hover { transform: none !important; }
+#zamanlayici .control-btn.primary {
+    background: var(--primary-color) !important;
+    color: #fff !important;
+    box-shadow: none !important;
+}
+#zamanlayici .control-btn.primary:hover { background: #c47f0a !important; }
+#zamanlayici .control-btn.secondary {
+    background: rgba(255,255,255,0.07) !important;
+    color: rgba(255,255,255,0.7) !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+}
+#zamanlayici .control-btn.secondary:hover { background: rgba(255,255,255,0.12) !important; }
+#zamanlayici .control-btn#pause-btn {
+    background: rgba(255,165,2,0.15) !important;
+    color: #ffa502 !important;
+    border: 1px solid rgba(255,165,2,0.3) !important;
+    box-shadow: none !important;
+}
+#zamanlayici .control-btn#pause-btn:hover { background: rgba(255,165,2,0.25) !important; transform: none !important; }
+
+.timer-finish-btn {
+    background: rgba(46,213,115,0.1) !important;
+    color: #2ed573 !important;
+    border: 1px solid rgba(46,213,115,0.25) !important;
+    padding: 10px 18px !important;
+    border-radius: 8px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    align-items: center !important;
+    gap: 6px !important;
+    font-family: inherit !important;
+    transition: background 0.15s !important;
+}
+/* .hidden ile eşit özgüllükte olduğu için display'i sadece görünürken zorlar —
+   aksi halde bu kural her zaman kazanıp "Bitir" butonunu başlamadan önce de gösteriyordu. */
+.timer-finish-btn:not(.hidden) { display: inline-flex !important; }
+.timer-finish-btn:hover { background: rgba(46,213,115,0.18) !important; }
+
+/* ── Pomodoro sayacı ── */
+.pomodoro-counter {
+    font-size: 12px;
+    color: rgba(255,255,255,0.2);
+    text-align: center;
+    letter-spacing: 0.5px;
+    margin-bottom: 16px;
+}
+/* eski inline style override */
+#pomodoro-counter {
+    font-size: 12px !important;
+    color: rgba(255,255,255,0.2) !important;
+    margin-top: 0 !important;
+    margin-bottom: 16px !important;
+    letter-spacing: 0.5px !important;
+}
+
+/* ── Görev seçici ── */
+#zamanlayici .active-task-selector {
+    margin-bottom: 14px !important;
+    padding: 10px 16px !important;
+    border-radius: 9px !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    background: rgba(255,255,255,0.03) !important;
+    font-size: 13px !important;
+    width: 340px !important;
+    max-width: 100% !important;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    color: var(--text-muted);
+    transition: border-color 0.15s, background 0.15s;
+}
+#zamanlayici .active-task-selector:hover {
+    background: rgba(255,255,255,0.05) !important;
+    border-color: rgba(255,255,255,0.13) !important;
+}
+
+/* ── Aktif görev bandı ── */
+#zamanlayici .active-focus-task {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    background: rgba(212,144,14,0.07) !important;
+    border: 1px solid rgba(212,144,14,0.2) !important;
+    border-radius: 9px !important;
+    padding: 9px 14px !important;
+    margin-bottom: 14px !important;
+    width: 340px !important;
+    max-width: 100% !important;
+    box-shadow: none !important;
+}
+#zamanlayici .active-focus-task.hidden { display: none !important; }
+#zamanlayici .active-focus-task i.fa-crosshairs {
+    color: var(--primary-color) !important;
+    font-size: 14px !important;
+    animation: none !important;
+    flex-shrink: 0;
+}
+#zamanlayici #focus-task-name {
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: #fff !important;
+    flex: 1 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    max-width: none !important;
+}
+/* .focus-label artık yok — kaldırdık HTML'den */
+#zamanlayici .clear-focus-btn {
+    background: none !important;
+    border: none !important;
+    color: rgba(255,255,255,0.25) !important;
+    font-size: 13px !important;
+    cursor: pointer !important;
+    opacity: 1 !important;
+    margin-left: auto !important;
+    padding: 0 !important;
+    transition: color 0.15s !important;
+}
+#zamanlayici .clear-focus-btn:hover { color: #ff4757 !important; transform: none !important; }
+
+/* ── Motivasyon sözü ── */
+#zamanlayici .focus-quote {
+    font-style: italic !important;
+    color: rgba(255,255,255,0.2) !important;
+    font-size: 12px !important;
+    text-align: center !important;
+    max-width: 420px !important;
+    line-height: 1.6 !important;
+    transition: opacity 1.4s ease !important;
+    margin-top: 4px !important;
+    margin-bottom: 0 !important;
+}
+
+
+/* ================================================================
+   ODAK MODU — Yeniden Tasarım
+   ================================================================ */
+
+/* Sabit çıkış butonu (her zaman sağ üstte) */
+.focus-exit-btn {
+    position: fixed;
+    top: 20px;
+    right: 24px;
+    z-index: 99999;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.7);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-family: inherit;
+    display: none;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.15s, color 0.15s;
+    backdrop-filter: blur(8px);
+}
+.focus-exit-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
+
+body.focus-mode-active .focus-exit-btn {
+    display: flex !important;
+}
+/* Normal modda gizle */
+body:not(.focus-mode-active) .focus-exit-btn { display: none !important; }
+
+/* Odak modunda orijinal Odak Modu butonunu gizle */
+body.focus-mode-active .timer-section-header { display: none !important; }
+
+/* Odak modu genel */
+body.focus-mode-active {
+    background-color: #06050f;
+}
+body.focus-mode-active .content-area {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+}
+body.focus-mode-active #zamanlayici.page-section.active {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    width: 100% !important;
+    height: 100% !important;
+}
+body.focus-mode-active .timer-container {
+    transform: scale(1.1) !important;
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+}
+body.focus-mode-active .timer-circle { box-shadow: none !important; border: none !important; }
+
+/* Odak modunda motivasyon sözü daha görünür */
+body.focus-mode-active #zamanlayici .focus-quote {
+    color: rgba(255,255,255,0.45) !important;
+    font-size: 13px !important;
+}
+
+/* ── Ghost Modu (3 sn hareketsizlik) ── */
+body.ghost-mode-active .timer-modes,
+body.ghost-mode-active .timer-controls,
+body.ghost-mode-active #pomodoro-counter,
+body.ghost-mode-active .active-task-selector,
+body.ghost-mode-active .ambient-panel,
+body.ghost-mode-active .timer-profile-bar,
+body.ghost-mode-active .focus-exit-btn {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transition: opacity 0.6s ease !important;
+}
+
+/* Seçili görev: .hidden yoksa göster, varsa zaten display:none */
+body.ghost-mode-active .active-focus-task:not(.hidden) {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+/* Ghost modda timer büyüsün */
+body.ghost-mode-active .timer-container {
+    transform: scale(1.35) !important;
+    transition: transform 0.8s cubic-bezier(0.4,0,0.2,1) !important;
+}
+
+/* Ghost modda söz belirginleşsin */
+body.ghost-mode-active #zamanlayici .focus-quote {
+    color: rgba(255,255,255,0.6) !important;
+    font-size: 14px !important;
+    transition: color 0.6s ease, font-size 0.6s ease !important;
+}
+
+/* Ghost modda çıkış butonuna dokunulabilsin ama soluklaşsın */
+body.ghost-mode-active .focus-exit-btn {
+    opacity: 0.15 !important;
+    pointer-events: auto !important;
+    transition: opacity 0.3s ease !important;
+}
+body.ghost-mode-active .focus-exit-btn:hover { opacity: 0.8 !important; }
+
+/* Odak modunda dock (sidebar) gizle */
+body.focus-mode-active .dock { display: none !important; }
+body.focus-mode-active .app-container {
+    width: 100vw !important;
+    height: 100vh !important;
+    border-radius: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}

@@ -1,0 +1,45 @@
+/* Yönetim Paneli Üye Satır Yapısı */
+.mgmt-member-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 10px 14px;
+    border-radius: 10px;
+    gap: 12px;
+    transition: background 0.2s;
+}
+
+.mgmt-member-row:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.mgmt-member-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.mgmt-member-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.mgmt-member-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.mgmt-member-name {
+    font-size: 13px;
+    color: #fff;
+    font-weight: 600;
+}
+
+.mgmt-member-username {
+    font-size: 11px;
+    color: var(--text-muted);
+}

@@ -2,13 +2,16 @@
 // FOCUSAI SOCIAL-POLLS.JS
 // social-chat-extras.js'ten çıkarılmış anket (poll) sistemi:
 // anket oluşturma modalı, anket gönderme, anket kartı render/oy verme.
-// window.dcShowToast, window.FocusSupabase, window.currentUser,
+// window.dcShowToast, window.FocusSupabase, getCurrentUser(),
 // window.escapeHtml gibi social.js/storage-manager.js globallerine
 // bağımlı — onlardan SONRA yüklenmeli.
 // ============================================================
 // Faz G: dcShowToast social-toast.js'te tanımlı (bu dosyadan çok önce
 // yükleniyor) — statik import'a çevrildi.
 import { dcShowToast } from './social-toast.js';
+import { getCurrentUser } from './state/current-user-store.js';
+import { getActiveChatTarget } from './state/active-chat-target-store.js';
+import { getDcCurrentGroupScope } from './state/dc-current-group-scope-store.js';
 
 (function () {
 'use strict';
@@ -32,13 +35,18 @@ window.FocusChat.openPollModal = function() {
 function _addPollOptionRow(container, num) {
     const row = document.createElement('div');
     row.className = 'poll-option-row';
-    row.style.cssText = 'display:flex; gap:6px; align-items:center;';
+    row.style.display = 'flex';
+    row.style.gap = '6px';
+    row.style.alignItems = 'center';
     const allRows = container.querySelectorAll('.poll-option-row');
     const canRemove = allRows.length >= 2;
     row.innerHTML = `
-        <input type="text" class="poll-option-input premium-input" placeholder="Seçenek ${num}" maxlength="80" style="flex:1;">
-        <button class="poll-option-remove icon-btn" style="opacity:${canRemove ? '0.6' : '0'}; pointer-events:${canRemove ? 'auto' : 'none'};"><i class="fa-solid fa-minus"></i></button>
+        <input type="text" class="poll-option-input premium-input u-flex-1" placeholder="Seçenek ${num}" maxlength="80" >
+        <button class="poll-option-remove icon-btn" aria-label="Seçeneği kaldır"><i class="fa-solid fa-minus"></i></button>
     `;
+    const removeBtn = row.querySelector('.poll-option-remove');
+    removeBtn.style.opacity = canRemove ? '0.6' : '0';
+    removeBtn.style.pointerEvents = canRemove ? 'auto' : 'none';
     row.querySelector('.poll-option-remove').addEventListener('click', () => {
         const rows = container.querySelectorAll('.poll-option-row');
         if (rows.length > 2) row.remove();
@@ -61,8 +69,8 @@ function _updatePollRemoveBtns(container) {
 
 // Anket gönder
 window.FocusChat.submitPoll = async function() {
-    const scope = window._dcCurrentGroupScope || (window._activeChatTarget?.type === 'dm' ? { type: 'dm', id: window._dcCurrentConversation?.id } : null);
-    if (!scope || !scope.id || !window.FocusSupabase || !window.currentUser?.id) return;
+    const scope = getDcCurrentGroupScope() || (getActiveChatTarget()?.type === 'dm' ? { type: 'dm', id: window._dcCurrentConversation?.id } : null);
+    if (!scope || !scope.id || !window.FocusSupabase || !getCurrentUser()?.id) return;
 
     const question = document.getElementById('poll-question-input')?.value.trim();
     if (!question) { dcShowToast('Soru boş olamaz.'); return; }
@@ -81,7 +89,7 @@ window.FocusChat.submitPoll = async function() {
         // Anketi kaydet
         const { data: poll, error: pollErr } = await window.FocusSupabase
             .from('polls')
-            .insert({ scope_type: scope.type, scope_id: scope.id, created_by: window.currentUser.id, question, options, is_anonymous: isAnonymous, is_multiple: isMultiple })
+            .insert({ scope_type: scope.type, scope_id: scope.id, created_by: getCurrentUser().id, question, options, is_anonymous: isAnonymous, is_multiple: isMultiple })
             .select().single();
         if (pollErr) throw pollErr;
 
@@ -89,7 +97,7 @@ window.FocusChat.submitPoll = async function() {
         await window.FocusSupabase.from('messages').insert({
             scope_type: scope.type,
             scope_id:   scope.id,
-            sender_id:  window.currentUser.id,
+            sender_id:  getCurrentUser().id,
             text:       `📊 ${question}`,
             poll_id:    poll.id
         });
@@ -114,7 +122,7 @@ window.FocusChat.renderPollCard = async function(pollId, containerEl) {
 
         const options = Array.isArray(poll.options) ? poll.options : [];
         const totalVotes = (votes || []).length;
-        const myVote = (votes || []).find(v => v.user_id === window.currentUser?.id);
+        const myVote = (votes || []).find(v => v.user_id === getCurrentUser()?.id);
         const myIndices = myVote ? myVote.option_indices : [];
 
         // Seçenek oy sayıları
@@ -131,7 +139,7 @@ window.FocusChat.renderPollCard = async function(pollId, containerEl) {
                     const isMyVote = myIndices.includes(i);
                     return `
                         <button class="poll-option-btn${isMyVote ? ' is-voted' : ''}" data-idx="${i}">
-                            <div class="poll-option-bar" style="width:${pct}%"></div>
+                            <div class="poll-option-bar"></div>
                             <span class="poll-option-label">${window.escapeHtml(opt)}</span>
                             <span class="poll-option-pct">${pct}%</span>
                         </button>
@@ -143,20 +151,26 @@ window.FocusChat.renderPollCard = async function(pollId, containerEl) {
             </div>
         `;
 
+        card.querySelectorAll('.poll-option-btn').forEach((btn, i) => {
+            const pct = totalVotes > 0 ? Math.round((counts[i] / totalVotes) * 100) : 0;
+            const bar = btn.querySelector('.poll-option-bar');
+            if (bar) bar.style.width = pct + '%';
+        });
+
         // Oy verme
         card.querySelectorAll('.poll-option-btn').forEach(btn => {
             btn.addEventListener('click', async () => {
                 const idx = parseInt(btn.dataset.idx);
-                if (!window.currentUser?.id) return;
+                if (!getCurrentUser()?.id) return;
                 const existing = myIndices.includes(idx);
                 const newIndices = existing
                     ? myIndices.filter(i => i !== idx)
                     : (poll.is_multiple ? [...myIndices, idx] : [idx]);
 
                 if (newIndices.length === 0) {
-                    await window.FocusSupabase.from('poll_votes').delete().eq('poll_id', pollId).eq('user_id', window.currentUser.id);
+                    await window.FocusSupabase.from('poll_votes').delete().eq('poll_id', pollId).eq('user_id', getCurrentUser().id);
                 } else {
-                    await window.FocusSupabase.from('poll_votes').upsert({ poll_id: pollId, user_id: window.currentUser.id, option_indices: newIndices });
+                    await window.FocusSupabase.from('poll_votes').upsert({ poll_id: pollId, user_id: getCurrentUser().id, option_indices: newIndices });
                 }
                 // Yenile
                 containerEl.innerHTML = '';

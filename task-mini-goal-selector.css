@@ -1,0 +1,62 @@
+/* style.css'ten çıkarıldı (Faz C, 2026-07-22). Görev Yanı Küçük Hedef Seçici ve Hizalama (.mini-goal-select, .task-item-right, .edit-habit-btn). NOT: Bu blok başında ölü .goal-card kod kaldırma notu vardı — kaldırılmış, sadece gerçek kod taşındı. */
+
+/* ============ ANA HEDEFLER KARTLARI PREMIUM UI ============ */
+/* NOT (2026-07-18): buradaki .goal-card / .goal-card:hover / .goal-card::before
+   tanımları, dosyada daha sonra gelen (aynı özgüllükte, !important'lı) tanımlar
+   tarafından tamamen eziliyordu — hiçbir zaman ekranda görünmüyorlardı (computed
+   style ile doğrulandı). Ölü kod olarak kaldırıldı; ::before'un tek geçerli
+   tanımı (display:none !important) aşağıdaki ikinci blokta duruyor.
+
+
+
+
+
+
+
+
+
+/* Görev Yanı Küçük Hedef Seçici ve Hizalama Düzenlemesi */
+.task-item-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    justify-content: flex-end;
+    flex-shrink: 0;
+    min-width: 200px;
+}
+
+.mini-goal-select {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-muted);
+    font-size: 11px;
+    border-radius: 8px;
+    padding: 5px 10px;
+    outline: none;
+    max-width: 140px;
+    cursor: pointer;
+    transition: 0.3s;
+    text-overflow: ellipsis;
+}
+.mini-goal-select:focus-visible { outline: none; box-shadow: 0 0 0 2px rgba(212,144,14,0.35); border-color: var(--primary-color, #D4900E); }
+
+.mini-goal-select:hover {
+    border-color: var(--primary-color);
+    background: rgba(212, 144, 14, 0.1);
+    color: #fff;
+}
+
+.edit-habit-btn {
+    background: rgba(212, 144, 14, 0.1);
+    color: var(--primary-color);
+    border: 1px solid rgba(212, 144, 14, 0.2);
+    padding: 5px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.edit-habit-btn:hover {
+    background: var(--primary-color);
+    color: #fff;
+}

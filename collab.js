@@ -3,6 +3,7 @@
    Presence · Broadcast · Invite · Comments · Approvals ·
    Activity Log · Contribution Chart · @mention
    ════════════════════════════════════════════════════════════ */
+import { dcShowConfirm } from './social-dc-confirm-toasts.js';
 (function () {
     'use strict';
 
@@ -59,7 +60,7 @@
     }
 
     // ── Local Storage helpers ─────────────────────────────────────
-    function lsGet(key, def) { try { return JSON.parse(localStorage.getItem(key) ?? 'null') ?? def; } catch(_){ return def; } }
+    function lsGet(key, def) { try { return JSON.parse(localStorage.getItem(key) ?? 'null', window._safeJsonReviver) ?? def; } catch(_){ return def; } }
     function lsSet(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
 
     // ════════════════════════════════════════════════════════════
@@ -164,8 +165,9 @@
 
             if (window.FocusSupabase) {
                 try {
-                    const { data:room, error:re } = await window.FocusSupabase.from('collab_rooms').select('*').eq('invite_code',upperCode).maybeSingle();
+                    const { data:rows, error:re } = await window.FocusSupabase.rpc('lookup_collab_room_by_code', { p_code:upperCode });
                     if (re) console.warn('[Collab] collab_rooms lookup:', re.message);
+                    const room = rows && rows[0];
                     if (room) {
                         if (this.authUser) {
                             const { error:me2 } = await window.FocusSupabase.from('collab_room_members')
@@ -445,9 +447,13 @@
             if (!badge) return;
             const approvals = this.getApprovals(msId);
             const list      = Object.values(approvals);
-            badge.innerHTML = list.map(a =>
-                `<span class="pg-approval-avatar" style="background:${a.user_color};" title="${esc(a.user_name)} onayladı">${esc(a.user_name.slice(0,2).toUpperCase())}</span>`
+            badge.innerHTML = list.map((a,aIdx) =>
+                `<span class="pg-approval-avatar" data-approval-avatar-idx="${aIdx}" title="${esc(a.user_name)} onayladı">${esc(a.user_name.slice(0,2).toUpperCase())}</span>`
             ).join('') + (list.length ? `<span class="pg-approval-count">${list.length} onay</span>` : '<span class="pg-approval-empty">Henüz onay yok</span>');
+            list.forEach((a,aIdx) => {
+                const avEl = badge.querySelector(`[data-approval-avatar-idx="${aIdx}"]`);
+                if (avEl) avEl.style.background = a.user_color;
+            });
         },
 
         // ══ AKTİVİTE LOGU ════════════════════════
@@ -499,15 +505,16 @@
             const actionIcons = { create:'🆕', join:'👋', comment:'💬', approved:'✅', unapproved:'↩️',
                 ms_add:'🚩', ms_toggle:'✓', ms_delete:'🗑️', goal_progress:'📊',
                 task_add:'📌', task_delete:'🗑️', task_toggle:'✓', task_pending:'⏳' };
-            el.innerHTML = `<div class="pg-activity-timeline">` + log.slice(0,20).map(e =>
+            const _actList = log.slice(0,20);
+            el.innerHTML = `<div class="pg-activity-timeline">` + _actList.map((e,eIdx) =>
                 `<div class="pg-activity-item">
                     <div class="pg-activity-line"></div>
-                    <div class="pg-activity-dot" style="background:${e.user_color||'#888'};">
+                    <div class="pg-activity-dot" data-act-dot-idx="${eIdx}">
                         <span>${actionIcons[e.action]||'·'}</span>
                     </div>
                     <div class="pg-activity-body">
                         <div class="pg-activity-row">
-                            <span class="pg-activity-name" style="color:${e.user_color||'#aaa'};">${esc(e.user_name)}</span>
+                            <span class="pg-activity-name" data-act-name-idx="${eIdx}">${esc(e.user_name)}</span>
                             <span class="pg-activity-action">${esc(e.action_label)}</span>
                             ${e.target?`<span class="pg-activity-target">"${esc(e.target)}"</span>`:''}
                         </div>
@@ -515,6 +522,12 @@
                     </div>
                 </div>`
             ).join('') + `</div>`;
+            _actList.forEach((e,eIdx) => {
+                const dotEl = el.querySelector(`[data-act-dot-idx="${eIdx}"]`);
+                if (dotEl) dotEl.style.background = e.user_color||'#888';
+                const nameEl = el.querySelector(`[data-act-name-idx="${eIdx}"]`);
+                if (nameEl) nameEl.style.color = e.user_color||'#aaa';
+            });
             // Yeni aktivite badge'ini sıfırla
             const badge = document.querySelector('.pg-collab-tab[data-ctab="activity"] .pg-tab-badge');
             if (badge) badge.remove();
@@ -574,9 +587,9 @@
                 <div class="pg-comment-list" id="pg-comments-${msId}">
                     ${comments.length===0
                         ? '<p class="pg-comment-empty">Henüz yorum yok. İlk yorumu yap!</p>'
-                        : comments.map(c=>`
+                        : comments.map((c,cIdx)=>`
                         <div class="pg-comment">
-                            <div class="pg-comment-avatar" style="background:${c.author_color||'#888'};">${esc((c.author_name||'?').slice(0,2).toUpperCase())}</div>
+                            <div class="pg-comment-avatar" data-comment-avatar-idx="${cIdx}">${esc((c.author_name||'?').slice(0,2).toUpperCase())}</div>
                             <div class="pg-comment-body">
                                 <div class="pg-comment-meta">
                                     <span class="pg-comment-author">${esc(c.author_name)}</span>
@@ -600,13 +613,18 @@
                 </div>
             </div>`;
 
+            comments.forEach((c,cIdx) => {
+                const avEl = container.querySelector(`[data-comment-avatar-idx="${cIdx}"]`);
+                if (avEl) avEl.style.background = c.author_color||'#888';
+            });
+
             // Approval badge render
             this._refreshApprovalBadge(msId);
 
             // Approval button
             container.querySelector(`[data-approve="${msId}"]`)?.addEventListener('click', () => {
                 const g    = window.PlanningCollab.goalId;
-                const goals = JSON.parse(localStorage.getItem('planning_goals')||'[]');
+                const goals = JSON.parse(localStorage.getItem('planning_goals')||'[]', window._safeJsonReviver);
                 const goal  = goals.find(x=>x.id===g);
                 const ms    = (goal?.milestones||[]).find(m=>m.id===msId);
                 this.toggleApproval(msId, ms?.title||msId);
@@ -621,7 +639,7 @@
                 const inp = document.getElementById(`pg-comment-inp-${msId}`);
                 if (!inp) return;
                 const g    = window.PlanningCollab.goalId;
-                const goals = JSON.parse(localStorage.getItem('planning_goals')||'[]');
+                const goals = JSON.parse(localStorage.getItem('planning_goals')||'[]', window._safeJsonReviver);
                 const goal  = goals.find(x=>x.id===g);
                 this.addComment(msId, inp.value, goal?.title||'');
                 inp.value = '';
@@ -629,9 +647,9 @@
                 const listEl = document.getElementById('pg-comments-' + msId);
                 if (listEl) {
                     const comments = this.getComments(msId);
-                    listEl.innerHTML = comments.map(c=>`
+                    listEl.innerHTML = comments.map((c,cIdx)=>`
                     <div class="pg-comment">
-                        <div class="pg-comment-avatar" style="background:${c.author_color||'#888'};">${esc((c.author_name||'?').slice(0,2).toUpperCase())}</div>
+                        <div class="pg-comment-avatar" data-comment-avatar-idx="${cIdx}">${esc((c.author_name||'?').slice(0,2).toUpperCase())}</div>
                         <div class="pg-comment-body">
                             <div class="pg-comment-meta">
                                 <span class="pg-comment-author">${esc(c.author_name)}</span>
@@ -640,6 +658,10 @@
                             <div class="pg-comment-text">${parseMentions(esc(c.text))}</div>
                         </div>
                     </div>`).join('');
+                    comments.forEach((c,cIdx) => {
+                        const avEl = listEl.querySelector(`[data-comment-avatar-idx="${cIdx}"]`);
+                        if (avEl) avEl.style.background = c.author_color||'#888';
+                    });
                 }
                 this._refreshActivityLog();
             };
@@ -653,22 +675,30 @@
         // ══ PRESENCE BAR ═════════════════════════
 
         _renderPresence() {
-            const users = Object.values(this.onlineUsers);
+            const users = Object.values(this.onlineUsers).slice(0,8);
             const html = !users.length ? '' :
-                users.slice(0,8).map(u =>
-                    `<div class="pg-presence-avatar" style="background:${u.color||'#888'};"
+                users.map((u,uIdx) =>
+                    `<div class="pg-presence-avatar" data-presence-avatar-idx="${uIdx}"
                         data-tip="${esc((u.name||'?'))} · ${esc(u.role||'üye')}">
                         ${esc((u.initials||u.name||'?').slice(0,2).toUpperCase())}
                         <span class="pg-presence-dot"></span>
                     </div>`
-                ).join('') + (users.length>8?`<span class="pg-presence-more">+${users.length-8}</span>`:'');
+                ).join('') + (Object.values(this.onlineUsers).length>8?`<span class="pg-presence-more">+${Object.values(this.onlineUsers).length-8}</span>`:'');
+
+            const _applyPresenceColors = (container) => {
+                if (!container) return;
+                users.forEach((u,uIdx) => {
+                    const avEl = container.querySelector(`[data-presence-avatar-idx="${uIdx}"]`);
+                    if (avEl) avEl.style.background = u.color||'#888';
+                });
+            };
 
             const bar = document.getElementById('pg-presence-bar');
-            if (bar) bar.innerHTML = html;
+            if (bar) { bar.innerHTML = html; _applyPresenceColors(bar); }
 
             // PlanView presence bar
             const pvBar = document.getElementById('pg-pv-presence-bar');
-            if (pvBar) pvBar.innerHTML = html;
+            if (pvBar) { pvBar.innerHTML = html; _applyPresenceColors(pvBar); }
             // 3.2 — Header collab butonunu çevrimiçi sayısıyla güncelle
             const headerLabel = document.getElementById('pg-header-collab-label');
             if (headerLabel) {
@@ -693,7 +723,7 @@
             if (!goal.collab_room_id) {
                 el.innerHTML = `
                 <p class="pg-collab-desc">Bu hedefi arkadaşlarınla birlikte planlayın. Davet kodu üretilir, gerçek zamanlı düzenleme ve yorum sistemi aktif olur.</p>
-                <button data-collab-action="enable" class="pg-act-btn" style="width:100%;justify-content:center;">
+                <button data-collab-action="enable" class="pg-act-btn u-width-100pct_justify-content-center" >
                     <i class="ti ti-users-plus"></i> Ortak Planlamayı Aç
                 </button>`;
                 el._collabClickHandler = e => {
@@ -734,15 +764,15 @@
                 <!-- Üyeler tab (default) -->
                 <div id="pg-ctab-members" class="pg-ctab active">
                     ${members.length
-                        ? members.map(m=>{
+                        ? members.map((m,mIdx)=>{
                             const roleLabel={'owner':'👑 Sahip','editor':'✏️ Editör','viewer':'👁️ İzleyici'}[m.role]||m.role;
                             const name = m.name||m.user_id?.slice(0,8)||'—';
                             const online = !!Object.values(this.onlineUsers).find(u=>u.id===m.user_id||u.name===name);
                             const isMe = m.user_id === this._me().id;
                             const canChangeRole = isOwner && !isMe && m.role !== 'owner';
                             return `<div class="pg-collab-member">
-                                <div class="pg-collab-avatar" style="background:${stringToColor(m.user_id||name)};">${esc(name.slice(0,2).toUpperCase())}</div>
-                                <span class="pg-collab-member-name">${esc(name)}${online?'<span class="pg-online-dot"></span>':''}${isMe?'<span style="font-size:10px;color:var(--t2);margin-left:4px;">(sen)</span>':''}</span>
+                                <div class="pg-collab-avatar" data-member-avatar-idx="${mIdx}">${esc(name.slice(0,2).toUpperCase())}</div>
+                                <span class="pg-collab-member-name">${esc(name)}${online?'<span class="pg-online-dot"></span>':''}${isMe?'<span class="u-font-size-10px_color-var-t2_margin-left-4px">(sen)</span>':''}</span>
                                 ${canChangeRole
                                     ? `<select class="pg-role-select" data-member-id="${esc(m.user_id||'')}" data-room-id="${esc(goal.collab_room_id)}">
                                         <option value="editor" ${m.role==='editor'?'selected':''}>✏️ Editör</option>
@@ -751,12 +781,12 @@
                                     : `<span class="pg-collab-role">${roleLabel}</span>`}
                             </div>`;
                         }).join('')
-                        : '<p style="font-size:12px;color:var(--t2);text-align:center;padding:8px 0;">Henüz üye yok.</p>'}
+                        : '<p class="u-font-size-12px_color-var-t2_text-align-center_padding-8px0">Henüz üye yok.</p>'}
                 </div>
-                <div id="pg-ctab-activity" class="pg-ctab" style="display:none;">
+                <div id="pg-ctab-activity" class="pg-ctab u-display-none" >
                     <div id="pg-activity-log"></div>
                 </div>
-                <div id="pg-ctab-chart" class="pg-ctab" style="display:none;">
+                <div id="pg-ctab-chart" class="pg-ctab u-display-none" >
                     <div id="pg-contrib-chart"></div>
                 </div>
             </div>
@@ -765,7 +795,7 @@
             <!-- 3.3 Onay eşiği ayarı -->
             <div class="pg-collab-threshold-row">
                 <label class="pg-collab-threshold-label"><i class="ti ti-thumb-up"></i> Milestone otomatik tamamlanma eşiği</label>
-                <div style="display:flex;align-items:center;gap:8px;">
+                <div class="u-display-flex_align-items-center_gap-8px">
                     <select id="pg-approval-threshold" class="pg-collab-threshold-select">
                         <option value="0">Kapalı (Manuel)</option>
                         <option value="1">1 Onay</option>
@@ -773,27 +803,33 @@
                         <option value="3">3 Onay</option>
                         <option value="majority" ${(roomInfo.approval_threshold||'majority')==='majority'?'selected':''}>Çoğunluk (Varsayılan)</option>
                     </select>
-                    <button id="pg-save-threshold-btn" class="pg-ms-btn task-btn" style="height:30px;padding:0 10px;white-space:nowrap;">Kaydet</button>
+                    <button id="pg-save-threshold-btn" class="pg-ms-btn task-btn u-height-30px_padding-010px_white-space-nowrap" >Kaydet</button>
                 </div>
             </div>
             <!-- Görev Onayı ayarı (Öneri 2) -->
-            <div class="pg-collab-threshold-row" style="margin-top:8px;">
-                <label class="pg-collab-threshold-label" style="flex:1;"><i class="ti ti-shield-check"></i> Katılımcı görevleri onay gerektirsin</label>
+            <div class="pg-collab-threshold-row u-margin-top-8px" >
+                <label class="pg-collab-threshold-label u-flex-1" ><i class="ti ti-shield-check"></i> Katılımcı görevleri onay gerektirsin</label>
                 <label class="pg-collab-toggle-label">
                     <input type="checkbox" id="pg-task-approval-toggle" ${this.isApprovalRequired() ? 'checked' : ''}>
                     <span class="pg-collab-toggle-track"></span>
                 </label>
             </div>` : `
             <!-- Katılımcıya approval durumunu göster -->
-            <div class="pg-collab-threshold-row" style="margin-top:8px;opacity:.7;">
+            <div class="pg-collab-threshold-row u-margin-top-8px_opacity-p7" >
                 <label class="pg-collab-threshold-label"><i class="ti ti-${this.isApprovalRequired() ? 'shield-check' : 'shield-off'}"></i>
                     Görev onayı: <strong>${this.isApprovalRequired() ? 'Açık — önerileriniz onay bekler' : 'Kapalı — direkt ekleyebilirsiniz'}</strong>
                 </label>
             </div>`}
 
             ${isOwner
-                ? `<button id="pg-disable-collab-btn" class="pg-collab-danger-btn" style="margin-top:10px;"><i class="ti ti-users-minus"></i> Ortak Planlamayı Kapat</button>`
-                : `<button id="pg-leave-room-btn" class="pg-collab-warn-btn" style="margin-top:10px;"><i class="ti ti-door-exit"></i> Odadan Ayrıl</button>`}`;
+                ? `<button id="pg-disable-collab-btn" class="pg-collab-danger-btn u-margin-top-10px" ><i class="ti ti-users-minus"></i> Ortak Planlamayı Kapat</button>`
+                : `<button id="pg-leave-room-btn" class="pg-collab-warn-btn u-margin-top-10px" ><i class="ti ti-door-exit"></i> Odadan Ayrıl</button>`}`;
+
+            members.forEach((m,mIdx) => {
+                const name = m.name||m.user_id?.slice(0,8)||'—';
+                const avEl = el.querySelector(`[data-member-avatar-idx="${mIdx}"]`);
+                if (avEl) avEl.style.background = stringToColor(m.user_id||name);
+            });
 
             // Threshold select mevcut değerini ata
             const thresholdSel = document.getElementById('pg-approval-threshold');
@@ -841,7 +877,7 @@
                 if (disable) {
                     const doDisable = () => self._handleDisableCollab(goal);
                     if (window.dcShowConfirm) {
-                        window.dcShowConfirm({
+                        dcShowConfirm({
                             title: 'Ortak planlamayı kapat?',
                             message: 'Bu hedef artık kimseyle paylaşılmayacak. Tüm üyeler odadan çıkarılır.',
                             confirmText: 'Kapat', danger: true, onConfirm: doDisable,
@@ -851,7 +887,7 @@
                 if (leave) {
                     const doLeave = () => self._handleLeaveRoom(goal);
                     if (window.dcShowConfirm) {
-                        window.dcShowConfirm({
+                        dcShowConfirm({
                             title: 'Odadan ayrıl?',
                             message: 'Bu ortak plandan ayrılacaksın. Tekrar katılmak için davet koduna ihtiyacın olacak.',
                             confirmText: 'Ayrıl', danger: true, onConfirm: doLeave,
@@ -898,7 +934,7 @@
 
         async _handleEnableCollab(goal) {
             const btn = document.getElementById('pg-enable-collab-btn');
-            if (btn) { btn.disabled=true; btn.innerHTML='<i class="ti ti-loader" style="animation:spin .8s linear infinite;display:inline-block;"></i> Oluşturuluyor...'; }
+            if (btn) { btn.disabled=true; btn.innerHTML='<i class="ti ti-loader u-animation-spinp8slinearinfinite_display-inline-block" ></i> Oluşturuluyor...'; }
             const { roomId, inviteCode } = await this.enableCollab(goal.id, goal.title);
             window._updateGoalCollabState?.(goal.id, { collab_room_id:roomId, invite_code:inviteCode, is_collaborative:true });
             await this.joinRoom(roomId, goal.id, 'owner');
@@ -1028,3 +1064,9 @@
 
     window.PlanningCollab = PlanningCollab;
 })();
+
+// Diğer modüllerin import edebilmesi için ince sarmalayıcı export'lar
+// (Faz P/Q mimari turu, bkz. social.js/planning.js'teki aynı desen).
+export function PlanningCollab(...args) { const v = window.PlanningCollab; return (typeof v === "function") ? v(...args) : v; }
+export function PlanningCollabMsExtras(...args) { const v = window.PlanningCollabMsExtras; return (typeof v === "function") ? v(...args) : v; }
+export function PlanningCollabBindMsExtras(...args) { const v = window.PlanningCollabBindMsExtras; return (typeof v === "function") ? v(...args) : v; }

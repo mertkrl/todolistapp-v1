@@ -1,0 +1,76 @@
+/* ── Özel onay penceresi (confirm() yerine) ── */
+.dc-confirm-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100002;
+    backdrop-filter: blur(3px);
+    opacity: 0;
+    transition: opacity 0.16s ease;
+}
+.dc-confirm-modal-overlay.show { opacity: 1; }
+.dc-confirm-modal {
+    background: rgba(22,18,55,0.98);
+    border: 1px solid rgba(212,144,14,0.3);
+    border-radius: 16px;
+    width: 300px;
+    padding: 24px 22px 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    box-shadow: 0 12px 48px rgba(0,0,0,0.55);
+    transform: scale(0.92) translateY(8px);
+    transition: transform 0.18s cubic-bezier(.34,1.56,.64,1);
+}
+.dc-confirm-modal-overlay.show .dc-confirm-modal { transform: scale(1) translateY(0); }
+.dc-confirm-modal-icon {
+    width: 52px; height: 52px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    background: rgba(212,144,14,0.15);
+    color: rgba(255,255,255,0.55);
+    margin-bottom: 14px;
+}
+.dc-confirm-modal-icon.danger {
+    background: rgba(255,71,87,0.15);
+    color: #ff7675;
+}
+.dc-confirm-modal-title {
+    font-size: 16px; font-weight: 700; color: #fff;
+    margin-bottom: 8px;
+}
+.dc-confirm-modal-message {
+    font-size: 13px; color: rgba(255,255,255,0.55);
+    line-height: 1.5;
+    margin-bottom: 20px;
+}
+.dc-confirm-modal-actions {
+    display: flex; gap: 10px; width: 100%;
+}
+.dc-confirm-btn {
+    flex: 1;
+    padding: 10px 0;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.06);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+}
+.dc-confirm-btn:hover { transform: translateY(-1px); }
+.dc-confirm-btn.dc-confirm-cancel:hover { background: rgba(255,255,255,0.12); }
+.dc-confirm-btn.dc-confirm-ok {
+    background: rgba(212,144,14,0.85);
+    border-color: transparent;
+}
+.dc-confirm-btn.dc-confirm-ok:hover { background: #D4900E; }
+.dc-confirm-btn.dc-confirm-ok.danger {
+    background: rgba(255,71,87,0.85);
+}
+.dc-confirm-btn.dc-confirm-ok.danger:hover { background: #ff4757; }

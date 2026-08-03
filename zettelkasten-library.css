@@ -1,0 +1,698 @@
+/* ══════════════════════════════════════════════════════════════
+   ZİHİN KÜTÜPHANESİ — YENİ TASARIM (2026-06)
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Animasyonlar ── */
+@keyframes zk-bd   { from { opacity:0 } to { opacity:1 } }
+@keyframes zk-rise {
+    from { opacity:0; transform:rotateX(8deg) translateY(48px) scale(.9) }
+    to   { opacity:1; transform:rotateX(8deg) translateY(0)    scale(1)  }
+}
+@keyframes zk-cover {
+    from { transform: rotateY(0deg) }
+    to   { transform: rotateY(-162deg) }
+}
+
+/* ── ZK Toolbar ── */
+.zk-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 18px;
+    margin-bottom: 12px;
+    border-radius: 12px;
+    background: rgba(34,21,11,.92);
+    border: 1px solid rgba(206,160,92,.28);
+    box-shadow: 0 4px 20px rgba(0,0,0,.35);
+    flex-wrap: wrap;
+    font-family: 'EB Garamond', Georgia, serif;
+}
+.zk-toolbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding-right: 14px;
+    border-right: 1px solid rgba(206,160,92,.28);
+    flex-shrink: 0;
+}
+.zk-brand-title {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 21px;
+    font-weight: 600;
+    color: #e0b96b;
+    letter-spacing: .4px;
+    white-space: nowrap;
+}
+.zk-search-wrapper {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 8px 12px;
+    background: rgba(0,0,0,.28);
+    border: 1px solid rgba(206,160,92,.28);
+    border-radius: 8px;
+    min-width: 120px;
+}
+.zk-search-input {
+    background: none;
+    border: none;
+    outline: none;
+    color: #f1ddbf;
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 14px;
+    width: 100%;
+}
+.zk-search-input:focus-visible { outline: none; box-shadow: 0 0 0 2px rgba(212,144,14,0.35); border-color: var(--primary-color, #D4900E); }
+.zk-search-input::placeholder { color: rgba(241,221,191,.45); }
+.zk-filter-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 12px;
+    background: transparent;
+    border: 1px solid rgba(206,160,92,.28);
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+/* Görünen etiket — tarayıcının native <select> kutusuna zorla uyguladığı koyu tema
+   boyamasından (CSS ile ezilemiyor) kaçınmak için gerçek metni biz çiziyoruz. */
+.zk-filter-label {
+    color: #f1ddbf;
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 14px;
+    white-space: nowrap;
+    pointer-events: none;
+}
+/* Gerçek <select> tamamen görünmez ama tıklama/klavye erişimi için üstte kalır */
+.zk-filter-select-overlay {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+.zk-filter-select {
+    background: none;
+    border: none;
+    outline: none;
+    color: #f1ddbf;
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 14px;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+.zk-filter-select:focus-visible { outline: none; box-shadow: 0 0 0 2px rgba(212,144,14,0.35); border-color: var(--primary-color, #D4900E); }
+.zk-filter-select option { background: #241406; color: #f1ddbf; }
+.zk-icon-btn-group {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+}
+.zk-icon-btn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,.22);
+    border: 1px solid rgba(206,160,92,.28);
+    border-radius: 8px;
+    color: rgba(241,221,191,.55);
+    cursor: pointer;
+    transition: color .2s, background .2s;
+}
+.zk-icon-btn:hover  { color: #e0b96b; background: rgba(0,0,0,.4); }
+.zk-icon-btn.active { color: #e0b96b; border-color: rgba(206,160,92,.55); }
+.zk-reflect-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    background: linear-gradient(180deg,#ecc472,#b9842f);
+    color: #2a1a08;
+    font-family: 'EB Garamond', Georgia, serif;
+    font-weight: 700;
+    font-size: 14px;
+    white-space: nowrap;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 2px 0 rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.4);
+    transition: filter .2s;
+    flex-shrink: 0;
+}
+.zk-reflect-btn:hover { filter: brightness(1.08); }
+
+/* ── ZK Library Room (bookshelf) ── */
+.zk-library-room {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #241406;
+    box-shadow: 0 30px 60px rgba(0,0,0,.45);
+    padding: 15px;
+    min-height: 280px;
+}
+.zk-library-room::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 6;
+    pointer-events: none;
+    background: radial-gradient(120% 75% at 50% -8%, rgba(255,201,128,.45), rgba(255,170,90,.12) 38%, transparent 68%);
+}
+.zk-library-room::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 7;
+    pointer-events: none;
+    background: radial-gradient(135% 110% at 50% 42%, transparent 38%, rgba(0,0,0,.45));
+}
+
+/* ── ZK Shelf ── */
+.zk-shelf-wrap {
+    position: relative;
+    margin-bottom: 2px;
+}
+.zk-shelf-books {
+    display: flex;
+    align-items: flex-end;
+    gap: 1px;
+    height: 220px;
+    padding: 0 8px;
+    position: relative;
+    z-index: 2;
+    /* arka duvar çizgileri */
+    background: repeating-linear-gradient(90deg, rgba(0,0,0,.22) 0 1px, transparent 1px 80px);
+}
+.zk-shelf-board {
+    height: 20px;
+    border-radius: 1px;
+    background: linear-gradient(180deg,#7a4524,#5a3017 55%,#3f2010);
+    box-shadow: 0 8px 15px rgba(0,0,0,.55), inset 0 2px 0 rgba(255,206,150,.5), inset 0 -4px 5px rgba(0,0,0,.5);
+    position: relative;
+    z-index: 3;
+}
+
+/* ── ZK Book ── */
+.zk-book {
+    --spine: #5a3a22;
+    --w: 40px;
+    --h: 180px;
+    --lift: 0px;
+    --ribbon: #8c7c62;
+    flex: 0 0 auto;
+    width: var(--w);
+    height: var(--h);
+    align-self: flex-end;
+    transform: translateY(var(--lift));
+    transition: transform .28s ease, filter .28s, box-shadow .28s;
+    position: relative;
+    border-radius: 2px 3px 1px 1px;
+    background:
+        linear-gradient(90deg,rgba(0,0,0,.5) 0%,rgba(0,0,0,.12) 6%,rgba(255,255,255,.2) 14%,rgba(255,255,255,.03) 46%,rgba(0,0,0,.05) 68%,rgba(0,0,0,.3) 88%,rgba(0,0,0,.55) 100%),
+        var(--spine);
+    box-shadow: inset 1.5px 0 0 rgba(255,255,255,.08), inset -2.5px 0 5px rgba(0,0,0,.5), 1px 3px 7px rgba(0,0,0,.5);
+    cursor: pointer;
+    z-index: 1;
+}
+.zk-book:hover {
+    transform: translateY(calc(var(--lift) - 12px));
+    filter: brightness(1.12);
+    z-index: 8;
+    box-shadow: 0 16px 30px rgba(0,0,0,.55);
+}
+.zk-book-future {
+    filter: brightness(.72) saturate(.6);
+    cursor: default;
+}
+.zk-book-future:hover {
+    transform: translateY(var(--lift));
+    filter: brightness(.72) saturate(.6);
+    box-shadow: inset 1.5px 0 0 rgba(255,255,255,.08), inset -2.5px 0 5px rgba(0,0,0,.5), 1px 3px 7px rgba(0,0,0,.5);
+}
+/* Üst sayfa kenarı */
+.zk-book-top-edge {
+    position: absolute;
+    top: -4px; left: 2px; right: 2px;
+    height: 6px;
+    border-radius: 2px 2px 0 0;
+    background: repeating-linear-gradient(90deg,#efe2c4 0 2px,#d2c49f 2px 3px);
+    box-shadow: 0 1px 2px rgba(0,0,0,.4);
+}
+/* Cilt bantları */
+.zk-book-band {
+    position: absolute;
+    left: 0; right: 0;
+    height: 3px;
+    background: rgba(0,0,0,.22);
+    box-shadow: 0 1px 0 rgba(255,255,255,.1), 0 -1px 1px rgba(0,0,0,.35);
+}
+/* Gün etiketi */
+.zk-book-label {
+    position: absolute;
+    left: 8%; right: 8%;
+    top: 33%;
+    padding: 6px 2px 7px;
+    text-align: center;
+    background: rgba(0,0,0,.27);
+    border-top: 1px solid rgba(0,0,0,.5);
+    border-bottom: 1px solid rgba(255,255,255,.07);
+    box-shadow: inset 0 1px 4px rgba(0,0,0,.55);
+}
+.zk-book-num {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-weight: 700;
+    line-height: .9;
+    background: linear-gradient(180deg,#f9ecb4,#b6892a);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+.zk-book-abbr {
+    margin-top: 3px;
+    font-size: 7.5px;
+    letter-spacing: 1.8px;
+    color: #e0c07f;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+/* Bugün kitabı glow */
+.zk-book-today-glow::before {
+    content: '';
+    position: absolute;
+    inset: -16px -10px -22px -10px;
+    z-index: -1;
+    background: radial-gradient(50% 60% at 50% 45%, rgba(255,201,112,.6), transparent 70%);
+    filter: blur(7px);
+}
+/* Filler kitabı içi çizgi */
+.zk-book-filler-mark {
+    position: absolute;
+    left: 20%; right: 20%;
+    top: 42%;
+    height: 15%;
+    background: rgba(0,0,0,.18);
+    border-radius: 1px;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,.45);
+}
+/* Ribbon imi */
+.zk-book-ribbon {
+    position: absolute;
+    left: 50%;
+    top: -14px;
+    transform: translateX(-50%);
+    width: 8px;
+    height: 18px;
+    z-index: 9;
+    background: linear-gradient(90deg, rgba(0,0,0,.4), var(--ribbon) 40%, rgba(255,255,255,.45) 52%, var(--ribbon) 64%, rgba(0,0,0,.4));
+    box-shadow: 0 1px 2px rgba(0,0,0,.4);
+    border-radius: 2px 2px 0 0;
+    clip-path: polygon(0 0,100% 0,100% 74%,50% 100%,0 74%);
+}
+/* Ay başlık kitabı */
+.zk-book-title-text {
+    position: absolute;
+    inset: 16px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.zk-book-title-text span {
+    writing-mode: vertical-rl;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 3px;
+    background: linear-gradient(180deg,#f9ecb4,#b6892a);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+/* ── ZK Open-Book Modal ── */
+.zk-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 3000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px;
+    animation: zk-bd .35s ease;
+    font-family: 'EB Garamond', Georgia, serif;
+}
+.zk-modal-overlay.hidden { display: none; }
+.zk-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 38%, rgba(48,26,10,.55), rgba(0,0,0,.85));
+    backdrop-filter: blur(4px);
+    cursor: pointer;
+}
+.zk-modal-stage {
+    position: relative;
+    perspective: 2400px;
+    animation: zk-rise .55s cubic-bezier(.2,.85,.25,1);
+}
+.zk-modal-close {
+    position: absolute;
+    top: -46px; right: 0;
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    border: 1px solid rgba(220,190,130,.4);
+    color: #e6cd92;
+    cursor: pointer;
+    font-size: 21px;
+    line-height: 1;
+    background: rgba(0,0,0,.45);
+    z-index: 10;
+    transition: background .2s;
+}
+.zk-modal-close:hover { background: rgba(0,0,0,.7); }
+.zk-book-spread {
+    position: relative;
+    width: 720px;
+    height: 480px;
+    transform: rotateX(8deg);
+    transform-style: preserve-3d;
+}
+/* Deri kapaklar */
+.zk-book-spread::before {
+    content: '';
+    position: absolute;
+    inset: -12px;
+    border-radius: 6px 10px 10px 6px;
+    background: var(--bcover, #5a3a22);
+    box-shadow: 0 44px 80px rgba(0,0,0,.6), inset 0 0 0 2px rgba(0,0,0,.3), inset 0 0 50px rgba(0,0,0,.45);
+}
+/* Sayfalar -->  */
+.zk-page-left,
+.zk-page-right {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 50%;
+    padding: 40px 36px;
+    display: flex;
+    flex-direction: column;
+}
+.zk-page-left {
+    left: 0;
+    background: linear-gradient(90deg,#f5ecd5,#ebe0c2 90%,#d9cca9);
+    box-shadow: inset -24px 0 32px -20px rgba(80,55,25,.55);
+    border-radius: 3px 0 0 3px;
+}
+.zk-page-right {
+    right: 0;
+    background: linear-gradient(270deg,#f5ecd5,#ebe0c2 90%,#d9cca9);
+    box-shadow: inset 24px 0 32px -20px rgba(80,55,25,.55);
+    border-radius: 0 3px 3px 0;
+}
+.zk-page-header-label {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: #9a7a44;
+    text-transform: uppercase;
+    margin: 0;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+/* Başlık ve meta bilgisi (günün rengi / tarih) aynı satırda, sayfanın en üstünde — sade ve küçük */
+.zk-page-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: -8px;
+    margin-bottom: 6px;
+    margin-left: 24px;
+    flex-shrink: 0;
+    flex-wrap: nowrap;
+}
+.zkm-meta-color-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.zkm-meta-color {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #5a3a22;
+    box-shadow: 0 1px 2px rgba(0,0,0,.3), inset 0 0 0 1px rgba(0,0,0,.18);
+    flex-shrink: 0;
+    background-image: radial-gradient(circle at 35% 30%, rgba(255,255,255,.5), transparent 48%);
+}
+.zkm-meta-color-label {
+    font-size: 10px;
+    color: #8a6c40;
+}
+.zkm-meta-date-group {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.zkm-meta-date {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-weight: 600;
+    font-size: 12px;
+    color: #6a3f1c;
+    line-height: 1;
+}
+.zkm-meta-day {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-weight: 600;
+    font-size: 12px;
+    color: #6a3f1c;
+}
+/* Sayfa gövdesi — hem okuma hem yazma modu aynı çizgili kağıt üzerinde */
+.zkm-page-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding-left: 22px;
+    border-left: 2px solid rgba(170,66,54,.4);
+    background: repeating-linear-gradient(180deg, transparent 0 30px, rgba(90,60,30,.13) 30px 31px);
+    background-position: 0 3px;
+    overflow: hidden;
+}
+.zkm-note-text {
+    font-family: 'Caveat', cursive;
+    font-size: 22px;
+    line-height: 31px;
+    color: #3a2a18;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+.zkm-empty-inline {
+    font-family: 'Caveat', cursive;
+    font-size: 20px;
+    line-height: 31px;
+    color: #b6996a;
+    font-style: italic;
+}
+.zkm-edit-textarea {
+    flex: 1;
+    width: 100%;
+    min-height: 100%;
+    max-height: 100%;
+    resize: none;
+    border: none;
+    outline: none;
+    padding: 0;
+    margin: 0;
+    background: transparent;
+    box-shadow: none;
+    font-family: 'Caveat', cursive;
+    font-size: 22px;
+    line-height: 31px;
+    color: #3a2a18;
+    overflow: hidden;
+}
+.zkm-edit-textarea:focus-visible { outline: none; box-shadow: 0 0 0 2px rgba(212,144,14,0.35); border-color: var(--primary-color, #D4900E); }
+.zkm-edit-textarea::placeholder { color: #b6996a; font-style: italic; }
+/* Alt eylem çubuğu */
+/* Kitabın 3D (rotateX) dönüşüm bağlamının dışında, .zk-modal-stage'e göre konumlanır —
+   bu sayede bulanıklık/titreme olmaz ve tıklamalar güvenilir çalışır. */
+.zkm-actions-bar {
+    position: absolute;
+    right: 36px;
+    bottom: 22px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 6px;
+    z-index: 20;
+}
+.zkm-cancel-btn {
+    padding: 4px 10px;
+    border-radius: 4px;
+    background: #f0e6cc;
+    color: #6a4f24;
+    font-family: 'EB Garamond', Georgia, serif;
+    font-weight: 600;
+    font-size: 11px;
+    border: 1px solid rgba(154,122,68,.5);
+    cursor: pointer;
+    transition: background .15s;
+}
+.zkm-cancel-btn:hover { background: #e2d3ac; }
+.zkm-write-btn {
+    padding: 4px 12px;
+    border-radius: 4px;
+    background: #c99a44;
+    color: #2a1a08;
+    font-family: 'EB Garamond', Georgia, serif;
+    font-weight: 700;
+    font-size: 11px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 2px 0 rgba(0,0,0,.25);
+    transition: background .15s;
+    flex-shrink: 0;
+}
+.zkm-write-btn:hover { background: #dcae5a; }
+/* Cilt gölgesi ortada */
+.zk-gutter {
+    position: absolute;
+    left: 50%; top: 0; bottom: 0;
+    width: 46px;
+    transform: translateX(-50%);
+    background: linear-gradient(90deg, transparent, rgba(70,45,20,.32) 44%, rgba(35,22,9,.5) 50%, rgba(70,45,20,.32) 56%, transparent);
+    pointer-events: none;
+    z-index: 4;
+}
+/* Animasyonlu kapak */
+.zk-book-cover {
+    position: absolute;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    transform-origin: left center;
+    transform-style: preserve-3d;
+    animation: zk-cover 1.5s .45s cubic-bezier(.45,.05,.15,1) both;
+    will-change: transform;
+    backface-visibility: hidden;
+    z-index: 5;
+}
+.zk-book-cover-inner {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    border-radius: 6px;
+    background: var(--bcover, #5a3a22);
+    box-shadow: inset 0 0 0 2px rgba(0,0,0,.25), inset 0 0 55px rgba(0,0,0,.5);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+.zk-book-cover-border {
+    position: absolute;
+    inset: 14px;
+    border: 1.5px solid rgba(222,190,120,.45);
+    border-radius: 3px;
+}
+.zkm-cover-dayname {
+    font-size: 12px;
+    letter-spacing: 5px;
+    color: #e6cd92;
+    text-transform: uppercase;
+}
+.zkm-cover-num {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-weight: 600;
+    font-size: 88px;
+    line-height: .82;
+    background: linear-gradient(180deg,#f8ecb6,#b88a2d);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+.zkm-cover-monthyear {
+    font-size: 13px;
+    letter-spacing: 3px;
+    color: #e6cd92;
+    text-transform: uppercase;
+}
+
+/* ── Ay Özeti Kitabı ── */
+.zkm-dayname {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 12px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #9a7a44;
+    margin-top: 10px;
+}
+.zkm-datelabel {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-weight: 600;
+    font-size: 26px;
+    color: #6a3f1c;
+    margin-top: 2px;
+}
+.zkmm-stat-list {
+    margin-top: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+.zkmm-stat-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed rgba(122,93,52,.35);
+}
+.zkmm-stat-label {
+    font-style: italic;
+    color: #7a5d34;
+    font-size: 14px;
+}
+.zkmm-stat-val {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-weight: 700;
+    font-size: 24px;
+    color: #4a3014;
+}
+/* Önceki aya göre yön göstergesi — nötr ton, cezalandırıcı kırmızı kullanılmaz */
+.zkmm-stat-trend {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-weight: 600;
+    font-size: 13px;
+    color: #8a6c40;
+    margin-left: 4px;
+}
+#zkmm-cover-num { font-size: 52px; text-transform: uppercase; }
+
+/* ── Responsive ── */
+@media (max-width: 820px) {
+    .zk-book-spread { width: 90vw; height: 56vw; }
+    .zk-brand-title { font-size: 17px; }
+    .zk-toolbar { gap: 7px; padding: 10px 12px; }
+}
+@media (max-width: 540px) {
+    .zk-toolbar-brand { border-right: none; padding-right: 0; }
+    .zk-brand-title { display: none; }
+    .zk-search-wrapper { flex: 1 1 100%; order: 2; }
+    .zk-reflect-btn { flex: 1 1 100%; justify-content: center; order: 3; }
+    .zk-book-spread { width: 95vw; height: 65vw; }
+    .zkm-datelabel { font-size: 38px; }
+    .zkm-dayname { font-size: 20px; }
+}
+
+/* ZK search highlight/dim */
+.zk-book-search-dim { opacity: 0.28 !important; filter: saturate(.4) !important; }

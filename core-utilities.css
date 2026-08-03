@@ -1,0 +1,43 @@
+/* style.css'ten çıkarıldı (Faz C, 2026-07-22). Genel Utilities — form/modal/buton yardımcı sınıfları + smart-insight renk paleti (.si-purple/green/orange/teal/blue). NOT: .si-purple/green/blue ayrıca planning-collab-live-features.css'te de tanımlı (farklı değerlerle) — orijinalde bu blok dosyanın EN BAŞINDAydı, collab dosyası SONRA gelip kazanıyordu; link sırası bunu korumalı (bu dosya collab'tan ÖNCE yüklenmeli). */
+
+
+/* Utilities */
+.nav-hr{border:0;border-top:1px solid var(--glass-border);margin:15px 0}
+.form-group{margin-bottom:16px}
+.form-row{display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.form-col{flex:1;min-width:140px}
+.form-col-sm{flex:1;min-width:120px}
+.w-full{width:100%}
+.form-label{display:block;color:#fff;font-size:14px;font-weight:500;margin-bottom:8px}
+.char-count{text-align:right;font-size:11px;color:var(--text-muted);margin-top:4px}
+.modal-footer-center{justify-content:center;gap:15px}
+.modal-footer-between{justify-content:space-between;align-items:center}
+.btn-md{padding:10px 20px!important;font-size:14px!important}
+.btn-lg{padding:10px 25px!important;font-size:14px!important}
+.si-purple{background:rgba(212,144,14,.15);color:#D4900E}
+.si-green{background:rgba(46,213,115,.15);color:#2ed573}
+.si-orange{background:rgba(255,159,67,.15);color:#ff9f43}
+.si-teal{background:rgba(0,184,148,.15);color:#00b894}
+.si-blue{background:rgba(9,132,227,.15);color:#0984e3}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.modal-body{text-align:left}
+

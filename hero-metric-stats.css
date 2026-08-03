@@ -1,0 +1,69 @@
+.hero-metric {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 28px 20px 22px;
+    border-radius: 18px;
+    gap: 6px;
+    position: relative;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hero-metric:hover {
+    transform: translateY(-3px);
+}
+
+.hero-metric-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    margin-bottom: 8px;
+}
+
+.hero-metric-icon.si-purple { background: rgba(108,92,231,0.15); color: #a29bfe; }
+.hero-metric-icon.si-green  { background: rgba(46,213,115,0.12); color: #2ed573; }
+.hero-metric-icon.si-orange { background: rgba(255,159,67,0.12);  color: #ff9f43; }
+
+.hero-metric-value {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1;
+    letter-spacing: -0.5px;
+}
+
+.hero-metric-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-top: 2px;
+}
+
+.hero-trend {
+    font-size: 11px;
+    margin-top: 2px;
+}
+
+/* Streak hero kartı özel */
+
+
+.hero-streak-dots .streak-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.15);
+}
+.hero-streak-dots .streak-dot.active {
+    background: #ff9f43;
+    border-color: #ff9f43;
+    box-shadow: 0 0 6px rgba(255,159,67,0.6);
+}

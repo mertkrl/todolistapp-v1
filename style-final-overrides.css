@@ -1,0 +1,386 @@
+/* style.css'ten çıkarıldı (Faz C, 2026-07-22). style.css'in EN SON kalan bölümü — Takvim Tam Genişlik/Tek Bar/Aylık Minimalist Gün Hücreleri/Gün Drawer, Haftalık/Günlük Görünüm Tam Yükseklik, Section Tıklama Sorunu Düzeltmeleri, Dock Overflow Düzeltmesi. Tüm kurallar !important kullanıyor (nihai düzeltme katmanı) — git HEAD'de doğrulandı: orijinalde satır 20895-21968 (dosyanın en sonlarında). Link listenin EN SONUNDA olmalı. */
+
+/* ===== TAKVİM TAM GENİŞLİK ===== */
+.calendar-layout-full {
+    display: block !important;
+    grid-template-columns: unset !important;
+}
+.calendar-full-width {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+/* Takvim günlerini daha büyük göster */
+.calendar-full-width .calendar-days {
+    grid-template-columns: repeat(7, 1fr) !important;
+}
+.calendar-full-width #calendar-days .calendar-day {
+    min-height: 100px !important;
+    padding: 8px !important;
+    font-size: 0.85rem !important;
+}
+.calendar-full-width #calendar-days .calendar-day .day-number {
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
+}
+
+/* ===== TAKVİM TEK BAR (CAL UNIFIED BAR) ===== */
+.cal-fullpage-section {
+    flex-direction: column;
+    height: calc(100vh - 60px);
+    padding: 0 !important;
+    gap: 0;
+}
+.cal-fullpage-section > .cal-view-panel,
+.cal-fullpage-section > #cal-view-monthly,
+.cal-fullpage-section > #cal-view-weekly,
+.cal-fullpage-section > #cal-view-daily {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+.cal-unified-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 18px;
+    border-radius: 0 !important;
+    border-bottom: 1px solid var(--glass-border, rgba(255,255,255,0.07));
+    background: var(--glass-bg, rgba(255,255,255,0.03));
+    backdrop-filter: blur(12px);
+    gap: 12px;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 10;
+}
+.cal-bar-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+}
+.cal-bar-center {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+}
+.cal-bar-center .cal-unified-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary, #f0f0f0);
+    margin: 0;
+    white-space: nowrap;
+}
+.cal-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    justify-content: flex-end;
+}
+.cal-bar-divider {
+    width: 1px;
+    height: 20px;
+    background: var(--glass-border, rgba(255,255,255,0.1));
+    margin: 0 4px;
+    flex-shrink: 0;
+}
+
+/* Takvim tam yükseklik */
+.cal-fullpage-section .calendar-layout-full {
+    flex: 1;
+    height: 100%;
+}
+.cal-fullpage-section .calendar-full-width {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    border-radius: 0 !important;
+}
+.cal-fullpage-section .calendar-full-width .calendar-header {
+    display: none; /* artık unified bar'da nav var */
+}
+.cal-fullpage-section .calendar-full-width .calendar-days {
+    flex: 1;
+    overflow-y: auto;
+}
+
+/* Haftalık ve günlük görünümler tam yükseklik */
+.cal-fullpage-section .weekly-cal-wrapper,
+.cal-fullpage-section .daily-cal-wrapper {
+    flex: 1;
+    border-radius: 0 !important;
+    overflow-y: auto;
+}
+.cal-fullpage-section #cal-view-weekly.active,
+.cal-fullpage-section #cal-view-daily.active {
+    display: flex;
+    flex-direction: column;
+}
+.cal-fullpage-section .daily-cal-header {
+    border-radius: 0 !important;
+    flex-shrink: 0;
+}
+
+/* Eski premium-cal-toolbar'ı gizle */
+.cal-fullpage-section .premium-cal-toolbar {
+    display: none !important;
+}
+
+/* ===== TAKVİM AYLIK MİNİMALİST GÜN HÜCRELERİ ===== */
+/* Scroll sorununu düzelt — takvim section'ı kendi içinde scroll etsin */
+.cal-fullpage-section {
+    overflow: hidden !important;
+}
+.cal-fullpage-section > #cal-view-monthly {
+    overflow: hidden !important;
+}
+.cal-fullpage-section .calendar-layout-full {
+    overflow: hidden !important;
+    height: 100% !important;
+}
+.cal-fullpage-section .calendar-full-width {
+    overflow: hidden !important;
+    height: 100% !important;
+}
+.cal-fullpage-section .calendar-full-width .calendar-days {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding: 4px !important;
+    gap: 4px !important;
+}
+
+/* Minimalist gün hücreleri */
+.cal-fullpage-section .cal-day {
+    aspect-ratio: unset !important;
+    min-height: 64px !important;
+    max-height: 80px !important;
+    border-radius: 8px !important;
+    font-size: 0.8rem !important;
+    padding: 6px 7px !important;
+    justify-content: flex-start !important;
+    align-items: flex-start !important;
+    background: rgba(255,255,255,0.02) !important;
+    border: 1px solid transparent !important;
+    transition: background 0.15s, border-color 0.15s !important;
+}
+.cal-fullpage-section .cal-day:hover:not(.empty) {
+    background: rgba(255,255,255,0.06) !important;
+    border-color: rgba(255,255,255,0.08) !important;
+}
+.cal-fullpage-section .cal-day .day-number,
+.cal-fullpage-section .cal-day > .cal-day-num {
+    font-size: 0.78rem !important;
+    font-weight: 600 !important;
+    line-height: 1 !important;
+}
+.cal-fullpage-section .cal-day.today {
+    border-color: var(--primary-color, #D4900E) !important;
+}
+.cal-fullpage-section .cal-day.selected {
+    background: rgba(212,144,14,0.15) !important;
+    border-color: var(--primary-color, #D4900E) !important;
+    box-shadow: none !important;
+}
+/* dots küçük kalsın */
+.cal-fullpage-section .cal-task-bars {
+    gap: 2px !important;
+    margin-top: 4px !important;
+    flex-wrap: wrap !important;
+}
+.cal-fullpage-section .cal-task-dot {
+    width: 5px !important;
+    height: 5px !important;
+    box-shadow: none !important;
+}
+
+/* ===== AYLIK GÜN DRAWER ===== */
+
+/* Monthly panel → row layout (takvim solda, drawer sağda) */
+#cal-view-monthly.active {
+    flex-direction: row !important;
+}
+
+/* Takvim grid wrapper */
+.cal-monthly-main {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Drawer container — başlangıçta genişlik 0, açılınca 300px */
+.cal-day-drawer {
+    width: 0;
+    flex-shrink: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-left: 0px solid var(--glass-border, rgba(255,255,255,0.07));
+    background: var(--glass-bg, rgba(255,255,255,0.03));
+}
+.cal-day-drawer.open {
+    width: 300px;
+    border-left-width: 1px;
+}
+
+/* Drawer header */
+/* Takvim Gün Detay Çekmecesi (.cdd-*) -> calendar-day-drawer.css'e taşındı */
+
+/* ===== HAFTALIK GÖRÜNÜM TAM YÜKSEKLIK ===== */
+.cal-fullpage-section #cal-view-weekly.active {
+    flex: 1 !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+}
+.cal-fullpage-section .weekly-cal-wrapper {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    height: 100% !important;
+    border-radius: 0 !important;
+}
+.cal-fullpage-section .weekly-grid-inner {
+    max-height: none !important;
+    min-height: 100% !important;
+}
+
+/* ===== GÜNLÜK GÖRÜNÜM TAM YÜKSEKLIK ===== */
+.cal-fullpage-section #cal-view-daily.active {
+    flex: 1 !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+}
+.cal-fullpage-section .daily-cal-header,
+#takvim.cal-fullpage-section .daily-cal-header {
+    flex-shrink: 0 !important;
+    border-radius: 0 !important;
+    margin-bottom: 0 !important;
+    border-bottom: none !important;
+    background: var(--s1, #161617) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+.cal-fullpage-section .daily-cal-wrapper,
+#takvim.cal-fullpage-section .daily-cal-wrapper {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    border-radius: 0 !important;
+    border-top: none !important;
+    background: var(--s1, #161617) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+#takvim.cal-fullpage-section .daily-timeline-grid,
+#takvim.cal-fullpage-section .daily-hour-label,
+#takvim.cal-fullpage-section .daily-hour-cell {
+    background: var(--s1, #161617) !important;
+}
+.cal-fullpage-section .daily-timeline-grid {
+    max-height: none !important;
+    min-height: 100% !important;
+}
+
+/* ===== TIKLANAMIYAN SECTION SORUNU ===== */
+/* istatistikler, gunluk, sosyal gibi section'ları overflow:auto yap */
+#istatistikler.page-section.active,
+#gunluk.page-section.active,
+#sosyal.page-section.active {
+    display: block !important;
+    overflow-y: auto !important;
+    height: 100% !important;
+}
+
+/* ===== SECTION TIKLAMA SORUNU DÜZELTMESİ ===== */
+/* Takvim dışındaki tüm active section'lar normal scroll davranışıyla */
+#istatistikler.page-section.active,
+#gunluk.page-section.active,
+#arkadaslar.page-section.active,
+#bugun.page-section.active,
+#hedefler.page-section.active,
+#zihin-coplugu.page-section.active,
+#aliskanliklar.page-section.active,
+#zamanlayici.page-section.active {
+    position: relative !important;
+    z-index: 1 !important;
+}
+/* content-area scroll reset */
+.content-area {
+    overflow-y: auto !important;
+    position: relative !important;
+}
+/* Takvim kendi içinde scroll etsin, content-area'yı bypass etmesin */
+#takvim.page-section.active {
+    overflow: hidden !important;
+    padding: 0 !important;
+}
+
+/* ===== DOCK OVERFLOW / TIKLAMA SORUNU ===== */
+/* Dock'u daha kompakt yap; tüm ikonlar ekrana sığsın */
+.dock {
+    overflow-y: auto !important;
+    scrollbar-width: thin !important;
+    scrollbar-color: rgba(255,255,255,0.15) transparent !important;
+    gap: 1px !important;
+    padding: 8px 0 !important;
+}
+.dock::-webkit-scrollbar {
+    display: block !important;
+    width: 3px !important;
+}
+.dock::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.15);
+    border-radius: 2px;
+}
+.di {
+    width: 38px !important;
+    height: 38px !important;
+    flex-shrink: 0 !important;
+    font-size: 17px !important;
+}
+
+
+/* 'Bugün' Sekmesi Minimalist Tasarım (#bugun.page-section ve alt kuralları) -> bugun-minimalist.css'e taşındı (Faz C, 2026-07-22) */
+
+/* Zihin Kütüphanesi/İstatistikler/Sohbet Tabı/Zamanlayıcı 'aşama' düzeltmeleri -> asama-duzeltmeleri.css'e taşındı (Faz C, 2026-07-22) */
+
+/* Sohbet Sekmesi (#tab-sohbet) sade & minimalist tasarım -> sohbet-tab-minimalist.css'e taşındı (Faz C, 2026-07-22) */
+
+/* Planlama Ana Sayfa Düzeni (#planlama, .pg-section-inner, .pg-header, .pg-stats-bar, .pg-filter-, .pg-smart-, .pg-toolbar-, .pg-planla-, .pg-archive-, .pg-cards-grid, .pg-card, .pg-cat-badge, .pg-status-dot, .pg-ring-, .pg-meta-chip, .pg-act-, .pg-icon-btn, .pg-detail-, .pg-dp-, .pg-dep-) -> planning-main-page-layout.css'e taşındı */
+
+/* Planlama sayfası dönüm noktası/atama/sprint/kapasimetre/haftalık özet bileşenleri (.pg-ms-, .pg-pv-assign-, .pg-sf-, .pg-cap-, .pg-wk-) -> planning-milestone-widgets.css'e taşındı (Faz C, 2026-07-22) */
+
+
+
+
+/* Sohbet sistemi FAZ 1-3 geliştirmeleri (rol rozetleri/duyuru/dosya eki/arama/pinler/analitik/.dc-*, .ds-*) -> sohbet-faz-gelistirmeleri.css'e taşındı (Faz C, 2026-07-22) */
+
+/* Zihin Kütüphanesi rozet/mühür + raf dekor + kitap anatomisi + yazılmamış kitaplar + premium kütüphanelik görselleri -> library-bookshelf-visuals.css'e taşındı (Faz C, 2026-07-22) */
+
+
+/* Gerçekçi Kütüphanelik Redesign -> library-bookshelf.css'e taşındı */
+/* Zihin Kütüphanesi (.zk-, .zkm-) -> zettelkasten-library.css'e taşındı */
+
+/* Sohbet Sekmesi Design Component yeniden tasarımı (#tab-sohbet, v2 amber tasarım) -> sohbet-tab-design-v2.css'e taşındı (Faz C, 2026-07-22) */
+
+/* 'Bugün' Sekmesi Yeni Tasarım v2 (#bugun, .td-*, .tsf-canvas) -> bugun-tasarim-v2.css'e taşındı (Faz C, 2026-07-22) */
+
+
+/* Hızlı Oluşturma Modalı Ana Panel (.pg-qc-) -> planning-quick-create.css'e taşındı */
+
+/* Ders Planı Sihirbazı (.pg-wz-*) + Ders Planı Görünümü/Takvimi/Çakışma (.pg-pv-*, .cdm-*) -> planning-wizard-lesson-plan.css'e taşındı (Faz C, 2026-07-22) */
+
+/* Birleşik Plan Görünümü (#pg-plan-view, .pg-pv-*) + Milestone Wizard sohbet akışı (.pvwiz-*) -> planning-plan-view-milestone-wizard.css'e taşındı (Faz C, 2026-07-22) */
+
+/* Collab Live Features (Peer Cursor Overlay .pg-pv-peer-cursor + Smart Insights .si-*) -> planning-collab-live-features.css'e taşındı (Faz C, 2026-07-22) */
+
+/* Sohbet Sol Paneli minimalist görünüm + Ana Sayfa Sosyal İstatistikleri (#dc-home-view, .dhs-*) -> sohbet-sol-panel-final.css'e taşındı (Faz C, 2026-07-22). ÖNEMLİ: diğer #tab-sohbet dosyalarını EZER, link sırası SONRA olmalı. */

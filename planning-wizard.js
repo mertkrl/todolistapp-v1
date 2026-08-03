@@ -1,3 +1,4 @@
+import { fmtDate, getCat } from './planning-utils.js';
 // ─── MİLESTONE WİZARD (Hedef Detay Paneli içi) ─────────────────────
 // planning.js dosyasından çıkarıldı (Faz 6): Hedef Detay Panelinin
 // (PlanView) 5 adımlı sohbet-tarzı aşama sihirbazı — welcome/count/
@@ -42,26 +43,25 @@
     }
 
     window._pvRenderWizard = _pvRenderWizard; // planning.js için
-    function _pvRenderWizard(g, container) {
-        // Always prefer live goal from window._pgGetGoals() array to avoid stale closure issues
-        const _liveG = () => window._pgGetGoals().find(x => x.id === window.__getPvGoalId()) || g;
-        const cat    = window.getCat(g.category);
-        const quotes = window.PV_MOTIVATION[g.category] || window.PV_MOTIVATION.diger;
-        const quote  = quotes[Math.floor(Date.now() / 86400000) % quotes.length];
-
-        // ── Welcome ─────────────────────────────
-        if (window.__getPvWiz().step === 'welcome') {
+    // _pvRenderWizard'ın 'welcome' adımı — Faz S devamı, dev fonksiyon refactoru.
+    function _pvRenderWizardWelcome(g, container, cat, quote, _liveG) {
             container.innerHTML = `
             <div class="pvwiz-welcome">
-                <div class="pvwiz-welcome-glow" style="background:${cat.color};"></div>
-                <div class="pvwiz-welcome-icon" style="color:${cat.color};">${cat.icon}</div>
+                <div class="pvwiz-welcome-glow"></div>
+                <div class="pvwiz-welcome-icon">${cat.icon}</div>
                 <div class="pvwiz-welcome-goal">${window.esc(g.title)}</div>
                 <div class="pvwiz-welcome-quote">"${window.esc(quote)}"</div>
                 <div class="pvwiz-welcome-hint">Hedefine giden yolu birlikte çizelim</div>
-                <button class="pvwiz-start-btn" id="pvwiz-start" style="--wiz-color:${cat.color};">
+                <button class="pvwiz-start-btn" id="pvwiz-start">
                     <i class="ti ti-rocket"></i> Planlamaya Başla
                 </button>
             </div>`;
+            const _glowEl = container.querySelector('.pvwiz-welcome-glow');
+            if (_glowEl) _glowEl.style.background = cat.color;
+            const _iconEl = container.querySelector('.pvwiz-welcome-icon');
+            if (_iconEl) _iconEl.style.color = cat.color;
+            const _startBtn = container.querySelector('#pvwiz-start');
+            if (_startBtn) _startBtn.style.setProperty('--wiz-color', cat.color);
             document.getElementById('pvwiz-start')?.addEventListener('click', () => {
                 if (!window.__getPvWiz()) window.__setPvWiz({ step: 'welcome' });
                 window.__getPvWiz().step = 'count';
@@ -71,14 +71,10 @@
                 window._pvRenderMainCal(_g);
             });
             return;
-        }
+    }
 
-        // Chat container
-        container.innerHTML = `<div class="pvwiz-chat" id="pvwiz-chat"></div>`;
-        const chat = container.querySelector('#pvwiz-chat');
-
-        // ── Count ────────────────────────────────
-        if (window.__getPvWiz().step === 'count') {
+    // _pvRenderWizard'ın 'count' adımı — Faz S devamı, dev fonksiyon refactoru.
+    function _pvRenderWizardCount(chat, _liveG) {
             _pvWizAddBubble(chat, '👋', 'Merhaba! Hedefinizi kaç aşamaya bölmek istersiniz?', 0, () => {
                 const row = document.createElement('div');
                 row.className = 'pvwiz-count-cards';
@@ -107,10 +103,10 @@
                 });
             });
             return;
-        }
+    }
 
-        // ── Names — card navigator ───────────────
-        if (window.__getPvWiz().step === 'names') {
+    // _pvRenderWizard'ın 'names' adımı — Faz S devamı, dev fonksiyon refactoru.
+    function _pvRenderWizardNames(chat, cat, _liveG) {
             const idx   = window.__getPvWiz().nameIdx || 0;
             const count = window.__getPvWiz().count;
 
@@ -129,21 +125,25 @@
                             value="${window.esc(window.__getPvWiz().names[idx] || '')}">
                         <div class="pvwiz-name-card-nav">
                             <button class="pvwiz-nav-btn pvwiz-nav-back" id="pvwiz-back"
-                                ${idx === 0 ? 'disabled' : ''} style="--wiz-color:${cat.color};">
+                                ${idx === 0 ? 'disabled' : ''}>
                                 <i class="ti ti-arrow-left"></i> Geri
                             </button>
                             <div class="pvwiz-name-progress" id="pvwiz-dots">
                                 ${Array(count).fill(0).map((_,i) =>
-                                    `<div class="pvwiz-name-dot${i < idx ? ' done' : i === idx ? ' active' : ''}"
-                                        style="${i <= idx ? `--wiz-color:${cat.color}` : ''}"></div>`
+                                    `<div class="pvwiz-name-dot${i < idx ? ' done' : i === idx ? ' active' : ''}" data-dot-i="${i}"></div>`
                                 ).join('')}
                             </div>
-                            <button class="pvwiz-nav-btn pvwiz-nav-fwd" id="pvwiz-fwd"
-                                style="--wiz-color:${cat.color};">
+                            <button class="pvwiz-nav-btn pvwiz-nav-fwd" id="pvwiz-fwd">
                                 ${idx < count - 1 ? 'İleri <i class="ti ti-arrow-right"></i>' : 'Tarihler <i class="ti ti-calendar"></i>'}
                             </button>
                         </div>`;
                     chat.appendChild(card);
+                    card.querySelector('#pvwiz-back')?.style.setProperty('--wiz-color', cat.color);
+                    card.querySelector('#pvwiz-fwd')?.style.setProperty('--wiz-color', cat.color);
+                    card.querySelectorAll('.pvwiz-name-dot').forEach(dot => {
+                        const i = parseInt(dot.dataset.dotI, 10);
+                        if (i <= idx) dot.style.setProperty('--wiz-color', cat.color);
+                    });
                     setTimeout(() => card.classList.add('visible'), 30);
 
                     const inp  = card.querySelector('#pvwiz-name-inp');
@@ -225,10 +225,10 @@
                     });
                 });
             return;
-        }
+    }
 
-        // ── Dates ────────────────────────────────
-        if (window.__getPvWiz().step === 'dates') {
+    // _pvRenderWizard'ın 'dates' adımı — Faz S devamı, dev fonksiyon refactoru.
+    function _pvRenderWizardDates(g, chat) {
             const g2     = window._pgGetGoals().find(x => x.id === window.__getPvGoalId()) || g;
             const msList  = g2.milestones || [];
             const total   = msList.length;
@@ -240,7 +240,7 @@
                 _pvWizAddBubble(chat, '🤖', i === 0
                     ? `Süper! Şimdi her aşamanın bitiş tarihini takvimden seçin 👇\n"${window.esc(m.title)}" ne zaman bitmeli?`
                     : `"${window.esc(m.title)}" ne zaman bitmeli?`, i * 50, null, false);
-                _pvWizAddUserBubble(chat, `📅 ${window.fmtDate(m.due_date)}`, i * 50 + 25);
+                _pvWizAddUserBubble(chat, `📅 ${fmtDate(m.due_date)}`, i * 50 + 25);
             });
 
             if (idx >= askUpto) {
@@ -263,12 +263,29 @@
                     const hint = document.createElement('div');
                     hint.className = 'pvwiz-cal-hint';
                     hint.innerHTML = `<i class="ti ti-hand-click"></i> Takvimde bir güne tıklayın
-                        ${minDate ? `<span class="pvwiz-min-hint">(${window.fmtDate(minDate)} ve sonrası)</span>` : ''}`;
+                        ${minDate ? `<span class="pvwiz-min-hint">(${fmtDate(minDate)} ve sonrası)</span>` : ''}`;
                     chat.appendChild(hint);
                     setTimeout(() => hint.classList.add('visible'), 30);
                 });
             return;
-        }
+    }
+
+    function _pvRenderWizard(g, container) {
+        // Always prefer live goal from window._pgGetGoals() array to avoid stale closure issues
+        const _liveG = () => window._pgGetGoals().find(x => x.id === window.__getPvGoalId()) || g;
+        const cat    = getCat(g.category);
+        const quotes = window.PV_MOTIVATION[g.category] || window.PV_MOTIVATION.diger;
+        const quote  = quotes[Math.floor(Date.now() / 86400000) % quotes.length];
+
+        if (window.__getPvWiz().step === 'welcome') return _pvRenderWizardWelcome(g, container, cat, quote, _liveG);
+
+        // Chat container
+        container.innerHTML = `<div class="pvwiz-chat" id="pvwiz-chat"></div>`;
+        const chat = container.querySelector('#pvwiz-chat');
+
+        if (window.__getPvWiz().step === 'count') return _pvRenderWizardCount(chat, _liveG);
+        if (window.__getPvWiz().step === 'names') return _pvRenderWizardNames(chat, cat, _liveG);
+        if (window.__getPvWiz().step === 'dates') return _pvRenderWizardDates(g, chat);
 
         if (window.__getPvWiz().step === 'summary') {
             window._pvRenderPlanSummary(g, container);

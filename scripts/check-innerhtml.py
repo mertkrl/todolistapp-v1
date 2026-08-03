@@ -215,6 +215,25 @@ def scan_templates_in_span(src, start, end, escaped_vars, findings):
         k += 1
 
 
+# .innerHTML/.outerHTML atamaları VE .insertAdjacentHTML(...) çağrılarının
+# ikinci argümanı — üçü de aynı XSS sınıfına giriyor, üçü de taranmalı.
+ASSIGNMENT_PROPS = ('.innerHTML', '.outerHTML')
+
+
+def scan_assignment_target(src, k, n, escaped_vars, findings):
+    """k, '=' işaretinden hemen sonraki ifadenin başlangıcı. Backtick template
+    veya .map(...) zincirini tarar. Bir sonraki tarama pozisyonunu döndürür."""
+    if k < n and src[k] == '`':
+        return process_template(src, k, escaped_vars, findings)
+    m = MAP_CHAIN_RE.match(src, k)
+    if m:
+        paren_open = m.end() - 1
+        map_end = skip_parens(src, paren_open)
+        scan_templates_in_span(src, m.end(), map_end - 1, escaped_vars, findings)
+        return map_end
+    return None
+
+
 def scan_file(path: Path):
     src = path.read_text(encoding='utf-8', errors='replace')
     escaped_vars = {m.group(1) for m in ASSIGN_ESCAPED_RE.finditer(src)}
@@ -227,74 +246,101 @@ def scan_file(path: Path):
         if c != '.':
             i += 1
             continue
-        if not src.startswith('.innerHTML', i):
-            i += 1
-            continue
-        j = i + len('.innerHTML')
-        # skip whitespace, optional '+', '='
-        k = j
-        while k < n and src[k] in ' \t':
+
+        prop = next((p for p in ASSIGNMENT_PROPS if src.startswith(p, i)), None)
+        if prop:
+            j = i + len(prop)
+            # skip whitespace, optional '+', '='
+            k = j
+            while k < n and src[k] in ' \t':
+                k += 1
+            if k < n and src[k] == '+':
+                k += 1
+            while k < n and src[k] in ' \t':
+                k += 1
+            if k >= n or src[k] != '=':
+                i = j
+                continue
             k += 1
-        if k < n and src[k] == '+':
-            k += 1
-        while k < n and src[k] in ' \t':
-            k += 1
-        if k >= n or src[k] != '=':
+            while k < n and src[k] in ' \t\n':
+                k += 1
+
+            nxt = scan_assignment_target(src, k, n, escaped_vars, findings)
+            if nxt is not None:
+                i = nxt
+                continue
             i = j
             continue
-        k += 1
-        while k < n and src[k] in ' \t\n':
+
+        if src.startswith('.insertAdjacentHTML', i):
+            j = i + len('.insertAdjacentHTML')
+            k = j
+            while k < n and src[k] in ' \t\n':
+                k += 1
+            if k >= n or src[k] != '(':
+                i = j
+                continue
             k += 1
+            # ilk argümanı (konum: 'beforeend' vb.) atla, virgüle kadar (derinlik 0)
+            depth = 0
+            while k < n:
+                ch = src[k]
+                if ch in ("'", '"'):
+                    k = skip_string(src, k, ch)
+                    continue
+                if ch == '`':
+                    k = skip_template(src, k)
+                    continue
+                if ch in '([{':
+                    depth += 1
+                    k += 1
+                    continue
+                if ch in ')]}':
+                    if depth == 0:
+                        break
+                    depth -= 1
+                    k += 1
+                    continue
+                if ch == ',' and depth == 0:
+                    k += 1
+                    break
+                k += 1
+            while k < n and src[k] in ' \t\n':
+                k += 1
 
-        if k < n and src[k] == '`':
-            i = process_template(src, k, escaped_vars, findings)
+            nxt = scan_assignment_target(src, k, n, escaped_vars, findings)
+            if nxt is not None:
+                i = nxt
+                continue
+            i = j
             continue
 
-        m = MAP_CHAIN_RE.match(src, k)
-        if m:
-            # m sonu, .map( çağrısının '(' karakterinden hemen sonrası
-            paren_open = m.end() - 1
-            map_end = skip_parens(src, paren_open)
-            scan_templates_in_span(src, m.end(), map_end - 1, escaped_vars, findings)
-            i = map_end
-            continue
-
-        i = j
+        i += 1
 
     return findings
 
 
+# Taramaya dahil edilmeyen dizinler: bağımlılıklar, build çıktısı, git içi.
+EXCLUDED_DIRS = {'node_modules', 'dist', '.git', '.vite'}
+
+
+def discover_files(base: Path):
+    """Repo kökündeki tüm .js dosyaları + index.html — sabit bir listeye değil,
+    dosya sistemine dayanır; yeni eklenen dosyalar otomatik kapsama girer."""
+    found = []
+    for p in sorted(base.rglob('*.js')):
+        if any(part in EXCLUDED_DIRS for part in p.relative_to(base).parts):
+            continue
+        found.append(p.relative_to(base).as_posix())
+    index_html = base / 'index.html'
+    if index_html.exists():
+        found.append('index.html')
+    return found
+
+
 def main():
-    files = sys.argv[1:] or [
-        'script.js', 'script-ambient-sounds.js', 'script-undo-toast.js', 'script-nlp.js',
-        'script-system-settings.js', 'script-profile-edit.js', 'script-settings-steppers.js',
-        'planning-wizard-info-tooltip.js', 'planning-ghost-toast.js',
-        'planning.js', 'social.js', 'social-toast.js', 'social-e2e.js', 'social-productivity-share.js', 'collab.js', 'auth-ui.js',
-        'social-roles.js', 'social-gamification.js', 'social-chat-extras.js', 'social-polls.js',
-        'social-notif-sounds.js', 'social-buddy-habits.js', 'social-online-friends.js',
-        'social-activity-feed.js', 'social-daily-race.js', 'social-online-people-popover.js',
-        'social-assignments-badge.js', 'social-focus-hush.js', 'social-unread-divider.js',
-        'social-chat-search.js',
-        'social-chat-clear.js',
-        'social-sidebar-profile.js',
-        'script-journal-library.js', 'script-command-palette.js',
-        'script-mind-dump-drawer.js', 'script-onboarding-tour.js',
-        'script-calendar-dragdrop.js', 'script-calendar-hover-popup.js', 'script-timer-flame.js',
-        'script-day-summary-card.js', 'script-milestone-auto-splitter.js',
-        'script-goal-archiver.js', 'script-goal-deadline-extend.js',
-        'script-task-end-question.js', 'script-milestone-goal-actions.js',
-        'storage-manager.js', 'auth-ui.js', 'state-store.js',
-        'inline-error-net.js', 'inline-tab-restore-early.js', 'inline-tab-restore-dom.js',
-        'inline-module-loader.js', 'inline-dock-topbar-init.js', 'inline-sw-register.js',
-        'inline-button-failsafe.js', 'inline-goal-modal-globals.js', 'inline-a11y-patch.js',
-        'inline-onclick-migration.js',
-        'social-emoji-picker.js', 'social-group-focus-render.js',
-        'social-focus-quote-rotation.js', 'social-group-focus-idle.js',
-        'social-message-pins.js', 'social-group-focus-break-chat.js', 'social-group-focus-leave.js', 'social-group-focus-task-selector.js', 'social-chat-list-actions.js', 'social-block-users.js', 'social-chat-local-delete.js', 'social-focus-reminders.js',
-        'script-date-time-utils.js', 'script-calendar-date-utils.js', 'planning-utils.js', 'planning-quick-create.js', 'planning-collab-wait.js', 'planning-lesson-plan-invites.js', 'planning-dependency-graph.js', 'planning-lesson-plan-modal.js', 'planning-realtime.js', 'planning-milestone-wizard.js',
-        'script-confetti.js', 'script-time-picker.js', 'script-misc-widgets.js', 'script-timer.js', 'script-mind-dump.js', 'script-goal-modal.js', 'script-habit-edit-modal.js',
-    ]
     base = Path.cwd()
+    files = sys.argv[1:] or discover_files(base)
     total = 0
     for f in files:
         p = base / f

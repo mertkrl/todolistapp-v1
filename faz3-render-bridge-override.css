@@ -1,0 +1,314 @@
+/* style.css'ten çıkarıldı (Faz C, 2026-07-22). FAZ 3 — Render Fonksiyonları → Yeni Tasarım Bridge CSS. Mevcut class adlarını (goal-card, dump-item, task-item, habit-item, stat-card vb.) yeni design token'larıyla override eden bir KATMAN — git HEAD'de doğrulandı: orijinalde satır 17203'te, TÜM temel stillerden SONRA geliyordu. ÖNEMLİ: bu dosyanın linki index.html'deki TÜM diğer CSS dosyalarından SONRA (listenin en sonunda) kalmalı, aksi halde override çalışmaz. */
+
+/* ============================================================
+   FAZ 3 — Render Fonksiyonları → Yeni Tasarım Bridge CSS
+   Mevcut class adları (goal-card, dump-item, task-item, vb.)
+   yeni design token'larıyla yeniden stillendirildi.
+   JS fonksiyonlarına dokunulmadı.
+   ============================================================ */
+
+/* ── Body font Inter'e geçiş ── */
+body { font-family: 'Inter', sans-serif; }
+
+/* ── Section Header ── */
+.section-header {
+    align-items: flex-start !important;
+    margin-bottom: 20px !important;
+}
+.section-header .header-text h1,
+.section-header h1 {
+    font-size: 22px !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.5px !important;
+    font-family: 'Inter', sans-serif !important;
+    color: var(--t1) !important;
+}
+.section-header .header-text p,
+.section-header > p {
+    font-size: 13px !important;
+    color: var(--t2) !important;
+    margin-top: 3px !important;
+    font-family: 'Inter', sans-serif !important;
+}
+
+
+/* ── Primary Button → Amber ── */
+.primary-btn {
+    background: var(--a) !important;
+    color: #000 !important;
+    border: none !important;
+    border-radius: 8px !important;
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 600 !important;
+    box-shadow: none !important;
+}
+.primary-btn:hover {
+    filter: brightness(1.08) !important;
+    box-shadow: 0 0 20px rgba(212,144,14,.3) !important;
+    transform: none !important;
+}
+
+/* ── Goal Cards ── */
+/* NOT (2026-07-18): buradaki .goal-card / .goal-card:hover tanımları da dosyada
+   daha sonra gelen (satır ~19863 civarı) tanımla tamamen eziliyordu, ölü kod
+   olarak kaldırıldı. ::before burada kalıyor çünkü tek geçerli tanım bu. */
+.goal-card::before { display: none !important; }
+
+
+
+.goal-badge.urgency-safe { background: var(--g10) !important; color: var(--g) !important; border-color: var(--g) !important; }
+.goal-badge.urgency-warning { background: rgba(251,191,36,.1) !important; color: #fbbf24 !important; border-color: rgba(251,191,36,.3) !important; }
+.goal-badge.urgency-danger { background: var(--re10) !important; color: var(--re) !important; border-color: var(--re) !important; }
+
+
+
+
+
+/* ── Goals Container ── */
+#goals-container { display: flex !important; flex-direction: column !important; gap: 10px !important; }
+#goals-container > * { flex-shrink: 0 !important; }
+
+/* ── Task Items ── */
+.task-item {
+    background: var(--s1) !important;
+    border: 1px solid var(--b1) !important;
+    border-left: 4px solid transparent !important;
+    border-radius: 10px !important;
+    margin-bottom: 6px !important;
+    transition: border-color .15s !important;
+}
+.task-item:hover {
+    background: var(--s2) !important;
+    transform: none !important;
+}
+.task-item.completed { opacity: 0.6; }
+.task-item .task-text { font-family: 'Inter', sans-serif !important; font-size: 13px !important; color: var(--t1) !important; }
+.task-item.completed .task-text { color: var(--t2) !important; }
+.task-checkbox {
+    width: 17px !important;
+    height: 17px !important;
+    border-radius: 5px !important;
+    border: 1.5px solid var(--b2) !important;
+    background: transparent !important;
+}
+.task-item.completed .task-checkbox {
+    background: var(--g) !important;
+    border-color: var(--g) !important;
+}
+.task-category-tag {
+    background: var(--s2) !important;
+    border: 1px solid var(--b1) !important;
+    border-radius: 5px !important;
+    font-size: 10px !important;
+    color: var(--t2) !important;
+    font-family: 'Inter', sans-serif !important;
+}
+.task-list-wrapper { display: flex; flex-direction: column; }
+
+/* ── Dump Items (Zihin Çöplüğü) ── */
+.dump-item {
+    background: var(--s1) !important;
+    border: 1px solid var(--b1) !important;
+    border-left: 3px solid var(--pu) !important;
+    border-radius: var(--r) !important;
+    padding: 14px 16px !important;
+    transition: border-color .15s !important;
+    margin-bottom: 8px !important;
+}
+.dump-item:hover {
+    background: var(--s1) !important;
+    border-color: var(--b2) !important;
+    border-left-color: var(--a) !important;
+    transform: none !important;
+}
+.dump-title { font-size: 13px !important; color: var(--t1) !important; font-family: 'Inter', sans-serif !important; }
+.dump-date { font-size: 11px !important; color: var(--t3) !important; font-family: 'Inter', sans-serif !important; }
+.dump-actions button {
+    background: var(--s2) !important;
+    border: 1px solid var(--b1) !important;
+    border-radius: 7px !important;
+    color: var(--t2) !important;
+    font-size: 12px !important;
+    transition: all .15s !important;
+}
+
+.dump-actions .delete-btn:hover { background: var(--re10) !important; border-color: var(--re) !important; color: var(--re) !important; }
+
+/* ── Habit Items ── */
+.habit-item {
+    background: var(--s1) !important;
+    border: 1px solid var(--b1) !important;
+    border-radius: 12px !important;
+    transition: border-color .15s !important;
+    margin-bottom: 8px !important;
+    flex-shrink: 0 !important;
+}
+.habit-item:hover {
+    background: var(--s1) !important;
+    border-color: var(--b2) !important;
+}
+.habit-name { font-size: 14px !important; font-weight: 500 !important; color: var(--t1) !important; font-family: 'Inter', sans-serif !important; }
+.habit-streak { font-size: 11px !important; color: var(--t2) !important; }
+.habit-category-tag {
+    background: var(--a10) !important;
+    color: var(--a) !important;
+    border: 1px solid var(--a20) !important;
+    border-radius: 5px !important;
+    font-size: 10px !important;
+    font-family: 'Inter', sans-serif !important;
+}
+.habit-icon-wrapper {
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 10px !important;
+    background: var(--s2) !important;
+    border: 1px solid var(--b1) !important;
+    color: var(--a) !important;
+}
+.habit-progress-container { background: var(--s2) !important; border-radius: 100px !important; height: 4px !important; }
+.habit-progress-fill { background: var(--a) !important; border-radius: 100px !important; }
+.habit-progress-text { font-size: 11px !important; color: var(--t2) !important; font-family: 'Inter', sans-serif !important; }
+.complete-today-btn {
+    background: var(--s2) !important;
+    border: 1px solid var(--b1) !important;
+    color: var(--t2) !important;
+    border-radius: 8px !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    transition: all .2s !important;
+}
+.complete-today-btn:hover { background: var(--a10) !important; border-color: var(--a) !important; color: var(--a) !important; }
+.complete-today-btn.done { background: var(--g10) !important; border-color: var(--g) !important; color: var(--g) !important; }
+.tracker-dot {
+    background: var(--s2) !important;
+    border: 1px solid var(--b1) !important;
+    border-radius: 5px !important;
+    color: var(--t3) !important;
+    font-size: 9px !important;
+}
+.tracker-dot.completed { background: var(--a) !important; border-color: var(--a) !important; color: #000 !important; }
+.tracker-dot.locked { opacity: .4 !important; }
+
+/* ── Journal (Günlük) ── */
+
+
+
+/* ── Statistics Section ── */
+.stat-card {
+    background: var(--s1) !important;
+    border: 1px solid var(--b1) !important;
+    border-radius: var(--r) !important;
+    backdrop-filter: none !important;
+}
+.stat-value {
+    font-family: 'Inter', sans-serif !important;
+    color: var(--t1) !important;
+}
+
+
+/* ── Grup Erişim Türü — minimalist toggle ── */
+.group-privacy-toggle {
+    display: flex;
+    gap: 8px;
+}
+.group-privacy-opt {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 9px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(0,0,0,0.2);
+    color: var(--text-muted);
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.group-privacy-opt:hover { color: #fff; }
+.group-privacy-opt.active {
+    background: rgba(212,144,14,0.15);
+    border-color: rgba(212,144,14,0.5);
+    color: #D4900E;
+}
+.group-privacy-opt:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* ── Input & Form Elements ── */
+.premium-input, .modern-select {
+    background: var(--s2) !important;
+    border: 1px solid var(--b1) !important;
+    border-radius: 8px !important;
+    color: var(--t1) !important;
+    font-family: 'Inter', sans-serif !important;
+}
+.premium-input:focus, .modern-select:focus {
+    border-color: rgba(212,144,14,.4) !important;
+    outline: none !important;
+}
+.premium-input::placeholder { color: var(--t3) !important; }
+
+/* ── Task Creation Panel ── */
+
+
+/* ── Icon Buttons ── */
+.icon-btn {
+    background: var(--s2) !important;
+    border: 1px solid var(--b1) !important;
+    border-radius: 7px !important;
+    color: var(--t2) !important;
+    transition: all .15s !important;
+}
+.icon-btn:hover { background: var(--s3) !important; color: var(--t1) !important; }
+.icon-btn.delete-icon-btn:hover { background: var(--re10) !important; color: var(--re) !important; border-color: var(--re) !important; }
+
+/* ── Empty State ── */
+.empty-state {
+    color: var(--t3) !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 14px !important;
+    text-align: center !important;
+    padding: 40px 20px !important;
+    background: var(--s1) !important;
+    border: 1px dashed var(--b2) !important;
+    border-radius: var(--r) !important;
+}
+
+/* ── Summary Cards (Bugün) ── */
+
+
+
+.summary-card .number { color: var(--t1) !important; font-family: 'Inter', sans-serif !important; }
+
+/* ── Daily Highlight ── */
+
+
+/* ── Goal/Social Tabs ── */
+
+.social-tab-btn {
+    background: transparent !important;
+    color: var(--t2) !important;
+    border-radius: 7px !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 12px !important;
+    border: none !important;
+    transition: all .2s !important;
+}
+.social-tab-btn.active, .goal-tab-btn.active {
+    background: var(--s1) !important;
+    color: var(--t1) !important;
+    box-shadow: 0 1px 4px rgba(0,0,0,.3) !important;
+}
+
+/* ── Habit Filter Tags ── */
+
+.habit-filter-btn.active, .category-filter-btn.active {
+    background: var(--a10) !important;
+    border-color: var(--a) !important;
+    color: var(--a) !important;
+}

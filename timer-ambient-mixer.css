@@ -1,0 +1,294 @@
+.ambient-panel {
+    margin-top: 35px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 16px;
+    padding: 20px 30px;
+    width: 100%;
+    max-width: 450px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    border: 1px solid var(--glass-border);
+    transition: all 0.5s ease;
+}
+
+
+
+.ambient-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+
+
+/* Başlıktaki ikon butonları (mikser / küçült) */
+
+
+
+
+.ambient-mixer-count {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 3px;
+    border-radius: 8px;
+    background: var(--primary-color);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.ambient-mixer-count.hidden {
+    display: none;
+}
+
+/* ── Kart çevirme (flip) animasyonu ── */
+
+
+.ambient-flip-inner {
+    transition: transform 0.6s ease;
+    transform-style: preserve-3d;
+}
+
+.ambient-flip-inner.ambient-spin {
+    transform: rotateY(360deg);
+}
+
+.ambient-flip-front,
+.ambient-flip-back {
+    display: none;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.ambient-flip-front.ambient-face-visible,
+.ambient-flip-back.ambient-face-visible {
+    display: flex;
+}
+
+/* ── Ön yüz: minimal hızlı ses seçimi ── */
+
+
+.quick-sound-btn {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: var(--text-muted);
+    font-size: 19px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.quick-sound-btn:hover {
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    transform: translateY(-2px);
+}
+
+.quick-sound-btn.active {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: #fff;
+    box-shadow: 0 0 18px rgba(212,144,14,0.55);
+}
+
+/* ── Ön yüz: ana ses seviyesi / sessize alma ── */
+.ambient-master-volume {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.ambient-master-volume .premium-range {
+    flex: 1;
+}
+
+.ambient-master-volume .ambient-mixer-pct {
+    min-width: 38px;
+}
+
+/* ── Ses kartları (grid) ── */
+
+
+.sound-card {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: var(--text-muted);
+    font-size: 14px;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.sound-card:hover {
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+    transform: translateY(-2px);
+}
+
+.sound-card.active {
+    background: linear-gradient(135deg, rgba(212,144,14,0.25), rgba(212,144,14,0.08));
+    border-color: var(--primary-color);
+    color: #fff;
+    box-shadow: 0 4px 18px rgba(212,144,14,0.25);
+}
+
+
+
+.sound-card.active .sound-card-icon {
+    background: var(--primary-color);
+    color: #fff;
+}
+
+
+
+.sound-card.active .sound-card-pulse {
+    opacity: 1;
+    animation: ambientPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes ambientPulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.6); opacity: 0.4; }
+}
+
+/* ── Ön yüz alt satırı ── */
+
+
+#ambient-stop-all {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 20px;
+    background: rgba(255,71,87,0.08);
+    border: 1px solid rgba(255,71,87,0.25);
+    color: #ff6b81;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+#ambient-stop-all:hover {
+    background: rgba(255,71,87,0.18);
+}
+
+.ambient-mixer-empty {
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-muted);
+    padding: 18px 10px;
+    border: 1px dashed rgba(255,255,255,0.1);
+    border-radius: 12px;
+}
+
+/* ── ODAK SESLERİ MİKSER SATIRLARI ── */
+.ambient-mixer-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.ambient-mixer-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-muted);
+    font-size: 13px;
+    animation: ambientRowIn 0.25s ease;
+}
+
+.ambient-mixer-row i {
+    width: 16px;
+    text-align: center;
+    color: var(--primary-color);
+}
+
+.ambient-mixer-row .premium-range {
+    flex: 1;
+}
+
+.ambient-mixer-pct {
+    min-width: 36px;
+    text-align: right;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+@keyframes ambientRowIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Mikser satırındaki canlı eşitleyici çubukları */
+.ambient-mixer-eq {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    width: 16px;
+    height: 14px;
+    flex-shrink: 0;
+}
+
+.ambient-mixer-eq span {
+    flex: 1;
+    background: var(--primary-color);
+    border-radius: 1px;
+    height: 20%;
+    transition: height 0.1s ease;
+}
+
+/* "Sadece Ses" anahtarı */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Otomatik oynatma engellendiğinde gösterilen ipucu */
+.ambient-audio-hint {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    background: rgba(255, 184, 0, 0.12);
+    border: 1px solid rgba(255, 184, 0, 0.3);
+    color: #ffb800;
+    font-size: 13px;
+    cursor: pointer;
+    animation: ambientRowIn 0.25s ease;
+}
+
+.ambient-audio-hint.hidden {
+    display: none;
+}

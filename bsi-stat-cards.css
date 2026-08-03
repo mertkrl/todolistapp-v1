@@ -1,0 +1,72 @@
+/* Stat ikon renkleri */
+.bsi-icon { font-size: 16px; margin-bottom: 4px; }
+.bsi-icon--tasks     { color: #D4900E; }
+.bsi-icon--focus     { color: #ff9f43; }
+.bsi-icon--habits    { color: #2ed573; }
+.bsi-icon--highlight { color: #feca57; }
+
+/* Değer sarmalayıcı */
+.bsi-value-wrap {
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+.bsi-value {
+    display: block;
+    font-size: 15px;
+    font-weight: 600;
+}
+.bsi-value--clamp {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: 12px;
+    line-height: 1.3;
+    max-height: 38px;
+    word-break: break-word;
+    text-align: center;
+}
+/* Alışkanlık badge sarmalayıcı */
+.bsi-habits-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    justify-content: center;
+    align-items: center;
+    font-size: 11px;
+    font-weight: 500;
+    height: 38px;
+    max-height: 38px;
+    overflow-y: auto;
+}
+.bsi-min0 { min-width: 0; }
+
+/* Boş durum — zarif em dash */
+.bsi-value.is-empty,
+.bsi-value--clamp.is-empty {
+    color: rgba(139,107,63,0.35);
+    font-size: 18px;
+    font-weight: 300;
+}
+.bsi-label {
+    color: var(--text-muted);
+    font-size: 11px;
+}
+/* Habit badge sınıfları */
+.bsi-habit-badge {
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    background: rgba(255,255,255,0.05);
+}
+.bsi-habit-badge.done {
+    color: #2ed573;
+    border: 1px solid rgba(46,213,115,0.3);
+}
+.bsi-habit-badge.missed {
+    color: #ff4757;
+    border: 1px solid rgba(255,71,87,0.3);
+}

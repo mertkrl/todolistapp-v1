@@ -96,7 +96,7 @@ function _wzShowInfoTip(btn) {
     requestAnimationFrame(() => tip.classList.add('show'));
 }
 
-function _wzBindInfoBtns() {
+export function _wzBindInfoBtns() {
     document.querySelectorAll('.pg-wz-info-btn').forEach(btn => {
         if (btn._infoBound) return;
         btn._infoBound = true;

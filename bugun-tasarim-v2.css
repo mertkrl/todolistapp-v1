@@ -1,0 +1,730 @@
+/* style.css'ten çıkarıldı (Faz C, 2026-07-22). 'Bugün' Sekmesi Yeni Tasarım (v2) — header, günün hedefi kartı, stat kartları, gün serisi alev simülasyonu (.tsf-*), görev timeline'ı, görev ekleme formu. Seçiciler: #bugun, .td-*, .tsf-canvas. */
+
+/* ══════════════════════════════════════════════════════════
+   BUGÜN SEKMESİ — YENİ TASARIM (v2)
+   ══════════════════════════════════════════════════════════ */
+
+/* ── HEADER ── */
+#bugun .td-header {
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: space-between !important;
+    flex-wrap: nowrap !important;
+    padding: 22px 24px !important;
+    gap: 20px !important;
+    border-radius: 16px !important;
+    margin-bottom: 14px !important;
+    background: var(--s1) !important;
+    border: 1px solid var(--b1) !important;
+}
+.td-greeting-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.td-greeting-emoji {
+    font-size: 30px;
+    line-height: 1;
+    filter: saturate(.9);
+}
+#bugun .td-header-left h2 {
+    font-family: 'Newsreader', 'EB Garamond', 'Cormorant Garamond', serif !important;
+    font-size: 42px !important;
+    font-weight: 500 !important;
+    letter-spacing: -.01em !important;
+    line-height: 1 !important;
+    color: var(--t1) !important;
+    margin-bottom: 0 !important;
+}
+#bugun .td-date {
+    margin-top: 10px !important;
+    font-size: 13px !important;
+    letter-spacing: .02em !important;
+    color: var(--t3) !important;
+}
+#bugun .td-header-right {
+    display: flex !important;
+    align-items: center !important;
+    gap: 16px !important;
+    flex-shrink: 0 !important;
+    min-width: auto !important;
+    padding-top: 0 !important;
+    text-align: right;
+}
+.td-progress-meta {
+    text-align: right;
+}
+#bugun .td-task-ratio {
+    font-family: 'Newsreader', serif !important;
+    font-size: 24px !important;
+    font-weight: 400 !important;
+    color: var(--t1) !important;
+    line-height: 1 !important;
+    display: block !important;
+}
+.td-ratio-lbl {
+    font-size: 10px;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--t3);
+    margin-top: 5px;
+}
+/* Dairesel halka */
+.td-ring-wrap {
+    position: relative;
+    width: 66px;
+    height: 66px;
+    flex-shrink: 0;
+}
+.td-ring-svg {
+    transform: rotate(-90deg);
+    display: block;
+}
+.td-ring-inner {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#bugun .td-progress-pct {
+    font-family: 'Newsreader', serif !important;
+    font-size: 17px !important;
+    font-weight: 400 !important;
+    color: #ecc987 !important;
+}
+
+/* ── GÜNÜN HEDEFİ — gradient kenarlıklı kart ── */
+.td-goal-outer {
+    position: relative;
+    border-radius: 16px;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(212,144,14,.45), rgba(212,144,14,.06) 42%, rgba(255,255,255,.04));
+    margin-bottom: 14px;
+    overflow: hidden;
+}
+#bugun .td-goal-card {
+    display: flex !important;
+    align-items: center !important;
+    gap: 16px !important;
+    padding: 16px 18px 16px 20px !important;
+    border-radius: 15px !important;
+    background: var(--bg, #0E0E0F) !important;
+    border: none !important;
+    border-left: none !important;
+    margin: 0 !important;
+    overflow: visible;
+    transition: none !important;
+}
+.td-goal-icon-wrap {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.td-goal-body {
+    flex: 1;
+    min-width: 0;
+}
+.td-goal-label {
+    font-size: 10px !important;
+    letter-spacing: .18em !important;
+    text-transform: uppercase !important;
+    color: var(--a, #D4900E) !important;
+    margin-bottom: 4px !important;
+    opacity: .85;
+    font-weight: 500 !important;
+}
+#bugun .td-goal-setup {
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    gap: 12px !important;
+}
+#bugun .td-goal-input {
+    font-family: 'Newsreader', serif !important;
+    font-size: 20px !important;
+    font-weight: 400 !important;
+    letter-spacing: -.01em !important;
+    color: var(--t1) !important;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    outline: none !important;
+    flex: 1 !important;
+    min-width: 0 !important;
+}
+#bugun .td-goal-input::placeholder { color: var(--t3) !important; }
+.td-goal-setup-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    flex-wrap: nowrap;
+}
+#bugun .td-goal-select {
+    background: rgba(255,255,255,.04) !important;
+    border: 1px solid rgba(255,255,255,.09) !important;
+    color: var(--t2) !important;
+    font-family: inherit !important;
+    font-size: 12.5px !important;
+    padding: 7px 12px !important;
+    border-radius: 10px !important;
+    cursor: pointer !important;
+    white-space: nowrap !important;
+    height: auto !important;
+    max-width: none !important;
+    overflow: visible !important;
+    line-height: 1.4 !important;
+    flex-shrink: 0 !important;
+}
+#bugun .td-goal-save-btn {
+    background: linear-gradient(180deg, #e3bd75, #cf9f52) !important;
+    border: none !important;
+    color: #1d160a !important;
+    font-family: inherit !important;
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    padding: 9px 20px !important;
+    border-radius: 10px !important;
+    cursor: pointer !important;
+    box-shadow: 0 6px 18px rgba(212,144,14,.22) !important;
+    white-space: nowrap;
+    opacity: 1 !important;
+}
+#bugun .td-goal-active,
+#bugun .td-goal-completed {
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 12px !important;
+    flex-wrap: nowrap !important;
+}
+#bugun .td-goal-text {
+    font-family: 'Newsreader', serif !important;
+    font-size: 20px !important;
+    font-weight: 400 !important;
+    letter-spacing: -.01em !important;
+    color: var(--t1) !important;
+    flex: 1 !important;
+}
+
+/* ── STAT KARTLARI — 3 kolon grid ── */
+#bugun .td-stats {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 16px !important;
+    margin-bottom: 14px !important;
+    padding: 0 !important;
+    border: none !important;
+}
+#bugun .td-chip {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 20px 22px !important;
+    border-radius: 16px !important;
+    background: rgba(255,255,255,.022) !important;
+    border: 1px solid rgba(255,255,255,.07) !important;
+    min-width: 0 !important;
+    flex: unset !important;
+    gap: 0 !important;
+    min-height: unset !important;
+}
+/* Tamamlanan */
+#bugun .td-chip-done {
+    background: rgba(147,180,137,.06) !important;
+    border-color: rgba(147,180,137,.16) !important;
+}
+/* Gün serisi */
+#bugun .td-chip-streak {
+    background: linear-gradient(135deg, rgba(212,144,14,.1), rgba(212,144,14,.03)) !important;
+    border-color: rgba(212,144,14,.22) !important;
+    flex: unset !important;
+}
+#bugun #streak-badge { flex-direction: row !important; }
+/* Streak her zaman görünür (3 kolon) */
+#bugun #streak-badge {
+    display: flex !important;
+}
+.td-chip-content {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+#bugun .td-chip-lbl {
+    font-size: 10px !important;
+    letter-spacing: .18em !important;
+    text-transform: uppercase !important;
+    color: var(--t3) !important;
+    font-weight: 500 !important;
+}
+.td-chip-big-row {
+    display: flex;
+    align-items: baseline;
+    gap: 7px;
+}
+#bugun .td-chip-val,
+#bugun .td-stats .td-chip .td-chip-val {
+    font-family: 'Newsreader', serif !important;
+    font-size: 28px !important;
+    font-weight: 500 !important;
+    line-height: 1 !important;
+    display: inline-block !important;
+    will-change: transform, opacity;
+}
+.td-chip-unit {
+    font-size: 13px;
+    color: var(--t3);
+    font-weight: 400;
+}
+/* Bekleyen sayı */
+#bugun .td-chip:not(.td-chip-done):not(.td-chip-streak) .td-chip-val { color: #f3efe6 !important; }
+/* Tamamlanan */
+#bugun .td-chip-done .td-chip-val  { color: #cfe0c6 !important; }
+#bugun .td-chip-done .td-chip-lbl  { color: #8aa182 !important; }
+#bugun .td-chip-done .td-chip-unit { color: #7e8c77 !important; }
+/* Streak */
+#bugun .td-chip-streak .td-chip-val { color: #ecc987 !important; }
+#bugun .td-chip-streak .td-chip-lbl { color: #b09660 !important; }
+
+/* Bekleyen chip dekoratif çubuklar */
+.td-chip-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    align-items: flex-end;
+}
+.td-chip-bars span {
+    height: 5px;
+    border-radius: 3px;
+    background: rgba(255,255,255,.14);
+    display: block;
+}
+.td-chip-bars span:nth-child(1) { width: 34px; background: rgba(255,255,255,.14); }
+.td-chip-bars span:nth-child(2) { width: 24px; background: rgba(255,255,255,.10); }
+.td-chip-bars span:nth-child(3) { width: 30px; background: rgba(255,255,255,.12); }
+.td-chip-bars span:nth-child(4) { width: 20px; background: rgba(255,255,255,.08); }
+
+/* Tamamlanan chip mini ring */
+
+
+/* ═══════════════════════════════════════════
+   GERÇEK ALEV — canvas parçacık simülasyonu (script.js: TsfFlame).
+   CSS burada sadece kabı boyutlar ve dış parlamayı (glow) verir;
+   alevin kendisi tabandan doğup yükselirken sönen, ısı-rengi rampalı
+   parçacıklarla her karede yeniden çizilir. --fire-glow / --fire-glow-color
+   seri şiddetine göre script.js tarafından inline atanır.
+   ═══════════════════════════════════════════ */
+.td-streak-fire {
+    position: relative;
+    width: 26px;
+    height: 36px;
+    flex-shrink: 0;
+    display: inline-block;
+}
+.tsf-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 0 var(--fire-glow, 4px) var(--fire-glow-color, rgba(212,144,14,.4)));
+}
+/* Seri 0 iken: alev tamamen sönük — script.js simülasyonu durdurur,
+   geriye soluk gri bir "sönmüş fitil" silueti kalır */
+.td-streak-fire.tsf-unlit .tsf-canvas {
+    filter: grayscale(1) opacity(.3);
+}
+
+/* ── GÖREV TİMLİNE ── */
+#bugun .td-tasks-hd {
+    padding: 2px 0 10px !important;
+    border-bottom: none !important;
+    align-items: center !important;
+}
+.td-tasks-hd-left {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+}
+#bugun .td-tasks-title {
+    font-size: 11.5px !important;
+    letter-spacing: .22em !important;
+    color: var(--t3) !important;
+    white-space: nowrap;
+}
+.td-tasks-meta {
+    font-size: 12px;
+    color: var(--t3);
+    opacity: .7;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+#bugun .td-tasks-add-btn {
+    border-color: rgba(212,144,14,.32) !important;
+    color: var(--a, #D4900E) !important;
+    font-weight: 600 !important;
+    font-size: 12px !important;
+    padding: 7px 13px !important;
+    border-radius: 9px !important;
+    background: transparent !important;
+    flex-shrink: 0 !important;
+}
+
+/* Stats her zaman 3 kolon */
+
+/* task-list olarak kullanılan ul'ü sıfırla */
+#bugun #task-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+/* Her task-item bir timeline satırı */
+#bugun .task-item {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 0 !important;
+    align-items: stretch !important;
+    background: transparent !important;
+    border: none !important;
+    border-bottom: none !important;
+    border-left: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    transition: none !important;
+    opacity: 1 !important;
+}
+#bugun .task-item:hover {
+    background: transparent !important;
+}
+#bugun .task-item.completed {
+    opacity: 1 !important;
+}
+
+/* Her task-item: gap 18px (tasarımla birebir) */
+#bugun #task-list .task-item {
+    gap: 18px !important;
+}
+
+/* Zaman kolonu — width:52px, padding-top:16px */
+#bugun .tl-time-col {
+    flex: none !important;
+    width: 52px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-end !important;
+    padding-top: 16px !important;
+}
+#bugun .tl-time-start {
+    font-variant-numeric: tabular-nums;
+    font-size: 13px;
+    color: #a39e92;
+    letter-spacing: .01em;
+    line-height: 1;
+}
+#bugun .tl-time-end {
+    display: none !important;
+}
+
+/* Dikey ray + nokta — width:14px (tasarımla birebir) */
+#bugun .tl-rail {
+    flex: none !important;
+    width: 14px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+}
+#bugun .tl-rail-line {
+    width: 1px;
+    flex: 1;
+    background: rgba(255,255,255,.08);
+    display: block;
+    min-height: 6px;
+}
+#bugun .tl-rail-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--bg, #0E0E0F);
+    border: 2px solid;
+    margin: 2px 0;
+    flex: none;
+    display: block;
+}
+
+/* Kart alanı — margin:5px 0 (tasarımla birebir) */
+#bugun .tl-card {
+    flex: 1 !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+    margin: 5px 0 !important;
+}
+#bugun .tl-card-inner {
+    border-radius: 13px;
+    background: rgba(255,255,255,.022);
+    border: 1px solid rgba(255,255,255,.06);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: border-color .15s, background .15s;
+}
+#bugun .tl-card-inner:hover {
+    border-color: rgba(217,177,106,.28);
+    background: rgba(255,255,255,.035);
+}
+#bugun .task-item.completed .tl-card-inner {
+    opacity: .65;
+}
+
+/* İçerik */
+#bugun .task-left {
+    flex: 1 !important;
+    min-width: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 6px !important;
+    text-align: left !important;
+    justify-content: flex-start !important;
+}
+#bugun .task-meta {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex-wrap: wrap !important;
+    justify-content: flex-start !important;
+}
+
+/* Drag handle gizle — timeline'da yer almıyor */
+#bugun .drag-handle {
+    display: none !important;
+}
+
+/* Sağ aksiyon alanı */
+#bugun .task-item-right {
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    flex-shrink: 0 !important;
+}
+
+/* Tamamlanan chip kutlama animasyonu uyumu */
+#bugun .td-chip-done.celebrate { animation: chip-done-celebrate .9s ease forwards; }
+
+/* ── GÖREV EKLEME FORMU — pill tasarım ── */
+/* Temel stiller — display YOK (JS inline stilini ezmesin) */
+#bugun .td-add-form {
+    background: rgba(255,255,255,.018) !important;
+    border: 1px solid rgba(255,255,255,.06) !important;
+    border-radius: 14px !important;
+    padding: 14px 16px !important;
+    margin-bottom: 10px !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+}
+/* Açık olduğunda (Faz R: JS artık .is-hidden class'ını kaldırıp gösteriyor) */
+#bugun #td-add-form:not(.is-hidden) {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+}
+#bugun .td-add-row {
+    gap: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+}
+#bugun .td-add-input {
+    font-size: 16px !important;
+    color: var(--t1) !important;
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    padding: 0 !important;
+    font-family: inherit !important;
+    width: 100% !important;
+}
+#bugun .td-add-input::placeholder { color: var(--t3) !important; }
+#bugun .td-add-opts {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex-wrap: wrap !important;
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+}
+#bugun .td-add-sel {
+    background: rgba(255,255,255,.035) !important;
+    border: 1px solid rgba(255,255,255,.08) !important;
+    color: var(--t2) !important;
+    font-family: inherit !important;
+    font-size: 12.5px !important;
+    padding: 7px 12px !important;
+    border-radius: 9px !important;
+    cursor: pointer !important;
+    outline: none !important;
+    height: auto !important;
+    max-width: none !important;
+    min-width: unset !important;
+    transition: border-color .15s, background .15s !important;
+}
+#bugun .td-add-sel:hover {
+    background: rgba(255,255,255,.055) !important;
+    border-color: rgba(255,255,255,.14) !important;
+}
+#bugun .td-add-sel:focus {
+    border-color: rgba(212,144,14,.4) !important;
+}
+#bugun .td-add-sel option { background: var(--s2, #1E1E20) !important; }
+
+/* Saat kutuları */
+#bugun .td-add-time {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    background: rgba(255,255,255,.035) !important;
+    border: 1px solid rgba(255,255,255,.08) !important;
+    border-radius: 9px !important;
+    padding: 7px 12px !important;
+}
+#bugun .time-box {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+}
+#bugun .time-display {
+    font-size: 12.5px !important;
+    color: var(--t2) !important;
+    font-variant-numeric: tabular-nums !important;
+}
+#bugun .td-add-time-sep {
+    color: var(--t3) !important;
+    font-size: 12px !important;
+}
+
+/* Submit "+" butonu */
+#bugun .td-add-submit {
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+    border-radius: 10px !important;
+    background: linear-gradient(180deg, #e3bd75, #cf9f52) !important;
+    border: none !important;
+    color: #1d160a !important;
+    font-size: 20px !important;
+    line-height: 1 !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 6px 16px rgba(212,144,14,.2) !important;
+    margin-left: auto !important;
+    opacity: 1 !important;
+    padding: 0 !important;
+}
+#bugun .td-add-submit:hover { opacity: .88 !important; }
+
+/* Kategori ekle/sil icon butonları daha küçük */
+#bugun #add-task-cat-btn,
+#bugun #del-task-cat-btn {
+    width: 30px !important;
+    height: 30px !important;
+    font-size: 12px !important;
+    border-radius: 8px !important;
+    background: rgba(255,255,255,.035) !important;
+    border: 1px solid rgba(255,255,255,.08) !important;
+    color: var(--t3) !important;
+}
+
+/* ── TİMELINE checkbox ve metin override ── */
+#bugun .task-checkbox {
+    width: 21px !important;
+    height: 21px !important;
+    min-width: 21px !important;
+    border-radius: 6px !important;
+    border: 1.6px solid rgba(255,255,255,.18) !important;
+    background: transparent !important;
+    flex-shrink: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    transition: background .15s, border-color .15s !important;
+}
+#bugun .task-item.completed .task-checkbox {
+    background: linear-gradient(180deg, #e3bd75, #cf9f52) !important;
+    border-color: transparent !important;
+}
+#bugun .task-item.completed .task-checkbox::after {
+    content: '✓';
+    color: #1d160a;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    display: block;
+    text-align: center;
+}
+#bugun .task-text {
+    font-size: 15.5px !important;
+    font-weight: 500 !important;
+    color: #f0ebe0 !important;
+    letter-spacing: -.005em !important;
+    line-height: 1.3 !important;
+    cursor: pointer !important;
+    display: block !important;
+    text-align: left !important;
+    width: 100% !important;
+}
+#bugun .task-item.completed .task-text {
+    color: #6b665c !important;
+    text-decoration: line-through !important;
+}
+/* Task meta: margin-top:7px, gap:9px */
+#bugun .task-meta {
+    margin-top: 7px !important;
+    gap: 9px !important;
+}
+/* Task category tag */
+#bugun .task-category-tag {
+    font-size: 11.5px !important;
+    color: #807b6f !important;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+}
+/* Eski öncelik rengi checkbox override'larını geçersiz kıl */
+#bugun .task-item.priority-high .task-checkbox,
+#bugun .task-item.priority-medium .task-checkbox,
+#bugun .task-item.priority-low .task-checkbox {
+    border-color: rgba(255,255,255,.18) !important;
+}
+/* Task left kesinlikle soldan başlasın */
+#bugun .task-left * {
+    text-align: left !important;
+}
+
+/* Tamamlanan divider timeline görünümü */
+#bugun .task-divider {
+    padding: 6px 0 6px 82px !important;
+}

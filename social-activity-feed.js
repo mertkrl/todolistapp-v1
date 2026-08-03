@@ -3,7 +3,7 @@
 // social.js'ten çıkarılmış aktivite/kudos yardımcıları: mesaj tepki
 // (reaction) picker paylaşılan durumu, grup lig kudos gönderme, haftalık
 // grup hedefi kutlaması.
-// window.currentUser, window.FocusSupabase, window.dcShowToast,
+// getCurrentUser(), window.FocusSupabase, window.dcShowToast,
 // window._throttleAction, window.fireConfetti gibi social.js globallerine
 // bağımlı — ondan SONRA yüklenmeli.
 // window._activeReactionPicker ve window.closeReactionPicker, social.js'in
@@ -12,26 +12,25 @@
 // window._maybeCelebrateGroupGoal da uzak bir bölümden çağrıldığı için
 // window.X olarak dışa açılıyor.
 // ============================================================
-(function () {
-'use strict';
-
 // Emoji tepki seçici kabarcığı için paylaşılan durum/kapatma yardımcıları —
 // openDcMsgReactionPicker (sohbet mesajı tepkisi, social.js'in geri kalanında) bunları kullanır.
-window._activeReactionPicker = null;
-function closeReactionPicker() {
-    if (!window._activeReactionPicker) return;
-    const { picker, outsideHandler } = window._activeReactionPicker;
+import { getCurrentUser } from './state/current-user-store.js';
+import { getActiveReactionPicker, setActiveReactionPicker } from './state/active-reaction-picker-store.js';
+setActiveReactionPicker(null);
+export function closeReactionPicker() {
+    if (!getActiveReactionPicker()) return;
+    const { picker, outsideHandler } = getActiveReactionPicker();
     document.removeEventListener('click', outsideHandler);
     picker.classList.remove('is-open');
     setTimeout(() => picker.remove(), 160);
-    window._activeReactionPicker = null;
+    setActiveReactionPicker(null);
 }
 window.closeReactionPicker = closeReactionPicker;
 
 // Grup leaderboard'unda bir üyeye 👏 (kudos/alkış) gönderir — pozitif rekabeti
 // tek taraflı bir yarış olmaktan çıkarıp karşılıklı teşvike dönüştürür.
-async function sendGroupKudos(targetUserId, targetUsername, btnEl) {
-    const currentUser = window.currentUser;
+export async function sendGroupKudos(targetUserId, targetUsername, btnEl) {
+    const currentUser = getCurrentUser();
     if (!currentUser || !targetUserId || !window.FocusSupabase) return;
     if (targetUserId === currentUser.id) return;
     // Aynı kişiye art arda spam göndermeyi engelle: kişi başına 2 dakikada bir
@@ -79,7 +78,7 @@ function _currentWeekStartKey() {
 }
 window._currentWeekStartKey = _currentWeekStartKey;
 
-async function _maybeCelebrateGroupGoal(groupId, groupName, totalMinutes, weeklyGoal) {
+export async function _maybeCelebrateGroupGoal(groupId, groupName, totalMinutes, weeklyGoal) {
     if (!groupId || !window.FocusSupabase) return;
 
     const localKey = `focusai_group_celebrated_${groupId}_${_currentWeekStartKey()}`;
@@ -104,4 +103,3 @@ async function _maybeCelebrateGroupGoal(groupId, groupName, totalMinutes, weekly
 }
 window._maybeCelebrateGroupGoal = _maybeCelebrateGroupGoal;
 
-})();

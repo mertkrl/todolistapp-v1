@@ -1,0 +1,246 @@
+/* GRUPLARIM / KEŞFET LİSTE ALANLARI — sabit yükseklik + kendi scrollbar'ı */
+.discover-scroll-list {
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+.discover-scroll-list::-webkit-scrollbar { width: 5px; }
+.discover-scroll-list::-webkit-scrollbar-track { background: transparent; }
+.discover-scroll-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+
+/* KEŞFET KATEGORİ SEKMELERİ — tek satır, ok butonlu yatay kaydırma şeridi */
+.discover-category-tabs-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 12px;
+    position: relative;
+}
+
+.discover-tabs-arrow {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.04);
+    color: var(--text-muted);
+    font-size: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.2s;
+}
+
+.discover-tabs-arrow:hover {
+    color: #fff;
+    background: rgba(212,144,14,0.2);
+    border-color: rgba(212,144,14,0.4);
+}
+
+.discover-category-tabs {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 6px;
+    flex: 1;
+    min-width: 0;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+}
+
+.discover-category-tabs::-webkit-scrollbar { display: none; }
+
+.discover-category-pill {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    color: var(--text-muted);
+    padding: 5px 11px;
+    border-radius: 8px;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
+    backdrop-filter: blur(6px);
+}
+
+.discover-category-pill:hover {
+    color: #fff;
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(212,144,14,0.3);
+}
+
+.discover-category-pill.active {
+    color: #fff;
+    background: rgba(212,144,14,0.35);
+    border-color: rgba(212,144,14,0.55);
+}
+
+.discover-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 8px 0 4px;
+}
+
+.discover-sort-select,
+.discover-filter-chip {
+    font-size: 11px;
+    padding: 5px 10px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.04);
+    color: var(--text-muted);
+    border: 1px solid rgba(255,255,255,0.08);
+    cursor: pointer;
+}
+
+.discover-sort-select {
+    padding: 5px 8px;
+}
+
+.discover-filter-chip:hover {
+    color: #fff;
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(212,144,14,0.3);
+}
+
+.discover-filter-chip[data-active="true"] {
+    color: #fff;
+    background: rgba(212,144,14,0.35);
+    border-color: rgba(212,144,14,0.55);
+}
+
+/* "YENİ" ROZETİ */
+.discover-new-badge {
+    font-size: 9px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: rgba(46,213,115,0.15);
+    color: #2ed573;
+    font-weight: 700;
+    text-transform: uppercase;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* KART ÜZERİNDEKİ KATEGORİ ETİKETİ */
+.discover-category-tag {
+    font-size: 10px;
+    color: var(--text-muted);
+    background: rgba(255,255,255,0.04);
+    padding: 1px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* KEŞFET / KAYDEDİLENLER KARTI */
+.discover-group-card {
+    padding: 10px 12px !important;
+    border-radius: 12px !important;
+    background: rgba(255,255,255,0.015) !important;
+    border: 1px solid rgba(255,255,255,0.03) !important;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+    transition: 0.2s;
+    cursor: pointer;
+}
+
+.discover-group-card:hover {
+    background: rgba(255,255,255,0.04) !important;
+    border-color: rgba(212,144,14,0.25) !important;
+}
+
+.discover-card-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.discover-card-name-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+
+.discover-card-name {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.discover-card-meta {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.discover-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.discover-save-btn {
+    padding: 5px 9px;
+    font-size: 13px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+/* SANA ÖZEL ÖNERİLER */
+#discover-recommendations {
+    display: none;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+}
+
+.discover-refresh-recommendations-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    margin-top: 4px;
+    padding: 6px 10px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 8px;
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.discover-refresh-recommendations-btn:hover {
+    color: #fff;
+    background: rgba(212,144,14,0.12);
+    border-color: rgba(212,144,14,0.3);
+}
+
+.discover-recommendations-title {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #D4900E;
+    margin-bottom: 8px;
+}

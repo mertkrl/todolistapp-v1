@@ -1,0 +1,81 @@
+/* style.css'ten çıkarıldı (Faz C, 2026-07-22). Sohbet Paneli Yeni Tasarım — Yanıtla Önizleme Çubuğu (#sidebar-chat-reply-preview-bar), Ana Home View (#sidebar-home-view), Kişi Kartı (.sb-contact-*), Grup Kartı (.sidebar-group-item-card, JS inline stil ezme). */
+
+   #sidebar-chat-reply-preview-bar {
+    width: 100%;
+    order: -1;
+    flex-shrink: 0;
+}
+#sidebar-chat-send-msg-btn:hover {
+    background: #5b4cc4;
+    transform: scale(1.06);
+}
+
+/* Input alanı — kalan genişliği doldursun */
+
+
+/* ================================================================
+   SOHBET PANELİ — YENİ TASARIM (Profil + Kişiler + Gruplar)
+   ================================================================ */
+
+/* Ana home view — tam yükseklik, kolon düzen */
+#sidebar-home-view {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+.sb-contact-dot {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #636e72;
+    border: 2px solid rgba(14, 12, 30, 0.9);
+    transition: background 0.3s;
+}
+.sb-contact-dot.online { background: #2ed573; }
+.sb-contact-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.sb-contact-card:hover .sb-dm-btn { opacity: 1; }
+
+
+/* ── GRUP KARTI (JS inline stil ezme) ────────────────────── */
+.sidebar-group-item-card {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding: 9px 10px !important;
+    margin-bottom: 0 !important;
+    background: rgba(255,255,255,0.02) !important;
+    border: 1px solid rgba(255,255,255,0.04) !important;
+    border-radius: 10px !important;
+    cursor: pointer !important;
+    transition: background 0.15s, border-color 0.15s !important;
+}
+.sidebar-group-item-card:hover {
+    background: rgba(212,144,14,0.09) !important;
+    border-color: rgba(212,144,14,0.22) !important;
+}
+.sidebar-group-item-card .sidebar-group-avatar {
+    border-radius: 10px !important;
+    width: 38px !important;
+    height: 38px !important;
+    font-size: 15px !important;
+    flex-shrink: 0 !important;
+}
+.sidebar-group-item-card .sidebar-group-name {
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: #fff !important;
+}
+.sidebar-group-item-card .sidebar-group-subinfo {
+    font-size: 11px !important;
+    color: var(--text-muted) !important;
+    margin-top: 2px !important;
+    font-weight: 400 !important;
+}

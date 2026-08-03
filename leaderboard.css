@@ -1,0 +1,98 @@
+/* Liderlik Tablosu / Canlı Sıralama (.lb-) — style.css'in 2 farklı konumundan orijinal sıra korunarak birleştirildi */
+
+/* ===== Eski v2-tema erken tanımı ===== */
+.lb-row{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--s1);border:1px solid var(--b1);border-radius:10px;margin-bottom:6px;transition:border-color .2s;}
+.lb-row:hover{border-color:var(--b2);}
+.lb-rank{font-size:14px;font-weight:700;min-width:24px;text-align:center;font-family:'Inter',sans-serif;}
+
+/* ── Canlı Sıralama (Arena liderlik listesi — podyumsuz) ──
+   Kompaktlaştırma (2026-07-03, madde 6): padding/margin küçültüldü. */
+@keyframes lb-row-enter {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: none; }
+}
+.lb-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 10px; border-radius: 10px;
+    background: rgba(0,0,0,0.2);
+    margin-bottom: 5px;
+    animation: lb-row-enter .35s ease-out backwards;
+}
+.lb-row--me {
+    border: 1px solid var(--primary-color);
+    background: rgba(108,92,231,0.1);
+}
+@keyframes lb-zone-breathe-promo {
+    0%, 100% { box-shadow: inset 3px 0 0 #2ed573, 0 0 8px rgba(46,213,115,0.15); }
+    50%      { box-shadow: inset 3px 0 0 #2ed573, 0 0 16px rgba(46,213,115,0.35); }
+}
+@keyframes lb-zone-breathe-demo {
+    0%, 100% { box-shadow: inset 3px 0 0 #ff6b6b, 0 0 8px rgba(255,107,107,0.15); }
+    50%      { box-shadow: inset 3px 0 0 #ff6b6b, 0 0 16px rgba(255,107,107,0.35); }
+}
+.lb-row--promo {
+    background: rgba(46,213,115,0.08);
+    animation: lb-row-enter .35s ease-out backwards, lb-zone-breathe-promo 2.6s ease-in-out infinite;
+}
+.lb-row--demo {
+    background: rgba(255,107,107,0.08);
+    animation: lb-row-enter .35s ease-out backwards, lb-zone-breathe-demo 2.6s ease-in-out infinite;
+}
+.lb-rank-delta { flex-shrink: 0; font-size: 12px; }
+.lb-rank-delta--up { color: #2ed573; }
+.lb-rank-delta--down { color: var(--text-muted); } /* bilinçli: sıra düşüşü utandırmasın, sadece bilgi versin */
+#leaderboard-list { transition: opacity .18s ease; }
+.lb-rank {
+    width: 22px; text-align: center; flex-shrink: 0;
+    font-size: 13px; font-weight: 700; color: var(--text-muted);
+}
+.lb-row--me .lb-rank { color: var(--primary-color); }
+.lb-main { flex: 1; min-width: 0; }
+.lb-name-line { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
+.lb-name {
+    font-size: 14px; font-weight: 500; color: #fff;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    min-width: 0;
+}
+.lb-row--me .lb-name { font-weight: 700; }
+.lb-me-tag { color: var(--primary-color); font-size: 11px; }
+.lb-xp { margin-left: auto; flex-shrink: 0; font-size: 13px; font-weight: 600; color: #2ed573; }
+.lb-gap-chip {
+    flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px;
+    font-size: 10px; font-weight: 700; color: #feca57;
+    background: rgba(254,202,87,0.12);
+    border: 1px solid rgba(254,202,87,0.25);
+    padding: 2px 8px; border-radius: 20px;
+    white-space: nowrap;
+}
+.lb-gap-chip--leader { color: #2ed573; background: rgba(46,213,115,0.12); border-color: rgba(46,213,115,0.25); }
+.lb-improved-badge {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; font-weight: 600; color: #74b9ff;
+    background: rgba(116,185,255,0.1);
+    border: 1px solid rgba(116,185,255,0.25);
+    border-radius: 10px; padding: 8px 12px; margin-bottom: 10px;
+}
+.lb-improved-badge .lb-improved-icon { font-size: 15px; }
+.lb-improved-badge .lb-improved-name { color: #fff; font-weight: 700; }
+.lb-improved-badge.hidden { display: none; }
+.lb-bar { height: 5px; border-radius: 3px; background: rgba(255,255,255,0.06); overflow: hidden; }
+.lb-bar-fill {
+    position: relative; overflow: hidden;
+    height: 100%; border-radius: 3px;
+    background: linear-gradient(90deg, rgba(212,144,14,0.7), #feca57);
+    transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.lb-bar-fill::after {
+    content: '';
+    position: absolute; top: 0; left: -60%; width: 60%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.45), transparent);
+    animation: progress-shimmer 2.2s ease-in-out infinite;
+}
+.lb-bar-fill--me { background: linear-gradient(90deg, var(--primary-color), #a29bfe); }
+.lb-league-badge {
+    flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px;
+    font-size: 10px; font-weight: 700;
+    border: 1px solid; padding: 2px 8px; border-radius: 20px;
+    white-space: nowrap;
+}

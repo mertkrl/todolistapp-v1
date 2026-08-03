@@ -1,0 +1,489 @@
+/* Sohbet Küçük Yardımcı Bileşenler (.dc-selection-, .dc-read-receipt, .dc-readers-, .dc-emoji-, .dc-file-, .dc-ss-) — style.css'ten 5 parça halinde çıkarıldı */
+
+/* ===== Mesaj Seçim Araç Çubuğu (.dc-selection-) ===== */
+/* ── Mesaj seçim araç çubuğu (kopyala / ilet) ── */
+.dc-selection-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    background: rgba(212,144,14,0.14);
+    border: 1px solid rgba(212,144,14,0.25);
+    border-radius: 10px;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    animation: sb-item-in 0.2s ease forwards;
+}
+.dc-selection-count { font-size: 12px; font-weight: 600; color: #fff; }
+.dc-selection-actions { display: flex; align-items: center; gap: 6px; }
+.dc-selection-btn {
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #fff;
+    font-size: 12px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.dc-selection-btn:hover { background: rgba(212,144,14,0.3); }
+.dc-selection-btn.dc-selection-cancel {
+    background: rgba(255,71,87,0.1);
+    border-color: rgba(255,71,87,0.2);
+    color: #ff7675;
+    padding: 6px 9px;
+}
+.dc-selection-btn.dc-selection-cancel:hover { background: rgba(255,71,87,0.25); }
+.dc-selection-btn.dc-selection-danger {
+    background: rgba(255,71,87,0.1);
+    border-color: rgba(255,71,87,0.2);
+    color: #ff7675;
+}
+.dc-selection-btn.dc-selection-danger:hover { background: rgba(255,71,87,0.25); }
+
+/* ===== Okundu Bilgisi + Okuyanlar Listesi (.dc-read-receipt, .dc-readers-) ===== */
+/* ── Okundu bilgisi (baloncuğun altındaki tikler) ── */
+.dc-read-receipt {
+    position: absolute;
+    bottom: -14px;
+    right: 2px;
+    font-size: 10px;
+}
+.dc-read-receipt.seen { color: #74b9ff; }
+.dc-read-receipt.sent { color: rgba(255,255,255,0.25); }
+
+/* ── Grup "okundu" bilgisi & okuyanlar listesi ── */
+.dc-group-read-receipt:hover { color: rgba(255,255,255,0.6); }
+.dc-readers-popover {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.4);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 10000;
+    opacity: 0; transition: opacity 0.15s;
+}
+.dc-readers-popover.show { opacity: 1; }
+.dc-readers-popover-inner {
+    background: rgba(22,18,55,0.98);
+    border: 1px solid rgba(212,144,14,0.3);
+    border-radius: 14px;
+    padding: 16px;
+    width: 240px;
+    max-height: 320px;
+    overflow-y: auto;
+    transform: scale(0.95);
+    transition: transform 0.15s;
+}
+.dc-readers-popover.show .dc-readers-popover-inner { transform: scale(1); }
+.dc-readers-popover-title {
+    font-size: 13px; font-weight: 700; color: #fff;
+    margin-bottom: 10px;
+}
+.dc-readers-popover-list { display: flex; flex-direction: column; gap: 8px; }
+.dc-readers-popover-item { display: flex; align-items: center; gap: 8px; }
+.dc-readers-popover-avatar { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
+.dc-readers-popover-name { font-size: 12px; color: rgba(255,255,255,0.8); }
+
+/* ===== Emoji Seçici (.dc-emoji-) ===== */
+/* ── Emoji Seçici ── */
+.dc-emoji-popover {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    right: 0;
+    left: auto;
+    width: 260px;
+    max-height: 260px;
+    overflow-y: auto;
+    display: flex; flex-direction: column; gap: 8px;
+    background: rgba(20,18,46,0.97);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 10px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    z-index: 60;
+}
+.dc-emoji-popover-group-label {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.06em; color: rgba(255,255,255,0.35);
+    margin-bottom: 4px;
+}
+.dc-emoji-popover-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+}
+.dc-emoji-popover-btn {
+    background: transparent;
+    border: none;
+    font-size: 19px;
+    line-height: 1;
+    padding: 5px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.12s ease, transform 0.12s ease;
+}
+.dc-emoji-popover-btn:hover { background: rgba(255,255,255,0.08); transform: scale(1.15); }
+
+/* ===== Dosya Yükleme (.dc-file-) ===== */
+/* ── Dosya yükleme butonu ── */
+.dc-file-upload-btn {
+    padding: 6px 8px;
+    border-radius: 6px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: rgba(255,255,255,0.6);
+    font-size: 14px;
+}
+.dc-file-upload-btn:hover { color: #a29bfe; background: rgba(162,155,254,0.1); }
+
+/* ── Dosya yükleme önizleme çubuğu ── */
+.dc-file-preview-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    background: rgba(162,155,254,0.1);
+    border: 1px solid rgba(162,155,254,0.2);
+    border-radius: 8px;
+    margin-bottom: 6px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.8);
+}
+.dc-file-preview-bar .dc-file-preview-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.dc-file-preview-bar .dc-file-preview-remove {
+    background: transparent;
+    border: none;
+    color: rgba(255,255,255,0.4);
+    cursor: pointer;
+    padding: 0 4px;
+    font-size: 13px;
+}
+.dc-file-preview-bar .dc-file-preview-remove:hover { color: #ff7675; }
+
+/* ===== Seans Şeridi (#dc-session-strip, .dc-ss-) ===== */
+/* ── Seans şeridi (kanal üstü) ──────────────────────────── */
+#dc-session-strip {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 9px 14px;
+    background: rgba(212,144,14,0.08);
+    border-bottom: 1px solid rgba(212,144,14,0.22);
+    flex-shrink: 0;
+    animation: dhsCardIn 0.4s ease;
+}
+#dc-session-strip > i { color: #D4900E; font-size: 15px; flex-shrink: 0; }
+#dc-session-strip.is-live { background: rgba(255,71,87,0.09); border-bottom-color: rgba(255,71,87,0.3); }
+#dc-session-strip.is-live > i { color: #ff4757; }
+.dc-ss-live-icon { animation: dhsFlamePulse 1.4s ease-in-out infinite; }
+.dc-ss-info { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.dc-ss-title { color: #fff; font-size: 12.5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dc-ss-meta { color: var(--text-muted); font-size: 11px; }
+.dc-ss-attend-btn {
+    flex-shrink: 0;
+    padding: 7px 14px;
+    border-radius: 9px;
+    border: 1px solid rgba(212,144,14,0.4);
+    background: rgba(212,144,14,0.15);
+    color: #D4900E;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: background 0.15s, transform 0.15s;
+}
+.dc-ss-attend-btn:hover { background: rgba(212,144,14,0.3); transform: scale(1.03); }
+.dc-ss-attend-btn.is-in {
+    border-color: rgba(46,213,115,0.4);
+    background: rgba(46,213,115,0.12);
+    color: #2ed573;
+}
+
+/* ===== Kanal Öğesi İkon/İsim/Sessize Al (.dc-ch-) ===== */
+.dc-channel-item .dc-ch-icon { font-size: 14px; flex-shrink: 0; color: rgba(255,255,255,0.25); }
+.dc-channel-item.active .dc-ch-icon { color: rgba(255,255,255,0.55); }
+.dc-channel-item .dc-ch-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dc-channel-item .dc-ch-unread {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #fff; margin-left: auto; flex-shrink: 0;
+}
+.dc-channel-item .dc-ch-mute-btn {
+    display: flex; align-items: center; justify-content: center;
+    width: 22px; height: 22px; border-radius: 4px; flex-shrink: 0;
+    background: transparent; border: none; cursor: pointer;
+    color: rgba(255,255,255,0.3); font-size: 12px;
+    opacity: 0; transition: opacity 0.15s, background 0.15s, color 0.15s;
+}
+.dc-channel-item:hover .dc-ch-mute-btn,
+.dc-channel-item.is-muted .dc-ch-mute-btn {
+    opacity: 1;
+}
+.dc-channel-item .dc-ch-mute-btn:hover {
+    background: rgba(255,255,255,0.1); color: #fff;
+}
+.dc-channel-item.is-muted .dc-ch-mute-btn {
+    color: #ff7675;
+}
+.dc-channel-item.is-muted .dc-ch-name {
+    color: rgba(255,255,255,0.3);
+}
+
+/* ===== Sabitlenmiş Mesaj Banner'ı (.dc-pinned-) ===== */
+/* ── Sabitlenmiş mesaj banner'ı ── */
+.dc-pinned-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    background: rgba(212,144,14,0.1);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    flex-shrink: 0;
+}
+.dc-pinned-icon {
+    color: rgba(255,255,255,0.55);
+    font-size: 13px;
+    flex-shrink: 0;
+}
+.dc-pinned-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    cursor: pointer;
+}
+.dc-pinned-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.55);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.dc-pinned-text {
+    font-size: 12px;
+    color: rgba(255,255,255,0.75);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.dc-pinned-nav-btn,
+.dc-pinned-unpin-btn {
+    flex-shrink: 0;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.6);
+    font-size: 11px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s, color 0.15s;
+}
+.dc-pinned-nav-btn:hover,
+.dc-pinned-unpin-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
+.dc-pinned-unpin-btn:hover { color: #ff7675; }
+
+/* ===== Yazıyor... Göstergesi (.dc-typing-) ===== */
+/* ── "Yazıyor..." göstergesi ── */
+.dc-typing-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: rgba(255,255,255,0.55);
+    font-style: italic;
+}
+.dc-typing-dots {
+    display: inline-flex;
+    gap: 3px;
+}
+.dc-typing-dots span {
+    width: 4px; height: 4px; border-radius: 50%;
+    background: #D4900E;
+    animation: dc-typing-bounce 1.2s infinite ease-in-out;
+}
+.dc-typing-dots span:nth-child(2) { animation-delay: 0.15s; }
+.dc-typing-dots span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes dc-typing-bounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+    30% { transform: translateY(-3px); opacity: 1; }
+}
+
+/* ===== Grup Ağacı (.dc-groups-tree, .dc-tree-) ===== */
+/* ── GRUP AĞACI ( tarzı metin listesi) ── */
+.dc-groups-tree {
+    padding: 0 8px;
+    margin-bottom: 4px;
+  }
+  
+  .dc-tree-group {
+    margin-bottom: 2px;
+  }
+  
+  .dc-tree-group-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 6px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: rgba(255,255,255,0.55);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    user-select: none;
+    transition: color 0.15s, background 0.15s;
+  }
+  .dc-tree-group-header:hover {
+    color: #fff;
+    background: rgba(255,255,255,0.05);
+  }
+  .dc-tree-group-header .dc-tree-arrow {
+    font-size: 9px;
+    transition: transform 0.2s;
+    flex-shrink: 0;
+    color: rgba(255,255,255,0.35);
+  }
+  .dc-tree-group-header.open .dc-tree-arrow {
+    transform: rotate(90deg);
+  }
+  .dc-tree-group-header.active-group {
+    color: #fff;
+    background: rgba(212,144,14,0.2);
+  }
+  
+  .dc-tree-channels {
+    display: none;
+    flex-direction: column;
+    gap: 1px;
+    padding-left: 14px;
+    margin-top: 1px;
+  }
+  .dc-tree-channels.open {
+    display: flex;
+  }
+  
+  .dc-tree-channel {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    border-radius: 5px;
+    cursor: pointer;
+    color: rgba(255,255,255,0.45);
+    font-size: 13px;
+    transition: color 0.15s, background 0.15s;
+  }
+  .dc-tree-channel:hover {
+    color: rgba(255,255,255,0.85);
+    background: rgba(255,255,255,0.06);
+  }
+  .dc-tree-channel.active {
+    color: #fff;
+    background: rgba(212,144,14,0.3);
+  }
+  .dc-tree-channel .dc-tree-hash {
+    font-size: 12px;
+    color: rgba(255,255,255,0.3);
+    flex-shrink: 0;
+  }
+
+/* ===== @Bahsetme Öneri Listesi + Vurgusu (.dc-mention-, .dc-mention) ===== */
+/* ── @Bahsetme öneri listesi ── */
+.dc-mention-autocomplete {
+    position: absolute;
+    bottom: 100%;
+    left: 12px;
+    right: 12px;
+    margin-bottom: 6px;
+    background: rgba(20,18,46,0.97);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    z-index: 60;
+}
+.dc-mention-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 12px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #fff;
+}
+.dc-mention-item:hover, .dc-mention-item.is-active {
+    background: rgba(212,144,14,0.25);
+}
+
+/* ── Mesaj içi @bahsetme vurgusu ── */
+.dc-mention {
+    color: var(--dc-accent, #D4900E);
+    background: rgba(212,144,14,0.18);
+    border-radius: 4px;
+    padding: 0 3px;
+    font-weight: 600;
+}
+.dc-mention.is-me {
+    background: rgba(254,202,87,0.25);
+    color: #feca57;
+}
+
+/* ===== Sohbet Sağ Tık Menüsü (.dc-convo-context-menu) ===== */
+.dc-convo-context-menu {
+    position: fixed;
+    z-index: 100003;
+    background: rgba(22,18,55,0.98);
+    border: 1px solid rgba(212,144,14,0.3);
+    border-radius: 10px;
+    padding: 6px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    min-width: 200px;
+}
+.dc-convo-context-menu button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 13px;
+    text-align: left;
+    padding: 8px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+.dc-convo-context-menu button:hover { background: rgba(212,144,14,0.2); }
+.dc-convo-context-menu button i { width: 14px; color: rgba(255,255,255,0.5); }
+
+/* ===== Rol Rozetleri (.dc-role-) ===== */
+/* ── Rol rozetleri (Teacher / Admin) ── */
+.dc-role-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 10px;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    vertical-align: middle;
+    flex-shrink: 0;
+}
+.dc-role-teacher {
+    background: rgba(0, 184, 148, 0.18);
+    color: #00b894;
+    border: 1px solid rgba(0, 184, 148, 0.3);
+}
+.dc-role-admin {
+    background: rgba(108, 92, 231, 0.18);
+    color: #a29bfe;
+    border: 1px solid rgba(108, 92, 231, 0.3);
+}

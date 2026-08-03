@@ -1,0 +1,586 @@
+/* style.css'ten çıkarıldı (Faz C, 2026-07-22). 'Bugün' sekmesi minimalist tasarım kuralları. */
+
+/* ================================================================
+   BUGÜN — MİNİMALİST TASARIM
+   ================================================================ */
+
+/* ── SECTION PADDING ── */
+#bugun.page-section.active {
+    padding: 28px 32px 0 32px;
+    gap: 0;
+}
+
+/* ── HEADER: kart kutusu yok, sadece boşluk ── */
+#bugun .td-header {
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 0 0 20px 0 !important;
+    margin-bottom: 0 !important;
+    align-items: flex-start;
+}
+
+#bugun .td-header-left h2 {
+    font-size: 26px !important;
+    font-weight: 700 !important;
+    color: var(--t1) !important;
+    letter-spacing: -0.5px;
+    margin-bottom: 5px;
+}
+
+#bugun .td-date {
+    font-size: 13px !important;
+    color: var(--t2) !important;
+    letter-spacing: 0.2px;
+}
+
+#bugun .td-header-right {
+    padding-top: 4px;
+}
+
+#bugun .td-progress-meta {
+    margin-bottom: 6px;
+}
+
+#bugun .td-task-ratio {
+    font-size: 12px !important;
+    color: var(--t3) !important;
+}
+
+#bugun .td-progress-pct {
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    color: var(--a) !important;
+}
+
+
+
+#bugun .td-progress-fill {
+    background: var(--a) !important;
+    border-radius: 6px !important;
+    transition: width 0.6s ease, background-color 0.8s ease !important;
+    position: relative !important;
+    overflow: hidden !important;
+    animation: progress-pulse 2.4s ease-in-out infinite;
+}
+
+#bugun .td-progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255,255,255,0.45) 50%,
+        transparent 100%
+    );
+    animation: progress-shimmer 2s ease-in-out infinite;
+}
+
+#bugun .td-progress-fill.is-complete {
+    animation: progress-pulse 2.4s ease-in-out infinite, progress-complete-flash 0.7s ease-out forwards;
+}
+
+#bugun .td-progress-fill.is-complete::after {
+    animation: progress-shimmer 1.2s ease-in-out infinite;
+}
+
+@keyframes progress-shimmer {
+    0%   { left: -60%; }
+    100% { left: 110%; }
+}
+
+@keyframes progress-pulse {
+    0%   { box-shadow: 0 0 0px rgba(212,144,14,0); }
+    50%  { box-shadow: 0 0 7px rgba(212,144,14,0.55); }
+    100% { box-shadow: 0 0 0px rgba(212,144,14,0); }
+}
+
+@keyframes progress-complete-flash {
+    0%   { box-shadow: 0 0 0px rgba(74,222,128,0); }
+    40%  { box-shadow: 0 0 14px rgba(74,222,128,0.85); }
+    100% { box-shadow: 0 0 5px rgba(74,222,128,0.25); }
+}
+
+/* ══════════════════════════════════════════════
+   GÜNÜN HEDEFİ KARTI — MİNİMAL
+   ══════════════════════════════════════════════ */
+#bugun .td-goal-card {
+    background: rgba(212,144,14,0.07) !important;
+    border: 1px solid rgba(212,144,14,0.25) !important;
+    border-left: 3px solid rgba(212,144,14,0.65) !important;
+    border-radius: 8px !important;
+    margin: 0 0 10px 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    transition: background 0.2s ease, border-color 0.2s ease !important;
+}
+#bugun .td-goal-card.is-goal-complete {
+    background: rgba(74,222,128,0.06) !important;
+    border-color: rgba(74,222,128,0.25) !important;
+    border-left-color: rgba(74,222,128,0.60) !important;
+}
+
+/* ── Aşama 1: Setup ── */
+#bugun .td-goal-setup {
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 8px 10px !important;
+    flex-wrap: nowrap !important;
+}
+#bugun .td-goal-input {
+    flex: 1 !important;
+    min-width: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    font-size: 13px !important;
+    color: var(--t1) !important;
+    font-family: 'Inter', sans-serif !important;
+}
+#bugun .td-goal-input::placeholder {
+    color: rgba(212,144,14,0.40) !important;
+}
+#bugun .td-goal-select {
+    flex-shrink: 0 !important;
+    font-size: 11px !important;
+    padding: 0 7px !important;
+    background: transparent !important;
+    border: 1px solid rgba(212,144,14,0.20) !important;
+    border-radius: 6px !important;
+    color: rgba(212,144,14,0.55) !important;
+    height: 28px !important;
+    outline: none !important;
+    cursor: pointer !important;
+    font-family: 'Inter', sans-serif !important;
+    max-width: 140px !important;
+}
+#bugun .td-goal-save-btn {
+    flex-shrink: 0 !important;
+    height: 28px !important;
+    padding: 0 12px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    border-radius: 6px !important;
+    background: rgba(212,144,14,0.18) !important;
+    color: var(--a) !important;
+    border: 1px solid rgba(212,144,14,0.30) !important;
+    cursor: pointer !important;
+    font-family: 'Inter', sans-serif !important;
+    white-space: nowrap !important;
+    transition: background 0.15s !important;
+}
+#bugun .td-goal-save-btn:hover { background: rgba(212,144,14,0.30) !important; }
+
+/* ── Aşama geçiş animasyonu ── */
+@keyframes goal-slide-in {
+    from { opacity: 0; transform: translateX(-10px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ── Aşama 2: Active ── */
+#bugun .td-goal-active {
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 8px 10px !important;
+    animation: goal-slide-in 0.28s ease-out !important;
+}
+#bugun .td-goal-text {
+    flex: 1 !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: #f5e0a0 !important;
+    line-height: 1.3 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    min-width: 0 !important;
+    animation: goal-idle-pulse 3.5s ease-in-out infinite !important;
+}
+@keyframes goal-glow {
+    0%   { text-shadow: none; color: #f5e0a0; }
+    35%  { text-shadow: 0 0 12px rgba(212,144,14,0.90), 0 0 24px rgba(212,144,14,0.45); color: #ffe599; }
+    100% { text-shadow: none; color: #f5e0a0; }
+}
+#bugun .td-goal-text.glowing {
+    animation: goal-glow 1s ease-out forwards, goal-idle-pulse 3.5s ease-in-out infinite !important;
+}
+@keyframes goal-idle-pulse {
+    0%   { opacity: 1; }
+    50%  { opacity: 0.70; }
+    100% { opacity: 1; }
+}
+#bugun .td-goal-btns {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 3px !important;
+    flex-shrink: 0 !important;
+}
+#bugun .td-goal-action {
+    background: transparent !important;
+    border: none !important;
+    color: rgba(255,255,255,0.25) !important;
+    font-size: 11px !important;
+    cursor: pointer !important;
+    padding: 4px 6px !important;
+    border-radius: 5px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    white-space: nowrap !important;
+    font-family: 'Inter', sans-serif !important;
+    transition: color 0.12s, background 0.12s !important;
+}
+#bugun .td-goal-action:hover { color: var(--a) !important; background: rgba(212,144,14,0.10) !important; }
+#bugun .td-goal-del-btn:hover { color: #F87171 !important; background: rgba(248,113,113,0.08) !important; }
+#bugun .td-goal-done-btn {
+    color: rgba(74,222,128,0.80) !important;
+    border: 1px solid rgba(74,222,128,0.25) !important;
+    border-radius: 6px !important;
+    font-size: 11px !important;
+    padding: 4px 10px !important;
+}
+#bugun .td-goal-done-btn:hover {
+    color: #4ADE80 !important;
+    background: rgba(74,222,128,0.10) !important;
+    border-color: rgba(74,222,128,0.45) !important;
+}
+
+/* ── Aşama 3: Completed ── */
+#bugun .td-goal-completed {
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 8px 10px !important;
+    animation: goal-slide-in 0.28s ease-out !important;
+}
+#bugun .td-goal-completed-text {
+    flex: 1 !important;
+    font-size: 13px !important;
+    color: rgba(74,222,128,0.75) !important;
+    font-weight: 600 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    min-width: 0 !important;
+    text-decoration: line-through !important;
+    text-decoration-color: rgba(74,222,128,0.40) !important;
+}
+/* Geri al butonu: hover'da belirsin */
+#bugun .td-goal-undo-btn {
+    flex-shrink: 0 !important;
+    background: transparent !important;
+    border: 1px solid rgba(74,222,128,0.20) !important;
+    color: rgba(74,222,128,0.45) !important;
+    font-size: 11px !important;
+    cursor: pointer !important;
+    padding: 4px 10px !important;
+    border-radius: 6px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    font-family: 'Inter', sans-serif !important;
+    white-space: nowrap !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transition: opacity 0.2s, color 0.15s, background 0.15s, border-color 0.15s !important;
+}
+#bugun .td-goal-card:hover .td-goal-undo-btn {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+#bugun .td-goal-undo-btn:hover {
+    color: #4ADE80 !important;
+    background: rgba(74,222,128,0.08) !important;
+    border-color: rgba(74,222,128,0.40) !important;
+}
+
+
+/* ══ STAT CHİPLERİ: minimalist satır ══ */
+#bugun .td-stats {
+    display: flex !important;
+    gap: 6px !important;
+    margin: 0 0 12px 0 !important;
+    padding: 0 !important;
+    border: none !important;
+}
+
+#bugun .td-chip {
+    flex: 1 !important;
+    background: rgba(212,144,14,0.04) !important;
+    border: 1px solid rgba(212,144,14,0.15) !important;
+    border-radius: 8px !important;
+    padding: 7px 10px !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    min-height: unset !important;
+}
+
+#bugun .td-chip-val {
+    font-size: 17px !important;
+    font-weight: 700 !important;
+    color: var(--a) !important;
+    line-height: 1 !important;
+}
+
+#bugun .td-chip-lbl {
+    font-size: 11px !important;
+    color: rgba(212,144,14,0.6) !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.3px !important;
+    text-transform: none !important;
+}
+
+#bugun .td-chip-done {
+    background: rgba(74,222,128,0.04) !important;
+    border-color: rgba(74,222,128,0.15) !important;
+}
+#bugun .td-chip-done .td-chip-val { color: #4ADE80 !important; }
+#bugun .td-chip-done .td-chip-lbl { color: rgba(74,222,128,0.5) !important; }
+
+#bugun .td-chip-streak {
+    flex: 0 0 auto !important;
+    background: rgba(212,144,14,0.06) !important;
+    border-color: rgba(212,144,14,0.2) !important;
+}
+#bugun .td-chip-streak .td-chip-val { color: var(--a) !important; }
+#bugun #streak-badge {
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 5px !important;
+}
+
+/* ══ GÖREV BÖLÜMÜ ══ */
+#bugun .td-tasks {
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: visible !important;
+    min-height: 0;
+}
+
+#bugun .td-tasks-hd {
+    padding: 0 0 10px 0 !important;
+    border-bottom: none !important;
+    align-items: center;
+}
+
+#bugun .td-tasks-title {
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    color: var(--t3) !important;
+    letter-spacing: 1px !important;
+    text-transform: uppercase !important;
+}
+
+/* Ekle butonu: normal → sarı geçişi .is-open ile */
+#bugun .td-tasks-add-btn {
+    font-size: 11px !important;
+    color: var(--t3) !important;
+    padding: 3px 10px !important;
+    border: 1px solid var(--b1) !important;
+    border-radius: 5px !important;
+    background: var(--s1) !important;
+    position: relative;
+    z-index: 2;
+    transition: border-color 0.2s, color 0.2s, background 0.2s !important;
+}
+#bugun .td-tasks-add-btn:hover {
+    color: var(--a) !important;
+    border-color: rgba(212,144,14,0.4) !important;
+    background: rgba(212,144,14,0.06) !important;
+}
+#bugun .td-tasks-add-btn.is-open {
+    color: var(--a) !important;
+    border-color: rgba(212,144,14,0.5) !important;
+    background: rgba(212,144,14,0.12) !important;
+}
+
+/* ── GÖREV EKLEME FORMU ── */
+#bugun .td-add-form {
+    background: rgba(212,144,14,0.04) !important;
+    border: 1px solid rgba(212,144,14,0.2) !important;
+    border-radius: 8px !important;
+    margin-bottom: 10px !important;
+    padding: 10px 12px !important;
+}
+
+#bugun .td-add-input {
+    background: transparent !important;
+    border-color: transparent !important;
+    padding-left: 0 !important;
+    font-size: 13px !important;
+    color: var(--t1) !important;
+}
+
+#bugun .td-add-input:focus {
+    border-color: transparent !important;
+    box-shadow: none !important;
+}
+
+/* Görev ekleme select ve saat seçicileri — sarı ton */
+#bugun .td-add-sel {
+    background: rgba(255,255,255,0.04) !important;
+    border: 1px solid rgba(212,144,14,0.18) !important;
+    color: rgba(212,144,14,0.7) !important;
+    border-radius: 6px !important;
+}
+/* Ana Hedef select — metnin kesmemesi için min-width */
+#bugun #task-parent-goal,
+#task-parent-goal {
+    min-width: 180px;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#bugun .td-add-sel:focus { border-color: rgba(212,144,14,0.4) !important; }
+#bugun .td-add-submit {
+    background: rgba(212,144,14,0.18) !important;
+    color: var(--a) !important;
+}
+#bugun .td-add-submit:hover { background: rgba(212,144,14,0.3) !important; opacity: 1 !important; }
+
+/* ── GÖREV LİSTESİ: temiz, minimal ── */
+#bugun .task-list-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.08) transparent;
+}
+
+#bugun .task-item {
+    padding: 9px 4px !important;
+    margin-bottom: 0 !important;
+    border-radius: 0 !important;
+    border: none !important;
+    border-left: none !important;
+    border-bottom: 1px solid rgba(255,255,255,0.04) !important;
+    background: transparent !important;
+    transition: background 0.1s !important;
+}
+
+#bugun .task-item:last-child {
+    border-bottom: none !important;
+}
+
+#bugun .task-item:hover {
+    background: rgba(255,255,255,0.025) !important;
+    border-bottom-color: transparent !important;
+}
+
+#bugun .task-item.priority-high .task-checkbox   { border-color: #F87171 !important; }
+#bugun .task-item.priority-medium .task-checkbox { border-color: var(--a) !important; }
+#bugun .task-item.priority-low .task-checkbox    { border-color: #4ADE80 !important; }
+
+#bugun .task-item.completed {
+    opacity: 0.35 !important;
+}
+
+#bugun .task-text {
+    font-size: 14px !important;
+    font-weight: 400 !important;
+    color: var(--t1) !important;
+}
+
+#bugun .task-checkbox {
+    width: 17px !important;
+    height: 17px !important;
+    border-radius: 4px !important;
+    border-width: 1.5px !important;
+}
+
+/* ── GÖREV AYRAÇ ── */
+#bugun .task-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 4px;
+    list-style: none;
+    pointer-events: none;
+}
+#bugun .task-divider::before,
+#bugun .task-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255,255,255,0.07);
+}
+#bugun .task-divider span {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--t3);
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+/* ── MOBİL ── */
+@media (max-width: 640px) {
+    #bugun.page-section.active {
+        padding: 20px 16px 0 16px !important;
+    }
+    #bugun .td-header-left h2 {
+        font-size: 18px !important;
+    }
+    
+}
+
+/* ══ GÖREV LİSTESİ — SAAT BADGE + HEDEFSİZ ALAN RENKLERİ ══ */
+
+/* Saat aralığı badge — sarı tona uyumlu */
+#bugun .task-time-badge {
+    font-size: 10px !important;
+    padding: 2px 7px !important;
+    border-radius: 5px !important;
+    border: 1px solid rgba(212,144,14,0.2) !important;
+    color: rgba(212,144,14,0.65) !important;
+    background: rgba(212,144,14,0.06) !important;
+    white-space: nowrap !important;
+}
+#bugun .task-time-badge i { color: rgba(212,144,14,0.5) !important; }
+
+/* Hedef seçici (mini-goal-select) — sarı ton */
+#bugun .mini-goal-select {
+    background: rgba(212,144,14,0.05) !important;
+    border: 1px solid rgba(212,144,14,0.18) !important;
+    color: rgba(212,144,14,0.55) !important;
+    font-size: 10px !important;
+    border-radius: 6px !important;
+    padding: 3px 6px !important;
+    max-width: 110px !important;
+}
+#bugun .mini-goal-select:hover {
+    border-color: rgba(212,144,14,0.4) !important;
+    color: var(--a) !important;
+}
+
+/* Kategori tag — kişisel (gri yerine uyumlu ton) */
+#bugun .task-category-tag {
+    font-size: 10px !important;
+    border-radius: 4px !important;
+}
+#bugun .task-category-tag.tag-kisisel {
+    background: rgba(212,144,14,0.08) !important;
+    color: rgba(212,144,14,0.7) !important;
+    border: 1px solid rgba(212,144,14,0.18) !important;
+}
+
+/* Premium modal her zaman en üstte görünür */
+#premium-modal {
+    z-index: 999999 !important;
+}
+

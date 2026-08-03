@@ -24,7 +24,7 @@ const GF_QUOTES = [
 let gfQuoteInterval = null;
 let gfQuoteIndex = -1;
 
-function gfShowNextQuote() {
+export function gfShowNextQuote() {
     const el = document.getElementById('gf-focus-quote');
     if (!el) return;
     let nextIndex;
@@ -40,14 +40,14 @@ function gfShowNextQuote() {
 }
 window.gfShowNextQuote = gfShowNextQuote;
 
-function gfStartQuoteRotation() {
+export function gfStartQuoteRotation() {
     gfShowNextQuote();
     if (gfQuoteInterval) clearInterval(gfQuoteInterval);
     gfQuoteInterval = setInterval(gfShowNextQuote, 15000);
 }
 window.gfStartQuoteRotation = gfStartQuoteRotation;
 
-function gfStopQuoteRotation() {
+export function gfStopQuoteRotation() {
     if (gfQuoteInterval) { clearInterval(gfQuoteInterval); gfQuoteInterval = null; }
     // Fade animasyonu ortasında durmuş olabilir — opacity'yi geri getir
     const el = document.getElementById('gf-focus-quote');

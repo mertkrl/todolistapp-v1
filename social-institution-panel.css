@@ -1,0 +1,944 @@
+/* ── Sınıf / Ekip Paneli (Faz 3 — kurumsal) ── */
+
+.cp-section-title {
+    display: flex; align-items: center; gap: 9px;
+    font-size: 14.5px; font-weight: 700; letter-spacing: 0.1px; color: #fff; margin: 0 0 13px;
+}
+.cp-section-title small { color: var(--text-muted); font-size: 11px; font-weight: 600; }
+.cp-table { display: flex; flex-direction: column; gap: 5px; }
+.cp-row {
+    display: grid; grid-template-columns: 26px 1fr 75px 65px 55px 120px;
+    gap: 8px; align-items: center;
+    padding: 10px 13px; border-radius: 11px; font-size: 12.5px; color: #fff;
+    background: var(--s2); border: 1px solid var(--b2);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    transition: background 0.15s, border-color 0.15s, transform 0.15s;
+}
+.cp-row:hover { background: var(--s3); border-color: rgba(255,255,255,0.18); transform: translateY(-1px); }
+
+
+
+
+
+
+
+.cp-subs { margin-top: 5px; padding-top: 6px; border-top: 1px dashed rgba(255,255,255,0.06); }
+.cp-subs summary {
+    cursor: pointer; font-size: 10.5px; color: #74b9ff; font-weight: 700;
+    list-style: none; user-select: none; display: flex; align-items: center; gap: 4px;
+}
+.cp-subs summary::before { content: '▸'; font-size: 8px; opacity: 0.8; }
+.cp-subs[open] summary::before { content: '▾'; }
+.cp-subs-list { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+.cp-sub {
+    font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 20px;
+    color: var(--text-muted);
+    background: rgba(255,255,255,0.045); border: 1px solid rgba(255,255,255,0.09);
+    transition: background 0.15s;
+}
+.cp-sub.is-done { color: #2ed573; border-color: rgba(46,213,115,0.35); background: rgba(46,213,115,0.1); }
+.cp-row--head {
+    background: transparent; border: none; border-bottom: 1px solid var(--b1); color: var(--t1, #ddd);
+    font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px;
+    padding: 4px 12px 8px;
+}
+/* Başlık metni dar sütunlarda 2. satıra taşıp satırı büyütmesin diye sarmayı engelliyoruz
+   (düz <span> başlıklar için — sıralanabilir <button> başlıklar kendi kuralını aşağıda alır). */
+.cp-row--head > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.cp-row--support { border-color: rgba(212,144,14,0.3); background: var(--a10); }
+/* Performans tablosu — sıralanabilir sütun başlıkları (Excel/Sheets tarzı). Ok ikonu HER ZAMAN
+   tam görünür kalsın diye kırpma yalnızca metin span'ine uygulanır, ikon flex-shrink:0 ile korunur. */
+.cp-perf-sort-head {
+    display: flex; align-items: center; gap: 3px; min-width: 0;
+    background: none; border: none; padding: 0; margin: 0;
+    font: inherit; color: inherit; text-transform: inherit; letter-spacing: inherit;
+    cursor: pointer; transition: color 0.15s;
+}
+.cp-perf-sort-head:hover { color: #fff; }
+.cp-perf-sort-head.active { color: var(--bl); }
+.cp-perf-sort-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.cp-perf-sort-arrow { font-size: 8px; opacity: 0.5; transition: opacity 0.15s; flex-shrink: 0; }
+.cp-perf-sort-head:hover .cp-perf-sort-arrow { opacity: 0.8; }
+/* Ödev/Trend/Odak/Aktif Gün sütunları: başlık ve altındaki veri hücresi ayrı ayrı sola
+   yaslanıyordu (flex/span varsayılanı), bu yüzden görsel olarak alt alta hizalı durmuyorlardı
+   (kullanıcı bildirimi: "Trend grafiği Trend yazan yerin tam altında değil") — dört sütunu
+   da (başlık + veri) ortalayarak simetrik, alt alta hizalı hale getiriyoruz. # ve isim sütunu
+   solda kalmaya devam eder (uzun metin içerdiklerinden ortalamak okunurluğu bozar). */
+.cp-perf-sort-head[data-perfsortkey="pct"],
+.cp-perf-sort-head[data-perfsortkey="weekly_minutes"],
+.cp-perf-sort-head[data-perfsortkey="active_days"] { justify-content: center; }
+.cp-perf-trend-cell,
+.cp-perf-focus-cell,
+.cp-perf-active-cell { display: flex; align-items: center; justify-content: center; gap: 4px; text-align: center; }
+.cp-asg-pct-cell { justify-content: center; }
+.cp-perf-sort-head.active .cp-perf-sort-arrow { opacity: 1; }
+/* ── Performans üst satırı: sol "Bu bölüm nasıl okunur?", sağ "Filtrele" — ikisi de
+   sohbet-balonu gibi açılıp dışa tıklama/çarpı ile kapanan popover (bkz. .cp-popover). ── */
+.cp-perf-toprow { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 14px; flex-wrap: wrap; }
+.cp-popover { position: relative; }
+.cp-perf-filter-popover { margin-left: auto; }
+.cp-popover > button {
+    display: flex; align-items: center; gap: 7px;
+    background: var(--s1); border: 1px solid var(--b1); color: var(--text-muted);
+    font-size: 11.5px; font-weight: 600; padding: 6px 11px; border-radius: 9px; cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.cp-popover > button:hover { color: #fff; background: var(--s2); }
+.cp-perf-filter-toggle-caret { font-size: 8px; opacity: 0.7; transition: transform 0.15s; }
+.cp-popover-open .cp-perf-filter-toggle-caret { transform: rotate(180deg); }
+.cp-popover-open > button { color: var(--bl); background: var(--bl10); border-color: rgba(96,165,250,0.3); }
+
+/* Sohbet-balonu popover paneli: mutlak konumlu, ok uçlu, dışa tıklama/çarpı ile kapanır */
+.cp-popover-panel {
+    position: absolute; top: calc(100% + 8px); z-index: 20;
+    display: flex; flex-direction: column; gap: 5px; width: max-content; max-width: min(340px, 88vw);
+    padding: 26px 14px 12px; border-radius: var(--r, 14px);
+    background: var(--s2); border: 1px solid var(--b2);
+    box-shadow: 0 10px 28px rgba(0,0,0,0.4);
+    opacity: 0; animation: cpFadeIn 0.15s ease forwards;
+}
+.cp-popover-panel[hidden] { display: none; }
+.cp-perf-help-popover .cp-popover-panel {
+    left: 0; display: grid; grid-template-columns: repeat(2, minmax(190px, 1fr));
+    gap: 10px 18px; width: max-content; max-width: min(560px, 92vw);
+}
+.cp-perf-help-popover .cp-popover-panel[hidden] { display: none; }
+.cp-perf-help-popover .cp-popover-panel::before {
+    content: ''; position: absolute; bottom: 100%; left: 18px;
+    border: 7px solid transparent; border-bottom-color: var(--s2);
+}
+.cp-perf-filter-popover .cp-popover-panel { right: 0; min-width: 210px; width: fit-content; }
+.cp-perf-filter-popover .cp-popover-panel::before {
+    content: ''; position: absolute; bottom: 100%; right: 18px;
+    border: 7px solid transparent; border-bottom-color: var(--s2);
+}
+.cp-popover-close {
+    position: absolute; top: 8px; right: 8px;
+    display: flex; align-items: center; justify-content: center;
+    width: 20px; height: 20px; border-radius: 6px;
+    background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 11px;
+    transition: background 0.15s, color 0.15s;
+}
+.cp-popover-close:hover { background: var(--s3); color: #fff; }
+.cp-perf-filter-panel-label { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text-muted); margin: 3px 24px -1px 2px; }
+.cp-perf-filter-panel-label:first-child { margin-top: 0; }
+.cp-perf-filter-group {
+    display: flex; gap: 2px; padding: 3px; background: var(--s1); border: 1px solid var(--b1); border-radius: 9px;
+}
+.cp-perf-filter-group .cp-perf-filter-btn { padding: 5px 9px; font-size: 10.5px; white-space: nowrap; flex: 1; justify-content: center; }
+.cp-support-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; color: #ffbe4d; background: var(--a10); border: 1px solid rgba(212,144,14,0.35); border-radius: 20px; padding: 2px 8px; margin-left: 6px; white-space: nowrap; }
+.cp-row--anomaly { border-color: rgba(248,113,113,0.3); background: var(--re10); }
+.cp-anomaly-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; color: var(--re); background: var(--re10); border: 1px solid rgba(248,113,113,0.3); border-radius: 20px; padding: 2px 8px; margin-left: 6px; white-space: nowrap; }
+.cp-trend-icon { margin-left: 5px; font-size: 10px; vertical-align: middle; }
+.cp-trend-icon--up { color: var(--g); }
+.cp-trend-icon--down { color: var(--re); }
+
+.cp-context-note { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; color: var(--text-muted); background: var(--s2); border: 1px solid var(--b1); border-radius: 20px; padding: 2px 8px; margin-left: 6px; white-space: nowrap; }
+.cp-asg-pct-cell--lowsample .cp-asg-pct-track { opacity: 0.55; }
+.cp-lowsample-badge { display: inline-flex; align-items: center; font-size: 9px; font-weight: 600; color: var(--text-color, #ddd); background: var(--s3); border: 1px dashed rgba(255,255,255,0.25); border-radius: 20px; padding: 1px 6px; margin-left: 6px; white-space: nowrap; cursor: help; }
+/* Performans tablosundaki satır rozeti: "az veri" metni hücreyi (110px/70px) doldurup
+   Trend sütununa taşıyor, ayrıca yer kaplıyordu (kullanıcı bildirimi, 2026-07-13) —
+   tablo içindeki tekrarlayan rozetler için metin yerine küçük bir "i" ikonuna indirgendi;
+   açıklama aynı title/toast ile duruyor, sadece görsel yer kaplamıyor. KPI özet şeridindeki
+   tekil rozet (cp-kpi-num içinde) daha az yer kısıtlı olduğundan metinli haliyle kalıyor.*/
+.cp-lowsample-badge--icon {
+    width: auto; height: auto; padding: 0; margin-left: 4px; border-radius: 0;
+    background: none; border: none; color: var(--text-muted);
+    justify-content: center; font-size: 12px; flex-basis: auto !important; flex-shrink: 0;
+}
+.cp-perf-delta-card {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 12px; padding: 10px 12px;
+    border-radius: var(--r, 14px); background: var(--bl10); border: 1px solid rgba(96,165,250,0.3);
+    font-size: 12px; color: var(--text-muted);
+    transition: transform 0.15s, border-color 0.15s;
+    opacity: 0; animation: dhsCardIn 0.4s ease forwards;
+}
+.cp-perf-delta-card:hover { transform: translateY(-2px); border-color: rgba(96,165,250,0.5); }
+.cp-perf-delta-pill { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; color: #fff; background: var(--s2); border-radius: 20px; padding: 3px 10px; white-space: nowrap; }
+.cp-perf-delta-pill--up { color: var(--g); background: var(--g10); }
+.cp-perf-delta-pill--down { color: var(--re); background: var(--re10); }
+.cp-perf-help-panel p { margin: 0; font-size: 11px; line-height: 1.45; color: var(--text-muted); }
+.cp-perf-help-panel b { display: block; color: #fff; font-size: 11.5px; margin-bottom: 1px; }
+
+/* ── Ders Programı başlığı yanındaki bilgi butonu — Performans'taki "Bu bölüm nasıl
+   okunur?" ile aynı popover deseni (bkz. .cp-popover), ama ikon-only ve başlık
+   satırının içinde küçük bir rozet gibi duruyor. ── */
+.cp-sched-help-popover > button {
+    display: flex; align-items: center; justify-content: center;
+    width: 18px; height: 18px; padding: 0; border-radius: 50%;
+    background: var(--s1); border: 1px solid var(--b1); color: var(--text-muted); font-size: 11px;
+}
+.cp-sched-help-popover > button:hover { color: #fff; background: var(--s2); }
+.cp-sched-help-popover .cp-popover-panel { left: 0; min-width: 220px; }
+.cp-sched-help-popover .cp-popover-panel::before {
+    content: ''; position: absolute; bottom: 100%; left: 12px;
+    border: 7px solid transparent; border-bottom-color: var(--s2);
+}
+.cp-sched-help-panel p { margin: 0; font-size: 11.5px; line-height: 1.5; color: var(--text-muted); }
+.cp-perf-name-link { cursor: pointer; text-decoration: none; }
+.cp-perf-name-link:hover { text-decoration: underline; text-decoration-color: rgba(96,165,250,0.5); }
+.cp-perf-dist {
+    margin: 14px 0 16px; padding: 12px 14px; border: 1px solid rgba(96,165,250,0.22); border-radius: var(--r, 14px);
+    background: var(--s2);
+    transition: transform 0.15s, border-color 0.15s;
+    opacity: 0; animation: dhsCardIn 0.4s ease forwards; animation-delay: 60ms;
+}
+.cp-perf-dist:hover { transform: translateY(-2px); border-color: rgba(96,165,250,0.4); }
+.cp-perf-dist-title { font-size: 12px; font-weight: 700; color: var(--text-color, #eee); margin-bottom: 8px; }
+.cp-perf-dist-title small { font-weight: 500; color: var(--text-muted); margin-left: 4px; }
+.cp-perf-dist-svg { width: 100%; height: auto; display: block; }
+.cp-perf-dist-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-top: 8px; font-size: 11px; color: var(--text-muted); }
+.cp-perf-dist-swatch { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
+.cp-perf-dist-skew-note { opacity: 0.8; }
+.cp-perf-dist-hint { flex-basis: 100%; opacity: 0.75; }
+
+/* ── Kendi Aynan (öğrenci) — pozitif çerçeve: kimseyle kıyaslamaz, sadece kendi serisini gösterir ── */
+.cp-streak-card {
+    display: flex; align-items: center; gap: 14px; padding: 14px 16px; margin-bottom: 14px;
+    border-radius: var(--r, 14px); background: var(--bl10); border: 1px solid rgba(96,165,250,0.3);
+    transition: transform 0.15s, border-color 0.15s;
+    opacity: 0; animation: dhsCardIn 0.4s ease forwards;
+}
+.cp-streak-card:hover { transform: translateY(-2px); border-color: rgba(96,165,250,0.5); }
+.cp-streak-card--hot { background: var(--a10); border-color: rgba(212,144,14,0.3); }
+.cp-streak-num { font-size: 26px; font-weight: 800; flex-shrink: 0; min-width: 44px; text-align: center; }
+.cp-streak-body { min-width: 0; }
+.cp-streak-title { margin: 0 0 3px; font-weight: 700; color: #fff; font-size: 13.5px; }
+.cp-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; }
+
+.cp-trend.up { color: #2ed573; }
+.cp-trend.down { color: #ff6b6b; }
+.cp-hint { font-size: 11.5px; color: var(--text-muted); margin: 10px 0 0; line-height: 1.6; }
+.cp-asg-form { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.cp-asg-list { display: flex; flex-direction: column; gap: 10px; }
+
+/* ── Ödev kartı — Bugün sekmesindeki .tl-card-inner ile aynı düz/minimalist
+   dil: sabit renk yok, ince kenarlık, hover'da sadece kenarlık/arkaplan
+   hafifçe aydınlanır (yükselme/gölge/ikon rozeti yok). Durum, sadece ince
+   bir sol kenarlıkla (border-left) belirtilir. */
+.cp-asg {
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 14px;
+    padding: 14px 16px; border-radius: 13px;
+    background: rgba(255,255,255,.022); border: 1px solid rgba(255,255,255,.06);
+    border-left: 2px solid rgba(116,185,255,0.4);
+    transition: border-color .15s, background .15s;
+}
+.cp-asg[data-accent="urgent"], .cp-asg[data-accent="overdue"] { border-left-color: rgba(255,107,107,0.5); }
+.cp-asg[data-accent="important"] { border-left-color: rgba(254,202,87,0.5); }
+.cp-asg[data-accent="done"] { border-left-color: rgba(46,213,115,0.5); }
+.cp-asg[data-accent="closed"] { border-left-color: rgba(255,255,255,0.15); }
+.cp-asg:hover { border-color: rgba(217,177,106,.28); background: rgba(255,255,255,.035); }
+.cp-asg--closed { opacity: 0.6; }
+
+
+.cp-asg-main { display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1; }
+.cp-asg-title { color: var(--t1, #fff); font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.cp-asg-targeted-badge {
+    font-size: 9.5px; font-weight: 700; color: #a29bfe; padding: 1px 7px; border-radius: 20px;
+    background: rgba(162,155,254,0.1); border: 1px solid rgba(162,155,254,0.25); white-space: nowrap;
+}
+.cp-asg-desc { color: var(--text-muted); font-size: 11px; line-height: 1.4; }
+.cp-asg-meta { color: var(--text-muted); font-size: 10.5px; display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
+.cp-asg-actions { display: flex; gap: 4px; flex-shrink: 0; }
+/* Öğrenci: durum rozeti kartın en sağında, üstte — altında (varsa) "Geri Al" butonu. */
+.cp-asg-actions--student { flex-direction: column; align-items: flex-end; gap: 6px; }
+.cp-asg-btn { font-size: 11px; padding: 5px 9px; }
+.cp-asg-btn--danger { color: #ff6b6b; }
+
+.cp-asg-priority {
+    font-size: 9.5px; font-weight: 700; padding: 1px 8px 1px 7px; border-radius: 20px; white-space: nowrap;
+    display: inline-flex; align-items: center; gap: 3px;
+}
+.cp-asg-priority--important { color: #feca57; background: rgba(254,202,87,0.1); border: 1px solid rgba(254,202,87,0.28); }
+.cp-asg-priority--urgent { color: #ff6b6b; background: rgba(255,107,107,0.1); border: 1px solid rgba(255,107,107,0.3); }
+
+.cp-asg-attach {
+    display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; font-weight: 600; color: #74b9ff;
+    text-decoration: none; width: fit-content; padding: 3px 8px 3px 7px; border-radius: 20px;
+    background: rgba(116,185,255,0.08); border: 1px solid rgba(116,185,255,0.2); transition: background 0.15s;
+}
+.cp-asg-attach:hover { background: rgba(116,185,255,0.14); text-decoration: none; }
+
+.cp-asg-grade {
+    display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; color: #2ed573;
+    padding: 3px 9px; border-radius: 20px; background: rgba(46,213,115,0.08); border: 1px solid rgba(46,213,115,0.22);
+    width: fit-content;
+}
+.cp-grade-list { display: flex; flex-direction: column; gap: 5px; margin-top: 7px; }
+.cp-grade-row { display: flex; align-items: center; gap: 5px; }
+.cp-grade-row-name { flex: 1; font-size: 11px; color: var(--text-muted); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cp-grade-input { width: 52px; flex-shrink: 0; padding: 4px 7px; font-size: 11px; }
+.cp-grade-feedback { flex: 2; min-width: 90px; padding: 4px 7px; font-size: 11px; }
+.cp-grade-save { flex-shrink: 0; padding: 4px 8px; font-size: 10.5px; }
+/* ── Ödev oluşturma formu — Sınıf Paneli'nin geri kalanıyla (Şubeler, Ders
+   Programı vb.) aynı teal vurgu rengini kullanır (2026-07-11, kullanıcı
+   geri bildirimi: eskiden Bugün sekmesiyle aynı amber tondaydı, panelin
+   geneliyle uyumsuz duruyordu — bkz. #4ecdc4 cp-roster-pillbtn--accent). ── */
+.cp-asg-create {
+    display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px;
+    background: rgba(78,205,196,0.04); border: 1px solid rgba(78,205,196,0.18);
+    border-radius: 8px; padding: 10px 12px;
+}
+.cp-asg-create-row { display: flex; gap: 8px; align-items: center; }
+.cp-asg-create-row--main { gap: 8px; }
+.cp-asg-title-input {
+    flex: 1; min-width: 0; font-size: 13px; color: var(--t1, #fff); font-family: 'Inter', sans-serif;
+    background: transparent; border: 1px solid transparent; outline: none; padding: 7px 0;
+}
+.cp-asg-title-input::placeholder { color: var(--t3, var(--text-muted)); }
+.cp-asg-submit-btn {
+    flex-shrink: 0; width: 32px; height: 32px; min-width: 32px; border-radius: 7px;
+    background: rgba(78,205,196,0.16); border: none; color: #4ecdc4;
+    font-size: 13px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s, opacity 0.15s;
+}
+.cp-asg-submit-btn:hover { background: rgba(78,205,196,0.28); opacity: 1; }
+.cp-asg-char-hint { font-size: 10px; color: var(--text-muted); text-align: right; margin: -4px 2px 4px 0; opacity: 0.75; }
+.cp-asg-pill-input, .cp-asg-desc-input {
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+    color: var(--t1, #fff); font-family: 'Inter', sans-serif; font-size: 11px;
+    padding: 4px 8px; border-radius: 6px; cursor: pointer; outline: none;
+    transition: border-color .15s, background .15s;
+}
+.cp-asg-pill-input:hover { background: rgba(255,255,255,.06); }
+.cp-asg-pill-input:focus { border-color: rgba(78,205,196,.4); }
+.cp-asg-pill-input option { background: var(--s2, #1E1E20); }
+.cp-asg-desc-input {
+    width: 100%; box-sizing: border-box; resize: vertical; min-height: 34px; cursor: text; color: var(--t1, #fff);
+    font-size: 13px; padding: 7px 12px; border-radius: 7px;
+}
+.cp-asg-desc-input::placeholder { color: var(--text-muted); }
+.cp-asg-create-opts { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.cp-asg-create-opts .cp-asg-pill-input { flex: 0 1 auto; min-width: 120px; }
+.cp-asg-create-opts input[type="date"].cp-asg-pill-input { min-width: 110px; }
+.cp-asg-pill-icon-btn {
+    flex-shrink: 0; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+    border-radius: 6px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+    color: var(--text-muted); cursor: pointer; font-size: 11px; transition: background 0.15s, color 0.15s;
+}
+.cp-asg-pill-icon-btn:hover { color: #4ecdc4; background: rgba(255,255,255,.06); }
+.cp-asg-file-label { display: flex; align-items: center; cursor: pointer; }
+.cp-asg-file-label span {
+    display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-muted);
+    padding: 4px 8px; border-radius: 6px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+    white-space: nowrap; transition: border-color .15s, background .15s;
+}
+.cp-asg-file-label:hover span { color: #4ecdc4; background: rgba(255,255,255,.06); }
+
+
+
+
+
+.cp-asg-step-edit-row.is-dragging { opacity: 0.4; }
+
+
+
+
+
+
+.cp-asg-steps-checklist {
+    margin-top: 6px; padding: 8px 10px; border-radius: 9px;
+    background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06);
+    display: flex; flex-direction: column; gap: 8px;
+}
+.cp-asg-step-row { display: flex; align-items: flex-start; gap: 8px; font-size: 12.5px; color: var(--text-muted); cursor: pointer; }
+.cp-asg-step-row input { width: 15px; height: 15px; accent-color: #a29bfe; cursor: pointer; margin-top: 2px; flex-shrink: 0; }
+.cp-asg-step-row-body { display: flex; flex-direction: column; gap: 2px; }
+.cp-asg-step-row-title { color: #fff; }
+.cp-asg-step-row--rich .cp-asg-step-row-title { font-weight: 600; }
+.cp-asg-step-row-desc { font-size: 11.5px; color: var(--text-muted); }
+.cp-asg-step-row-link { font-size: 11.5px; color: #a29bfe; text-decoration: none; }
+.cp-asg-step-row-link:hover { text-decoration: underline; }
+.cp-asg-step-breakdown {
+    display: flex; flex-direction: column; gap: 6px;
+    margin: 6px 0 10px; padding: 8px 10px; border-radius: 9px;
+    background: rgba(162,155,254,0.04); border: 1px solid rgba(162,155,254,0.12);
+}
+.cp-asg-step-bd-row { display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: var(--text-muted); }
+.cp-asg-step-bd-title { flex: 0 0 40%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cp-asg-step-bd-bar { flex: 1; height: 5px; border-radius: 4px; background: rgba(255,255,255,0.06); overflow: hidden; }
+.cp-asg-step-bd-fill { height: 100%; background: #a29bfe; border-radius: 4px; }
+.cp-asg-step-bd-count { flex: 0 0 auto; font-weight: 600; color: #fff; min-width: 32px; text-align: right; }
+.cp-sub-student-detail summary { cursor: pointer; list-style: none; }
+.cp-sub-student-detail summary::-webkit-details-marker { display: none; }
+.cp-sub-student-steps {
+    display: flex; flex-direction: column; gap: 3px;
+    margin: 4px 0 6px 16px; font-size: 11px; color: var(--text-muted);
+}
+.cp-sub-step.is-done { color: #2ed573; }
+.cp-asg-submit-form {
+    margin-top: 6px; padding: 8px 10px; border-radius: 9px;
+    background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06);
+}
+.cp-asg-submit-form summary {
+    cursor: pointer; font-size: 11px; font-weight: 700; color: #74b9ff;
+    list-style: none; user-select: none; display: flex; align-items: center; gap: 5px;
+}
+.cp-asg-submit-form summary::before { content: '▸'; font-size: 8px; }
+.cp-asg-submit-form[open] summary::before { content: '▾'; }
+.cp-asg-submit-body { display: flex; flex-direction: column; gap: 6px; margin-top: 7px; }
+.cp-asg-submit-note { width: 100%; box-sizing: border-box; resize: vertical; font-size: 11px; }
+/* Dosya ekle + Teslim Et aynı satırda — buton artık genel büyük CTA (.control-btn)
+   yerine dosya etiketiyle aynı ölçekte, küçük bir pill. */
+.cp-asg-submit-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.cp-asg-submit-confirm {
+    display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700;
+    color: #1d160a; background: linear-gradient(180deg, #e3bd75, #cf9f52);
+    border: none; padding: 4px 10px; border-radius: 6px; cursor: pointer;
+    white-space: nowrap; transition: opacity .15s;
+}
+.cp-asg-submit-confirm:hover { opacity: .9; }
+.cp-asg-submit-confirm:disabled { opacity: .5; cursor: not-allowed; }
+
+/* ── Adım listesi artık varsayılan olarak kapalı (aynı .cp-asg-submit-form dili) —
+   çok adımlı ödevlerin kartı liste görünümünde şişirmemesi için. ── */
+.cp-asg-steps-toggle { margin-top: 6px; padding: 8px 10px; border-radius: 9px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); }
+.cp-asg-steps-toggle summary { cursor: pointer; font-size: 11px; font-weight: 700; color: #a29bfe; list-style: none; user-select: none; display: flex; align-items: center; gap: 5px; }
+.cp-asg-steps-toggle summary small { font-weight: 400; opacity: .75; color: var(--text-muted); }
+.cp-asg-steps-toggle summary::-webkit-details-marker { display: none; }
+.cp-asg-steps-toggle summary::before { content: '▸'; font-size: 8px; }
+.cp-asg-steps-toggle[open] summary::before { content: '▾'; }
+.cp-asg-steps-toggle .cp-asg-steps-checklist { margin-top: 8px; padding: 0; background: none; border: none; }
+
+/* ── Öğrenci ödev kartı v2 — sade meta satırı: soluk tarih + tek durum rozeti
+   (pg-pv-assign-badge, Ders Planı kartlarıyla aynı bileşen). Rengarenk inline
+   span'lerin yerini aldı. ── */
+.cp-asg-meta--v2 { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.cp-asg-due { display: inline-flex; align-items: center; gap: 4px; color: var(--text-muted); font-size: 10.5px; }
+.cp-asg-due.is-overdue { color: #ff6b6b; }
+.cp-asg-due.is-soon { color: #feca57; }
+
+/* ── Minimalist hızlı ödev çubuğu — başlık + tarih + ekle tek satır, gerisi "Detaylar"ın arkasında ── */
+.cp-asg-create--mini { padding: 10px 12px; gap: 8px; }
+
+/* ── Sınıf/Ekip Paneli — Rapor sekmesi (PDF) ── */
+.cp-report-picker { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.cp-report-picker select { min-width: 180px; }
+.cp-report-picker .control-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* "PDF Raporu Oluştur" / "Raporumu PDF Olarak İndir" — genel büyük CTA
+   (.control-btn) yerine minimalist, küçük bir pill; panelin geneliyle aynı
+   teal vurgu rengi (2026-07-11, kullanıcı geri bildirimi: amber degrade
+   çevresindeki arayüzle uyumsuz duruyordu). */
+.cp-report-btn {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600;
+    color: #4ecdc4; background: rgba(78,205,196,0.12);
+    border: 1px solid rgba(78,205,196,0.3); padding: 6px 12px; border-radius: 20px; cursor: pointer;
+    white-space: nowrap; transition: background .15s, opacity .15s;
+}
+.cp-report-btn:hover { background: rgba(78,205,196,0.2); }
+.cp-report-btn:disabled { opacity: .5; cursor: not-allowed; }
+.cp-lpa-tracker {
+    margin-bottom: 22px; padding-bottom: 18px; border-bottom: 1px dashed rgba(255,255,255,0.08);
+}
+.cp-lpa-tracker .pg-lpa-invite-card:not(:last-child) { margin-bottom: 10px; }
+.cp-section-subtitle {
+    font-size: 10.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--text-muted); opacity: 0.75;
+}
+.cp-asg-due-wrap { display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; }
+.cp-asg-due-label { font-size: 9.5px; font-weight: 600; color: var(--text-muted); white-space: nowrap; opacity: 0.8; }
+.cp-asg-due-mini {
+    flex-shrink: 0; width: 122px; padding: 7px 10px; font-size: 12px;
+    background: rgba(255,255,255,0.04); border-radius: 6px; cursor: pointer;
+}
+.cp-asg-class-picker { display: flex; align-items: center; gap: 8px; margin: 8px 0 0; }
+.cp-asg-class-picker .cp-asg-due-label { flex-shrink: 0; }
+.cp-asg-class-picker .cp-asg-pill-input { flex: 1; min-width: 0; }
+.cp-asg-details-toggle {
+    margin: 2px 0 0; padding: 7px 10px; border-radius: 9px;
+    background: rgba(255,255,255,0.015); border: 1px solid rgba(255,255,255,0.05);
+}
+.cp-asg-details-toggle summary {
+    cursor: pointer; font-size: 11px; font-weight: 700; color: var(--text-muted);
+    list-style: none; user-select: none; display: flex; align-items: center; gap: 6px;
+}
+.cp-asg-details-toggle summary small { font-weight: 400; opacity: .7; margin-left: 2px; }
+.cp-asg-details-toggle summary::-webkit-details-marker { display: none; }
+.cp-asg-details-toggle[open] summary { color: #fff; margin-bottom: 9px; }
+.cp-asg-details-toggle > *:not(summary) { margin-top: 8px; }
+.cp-asg-details-toggle > *:first-of-type { margin-top: 0; }
+
+/* ── Ödev hedef seçici (öğrenci bazlı atama) ── */
+.cp-asg-target-picker {
+    margin: 0 0 10px; padding: 8px 10px; border-radius: 9px;
+    background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06);
+}
+.cp-asg-target-picker summary {
+    cursor: pointer; font-size: 11px; font-weight: 700; color: var(--text-muted);
+    list-style: none; user-select: none; display: flex; align-items: center; gap: 6px;
+}
+.cp-asg-target-picker summary::-webkit-details-marker { display: none; }
+.cp-asg-target-picker[open] summary { color: #fff; margin-bottom: 7px; }
+#cp-asg-target-summary { color: #74b9ff; font-weight: 700; margin-left: auto; font-size: 10.5px; }
+.cp-asg-target-body { display: flex; flex-direction: column; gap: 1px; }
+.cp-asg-target-row {
+    display: flex; align-items: center; gap: 8px; padding: 5px 7px; border-radius: 7px;
+    font-size: 11px; color: #fff; cursor: pointer; transition: background 0.15s;
+}
+.cp-asg-target-row input[type="checkbox"] { width: 13px; height: 13px; accent-color: #a29bfe; cursor: pointer; flex-shrink: 0; }
+.cp-asg-target-row:hover { background: rgba(255,255,255,0.045); }
+.cp-asg-target-all { border-bottom: 1px solid rgba(255,255,255,0.07); padding-bottom: 6px; margin-bottom: 3px; font-weight: 700; }
+.cp-asg-target-students { display: flex; flex-direction: column; gap: 1px; max-height: 140px; overflow-y: auto; }
+
+/* ── Ders planı çoklu öğrenci ataması ── */
+
+
+
+
+/* ── Atanan ders planları takip listesi ── */
+
+
+
+
+
+
+
+
+
+
+
+
+/* ── Sınıf Özeti KPI şeridi ── */
+.cp-kpi-strip {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 9px; margin-bottom: 18px;
+}
+.cp-kpi {
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    padding: 13px 8px; border-radius: var(--r, 14px); text-align: center;
+    background: var(--bl10); border: 1px solid rgba(96,165,250,0.25);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    transition: transform 0.15s, background 0.15s, border-color 0.15s;
+    opacity: 0; animation: dhsCardIn 0.4s ease forwards; animation-delay: calc(var(--i, 0) * 60ms);
+}
+.cp-kpi:hover { background: rgba(96,165,250,0.12); transform: translateY(-2px); border-color: rgba(96,165,250,0.4); }
+
+
+.cp-kpi--lowsample { opacity: 0.85; }
+.cp-kpi .cp-lowsample-badge { display: inline-flex; align-items: center; font-size: 9px; font-weight: 600; color: var(--text-color, #ddd); background: var(--s3); border: 1px dashed rgba(255,255,255,0.25); border-radius: 20px; padding: 1px 6px; margin-left: 6px; vertical-align: middle; cursor: help; }
+.cp-kpi-num { font-size: 18px; font-weight: 800; color: #fff; letter-spacing: -0.2px; }
+.cp-kpi-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px; }
+
+/* ── Sınıf Paneli iç sekmeleri (Özet / Performans / Ödevler / Ders Planı) ── */
+.cp-subtabs { display: flex; gap: 6px; margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.07); padding-bottom: 10px; flex-wrap: wrap; }
+
+/* ── İç-içe (2./3. seviye) sekmeler — Ödevler panelindeki "Hızlı Ödev/Ders Planları" ve
+   "Aktif/Geçmiş" gibi alt filtreler. Ana sekmelerle (.cp-subtabs) AYNI stili kullanınca üç
+   tam-genişlik toolbar üst üste yığılıp bir hiyerarşi karmaşası yaratıyordu — bunun yerine
+   kompakt, tek satıra sığan, arka planlı bir "chip grubu" görünümü: alt seviye olduğu bir
+   bakışta anlaşılır, dikey yer kaplamaz. */
+.cp-inner-tabs {
+    display: flex; gap: 3px; padding: 3px; border-radius: 10px;
+    background: var(--s1); border: none; width: fit-content; max-width: 100%;
+}
+.cp-inner-tabs .cp-asg-innertab-btn, .cp-inner-tabs .cp-list-filter-btn {
+    padding: 5px 10px; font-size: 11.5px; border-radius: 7px;
+}
+.cp-subtab-btn, .cp-roster-innertab-btn, .cp-asg-innertab-btn, .cp-perf-filter-btn, .cp-list-filter-btn {
+    display: flex; align-items: center; gap: 6px;
+    background: none; border: 1px solid transparent; color: var(--text-muted);
+    font-size: 12.5px; font-weight: 600; padding: 7px 12px; border-radius: 8px; cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+.cp-subtab-btn:hover, .cp-roster-innertab-btn:hover, .cp-asg-innertab-btn:hover, .cp-perf-filter-btn:hover, .cp-list-filter-btn:hover { color: #fff; background: var(--s2); }
+.cp-subtab-btn.active, .cp-roster-innertab-btn.active, .cp-asg-innertab-btn.active, .cp-perf-filter-btn.active, .cp-list-filter-btn.active { color: var(--bl); background: var(--bl10); border-color: rgba(96,165,250,0.3); }
+.cp-subtab-panel { display: none; }
+.cp-subtab-panel.active { display: block; animation: cpFadeIn 0.15s ease; }
+.cp-roster-innertab-panel.hidden, .cp-asg-innertab-panel.hidden { display: none; }
+.cp-roster-innertab-panel:not(.hidden), .cp-asg-innertab-panel:not(.hidden) { display: block; animation: cpFadeIn 0.15s ease; }
+@keyframes cpFadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* ── "Geçmiş ödevleri göster" açılır bağlantı — eskiden ayrı bir Aktif/Geçmiş sekme
+   çubuğuydu, "konumu kafa karıştırıyor" geri bildirimi üzerine kaldırıldı. Buton değil,
+   soluk/metin-link hissi veren bir satır: birincil eylem gibi görünüp dikkat çekmesin. */
+.cp-asg-history-toggle {
+    display: flex; align-items: center; gap: 6px; width: 100%;
+    background: none; border: none; border-top: 1px solid rgba(255,255,255,0.06);
+    color: var(--text-muted); font-size: 12px; font-weight: 600;
+    padding: 10px 2px 4px; margin-top: 10px; cursor: pointer; transition: color 0.15s;
+}
+.cp-asg-history-toggle:hover { color: #fff; }
+.cp-asg-history-toggle-chev { margin-left: auto; font-size: 10px; transition: transform 0.15s; }
+.cp-asg-history-toggle.is-open .cp-asg-history-toggle-chev { transform: rotate(180deg); }
+
+/* ── Sınıf Paneli: ilk kurulum yönlendirme kartı ── */
+.cp-onboarding-card {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 16px; border-radius: 14px; margin-bottom: 18px;
+    background: rgba(116,185,255,0.06); border: 1px dashed rgba(116,185,255,0.32);
+}
+
+/* ── Sınıf Paneli iskelet yükleme durumu ── */
+@keyframes cpSkelPulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 0.9; } }
+.cp-skeleton { padding: 4px 0; }
+.cp-skel-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
+.cp-skel-box, .cp-skel-line, .cp-skel-row {
+    background: rgba(255,255,255,0.06); border-radius: 10px;
+    animation: cpSkelPulse 1.4s ease-in-out infinite;
+}
+.cp-skel-box { height: 58px; }
+.cp-skel-line { height: 16px; margin-bottom: 14px; border-radius: 6px; }
+.cp-skel-row { height: 38px; margin-bottom: 8px; }
+
+/* ── "Bu hafta ne yapmalıyım" (öğretmen) / "Sıradaki ödev" (öğrenci) kartı ── */
+.cp-weektodo-card {
+    display: flex; align-items: center; gap: 12px; padding: 12px 14px; margin-bottom: 14px;
+    border-radius: var(--r, 14px); background: rgba(116,185,255,0.06); border: 1px solid rgba(116,185,255,0.22);
+    cursor: pointer; transition: transform 0.15s, border-color 0.15s;
+}
+.cp-weektodo-card:hover { transform: translateY(-2px); border-color: rgba(116,185,255,0.4); }
+.cp-weektodo-card--clear { cursor: default; background: rgba(46,213,115,0.05); border-color: rgba(46,213,115,0.2); }
+.cp-weektodo-card--clear:hover { transform: none; }
+.cp-weektodo-body { flex: 1; min-width: 0; }
+.cp-weektodo-title { margin: 0 0 3px; font-weight: 700; color: #fff; font-size: 13px; }
+
+.cp-privacy-box { padding: 10px 12px; background: rgba(255,255,255,0.03); border-radius: 10px; margin-bottom: 14px; }
+.cp-privacy-toggle-row { display: flex; align-items: flex-start; gap: 8px; cursor: pointer; font-size: 12px; color: var(--text-muted); }
+.cp-privacy-toggle-row input { margin-top: 2px; flex-shrink: 0; }
+.cp-privacy-detail { font-size: 11px; color: var(--text-muted); margin: 8px 0 0; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06); line-height: 1.5; }
+.cp-asg-context-note { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-muted); background: rgba(255,255,255,0.04); border-radius: 8px; padding: 5px 9px; margin-top: 4px; }
+
+/* ── Alan Dağılımı (Sınıf Paneli > Performans) ── */
+.cp-cat-breakdown { display: flex; flex-direction: column; gap: 8px; }
+.cp-cat-row { display: grid; grid-template-columns: 90px 1fr 56px; align-items: center; gap: 10px; }
+.cp-cat-label { font-size: 12px; color: #ddd; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cp-cat-bar-track { height: 7px; border-radius: 4px; background: rgba(255,255,255,0.06); overflow: hidden; }
+.cp-cat-bar-fill { height: 100%; border-radius: 4px; transition: width .4s ease; }
+.cp-cat-minutes { font-size: 11px; color: var(--text-muted); text-align: right; white-space: nowrap; }
+
+/* ══════════════════════════════════════════════════════════════
+   Sınıf Paneli: Sınıflar/Öğrenciler — premium redesign
+   ══════════════════════════════════════════════════════════════ */
+.cp-roster-panel {
+    background: linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0.008));
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px;
+    padding: 18px 18px 20px;
+}
+
+/* Öğrenciler listesinde şubeye atanmamış üye varsa, listenin üstünde uyaran şerit
+   (2026-07-13) — .cp-roster-row-class--unassigned ile aynı amber vurgu. */
+.cp-roster-unassigned-warning {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12.5px; font-weight: 500; color: #feca57;
+    background: rgba(254,202,87,0.08);
+    border: 1px solid rgba(254,202,87,0.25);
+    border-radius: 10px;
+    padding: 9px 12px;
+    margin-bottom: 12px;
+}
+.cp-roster-unassigned-warning i { flex-shrink: 0; }
+.cp-roster-unassigned-warning b { color: #fff; }
+
+/* Segmented control (Öğrenciler / Sınıflar) — tek kapsül içinde kayan aktif segment. */
+.cp-roster-segctrl {
+    display: inline-flex; gap: 2px; padding: 3px; margin-bottom: 16px;
+    background: rgba(0,0,0,0.18); border: 1px solid rgba(255,255,255,0.06); border-radius: 11px;
+}
+.cp-roster-segctrl .cp-roster-innertab-btn {
+    border: none; background: transparent; color: var(--text-muted);
+    font-size: 12px; font-weight: 600; padding: 7px 16px; border-radius: 8px;
+    display: flex; align-items: center; gap: 6px; cursor: pointer;
+    transition: background .15s, color .15s;
+}
+.cp-roster-segctrl .cp-roster-innertab-btn:hover { color: #fff; }
+.cp-roster-segctrl .cp-roster-innertab-btn.active {
+    color: #fff; background: linear-gradient(135deg, #6c5ce7, #74b9ff);
+    box-shadow: 0 2px 10px rgba(108,92,231,0.35);
+}
+
+/* Ekleme / arama kutuları — ikonlu, yumuşak kabartma hissi. */
+.cp-roster-addbox, .cp-roster-searchbox {
+    position: relative; display: flex; align-items: center; gap: 8px;
+    padding: 4px 6px 4px 14px; border-radius: 12px;
+    background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.08);
+    transition: border-color .15s, background .15s;
+}
+.cp-roster-addbox:focus-within, .cp-roster-searchbox:focus-within {
+    border-color: rgba(116,185,255,0.4); background: rgba(255,255,255,0.05);
+}
+.cp-roster-searchbox { margin-top: 10px; }
+.cp-roster-addbox-icon { color: var(--text-muted); font-size: 12px; flex-shrink: 0; }
+.cp-roster-input {
+    flex: 1; min-width: 0; background: none; border: none; outline: none;
+    color: #fff; font: inherit; font-size: 12.5px; padding: 8px 4px;
+}
+.cp-roster-input::placeholder { color: var(--text-muted); }
+.cp-roster-input--sm { flex: none; max-width: 150px; padding: 5px 6px; }
+.cp-roster-addbtn {
+    flex-shrink: 0; width: 30px; height: 30px; border-radius: 9px; border: none; cursor: pointer;
+    background: linear-gradient(135deg, #6c5ce7, #74b9ff); color: #fff; font-size: 12px;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform .12s, box-shadow .12s;
+}
+.cp-roster-addbtn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(108,92,231,0.4); }
+.cp-roster-addbtn:disabled { opacity: 0.5; cursor: default; transform: none; box-shadow: none; }
+
+/* Toplu seçim çubuğu + tümünü seç satırı */
+.cp-roster-selectall-row {
+    display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 14px 2px 6px;
+    font-size: 11.5px; color: var(--text-muted);
+}
+.cp-roster-total-count { margin-left: auto; opacity: 0.7; }
+.cp-roster-bulk-bar {
+    display: flex; align-items: center; gap: 10px; margin-top: 12px; padding: 10px 14px;
+    border-radius: 12px; background: rgba(108,92,231,0.1);
+    border: 1px solid rgba(108,92,231,0.3);
+    animation: cpFadeIn .15s ease;
+}
+.cp-roster-bulk-bar.hidden { display: none; }
+.cp-roster-bulk-count { font-size: 12px; font-weight: 600; color: #fff; }
+.cp-roster-bulk-actions { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+.cp-roster-row-check, #cp-roster-select-all { accent-color: #6c5ce7; cursor: pointer; width: 14px; height: 14px; }
+
+/* Pill / icon butonlar — roster'a özel, ortak dile uygun ama daha yuvarlak/premium */
+.cp-roster-pillbtn {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600;
+    padding: 6px 13px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.04); color: #fff; cursor: pointer; transition: background .15s, border-color .15s;
+}
+.cp-roster-pillbtn:hover { background: rgba(255,255,255,0.08); }
+.cp-roster-pillbtn--accent { background: rgba(78,205,196,0.1); border-color: rgba(78,205,196,0.3); color: #4ecdc4; }
+.cp-roster-pillbtn--accent:hover { background: rgba(78,205,196,0.18); }
+.cp-roster-pillbtn--danger { background: rgba(255,107,107,0.08); border-color: rgba(255,107,107,0.25); color: #ff8787; }
+.cp-roster-pillbtn--danger:hover { background: rgba(255,107,107,0.16); }
+.cp-roster-iconbtn {
+    width: 28px; height: 28px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.03); color: var(--text-muted); cursor: pointer; font-size: 11px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    transition: background .15s, color .15s;
+}
+.cp-roster-iconbtn:hover { background: rgba(255,255,255,0.08); color: #fff; }
+.cp-roster-iconbtn--danger:hover { background: rgba(255,107,107,0.12); color: #ff8787; }
+
+/* Öğrenci satırındaki "Şube değiştir" seçici — çıplak <select> (.cp-roster-input'un
+   background:none/border:none'ı burada görünmez/düz kalıyordu) yerine kendi kimliği
+   olan bir pill: ince kenarlık, özel ok ikonu, hover/focus vurgusu (2026-07-13). */
+.cp-roster-move-select {
+    appearance: none; -webkit-appearance: none;
+    flex-shrink: 0; max-width: 148px;
+    background: rgba(255,255,255,0.04) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8' fill='none'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23a4b0be' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 9px center;
+    background-size: 10px 7px;
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;
+    color: var(--text-muted); font-size: 11.5px; font-weight: 500;
+    padding: 6px 26px 6px 10px;
+    cursor: pointer;
+    transition: border-color .15s, background-color .15s, color .15s;
+}
+.cp-roster-move-select:hover { border-color: rgba(78,205,196,0.35); color: #fff; background-color: rgba(78,205,196,0.06); }
+.cp-roster-move-select:focus { outline: none; border-color: rgba(78,205,196,0.5); box-shadow: 0 0 0 3px rgba(78,205,196,0.12); }
+.cp-roster-move-select:disabled { opacity: 0.5; cursor: default; }
+.cp-roster-move-select option { background: #1e1e2e; color: #fff; }
+
+/* Öğrenci satırı — zengin liste satırı: avatar + durum + isim + eylemler */
+.cp-roster-list { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
+.cp-roster-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 9px 14px; border-radius: 12px;
+    background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.055);
+    transition: background .15s, border-color .15s;
+}
+.cp-roster-row:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); }
+.cp-roster-row-left { display: flex; align-items: center; gap: 10px; overflow: hidden; min-width: 0; }
+.cp-roster-row-check-spacer { width: 14px; flex-shrink: 0; }
+.cp-roster-row-name { font-size: 12.5px; font-weight: 600; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cp-roster-row-class {
+    font-size: 10px; font-weight: 600; color: var(--bl); background: var(--bl10);
+    border: 1px solid rgba(96,165,250,0.25); border-radius: 20px; padding: 2px 8px;
+    flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px;
+}
+.cp-roster-row-class--unassigned { color: #feca57; background: var(--a10); border-color: rgba(212,144,14,0.3); }
+.cp-roster-row-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+
+.cp-roster-empty {
+    display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center;
+    padding: 34px 20px; color: var(--text-muted);
+}
+.cp-roster-empty i { font-size: 26px; opacity: 0.35; }
+.cp-roster-empty p { font-size: 12px; margin: 0; max-width: 260px; line-height: 1.5; }
+
+/* Sınıf kartları */
+.cp-roster-classes-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+.cp-inst-class-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: 12px; }
+.cp-inst-class-card {
+    padding: 16px 12px; border-radius: 14px; text-align: center; cursor: pointer;
+    background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015));
+    border: 1px solid rgba(255,255,255,0.08); color: inherit; font: inherit;
+    transition: transform .15s, box-shadow .15s, border-color .15s;
+}
+.cp-inst-class-card:hover { transform: translateY(-2px); border-color: rgba(78,205,196,0.35); box-shadow: 0 8px 20px rgba(0,0,0,0.25); }
+.cp-inst-class-icon {
+    width: 34px; height: 34px; margin: 0 auto 8px; border-radius: 10px;
+    background: rgba(78,205,196,0.12); color: #4ecdc4; font-size: 15px;
+    display: flex; align-items: center; justify-content: center;
+}
+.cp-inst-class-name { font-weight: 700; color: #fff; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cp-inst-class-meta { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+
+
+/* ── Sınıf Paneli: Öğrenci satırı avatar + durum noktası ── */
+.cp-roster-avatar-wrap { position: relative; flex-shrink: 0; display: inline-flex; }
+.cp-roster-status-dot {
+    position: absolute; right: -1px; bottom: -1px; width: 9px; height: 9px; border-radius: 50%;
+    background: #636e72; border: 2px solid #16171d; box-sizing: content-box;
+}
+.cp-roster-status-dot--on { background: #2ecc71; box-shadow: 0 0 4px rgba(46,204,113,0.7); }
+
+
+/* ── Sınıf Paneli: Ders Programı ── */
+.cp-sched-add-row {
+    display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 16px;
+    padding: 10px 12px; border-radius: 10px; background: rgba(78,205,196,0.05); border: 1px solid rgba(78,205,196,0.15);
+}
+
+.cp-sched-grid {
+    display: grid; grid-template-columns: repeat(7, 130px); gap: 10px; justify-content: center;
+    height: 100%; align-items: stretch;
+}
+.cp-sched-day-col {
+    display: flex; flex-direction: column; gap: 6px; width: 130px; height: 100%;
+    padding: 8px; border-radius: 10px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06);
+}
+.cp-sched-day-head {
+    font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .3px;
+    color: var(--text-muted); text-align: center; padding-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.cp-sched-slot {
+    position: relative; padding: 6px 34px 6px 8px; border-radius: 8px;
+    background: rgba(78,205,196,0.06); border: 1px solid rgba(78,205,196,0.15);
+}
+.cp-sched-slot-time { font-size: 10px; font-weight: 700; color: #4ecdc4; font-variant-numeric: tabular-nums; }
+.cp-sched-slot-subject { font-size: 11.5px; color: #fff; margin-top: 1px; word-break: break-word; }
+.cp-sched-slot-loc { color: var(--text-muted); font-weight: 400; }
+.cp-sched-slot-actions {
+    position: absolute; top: 3px; right: 3px; display: flex; align-items: center; gap: 2px;
+    opacity: 0; transition: opacity .12s;
+}
+.cp-sched-slot:hover .cp-sched-slot-actions { opacity: 1; }
+.cp-sched-slot-del, .cp-sched-slot-edit {
+    width: 16px; height: 16px; border-radius: 50%;
+    background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 9px;
+    display: flex; align-items: center; justify-content: center; transition: color .12s;
+}
+.cp-sched-slot-del:hover { color: #ff6b6b; }
+.cp-sched-slot-edit:hover { color: #4ecdc4; }
+.cp-sched-card-edit:hover { color: #4ecdc4 !important; }
+.cp-sched-card-del:hover { color: #ff6b6b !important; }
+.cp-sched-day-empty { font-size: 11px; color: var(--text-muted); text-align: center; padding: 10px 0; opacity: .5; }
+
+/* Öğrenci görünümü (salt-okunur, yayınlanmış program): sabit 130px kolonlar yerine
+   tam genişlik + tek bütün tablo görünümü — sol/sağ boşluk kalmasın, kolonlar
+   birbirinden ayrı yüzen kutular değil, çizgilerle ayrılmış tek bir program gibi görünsün. */
+.cp-sched-grid--view {
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0;
+    width: 100%;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    overflow: hidden;
+    background: rgba(255,255,255,0.02);
+}
+.cp-sched-grid--view .cp-sched-day-col {
+    width: auto;
+    border: none;
+    border-right: 1px solid rgba(255,255,255,0.07);
+    border-radius: 0;
+    background: transparent;
+}
+.cp-sched-grid--view .cp-sched-day-col:last-child { border-right: none; }
+.cp-sched-grid--view .cp-sched-day-head {
+    background: rgba(255,255,255,0.04);
+    margin: -8px -8px 6px;
+    padding: 8px 4px;
+}
+
+/* Ders Programı modalı: ders eklendikçe modal büyümesin — sabit boyut.
+   Builder adımı (#cp-sched-step-builder) kendi içinde dikey flex düzeni: üstte
+   sabit ekleme satırı, ortada esneyen+kendi içinde kayan takvim, altta modalın
+   en alt kenarına yapışık Geri/Yayınla satırı — ders sayısı arttıkça sadece
+   takvim alanı kayar, modal boyutu ve footer'ın konumu değişmez (bkz. kullanıcı
+   geri bildirimi). Diğer adımlar (sınıf seç, şablon vb.) içeriğe göre kendi
+   boyunda kalır, modal-body onlar için normal şekilde kayar. */
+#cp-schedule-modal .modal-content { max-height: 88vh; width: 90%; max-width: 460px; display: flex; flex-direction: column; }
+#cp-schedule-modal .modal-body { overflow-y: auto; overflow-x: hidden; flex: 1; min-height: 0; width: 100%; padding-right: 14px; display: flex; flex-direction: column; }
+#cp-schedule-modal .modal-body > .cp-sched-step { flex-shrink: 0; }
+#cp-sched-step-builder.cp-sched-step {
+    display: flex; flex-direction: column; flex: 1; min-height: 0;
+}
+.cp-sched-grid-wrap { flex: 1; min-height: 0; overflow-y: auto; overflow-x: auto; padding: 2px; }
+.cp-sched-builder-footer {
+    display: flex; gap: 10px; justify-content: space-between; align-items: center;
+    flex-shrink: 0; margin-top: 12px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.07);
+}
+#cp-schedule-modal-grid { width: 100%; }
+@media (max-width: 700px) {
+    #cp-schedule-modal .modal-body { overflow-x: auto; }
+}
+
+/* ── Performans tablosu: ödev tamamlama hücresi ──
+   Hücre genişliği (110px/70px, bkz. .cp-row--admin) çubuk+kesir+"az veri" rozetinin
+   tamamını YAN YANA almaya yetmiyordu — flex-wrap olmadan rozet hücrenin sınırını
+   görsel olarak aşıp yanındaki Trend sütununun sparkline grafiğinin üzerine biniyordu
+   (kullanıcı bildirimi, 2026-07-13). Rozeti flex-basis:100% ile HER ZAMAN ikinci satıra
+   düşürüyoruz — genişlik ne olursa olsun komşu sütuna asla taşmaz. */
+.cp-asg-pct-cell { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; }
+.cp-asg-pct-track { width: 44px; height: 5px; border-radius: 3px; background: rgba(255,255,255,0.14); overflow: hidden; flex-shrink: 0; position: relative; }
+.cp-asg-pct-fill { height: 100%; border-radius: 3px; transition: width .3s ease; background-image: linear-gradient(90deg, rgba(255,255,255,0.18), rgba(255,255,255,0)); background-blend-mode: overlay; }
+.cp-asg-pct-cell .cp-lowsample-badge { flex-basis: 100%; margin-left: 0; }
+
+/* ── Yönetici performans satırı: sondaki "çıkar" butonu için ek kolon ──
+   Kolonlar: # / üye / Ödev Tamamlama / Trend / Odak / Aktif Gün / [çıkar butonu]
+   "az veri" rozeti ikona küçültülünce Ödev Tamamlama sütununun ihtiyacı azaldı — o
+   payı Trend sütunune (sparkline daha görünür olsun diye büyütüldü, bkz. .cp-perf-spark)
+   aktardık (kullanıcı isteği, 2026-07-13). */
+.cp-row--admin { grid-template-columns: 26px 1fr 92px 92px 65px 55px 26px; }
+/* Kurum genelinde birden çok sınıf varsa: # / üye / Sınıf / Ödev Tamamlama / Trend / Odak / Aktif Gün / [çıkar] */
+.cp-row--admin.cp-row--withclass { grid-template-columns: 26px 1fr 90px 92px 92px 65px 55px 26px; }
+.cp-perf-class-tag {
+    font-size: 10.5px; font-weight: 600; color: var(--text-muted);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+/* .cp-table bir kutu değil, satır-kartlarının (.cp-row) dizildiği flex liste (gap:5px) — bu
+   şerit de tablo diziliminin İLK öğesi olarak aynı dilde (radius/renk) bir "aktif filtre" kartı
+   gibi görünür, ayrı bir paragraf olarak değil. Sadece varsayılandan (Tümü/Tümü) farklı bir
+   filtre aktifken görünür. */
+.cp-perf-table-meta {
+    display: flex; align-items: center; gap: 5px; font-size: 10.5px; color: var(--bl);
+    padding: 6px 12px; border-radius: 9px; width: fit-content; margin-left: auto;
+    background: var(--bl10); border: 1px solid rgba(96,165,250,0.2);
+}
+.cp-perf-table-meta i { font-size: 9px; opacity: 0.8; }
+.cp-perf-table-meta--hidden { display: none; }
+.cp-perf-filter-group--wrap { flex-wrap: wrap; }
+.cp-perf-filter-group--wrap .cp-perf-filter-btn { flex: 0 0 auto; }
+.cp-row-kick-btn {
+    background: none; border: none; color: var(--text-muted); cursor: pointer;
+    font-size: 12px; padding: 4px; border-radius: 6px; opacity: 0.5;
+    transition: opacity 0.15s, color 0.15s;
+}
+.cp-row-kick-btn:hover { opacity: 1; color: var(--re); background: var(--re10); }
+/* Çubuklar flex-end (ortak taban çizgisi) ile hizalanınca kısa çubuklar 24px'lik kutunun
+   ALT yarısında kalıyordu — kutunun kendisi satırla ortalanmış olsa da çubukların görsel
+   ağırlığı diğer hücrelerin (Odak, Aktif Gün) metin taban çizgisinden daha aşağıda
+   duruyordu (kullanıcı bildirimi: "grafik çok aşağıda"). Ortadan hizalayarak çubukları
+   kutunun merkezine göre simetrik büyütüyoruz — artık diğer sütunlarla aynı hizada. */
+.cp-perf-spark { display: flex; align-items: center; gap: 3px; height: 24px; }
+.cp-perf-spark-bar { width: 8px; min-height: 2px; border-radius: 2px; }
+.cp-perf-spark-bar--empty { height: 2px !important; background: rgba(255,255,255,0.12); }
+.cp-perf-spark-empty { color: var(--text-muted); font-size: 11px; }
+
+@media (max-width: 700px) {
+    .cp-row { grid-template-columns: 22px 1fr 70px 55px; }
+    .cp-row:not(.cp-row--month):not(.cp-row--admin) > span:nth-child(5),
+    .cp-row:not(.cp-row--month):not(.cp-row--admin) > span:nth-child(6) { display: none; }
+    
+    .cp-row--admin { grid-template-columns: 22px 1fr 90px 26px; }
+    .cp-row--admin > span:nth-child(4),
+    .cp-row--admin > span:nth-child(5),
+    .cp-row--admin > span:nth-child(6) { display: none; }
+    .cp-row--admin.cp-row--withclass { grid-template-columns: 22px 1fr 70px 90px 26px; }
+    .cp-row--admin.cp-row--withclass > span:nth-child(5),
+    .cp-row--admin.cp-row--withclass > span:nth-child(6),
+    .cp-row--admin.cp-row--withclass > span:nth-child(7) { display: none; }
+}

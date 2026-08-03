@@ -1,0 +1,100 @@
+/* ================================================================
+   [AŞAMA 5] GELİŞMİŞ ZAMANLAYICI AYARLARI
+   ================================================================ */
+
+/* Ayar satırı */
+.ts-setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.ts-setting-row:last-child { border-bottom: none; }
+
+.ts-setting-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+}
+.ts-setting-label > i {
+    font-size: 18px;
+    width: 24px;
+    text-align: center;
+    flex-shrink: 0;
+}
+.ts-label-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-color);
+}
+.ts-label-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+/* Stepper (sayı artır/azalt) */
+.ts-stepper {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+.ts-stepper .setting-input {
+    width: 52px;
+    text-align: center;
+    padding: 6px 4px;
+    font-size: 15px;
+    font-weight: 700;
+    margin: 0;
+}
+.ts-unit {
+    font-size: 11px;
+    color: var(--text-muted);
+    min-width: 22px;
+}
+
+/* Toggle satırı */
+.ts-toggle-row { padding: 14px 0; }
+
+/* Toggle switch */
+.ts-toggle-switch {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+.ts-toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+
+.ts-toggle-track {
+    display: block;
+    width: 44px;
+    height: 24px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.15);
+    transition: background 0.25s, border-color 0.25s;
+    position: relative;
+}
+.ts-toggle-thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 16px;
+    height: 16px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+.ts-toggle-switch input:checked + .ts-toggle-track {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+}
+.ts-toggle-switch input:checked + .ts-toggle-track .ts-toggle-thumb {
+    transform: translateX(20px);
+}

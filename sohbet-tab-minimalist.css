@@ -1,0 +1,247 @@
+/* style.css'ten çıkarıldı (Faz C, 2026-07-22). Sohbet Sekmesi (#tab-sohbet) sade & minimalist tasarım — tüm kurallar #tab-sohbet ile sınırlı. */
+
+/* ================================================================
+   SOHBET SEKMESİ — Sade & Minimalist Tasarım
+   Tüm kurallar #tab-sohbet ile sınırlandırılmıştır.
+   Nötr gri/antrasit zemin, altın (#D4900E) sadece tekli vurgularda.
+   ================================================================ */
+
+/* ── ANA PANEL ÇERÇEVE ─────────────────────────────────────── */
+#tab-sohbet .social-sidebar-panel {
+    background: rgba(20, 20, 22, 0.85) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border: 1px solid rgba(255,255,255,0.07) !important;
+    box-shadow: none !important;
+}
+
+/* ── KANAL LİSTESİ (SOL PANEL) ────────────────────────────── */
+#tab-sohbet .dc-channel-list {
+    background: rgba(17, 17, 19, 0.7) !important;
+    border-right: 1px solid rgba(255,255,255,0.06) !important;
+    width: 260px !important;
+    min-width: 220px !important;
+}
+
+/* Profil kuşağı */
+#tab-sohbet .dc-user-zone {
+    background: transparent !important;
+    border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+    padding: 12px 14px !important;
+}
+#tab-sohbet .dc-user-zone:hover { background: rgba(255,255,255,0.04) !important; }
+#tab-sohbet .dc-username { color: #fff !important; font-size: 13px !important; }
+#tab-sohbet .dc-usertag  { color: rgba(255,255,255,0.4) !important; }
+#tab-sohbet .dc-user-status-dot { border-color: rgba(17,17,19,0.9) !important; }
+
+/* Arama kutusu */
+#tab-sohbet .dc-search-bar {
+    margin: 10px 10px 6px !important;
+    background: rgba(255,255,255,0.04) !important;
+    border: 1px solid rgba(255,255,255,0.07) !important;
+    border-radius: 10px !important;
+    padding: 7px 10px !important;
+    transition: border-color 0.2s !important;
+}
+#tab-sohbet .dc-search-bar:focus-within {
+    border-color: rgba(212,144,14,0.4) !important;
+    background: rgba(255,255,255,0.05) !important;
+}
+#tab-sohbet .dc-search-bar i { color: rgba(255,255,255,0.35) !important; }
+#tab-sohbet .dc-search-bar input { color: #fff !important; font-size: 12px !important; }
+#tab-sohbet .dc-search-bar input::placeholder { color: rgba(255,255,255,0.28) !important; }
+#tab-sohbet .dc-search-bar button { color: rgba(255,255,255,0.35) !important; }
+#tab-sohbet .dc-search-bar button:hover { color: rgba(255,255,255,0.55) !important; }
+
+/* Mesajlarda ara butonu */
+#tab-sohbet .dc-global-search-btn {
+    margin: 0 10px 10px !important;
+    background: rgba(255,255,255,0.03) !important;
+    border: 1px solid rgba(255,255,255,0.06) !important;
+    border-radius: 8px !important;
+    color: rgba(255,255,255,0.45) !important;
+    font-size: 11px !important;
+    transition: all 0.2s !important;
+}
+#tab-sohbet .dc-global-search-btn:hover {
+    background: rgba(255,255,255,0.06) !important;
+    color: #fff !important;
+    border-color: rgba(255,255,255,0.12) !important;
+}
+
+/* Bölüm başlıkları */
+#tab-sohbet .dc-section-header {
+    padding: 14px 14px 5px !important;
+    font-size: 9.5px !important;
+    font-weight: 800 !important;
+    letter-spacing: 1.2px !important;
+    color: rgba(255,255,255,0.35) !important;
+}
+#tab-sohbet .dc-section-add-btn { color: rgba(255,255,255,0.35) !important; border-radius: 6px !important; }
+#tab-sohbet .dc-section-add-btn:hover { color: rgba(255,255,255,0.55) !important; background: rgba(255,255,255,0.06) !important; }
+
+/* Son mesajlaşmalar */
+#tab-sohbet .dc-recent-convo-item {
+    border-radius: 10px !important;
+    margin: 2px 6px !important;
+    padding: 8px 10px !important;
+    transition: background 0.15s !important;
+}
+#tab-sohbet .dc-recent-convo-item:hover { background: rgba(255,255,255,0.05) !important; }
+#tab-sohbet .dc-recent-convo-item.has-unread {
+    background: rgba(255,255,255,0.04) !important;
+    border-left: 2px solid #D4900E !important;
+}
+#tab-sohbet .dc-recent-convo-name { color: #fff !important; font-size: 13px !important; font-weight: 600 !important; }
+#tab-sohbet .dc-recent-convo-preview { color: rgba(255,255,255,0.4) !important; font-size: 11px !important; }
+#tab-sohbet .dc-recent-convo-item.has-unread .dc-recent-convo-preview { color: rgba(255,255,255,0.7) !important; font-weight: 600 !important; }
+#tab-sohbet .dc-recent-convo-time { color: rgba(255,255,255,0.3) !important; }
+#tab-sohbet .dc-unread-pill { background: #D4900E !important; box-shadow: none !important; }
+
+/* DM listesi */
+#tab-sohbet .dc-dm-item {
+    border-radius: 10px !important;
+    padding: 7px 10px !important;
+    margin: 1px 0 !important;
+}
+#tab-sohbet .dc-dm-item:hover { background: rgba(255,255,255,0.05) !important; }
+#tab-sohbet .dc-dm-item.active { background: rgba(255,255,255,0.06) !important; border-left: 2px solid #D4900E !important; }
+#tab-sohbet .dc-dm-item.active .dc-dm-name { color: rgba(255,255,255,0.55) !important; }
+#tab-sohbet .dc-dm-name { font-size: 13px !important; color: rgba(255,255,255,0.75) !important; }
+
+/* Grup başlığı */
+#tab-sohbet .dc-guild-header {
+    background: transparent !important;
+    border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+    padding: 10px 14px !important;
+}
+#tab-sohbet .dc-guild-header:hover { background: rgba(255,255,255,0.04) !important; }
+#tab-sohbet .dc-guild-name-text { color: #fff !important; }
+#tab-sohbet .dc-category-header { font-size: 9px !important; font-weight: 800 !important; color: rgba(255,255,255,0.35) !important; }
+#tab-sohbet .dc-category-arrow { color: rgba(255,255,255,0.35) !important; }
+
+/* Odadan ayrıl */
+#tab-sohbet .dc-leave-bar { background: rgba(255,255,255,0.03) !important; border-top: 1px solid rgba(255,255,255,0.06) !important; }
+#tab-sohbet .dc-leave-bar-badge { color: rgba(255,255,255,0.5) !important; }
+#tab-sohbet .dc-leave-btn { background: rgba(255,71,87,0.12) !important; border: 1px solid rgba(255,71,87,0.25) !important; color: #ff4757 !important; }
+#tab-sohbet .dc-live-dot { background: #D4900E !important; }
+#tab-sohbet .dc-empty-state { color: rgba(255,255,255,0.3) !important; font-size: 12px !important; font-style: italic !important; }
+
+/* ── SOHBET ALANI ─────────────────────────────────────────── */
+#tab-sohbet .dc-chat-area { background: rgba(255, 255, 255, 0.015) !important; backdrop-filter: blur(16px) !important; }
+
+#tab-sohbet .dc-chat-header {
+    background: transparent !important;
+    border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+    height: 52px !important;
+    min-height: 52px !important;
+    padding: 0 16px !important;
+}
+#tab-sohbet .dc-chat-title { font-size: 14px !important; font-weight: 700 !important; color: #fff !important; }
+#tab-sohbet .dc-chat-subtitle { color: rgba(255,255,255,0.4) !important; font-size: 11px !important; }
+#tab-sohbet .dc-channel-icon { color: rgba(255,255,255,0.5) !important; }
+
+#tab-sohbet .dc-icon-action-btn {
+    color: rgba(255,255,255,0.45) !important;
+    border-radius: 8px !important;
+    width: 32px !important;
+    height: 32px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+#tab-sohbet .dc-icon-action-btn:hover { color: #fff !important; background: rgba(255,255,255,0.07) !important; }
+#tab-sohbet .dc-back-btn { color: rgba(255,255,255,0.5) !important; border-radius: 8px !important; }
+#tab-sohbet .dc-back-btn:hover { color: #fff !important; background: rgba(255,255,255,0.07) !important; }
+
+/* Mesaj akışı */
+#tab-sohbet .dc-messages-stream { padding: 16px 18px !important; }
+#tab-sohbet .dc-messages-stream::-webkit-scrollbar { width: 4px !important; }
+#tab-sohbet .dc-messages-stream::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1) !important; border-radius: 4px !important; }
+
+/* Tarih ayırıcı */
+#tab-sohbet .dc-date-separator-line { background: rgba(255,255,255,0.08) !important; }
+#tab-sohbet .dc-date-separator-label {
+    color: rgba(255,255,255,0.4) !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    background: rgba(20, 20, 22, 0.9) !important;
+    padding: 2px 10px !important;
+    border-radius: 20px !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+}
+
+/* Okunmamış ayırıcı */
+#tab-sohbet .dc-unread-divider-line { background: rgba(212,144,14,0.25) !important; }
+#tab-sohbet .dc-unread-divider-label {
+    color: rgba(255,255,255,0.55) !important;
+    background: rgba(212,144,14,0.1) !important;
+    border: 1px solid rgba(212,144,14,0.2) !important;
+    border-radius: 12px !important;
+    padding: 2px 10px !important;
+}
+
+/* Mesaj balonları */
+
+#tab-sohbet .chat-msg-row.me .chat-msg-bubble {
+    background: rgba(212,144,14,0.1) !important;
+    border-color: rgba(212,144,14,0.25) !important;
+    border-radius: 16px 4px 16px 16px !important;
+    box-shadow: none !important;
+}
+
+
+#tab-sohbet .dc-dm-msg-row:hover { background: rgba(255,255,255,0.025) !important; }
+
+/* Input çubuğu */
+#tab-sohbet .dc-chat-input-bar {
+    padding: 12px 16px 16px !important;
+    border-top: 1px solid rgba(255,255,255,0.06) !important;
+}
+#tab-sohbet .dc-input-row {
+    background: rgba(255,255,255,0.04) !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    border-radius: 14px !important;
+    padding: 5px 5px 5px 10px !important;
+    box-shadow: none !important;
+}
+#tab-sohbet .dc-input-row:focus-within {
+    border-color: rgba(212,144,14,0.35) !important;
+    box-shadow: none !important;
+}
+#tab-sohbet .dc-message-input { color: #fff !important; font-size: 13px !important; }
+#tab-sohbet .dc-message-input::placeholder { color: rgba(255,255,255,0.3) !important; }
+
+/* Gönder butonu */
+#tab-sohbet .dc-send-btn {
+    background: #D4900E !important;
+    border-radius: 10px !important;
+    width: 36px !important;
+    height: 36px !important;
+    box-shadow: none !important;
+}
+#tab-sohbet .dc-send-btn:hover {
+    background: #e2a01f !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+#tab-sohbet .dc-send-btn:disabled { background: rgba(255,255,255,0.08) !important; box-shadow: none !important; }
+
+#tab-sohbet #dc-emoji-picker-btn { color: rgba(255,255,255,0.4) !important; }
+#tab-sohbet #dc-emoji-picker-btn:hover { color: rgba(255,255,255,0.55) !important; background: rgba(255,255,255,0.06) !important; }
+
+
+
+/* Aşağı kaydır & Okunmamış */
+#tab-sohbet .dc-scroll-bottom-btn { background: rgba(40,40,44,0.95) !important; color: #fff !important; border: 1px solid rgba(255,255,255,0.1) !important; box-shadow: none !important; }
+#tab-sohbet .dc-jump-unread-btn { background: #D4900E !important; color: #1c1408 !important; border-radius: 20px !important; }
+
+/* Boş durum — display JS tarafından kontrol edilir, CSS override yok */
+#tab-sohbet .dc-chat-empty { flex-direction: column; align-items: center; justify-content: center; }
+#tab-sohbet .dc-chat-empty i { color: rgba(255,255,255,0.15) !important; }
+#tab-sohbet .dc-chat-empty p { color: rgba(255,255,255,0.35) !important; font-weight: 500 !important; }
+
+/* Scrollbar kanal listesi */
+#tab-sohbet .dc-channel-list::-webkit-scrollbar { width: 3px !important; }
+#tab-sohbet .dc-channel-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1) !important; border-radius: 3px !important; }
+#tab-sohbet .dc-dm-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1) !important; }

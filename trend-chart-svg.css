@@ -1,0 +1,191 @@
+/* Bağımlılıksız SVG çizgi grafiği (Chart.js yerine).
+   Renkler uygulamanın kendi paletinden: turuncu vurgu (--a, görevler) ve
+   odak ikonlarında kullanılan mor (#a29bfe, odak süresi) — jenerik
+   mavi/yeşil yerine uygulamanın kimliğiyle tutarlı bir görünüm. */
+.trend-bars-wrap {
+    position: relative;
+    width: 100%;
+    height: 292px;
+    padding: 30px 4px 0;
+    box-sizing: border-box;
+}
+.trend-axis-title {
+    position: absolute;
+    top: 2px;
+    left: 4px;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--t2, #888);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    letter-spacing: 0.1px;
+}
+.trend-axis-title i { font-size: 9px; opacity: 0.8; }
+.trend-axis-title-tasks { color: var(--a, #D4900E); }
+.trend-axis-title-focus { left: auto; right: 4px; color: #a29bfe; }
+.trend-axis-label-tasks { fill: var(--a, #D4900E); opacity: 0.85; }
+.trend-axis-label-focus { fill: #a29bfe; opacity: 0.85; }
+.trend-legend-axis {
+    font-size: 10.5px;
+    font-weight: 500;
+    color: var(--t2, #888);
+    opacity: 0.9;
+}
+.trend-hover-dot-focus { fill: #a29bfe; }
+.trend-tooltip-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 700;
+}
+.trend-tooltip-tasks { color: var(--a, #D4900E); }
+.trend-tooltip-focus { color: #a29bfe; }
+.trend-line-svg {
+    width: 100%;
+    height: 236px;
+    overflow: visible;
+    display: block;
+}
+.trend-grid-line {
+    stroke: rgba(255,255,255,0.07);
+    stroke-width: 1;
+}
+.trend-baseline {
+    stroke: rgba(255,255,255,0.16);
+    stroke-width: 1;
+}
+.trend-axis-label {
+    font-size: 11px;
+    font-weight: 600;
+    fill: var(--t2, #888);
+    font-variant-numeric: tabular-nums;
+    font-family: 'Inter', sans-serif;
+}
+.trend-x-label {
+    font-size: 11px;
+    font-weight: 600;
+    fill: var(--t2, #888);
+    letter-spacing: 0.2px;
+    font-family: 'Inter', sans-serif;
+}
+
+.trend-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    color: var(--t2, #888);
+}
+.trend-empty-state i {
+    font-size: 28px;
+    color: var(--a, #D4900E);
+    opacity: 0.5;
+    margin-bottom: 4px;
+}
+.trend-empty-state p {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--t1, #ddd);
+}
+.trend-empty-state span {
+    font-size: 12.5px;
+    color: var(--t2, #888);
+    opacity: 0.8;
+}
+.trend-line-area { stroke: none; }
+.trend-area-tasks { fill: url(#trendGradTasks); }
+.trend-area-focus { fill: url(#trendGradFocus); }
+.trend-line-path {
+    fill: none;
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.trend-series-tasks { stroke: var(--a, #D4900E); }
+.trend-series-focus { stroke: #a29bfe; }
+.trend-line-dot {
+    stroke: var(--s1, #161617);
+    stroke-width: 2.5;
+    pointer-events: none;
+}
+.trend-series-tasks-dot { fill: var(--a, #D4900E); }
+.trend-series-focus-dot { fill: #a29bfe; }
+.trend-legend {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+}
+.trend-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--t1, #ddd);
+    background: var(--s2, #1E1E20);
+    border: 1px solid var(--b1, rgba(255,255,255,0.06));
+    padding: 6px 12px;
+    border-radius: 100px;
+}
+.trend-legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+}
+.trend-legend-dot.trend-series-tasks-dot { background: var(--a, #D4900E); }
+.trend-legend-dot.trend-series-focus-dot { background: #a29bfe; }
+.trend-hover-dot {
+    fill: var(--a, #D4900E);
+    stroke: var(--s1, #161617);
+    stroke-width: 2;
+    opacity: 0;
+    pointer-events: none;
+}
+.trend-crosshair {
+    stroke: var(--b2, rgba(255,255,255,0.14));
+    stroke-width: 1;
+    opacity: 0;
+    pointer-events: none;
+}
+.trend-hover-target {
+    fill: transparent;
+    cursor: crosshair;
+}
+.trend-tooltip {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform: translate(-50%, -100%);
+    background: var(--s3, #262629);
+    border: 1px solid var(--b2, rgba(255,255,255,0.14));
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 11px;
+    line-height: 1.4;
+    color: #fff;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.1s ease;
+    z-index: 5;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+}
+.trend-tooltip .trend-tooltip-label {
+    color: var(--t2, #888);
+    margin-bottom: 2px;
+}
+.trend-tooltip .trend-tooltip-val {
+    color: var(--a, #D4900E);
+    font-weight: 700;
+}

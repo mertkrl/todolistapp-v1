@@ -5,17 +5,17 @@
 // Dış bağımlılıklar salt-okunur getter'lar + fonksiyon köprüleriyle çözüldü
 // (hepsi social.js'te tanımlı kalıyor, hiçbiri buraya taşınmadı):
 // - gfMode → window._gfGetMode()
-// - currentRoomId → window._cwGetRoomId()
+// - currentRoomId/_cwRoomSupaChannel → state/cw-current-room-store.js (gerçek import)
 // - currentRoomIsHost → window._cwGetRoomIsHost()
 // - currentUser → window._dcGetChatContext().currentUser
-// - _cwRoomSupaChannel → window._cwGetRoomChannel()
 // - minimizeSharedFocusOverlay() / closeGroupFocusOverlay() /
 //   exitCWRoomLocal() → social.js'te window.* ile açıldı (bunlar hâlâ
 //   social.js'in merkezi CW-oda yaşam döngüsü fonksiyonları, taşınmadı —
 //   sadece çağrılabilir hale getirildi).
+import { getCurrentRoomId, getCwRoomSupaChannel } from './state/cw-current-room-store.js';
 let _gfLeaveChoiceAC = null;
 
-function gfOpenLeaveChoiceModal() {
+export function gfOpenLeaveChoiceModal() {
     const modal = document.getElementById('gf-leave-choice-modal');
     if (!modal) { console.warn('[CW-DEBUG] gf-leave-choice-modal bulunamadı, direkt gfLeaveSessionCompletely'); gfLeaveSessionCompletely(); return; }
     modal.classList.remove('hidden');
@@ -23,12 +23,12 @@ function gfOpenLeaveChoiceModal() {
 }
 window.gfOpenLeaveChoiceModal = gfOpenLeaveChoiceModal;
 
-function gfCloseLeaveChoiceModal() {
+export function gfCloseLeaveChoiceModal() {
     document.getElementById('gf-leave-choice-modal')?.classList.add('hidden');
 }
 window.gfCloseLeaveChoiceModal = gfCloseLeaveChoiceModal;
 
-function gfEnsureLeaveChoiceBindings() {
+export function gfEnsureLeaveChoiceBindings() {
     const cancelBtn    = document.getElementById('gf-leave-cancel-btn');
     const interfaceBtn = document.getElementById('gf-leave-interface-btn');
     const sessionBtn   = document.getElementById('gf-leave-session-btn');
@@ -48,7 +48,7 @@ function gfEnsureLeaveChoiceBindings() {
 window.gfEnsureLeaveChoiceBindings = gfEnsureLeaveChoiceBindings;
 
 // "Sadece Arayüzden Ayrıl" — oturum/zamanlayıcı arka planda devam eder, overlay sadece gizlenir
-function gfLeaveInterfaceOnly() {
+export function gfLeaveInterfaceOnly() {
     if (window._gfGetMode() === 'room') {
         window.minimizeSharedFocusOverlay();
     }
@@ -56,9 +56,9 @@ function gfLeaveInterfaceOnly() {
 window.gfLeaveInterfaceOnly = gfLeaveInterfaceOnly;
 
 // "Oturumdan Tamamen Ayrıl" — oda/oturum kapanır ya da katılımcı listesinden çıkılır
-function gfLeaveSessionCompletely() {
+export function gfLeaveSessionCompletely() {
     if (window._gfGetMode() !== 'room') return;
-    const currentRoomId = window._cwGetRoomId();
+    const currentRoomId = getCurrentRoomId();
     const currentUser = window._dcGetChatContext().currentUser;
     if (!window.FocusSupabase || !currentRoomId || !currentUser?.id) {
         window.closeGroupFocusOverlay();
@@ -73,7 +73,7 @@ function gfLeaveSessionCompletely() {
     // kaldırır, o yüzden TÜM broadcast'ler ve DB yazımları bitmeden
     // exitCWRoomLocal() ÇAĞRILMAMALI (aksi halde broadcast zaten kapanmış
     // bir kanala gider ve karşı tarafa hiç ulaşmaz).
-    const chan = window._cwGetRoomChannel();
+    const chan = getCwRoomSupaChannel();
     const localExit = () => { window.closeGroupFocusOverlay(); window.exitCWRoomLocal(); };
 
     window.FocusSupabase.from('cw_room_members').select('user_id, role').eq('room_id', leftRoomId)

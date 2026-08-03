@@ -24,9 +24,6 @@
         spotlightModal.classList.add('hidden');
     }
 
-    window.openSpotlight = openSpotlight;
-    window.closeSpotlight = closeSpotlight;
-
     if (openSpotlightBtn) openSpotlightBtn.addEventListener('click', openSpotlight);
     if (closeSpotlightBtn) closeSpotlightBtn.addEventListener('click', closeSpotlight);
 
@@ -86,7 +83,7 @@
 
         spotlightResultsList.innerHTML = '';
         if (results.length === 0) {
-            spotlightResultsList.innerHTML = '<li style="padding: 20px; text-align: center; color: var(--text-muted);">Sonuç bulunamadı.</li>';
+            spotlightResultsList.innerHTML = '<li class="u-padding-20px_text-align-center_color-var-text-muted">Sonuç bulunamadı.</li>';
         } else {
             results.forEach(res => {
                 const [d, m, y] = res.date.split('-'); // GÜNCELLEME: d, m, y sırasına alındı
@@ -96,14 +93,14 @@
                 li.className = 'spotlight-result-item';
                 li.innerHTML = `
                     <div class="s-res-info">
-                        <span class="s-res-title"><i class="fa-solid ${res.icon}" style="color: var(--primary-color); margin-right: 8px;"></i>${escapeHtml(res.text)}</span>
+                        <span class="s-res-title"><i class="fa-solid ${res.icon} u-color-var-primary-color_margin-right-8px-2" ></i>${escapeHtml(res.text)}</span>
                         <div class="s-res-meta">
                             <span><i class="fa-regular fa-calendar"></i> ${shortDate}</span>
                             <span><i class="fa-regular fa-clock"></i> ${res.time || 'Tüm Gün'}</span>
-                            <span style="background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 8px; color: #a29bfe;">${res.type}</span>
+                            <span class="u-background-rgba2552552550p05_padding-2px8px_border-radius-">${res.type}</span>
                         </div>
                     </div>
-                    <i class="fa-solid fa-arrow-right" style="color: var(--text-muted); opacity: 0.5;"></i>
+                    <i class="fa-solid fa-arrow-right u-color-var-text-muted_opacity-0p5" ></i>
                 `;
 
                 li.onclick = () => {

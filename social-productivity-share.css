@@ -1,0 +1,104 @@
+/* style.css'ten çıkarıldı (Faz C, 2026-07-22). Üretkenlik Paylaş Butonu + Önizleme Popup'ı (#share-productivity-btn, #productivity-preview-popup, .prod-preview-*) + Grup Odak Ayarlar Modalı ince ayarları (#gf-settings-modal .cw-*/.bf-*). */
+
+/* Üretkenlik Paylaş Butonu */
+#share-productivity-btn {
+    background: linear-gradient(135deg, rgba(255, 159, 67, 0.2), rgba(255, 99, 132, 0.2));
+    border: 1px solid rgba(255, 159, 67, 0.35);
+    color: #ff9f43;
+    border-radius: 10px;
+    width: 44px;
+    height: 44px;
+    cursor: pointer;
+    font-size: 15px;
+    flex-shrink: 0;
+    transition: all 0.25s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#share-productivity-btn:hover {
+    background: linear-gradient(135deg, rgba(255, 159, 67, 0.35), rgba(255, 99, 132, 0.35));
+    border-color: rgba(255, 159, 67, 0.6);
+    box-shadow: 0 0 14px rgba(255, 159, 67, 0.3);
+    transform: scale(1.08);
+}
+
+/* Üretkenlik Paylaş — Önizleme Popup */
+#productivity-preview-popup {
+    position: absolute;
+    bottom: 75px;
+    left: 15px;
+    right: 15px;
+    background: rgba(20, 17, 40, 0.97);
+    border: 1px solid rgba(255, 159, 67, 0.3);
+    border-radius: 14px;
+    padding: 14px 16px;
+    z-index: 99;
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+}
+
+#productivity-preview-popup.visible {
+    display: flex;
+}
+
+.prod-preview-text {
+    font-size: 13px;
+    color: #fff;
+    line-height: 1.5;
+    background: rgba(255,255,255,0.04);
+    border-radius: 10px;
+    padding: 10px 12px;
+    border: 1px solid rgba(255,255,255,0.06);
+}
+
+.prod-preview-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.prod-preview-actions button {
+    padding: 7px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+}
+
+#prod-cancel-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+#prod-send-btn {
+    background: linear-gradient(135deg, #ff9f43, #ff6b81);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(255, 159, 67, 0.35);
+}
+
+#prod-send-btn:hover { filter: brightness(1.1); transform: scale(1.03); }
+
+/* Ortak Odaklanma Katılımcılar Bölümü (.cws-participants-, .cws-pcount-) -> group-focus-session-cws.css'e taşındı */
+/* Ortak Odaklanma Davet Modalı (.cw-) -> collab-invite-modal.css'e taşındı */
+
+/* ─── Odaklanma arayüzü "Zamanlayıcı Ayarları" modalı: minimalist görünüm ───
+   Paylaşılan .cw-modal-hero/.gf-ssi-* sınıfları başka modallarda (Birlikte
+   Odaklan daveti vb.) da kullanıldığından burada #gf-settings-modal'a
+   scope'lu override'lar eklendi — diğer modallar etkilenmiyor. */
+#gf-settings-modal .cw-modal-hero {
+    padding: 14px 44px 12px 16px; text-align: left;
+    background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+#gf-settings-modal .cw-hero-title { font-size: 13.5px; font-weight: 600; margin: 0; display: flex; align-items: center; }
+#gf-settings-modal .cw-modal-x-btn { top: 10px; right: 10px; width: 26px; height: 26px; font-size: 12px; }
+#gf-settings-modal .cw-modal-body { padding: 14px 16px 0; }
+#gf-settings-modal .gf-settings-session-info { padding: 9px 10px; margin-bottom: 12px; border-radius: 10px; }
+#gf-settings-modal .gf-ssi-chip { padding: 4px 9px; font-size: 11px; border-radius: 12px; }
+#gf-settings-modal .bf-settings-group { margin-bottom: 2px; }
+#gf-settings-modal .bf-settings-toggle-row { padding: 6px 0; font-size: 12px; }
+#gf-settings-modal .cw-modal-footer { padding: 10px 16px 16px; gap: 8px; }
+#gf-settings-modal .gf-restart-btn { padding: 8px; font-size: 12px; }
+#gf-settings-modal .cw-send-btn { padding: 8px 16px; font-size: 12.5px; box-shadow: none; }

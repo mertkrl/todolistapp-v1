@@ -91,13 +91,13 @@ document.addEventListener('DOMContentLoaded', () => {
          if (habCount > 0) pills.push(`<span class="cdd-sum-pill"><i class="fa-solid fa-seedling"></i> ${habCount} alışkanlık</span>`);
          if (hlCount > 0)  pills.push(`<span class="cdd-sum-pill"><i class="fa-solid fa-star"></i> Odak hedefi</span>`);
          if (durStr)       pills.push(`<span class="cdd-sum-pill"><i class="fa-regular fa-clock"></i> ${durStr}</span>`);
-         if (dayAssignments.length > 0) pills.push(`<span class="cdd-sum-pill" style="color:#a29bfe; border-color:rgba(162,155,254,0.3); background:rgba(162,155,254,0.1);"><i class="fa-solid fa-clipboard-list"></i> ${dayAssignments.length} ödev</span>`);
+         if (dayAssignments.length > 0) pills.push(`<span class="cdd-sum-pill u-color-ha29bfe_border-color-rgba1621552540p3_background-rgb" ><i class="fa-solid fa-clipboard-list"></i> ${dayAssignments.length} ödev</span>`);
 
          el.innerHTML = `
              <div class="cdd-sum-top">
                  <div class="cdd-sum-status">
                      <span class="cdd-sum-icon">${statusIcon}</span>
-                     <span class="cdd-sum-label" style="color:${statusColor};">${statusLabel}</span>
+                     <span class="cdd-sum-label">${statusLabel}</span>
                  </div>
                  <button class="cdd-sum-note-btn ${note ? 'has-note' : ''}" id="cdd-note-toggle" title="${note ? 'Notu düzenle' : 'Not ekle'}">
                      <i class="fa-${note ? 'solid' : 'regular'} fa-note-sticky"></i>
@@ -112,27 +112,45 @@ document.addEventListener('DOMContentLoaded', () => {
                      const asgStatus = a.done ? 'done' : overdue ? 'overdue' : 'pending';
                      const statusText = a.done ? 'Teslim edildi' : overdue ? 'Süresi geçti' : 'Bekliyor';
                      return `
-                     <li class="task-item cdd-sum-assignment-item" data-code="${a.groupCode || ''}" data-status="${asgStatus}" style="cursor:pointer;">
+                     <li class="task-item cdd-sum-assignment-item u-cursor-pointer" data-code="${a.groupCode || ''}" data-status="${asgStatus}" data-asg-color="${asgColor}" >
                          <div class="task-left">
-                             <i class="fa-solid fa-clipboard-list" style="color: ${asgColor}; margin-right: 5px;" title="Sınıf Ödevi"></i>
-                             <div class="task-checkbox" style="border-color: ${asgColor};"></div>
+                             <i class="fa-solid fa-clipboard-list u-margin-right-5px-2" title="Sınıf Ödevi"></i>
+                             <div class="task-checkbox"></div>
                              <span class="task-text">${escapeHtml(a.title)}</span>
-                             <div style="flex-basis: 100%; height: 0;"></div>
+                             <div class="u-flex-basis-100pct_height-0"></div>
                              <div class="task-meta">
-                                 <span class="task-category-tag" style="background: ${asgColor}26; color: ${asgColor}; border: 1px solid ${asgColor}4D;">${statusText.toUpperCase()}</span>
-                                 ${a.groupName ? `<span class="task-category-tag" style="background: rgba(108, 92, 231, 0.1); color: var(--primary-color); border: 1px solid rgba(108, 92, 231, 0.2); margin-left: 5px;">${escapeHtml(a.groupName)}</span>` : ''}
+                                 <span class="task-category-tag asg-status-tag">${statusText.toUpperCase()}</span>
+                                 ${a.groupName ? `<span class="task-category-tag u-background-rgba108922310p1_color-var-primary-color_border-" >${escapeHtml(a.groupName)}</span>` : ''}
                              </div>
                          </div>
                      </li>`;
                  }).join('')}
              </ul>` : ''}
-             <div class="cdd-sum-note-area" id="cdd-note-area" style="display:none;">
+             <div class="cdd-sum-note-area u-display-none" id="cdd-note-area" >
                  <textarea class="cdd-note-input" id="cdd-note-input" placeholder="Bu gün için not veya hatırlatıcı…" maxlength="200">${escapeHtml(note)}</textarea>
                  <div class="cdd-note-actions">
                      <span class="cdd-note-chars" id="cdd-note-chars">${note.length}/200</span>
                      <button class="cdd-note-save" id="cdd-note-save">Kaydet</button>
                  </div>
              </div>`;
+
+         const _cddStatusLabelEl = el.querySelector('.cdd-sum-label');
+         if (_cddStatusLabelEl) _cddStatusLabelEl.style.color = statusColor;
+
+         el.querySelectorAll('.cdd-sum-assignment-item').forEach(item => {
+             const asgColor = item.dataset.asgColor;
+             if (!asgColor) return;
+             const icon = item.querySelector('.fa-clipboard-list');
+             if (icon) icon.style.color = asgColor;
+             const checkbox = item.querySelector('.task-checkbox');
+             if (checkbox) checkbox.style.borderColor = asgColor;
+             const statusTag = item.querySelector('.asg-status-tag');
+             if (statusTag) {
+                 statusTag.style.background = `${asgColor}26`;
+                 statusTag.style.color = asgColor;
+                 statusTag.style.border = `1px solid ${asgColor}4D`;
+             }
+         });
 
          el.querySelectorAll('.cdd-sum-assignment-item').forEach(item => item.addEventListener('click', () => {
              const code = item.dataset.code;

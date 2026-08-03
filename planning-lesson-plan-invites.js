@@ -1,3 +1,4 @@
+import { fmtDate } from './planning-utils.js';
 // ─── SINIF PANELİ > DERS PLANI — ÖĞRENCİ DAVET KUTUSU ──────────────────
 // planning.js dosyasından çıkarıldı (Faz 2, 2026-07-20). Öğrencinin
 // öğretmenden gelen ders planı davetlerini görüntülemesi, önizlemesi,
@@ -14,9 +15,10 @@
 //   (planning.js'te kalan, birbirine bağımlı fonksiyonlar)
 // - pvReadOnly / pvReadOnlyTempId (planning.js modül-içi state, doğrudan
 //   yazılamıyor) → setPvReadOnlyPreview(val, tempId)
-// - window.FocusSupabase / window.currentUser / window.fmtDate /
+// - window.FocusSupabase / getCurrentUser() / window.fmtDate /
 //   FocusStorage / window.showFocusaiConfirm → zaten global
 import { getPgGoals, setPgGoals, persistGoals, toast, esc, openPlanView, acceptLessonPlanInvite, setPvReadOnlyPreview, pvAddHour } from './planning.js';
+import { getCurrentUser } from './state/current-user-store.js';
 
 // Bir davet kartının HTML'i — Planlama sayfasındaki (artık gizli) genel kutu VE
 // Sınıf Paneli > Ders Planı sekmesindeki gruba-özel liste aynı işaretlemeyi (ve
@@ -24,7 +26,7 @@ import { getPgGoals, setPgGoals, persistGoals, toast, esc, openPlanView, acceptL
 function _lpaInviteCardHTML(inv) {
     const groupName = esc(inv.groups?.name || 'sınıfın');
     const metaParts = [groupName];
-    if (inv.deadline) metaParts.push(`Son tarih: ${window.fmtDate(inv.deadline)}`);
+    if (inv.deadline) metaParts.push(`Son tarih: ${fmtDate(inv.deadline)}`);
     return `
         <div class="pg-lpa-invite-card" data-lpa-id="${inv.id}" data-goal-id="${inv.goal_id}" data-group-code="${esc(inv.groups?.code || '')}">
             <div class="pg-lpa-invite-top">
@@ -59,8 +61,8 @@ window._bindLpaInviteCard = _bindLpaInviteCard;
 // render eder (öğrenci tarafı): bekleyenler tam kart (İncele/Kabul/Revize/Reddet),
 // geri kalanı (kabul/revize istendi/red/tamamlandı) kısa durum satırı olarak.
 async function renderStudentLessonPlanInvitesForGroup(groupId, containerEl) {
-    if (!containerEl || !window.FocusSupabase || !window.currentUser) return;
-    const sb = window.FocusSupabase, uid = window.currentUser.id;
+    if (!containerEl || !window.FocusSupabase || !getCurrentUser()) return;
+    const sb = window.FocusSupabase, uid = getCurrentUser().id;
     let rows;
     try {
         ({ data: rows } = await sb
@@ -79,7 +81,9 @@ async function renderStudentLessonPlanInvitesForGroup(groupId, containerEl) {
     const rest = rows.filter(r => r.status !== 'invited');
     containerEl.innerHTML = `
         ${invites.map(inv => _lpaInviteCardHTML(inv)).join('')}
-        ${rest.length ? `<div class="pg-pv-assign-status-list" style="margin-top:${invites.length ? '10px' : '0'};">${rest.map(r => window._lpaStatusRowHTML(r, true, false, { deleteStatuses: ['rejected'], isStudentView: true })).join('')}</div>` : ''}`;
+        ${rest.length ? `<div class="pg-pv-assign-status-list">${rest.map(r => window._lpaStatusRowHTML(r, true, false, { deleteStatuses: ['rejected'], isStudentView: true })).join('')}</div>` : ''}`;
+    const statusListEl = containerEl.querySelector('.pg-pv-assign-status-list');
+    if (statusListEl) statusListEl.style.marginTop = invites.length ? '10px' : '0';
     _bindLpaInviteCard(containerEl);
 
     // Reddedilen bir isteği öğrenci 7 gün beklemeden kendi de silebilir
@@ -218,7 +222,7 @@ async function _requestLessonPlanRevision(lpaId, card, note) {
         if (lpa?.teacher_id) {
             await sb.from('notifications').insert([{
                 user_id: lpa.teacher_id, type: 'lesson_plan_revision_requested',
-                payload: { fromName: window.currentUser.displayName || window.currentUser.username, goalId: lpa.goal_id, note, groupCode: card.dataset.groupCode || null },
+                payload: { fromName: getCurrentUser().displayName || getCurrentUser().username, goalId: lpa.goal_id, note, groupCode: card.dataset.groupCode || null },
             }]);
         }
     } catch (e) {
@@ -245,7 +249,7 @@ async function _rejectLessonPlanInvite(lpaId, card, note) {
         if (lpa?.teacher_id) {
             await sb.from('notifications').insert([{
                 user_id: lpa.teacher_id, type: 'lesson_plan_rejected',
-                payload: { fromName: window.currentUser.displayName || window.currentUser.username, goalId: lpa.goal_id, note: note || null, groupCode: card.dataset.groupCode || null },
+                payload: { fromName: getCurrentUser().displayName || getCurrentUser().username, goalId: lpa.goal_id, note: note || null, groupCode: card.dataset.groupCode || null },
             }]);
         }
     } catch (e) {

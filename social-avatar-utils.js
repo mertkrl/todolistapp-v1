@@ -89,15 +89,101 @@
         const px = size || 36;
         const name = (u && (u.avatarInitials || u.displayName || u.username)) || 'U';
         const fallback = avatarFallbackSrc(name, color);
-        // onerror: resim yüklenemezse (ör. ui-avatars.com'a erişilemiyorsa) simsiyah bir daire
-        // yerine yerelde üretilen renkli/baş harfli bir avatara düşer.
+        // Resim yüklenemezse (ör. ui-avatars.com'a erişilemiyorsa) simsiyah bir daire yerine
+        // yerelde üretilen renkli/baş harfli bir avatara düşer. CSP script-src'de 'unsafe-inline'
+        // olmadığı için onerror="..." inline handler'ı sessizce hiç çalışmıyordu — data-avatar-fallback
+        // + document seviyesinde delege edilmiş bir 'error' listener'a (bkz. aşağıdaki
+        // _wireAvatarFallbackDelegation) taşındı.
         // url, profiles.custom_avatar'dan geliyor — UI'da yalnızca Storage upload'ıyla
         // set edilse de, RLS bu alanın İÇERİĞİNİ kısıtlamıyor; bir istemci Supabase'i
         // doğrudan çağırıp buraya keyfi metin yazabilir. Attribute context'te " karakteri
-        // attribute'tan kaçışa (ve onload= gibi handler enjeksiyonuna) izin vereceğinden escape ediyoruz.
-        return `<img src="${window._escapeHtml(url)}" onerror="this.onerror=null;this.src='${window._escapeHtml(fallback)}';" ${extraAttrs || ''} style="width:${px}px; height:${px}px; border-radius:50%; object-fit:cover; border:2px solid #${color}; background:#${color}; box-sizing:border-box; ${extraStyle || ''}" alt="">`;
+        // attribute'tan kaçışa izin vereceğinden escape ediyoruz.
+        // loading="lazy": bu fonksiyon uygulama genelinde YÜZLERCE kez çağrılıyor (sohbet
+        // listeleri, sıralama tabloları, üye rosterleri) — çoğu ilk ekranda görünmez.
+        // Tarayıcı zaten görünür alandaki resimleri anında yükler, sadece ekran dışındakiler
+        // ertelenir, bu yüzden görünür avatarlarda davranış değişmez.
+        return `<img src="${window._escapeHtml(url)}" loading="lazy" decoding="async" data-avatar-fallback="${window._escapeHtml(fallback)}" ${extraAttrs || ''} data-avatar-px="${px}" data-avatar-color="${window._escapeHtml(color)}" data-avatar-extra="${window._escapeHtml(extraStyle || '')}" alt="" class="u-border-radius-50pct_object-fit-cover_box-sizing-border-box">`;
     }
+
+    // 'error' olayı <img> üzerinde BUBBLE ETMEZ, bu yüzden capture fazında dinlemek gerekiyor.
+    // Tek, kalıcı bir delegasyon — avatarImgHtml() nerede/ne zaman DOM'a eklenirse eklensin çalışır.
+    function _wireAvatarFallbackDelegation() {
+        document.addEventListener('error', function(e) {
+            const img = e.target;
+            if (img && img.tagName === 'IMG' && img.dataset.avatarFallback && img.src !== img.dataset.avatarFallback) {
+                img.src = img.dataset.avatarFallback;
+            }
+        }, true);
+    }
+    _wireAvatarFallbackDelegation();
     window.avatarImgHtml = avatarImgHtml; // social-roles.js gibi ayrı script scope'larından erişim için
+
+    // avatarImgHtml/groupAvatarHtml artık boyut/renk gibi DEĞİŞKEN CSS değerlerini
+    // "style=" attribute'una gömmüyor (CSP style-src interpolated inline style'ları
+    // hash'leyemez) — bunun yerine data-avatar-* attribute'larına yazıyor ve bu
+    // MutationObserver, DOM'a eklendikleri anda gerçek stil özelliklerini
+    // el.style.* ile (CSP-muaf) uyguluyor. avatarImgHtml/groupAvatarHtml onlarca
+    // farklı dosyada (nested template literal içinde) kullanıldığından, her
+    // çağrı noktasını tek tek güncellemek yerine merkezi/otomatik bu çözüm seçildi.
+    function _applyPendingAvatarStyles(root) {
+        if (!root || !root.querySelectorAll) return;
+        const imgs = root.querySelectorAll ? root.querySelectorAll('img[data-avatar-px]:not([data-avatar-applied])') : [];
+        imgs.forEach(img => {
+            const px = img.getAttribute('data-avatar-px');
+            const color = img.getAttribute('data-avatar-color');
+            const extra = img.getAttribute('data-avatar-extra');
+            img.style.width = px + 'px';
+            img.style.height = px + 'px';
+            img.style.border = '2px solid #' + color;
+            img.style.background = '#' + color;
+            if (extra) {
+                extra.split(';').forEach(decl => {
+                    const idx = decl.indexOf(':');
+                    if (idx === -1) return;
+                    const prop = decl.slice(0, idx).trim();
+                    const val = decl.slice(idx + 1).trim();
+                    if (!prop || !val) return;
+                    if (prop.startsWith('--')) {
+                        img.style.setProperty(prop, val);
+                    } else {
+                        const camel = prop.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+                        img.style[camel] = val;
+                    }
+                });
+            }
+            img.setAttribute('data-avatar-applied', '1');
+        });
+        const groupAvatars = root.querySelectorAll ? root.querySelectorAll('.group-avatar[data-gavatar-px]:not([data-gavatar-applied])') : [];
+        groupAvatars.forEach(el => {
+            const px = el.getAttribute('data-gavatar-px');
+            const color = el.getAttribute('data-gavatar-color');
+            el.style.width = px + 'px';
+            el.style.height = px + 'px';
+            el.style.minWidth = px + 'px';
+            el.style.fontSize = Math.round(px * 0.42) + 'px';
+            el.style.background = `linear-gradient(135deg, #${color}, #${color}99)`;
+            el.setAttribute('data-gavatar-applied', '1');
+        });
+    }
+    function _startAvatarStyleObserver() {
+        const _avatarStyleObserver = new MutationObserver(mutations => {
+            for (const mut of mutations) {
+                mut.addedNodes.forEach(node => {
+                    if (node.nodeType !== 1) return;
+                    if ((node.matches && node.matches('img[data-avatar-px]:not([data-avatar-applied])')) ||
+                        (node.matches && node.matches('.group-avatar[data-gavatar-px]:not([data-gavatar-applied])'))) {
+                        _applyPendingAvatarStyles(node.parentNode || node);
+                    }
+                    _applyPendingAvatarStyles(node);
+                });
+            }
+        });
+        _avatarStyleObserver.observe(document.body, { childList: true, subtree: true });
+    }
+    if (typeof document !== 'undefined') {
+        if (document.body) _startAvatarStyleObserver();
+        else document.addEventListener('DOMContentLoaded', _startAvatarStyleObserver);
+    }
 
     // Grup kodundan deterministik bir renk seçip, grup adının baş harfiyle
     // küçük bir "rozet" üretir — gruplar listesinde hızlı görsel tanıma sağlar.
@@ -110,7 +196,7 @@
         for (let i = 0; i < str.length; i++) hash = (hash * 31 + str.charCodeAt(i)) >>> 0;
         const color = GROUP_AVATAR_COLORS[hash % GROUP_AVATAR_COLORS.length];
         const initial = (name || '?').trim().charAt(0).toUpperCase() || '?';
-        return `<div class="group-avatar" style="width:${px}px; height:${px}px; min-width:${px}px; font-size:${Math.round(px * 0.42)}px; background: linear-gradient(135deg, #${color}, #${color}99);">${window._escapeHtml(initial)}</div>`;
+        return `<div class="group-avatar" data-gavatar-px="${px}" data-gavatar-color="${window._escapeHtml(color)}">${window._escapeHtml(initial)}</div>`;
     }
 
     function timeAgo(ts) {

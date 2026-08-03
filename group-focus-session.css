@@ -1,0 +1,1115 @@
+/* Grup Odak Seansı (.gf-, .gsc-) — style.css'ten çıkarıldı */
+
+/* ===== Mola Sohbeti Sürükle/Yeniden Boyutlandır (.gf-bc-*) ===== */
+.gf-bc-emoji-icon {
+    display: none;
+    width: 52px;
+    height: 52px;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+}
+/* Resize handle — sohbet paneli alt kenar */
+.gf-bc-resize-handle {
+    height: 8px;
+    flex-shrink: 0;
+    cursor: ns-resize;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    transition: background 0.2s;
+}
+.gf-bc-resize-handle:hover { background: rgba(116,185,255,0.08); }
+.gf-bc-resize-handle::after {
+    content: '';
+    width: 32px;
+    height: 3px;
+    border-radius: 2px;
+    background: rgba(255,255,255,0.15);
+}
+.gf-bc-resize-handle:hover::after { background: rgba(116,185,255,0.5); }
+#group-focus-overlay .cws-break-chat.gf-bc-minimized .gf-bc-resize-handle { display: none !important; }
+
+/* Küçült butonu */
+.gf-bc-minimize-btn {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.45);
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 6px;
+    font-size: 13px;
+    transition: color 0.2s;
+    line-height: 1;
+}
+.gf-bc-minimize-btn:hover {
+    color: #74b9ff;
+}
+
+/* ===== Metro Zaman Çizelgesi + Bitiş/Yeniden Başlatma Modalları (.gf-metro-, .gf-end-, .gf-restart-, .gf-settings-, .gf-ssi-, .gf-restarting-) ===== */
+/* ══════════════════════════════════════════════
+   GF METRO TİMLİNE
+   ══════════════════════════════════════════════ */
+.gf-metro-wrapper {
+    width: 100%;
+    max-width: 900px;
+    margin: 18px auto 0;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    overflow: hidden;
+}
+
+.gf-metro-track {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    overflow-x: auto;
+    overflow-y: visible;
+    padding: 18px 20px 22px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    width: 100%;
+    flex-wrap: nowrap;
+}
+.gf-metro-track::-webkit-scrollbar { display: none; }
+
+/* ≥5 tur (9+ durak): orta boy */
+.gf-metro-track.gf-metro-md .gf-metro-dot { width: 34px; height: 34px; font-size: 13px; }
+.gf-metro-track.gf-metro-md .gf-metro-station.active .gf-metro-dot { width: 40px; height: 40px; font-size: 15px; }
+.gf-metro-track.gf-metro-md .gf-metro-rail { width: 24px; }
+.gf-metro-track.gf-metro-md .gf-metro-label { font-size: 9px; }
+.gf-metro-track.gf-metro-md .gf-metro-station.active.focus .gf-metro-label,
+.gf-metro-track.gf-metro-md .gf-metro-station.active.brk .gf-metro-label { font-size: 10px; }
+
+/* ≥8 tur (15+ durak): küçük boy */
+.gf-metro-track.gf-metro-sm .gf-metro-dot { width: 28px; height: 28px; font-size: 11px; }
+.gf-metro-track.gf-metro-sm .gf-metro-station.active .gf-metro-dot { width: 34px; height: 34px; font-size: 13px; }
+.gf-metro-track.gf-metro-sm .gf-metro-rail { width: 16px; }
+.gf-metro-track.gf-metro-sm .gf-metro-label { font-size: 8px; }
+.gf-metro-track.gf-metro-sm .gf-metro-station.active.focus .gf-metro-label,
+.gf-metro-track.gf-metro-sm .gf-metro-station.active.brk .gf-metro-label { font-size: 9px; }
+
+/* Durak (station) */
+.gf-metro-station {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    position: relative;
+    cursor: default;
+}
+
+/* Durak çemberi */
+.gf-metro-dot {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    border: 2px solid transparent;
+    transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    position: relative;
+    z-index: 2;
+}
+
+/* Odak durağı */
+.gf-metro-station.focus .gf-metro-dot {
+    background: rgba(212, 144, 14, 0.15);
+    border-color: rgba(212, 144, 14, 0.4);
+    color: #D4900E;
+}
+
+/* Mola durağı */
+.gf-metro-station.brk .gf-metro-dot {
+    background: rgba(255, 159, 67, 0.12);
+    border-color: rgba(255, 159, 67, 0.35);
+    color: #ff9f43;
+}
+
+/* Aktif durak */
+.gf-metro-station.active .gf-metro-dot {
+    width: 48px;
+    height: 48px;
+    font-size: 18px;
+    box-shadow: 0 0 0 6px rgba(46, 213, 115, 0.15);
+}
+.gf-metro-station.active.focus .gf-metro-dot {
+    background: linear-gradient(135deg, #2ed573, #00b894);
+    border-color: #2ed573;
+    color: #fff;
+    box-shadow: 0 0 0 6px rgba(46, 213, 115, 0.18), 0 4px 16px rgba(46, 213, 115, 0.35);
+}
+.gf-metro-station.active.brk .gf-metro-dot {
+    background: linear-gradient(135deg, #ff9f43, #e17055);
+    border-color: #ff9f43;
+    color: #fff;
+    box-shadow: 0 0 0 6px rgba(255, 159, 67, 0.18), 0 4px 16px rgba(255, 159, 67, 0.35);
+}
+
+/* Aktif durak nabız animasyonu */
+@keyframes gfStationPulse {
+    0%, 100% { box-shadow: 0 0 0 6px rgba(46,213,115,0.18), 0 4px 16px rgba(46,213,115,0.35); }
+    50%       { box-shadow: 0 0 0 10px rgba(46,213,115,0.08), 0 4px 24px rgba(46,213,115,0.5); }
+}
+@keyframes gfStationPulseBreak {
+    0%, 100% { box-shadow: 0 0 0 6px rgba(255,159,67,0.18), 0 4px 16px rgba(255,159,67,0.35); }
+    50%       { box-shadow: 0 0 0 10px rgba(255,159,67,0.08), 0 4px 24px rgba(255,159,67,0.5); }
+}
+.gf-metro-station.active.focus .gf-metro-dot { animation: gfStationPulse 2s ease-in-out infinite; }
+.gf-metro-station.active.brk   .gf-metro-dot { animation: gfStationPulseBreak 2s ease-in-out infinite; }
+
+/* Tamamlanmış durak */
+.gf-metro-station.done .gf-metro-dot {
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.25);
+}
+
+/* Durak etiketi */
+.gf-metro-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-align: center;
+    transition: color 0.3s;
+    white-space: nowrap;
+}
+.gf-metro-station.focus .gf-metro-label { color: rgba(162,155,254,0.7); }
+.gf-metro-station.brk   .gf-metro-label { color: rgba(255,159,67,0.7); }
+.gf-metro-station.active.focus .gf-metro-label { color: #2ed573; font-size: 11px; }
+.gf-metro-station.active.brk   .gf-metro-label { color: #ff9f43; font-size: 11px; }
+.gf-metro-station.done  .gf-metro-label { color: rgba(255,255,255,0.18); }
+
+/* Duraklar arası ray */
+.gf-metro-rail {
+    width: 36px;
+    height: 3px;
+    flex-shrink: 0;
+    border-radius: 2px;
+    transition: background 0.4s ease;
+    margin-bottom: 28px;
+}
+.gf-metro-rail.done  { background: rgba(255,255,255,0.22); }
+.gf-metro-rail.ahead { background: rgba(255,255,255,0.07); }
+
+/* Ayarlar butonu satırı */
+.gf-metro-settings-row {
+    display: flex;
+    justify-content: center;
+}
+.gf-metro-settings-btn {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 18px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.55);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.gf-metro-settings-btn:hover {
+    background: rgba(212,144,14,0.18);
+    border-color: rgba(212,144,14,0.4);
+    color: #D4900E;
+}
+
+/* ══════════════════════════════════════════════
+   OTURUMU BİTİR / YENİDEN BAŞLAT MODALLARI
+   ══════════════════════════════════════════════ */
+.gf-end-modal-card {
+    background: linear-gradient(145deg, rgba(18,16,38,0.98), rgba(11,10,23,0.99));
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 24px;
+    padding: 40px 32px 32px;
+    max-width: 420px;
+    width: 90vw;
+    text-align: center;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04);
+    animation: gfModalIn 0.35s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes gfModalIn {
+    from { opacity:0; transform: scale(0.88) translateY(20px); }
+    to   { opacity:1; transform: scale(1) translateY(0); }
+}
+
+.gf-end-modal-icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #2ed573, #00b894);
+    box-shadow: 0 8px 30px rgba(46,213,115,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    color: #fff;
+    margin: 0 auto 20px;
+}
+
+.gf-end-modal-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 10px;
+}
+
+.gf-end-modal-desc {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 22px;
+}
+
+.gf-end-modal-stats {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    margin-bottom: 28px;
+}
+.gf-end-stat {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 14px;
+    padding: 14px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    min-width: 90px;
+}
+.gf-end-stat i { font-size: 18px; color: #D4900E; margin-bottom: 2px; }
+.gf-end-stat span { font-size: 20px; font-weight: 700; color: #fff; }
+.gf-end-stat label { font-size: 11px; color: var(--text-muted); }
+
+.gf-end-modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+.gf-end-btn-cancel {
+    flex: 1;
+    padding: 13px 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.7);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+.gf-end-btn-cancel:hover { background: rgba(255,255,255,0.1); }
+.gf-end-btn-confirm {
+    flex: 1;
+    padding: 13px 16px;
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(135deg, #2ed573, #00b894);
+    box-shadow: 0 6px 20px rgba(46,213,115,0.4);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+.gf-end-btn-confirm:hover { transform: translateY(-2px); filter: brightness(1.08); }
+
+/* Ayarlar modal restart butonu */
+.gf-restart-btn {
+    width: 100%;
+    padding: 11px 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(253,203,110,0.3);
+    background: rgba(253,203,110,0.08);
+    color: #fdcb6e;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+.gf-restart-btn:hover {
+    background: rgba(253,203,110,0.16);
+    border-color: rgba(253,203,110,0.5);
+}
+
+/* ── Ayarlar Modalı — Oturum Özeti Kartı ── */
+.gf-settings-session-info {
+    background: rgba(212,144,14,0.07);
+    border: 1px solid rgba(212, 144, 14, 0.2);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 20px;
+}
+
+.gf-ssi-chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+.gf-ssi-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(212,144,14,0.12);
+    border: 1px solid rgba(212,144,14,0.25);
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+}
+.gf-ssi-chip i { color: #D4900E; font-size: 11px; }
+
+
+/* ── Partner Yeniden Başlatıyor Modalı ── */
+.gf-restarting-card {
+    position: relative;
+    overflow: hidden;
+}
+.gf-restarting-anim {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.gf-restarting-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 2px solid rgba(253, 203, 110, 0.35);
+    animation: gfRestartPulse 2s ease-out infinite;
+}
+.gf-restarting-ring-2 {
+    animation-delay: 0.8s;
+    border-color: rgba(225, 112, 85, 0.25);
+}
+@keyframes gfRestartPulse {
+    0%   { transform: scale(0.6); opacity: 1; }
+    100% { transform: scale(1.5); opacity: 0; }
+}
+.gf-restarting-icon {
+    font-size: 26px;
+    background: linear-gradient(135deg, #fdcb6e, #e17055);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: gfRestartSpin 3s linear infinite;
+}
+@keyframes gfRestartSpin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(-360deg); }
+}
+.gf-restarting-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+.gf-restarting-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #fdcb6e;
+    animation: bcPulse 1.5s infinite;
+}
+
+/* ===== Grup Odak Seansı Takvimi (.gsc-*) ===== */
+/* ══════════════════════════════════════════════════════════
+   GRUP ODAK SEANSİ TAKVİMİ
+══════════════════════════════════════════════════════════ */
+
+/* İstatistik kartları */
+.gsc-stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 4px;
+}
+.gsc-stats-row.cols-4 {
+    grid-template-columns: repeat(4, 1fr);
+}
+.gsc-stat-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px;
+    padding: 12px 8px;
+    text-align: center;
+}
+.gsc-stat-val {
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1;
+}
+.gsc-stat-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+/* Haftalık takvim — Tasarım B: sade 7 sütun + alttaki tek gün detay paneli */
+.gsc-week-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+}
+.gsc-day-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    min-width: 0;
+    padding: 8px 2px 10px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.gsc-day-col:hover {
+    background: rgba(255,255,255,0.04);
+}
+.gsc-day-col.selected {
+    background: rgba(108,92,231,0.14);
+    border-color: rgba(108,92,231,0.45);
+}
+.gsc-day-name {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+.gsc-day-col.today .gsc-day-name {
+    color: #74b9ff;
+}
+.gsc-day-num {
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.85);
+}
+.gsc-day-col.today .gsc-day-num {
+    color: #74b9ff;
+}
+.gsc-day-col.selected .gsc-day-num {
+    color: #fff;
+}
+.gsc-day-dots {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    min-height: 6px;
+}
+.gsc-day-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: rgba(212,144,14,0.7);
+}
+.gsc-day-dot.mine {
+    background: #74b9ff;
+}
+.gsc-day-dot-more {
+    font-size: 8px;
+    color: var(--text-muted);
+    margin-left: 1px;
+}
+/* "Takvim + ödev tarihleri birleşimi" — teslim tarihi olan günlerde küçük bayrak rozeti */
+
+
+
+
+
+
+
+/* Seçili gün detay paneli */
+.gsc-day-detail {
+    margin-top: 12px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px;
+    padding: 12px;
+}
+.gsc-day-detail-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.85);
+    margin-bottom: 10px;
+}
+.gsc-day-detail-empty {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 14px 4px;
+}
+.gsc-day-detail-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.gsc-day-detail-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-left: 2px solid rgba(212,144,14,0.5);
+    border-radius: 8px;
+    padding: 7px 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.gsc-day-detail-row:hover {
+    background: rgba(255,255,255,0.07);
+    border-color: rgba(255,255,255,0.14);
+    border-left-color: rgba(212,144,14,0.8);
+}
+.gsc-day-detail-row.completed {
+    background: rgba(255,255,255,0.025);
+    border-color: rgba(255,255,255,0.06);
+    border-left-color: rgba(255,255,255,0.15);
+}
+.gsc-day-detail-row.completed .gsc-ddr-time { color: var(--text-muted); }
+.gsc-day-detail-row.mine {
+    border-color: rgba(116,185,255,0.5);
+}
+.gsc-ddr-time {
+    font-size: 11px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.85);
+    flex-shrink: 0;
+    width: 76px;
+}
+.gsc-ddr-main {
+    flex: 1;
+    min-width: 0;
+}
+.gsc-ddr-title {
+    font-size: 12px;
+    color: rgba(255,255,255,0.85);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.gsc-ddr-sub {
+    font-size: 10px;
+    color: rgba(255,255,255,0.4);
+    margin-top: 1px;
+}
+.gsc-live-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #74b9ff;
+    margin-right: 3px;
+    animation: gscLivePulse 1.4s ease-in-out infinite;
+}
+@keyframes gscLivePulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+}
+.gsc-ddr-focus-btn {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #fff;
+    background: var(--primary-color);
+    border: none;
+    border-radius: 20px;
+    padding: 6px 11px;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.15s;
+}
+.gsc-ddr-focus-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+.gsc-pill-avatars {
+    display: flex;
+    justify-content: center;
+    margin-top: 3px;
+}
+.gsc-pill-avatars img,
+.gsc-pill-avatars .gsc-pill-avatar-fallback {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(20,20,25,0.9);
+    margin-left: -4px;
+    object-fit: cover;
+}
+.gsc-pill-avatars > *:first-child {
+    margin-left: 0;
+}
+.gsc-pill-avatar-fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.7);
+    font-size: 7px;
+    font-weight: 700;
+}
+
+/* Seans detay modal */
+.gsc-modal-overlay {
+    position: fixed; inset: 0; z-index: 10500;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center;
+    animation: fcOverlayIn 0.18s ease;
+}
+.gsc-modal-box {
+    background: linear-gradient(145deg, #16132a, #1e1a35);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 18px;
+    padding: 28px;
+    width: min(420px, 92vw);
+    max-height: 90vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(212,144,14,0.15);
+    animation: fcBoxIn 0.22s cubic-bezier(0.34,1.56,0.64,1);
+}
+.gsc-modal-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.gsc-modal-title i { color: #D4900E; }
+.gsc-form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.gsc-form-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.gsc-form-input {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: #fff;
+    font-size: 13px;
+    outline: none;
+    width: 100%;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+}
+.gsc-form-input:focus { border-color: rgba(212,144,14,0.6); }
+.gsc-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.gsc-modal-footer {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    padding-top: 4px;
+}
+.gsc-modal-footer .control-btn.secondary {
+    background: rgba(255,255,255,0.07);
+    color: rgba(255,255,255,0.7);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+.gsc-modal-footer .control-btn.secondary:hover { background: rgba(255,255,255,0.12); }
+.gsc-modal-footer .primary-btn {
+    background: linear-gradient(135deg, #D4900E, #D4900E);
+    color: #fff;
+    box-shadow: 0 6px 20px rgba(212,144,14,0.4);
+    border: none;
+}
+
+/* Bekleme odası */
+.gsc-waiting-chip {
+    font-size: 12px; font-weight: 600;
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.14);
+    padding: 4px 10px; border-radius: 20px;
+}
+.gsc-waiting-empty {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+/* Seans detay görünümü */
+.gsc-detail-title {
+    font-size: 18px; font-weight: 700; color: #fff; margin: 0;
+}
+.gsc-detail-meta {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px;
+}
+.gsc-detail-badge {
+    font-size: 11px; font-weight: 600;
+    background: rgba(212,144,14,0.15);
+    color: #D4900E;
+    border: 1px solid rgba(212,144,14,0.3);
+    padding: 3px 10px; border-radius: 20px;
+}
+.gsc-detail-badge.green {
+    background: rgba(255,255,255,0.06);
+    color: var(--text-muted);
+    border-color: rgba(255,255,255,0.14);
+}
+.gsc-detail-badge.live {
+    background: rgba(116,185,255,0.12);
+    color: #74b9ff;
+    border-color: rgba(116,185,255,0.3);
+}
+.gsc-attendee-grid {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    max-height: 120px; overflow-y: auto;
+}
+.gsc-attendee-chip {
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 4px 10px 4px 4px;
+    font-size: 12px; color: rgba(255,255,255,0.8);
+}
+.gsc-rsvp-btn {
+    width: 100%;
+    padding: 11px;
+    border-radius: 12px;
+    border: none;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.gsc-rsvp-btn.join {
+    background: linear-gradient(135deg, #D4900E, #D4900E);
+    color: #fff;
+}
+.gsc-rsvp-btn.join:hover { opacity: 0.85; transform: translateY(-1px); }
+.gsc-rsvp-btn.leave {
+    background: rgba(255,71,87,0.15);
+    color: #ff4757;
+    border: 1px solid rgba(255,71,87,0.3);
+}
+.gsc-rsvp-btn.leave:hover { background: rgba(255,71,87,0.25); }
+.gsc-delete-btn {
+    background: none; border: none;
+    color: rgba(255,71,87,0.5); font-size: 11px;
+    cursor: pointer; padding: 0;
+    transition: color 0.2s;
+    align-self: flex-start;
+}
+.gsc-delete-btn:hover { color: #ff4757; }
+
+.gsc-form-input[type="date"],
+.gsc-form-input[type="time"] {
+    color-scheme: dark;
+}
+
+/* ===== Grup Odak Overlay — Layout Düzeltmeleri (#group-focus-overlay) ===== */
+/* ─────────────────────────────────────────
+   GF OVERLAY LAYOUT FIXES
+───────────────────────────────────────── */
+
+/* 1. Section-header sticky + sohbet panelinin üstünde kalır (z-index 80 > chat z-index 60) */
+#group-focus-overlay .section-header {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 80 !important;
+    width: 100%;
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border-bottom: none;
+    padding: 12px 20px;
+    box-sizing: border-box;
+    margin-bottom: 10px;
+    flex-shrink: 0;
+    align-items: center;
+}
+
+/* 2. Odak modu aktifken header metnini gizle, sadece butonlar görünsün */
+#group-focus-overlay.group-focus-mode-active .section-header {
+    justify-content: flex-end !important;
+}
+
+/* 3. Odak modu aktifken sohbet paneli görünmesin */
+#group-focus-overlay.group-focus-mode-active .cws-break-chat {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: translateX(110%) !important;
+}
+
+/* 4. Katılımcı bölümü ile timer butonları arasına boşluk */
+#group-focus-overlay .cws-participants-section {
+    margin-top: 30px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+/* 5. Odak modu butonları düzgün yan yana */
+#group-focus-overlay .section-header > div:last-child {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+/* GF OVERLAY: Mola sohbeti header altından değil, daha aşağıdan başlar */
+#group-focus-overlay .cws-break-chat {
+    top: 120px;
+    right: 0;
+    left: auto;
+    transform: none !important;
+    height: auto;
+    max-height: 42vh;
+    width: 270px !important;
+    bottom: auto !important;
+    border-radius: 16px 0 0 16px !important;
+    cursor: default;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease !important;
+    z-index: 10200;
+}
+#group-focus-overlay .cws-break-chat.visible {
+    opacity: 1 !important;
+    pointer-events: all !important;
+}
+#group-focus-overlay .cws-break-chat.gf-bc-dragging {
+    cursor: grabbing !important;
+    transition: none !important;
+    user-select: none;
+}
+/* Küçültülmüş emoji hali */
+#group-focus-overlay .cws-break-chat.gf-bc-minimized {
+    width: 52px !important;
+    max-height: 52px !important;
+    height: 52px !important;
+    border-radius: 50% 0 0 50% !important;
+    overflow: hidden !important;
+    cursor: pointer !important;
+    background: rgba(116,185,255,0.15) !important;
+    border: 1px solid rgba(116,185,255,0.35) !important;
+}
+#group-focus-overlay .cws-break-chat.gf-bc-minimized .cws-bc-header,
+#group-focus-overlay .cws-break-chat.gf-bc-minimized .cws-break-chat-messages,
+#group-focus-overlay .cws-break-chat.gf-bc-minimized .cws-bc-input-row {
+    display: none !important;
+}
+#group-focus-overlay .cws-break-chat.gf-bc-minimized .gf-bc-emoji-icon {
+    display: flex !important;
+}
+/* Mola Sohbeti Sürükle/Boyutlandır (.gf-bc-*) -> group-focus-session.css'e taşındı */
+
+/* ─── GF OVERLAY: SOHBET + GHOST MOD DÜZELTMELERİ ─── */
+
+/* 1. Ghost modda header tamamen kaybolur + layout'tan çekilir
+      (sadece süre ve motivasyon sözleri kalır) */
+#group-focus-overlay.group-ghost-mode-active .section-header {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    margin-top: -70px !important;
+    transition: opacity 0.6s ease, margin-top 0.6s ease !important;
+}
+
+/* Hover ile geri gelmesini engelle */
+#group-focus-overlay.group-ghost-mode-active .section-header:hover {
+    opacity: 0 !important;
+}
+/* Özel Onay Modalı (.focusai-confirm-) -> focusai-confirm-modal.css'e taşındı */
+
+/* ══════════════════════════════════════════════════════════
+   PROFİL CONTEXT MENÜSÜ
+══════════════════════════════════════════════════════════ */
+.dc-profile-menu {
+    position: fixed;
+    z-index: 99990;
+    background: linear-gradient(145deg, #16132a, #1e1a35);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px;
+    padding: 8px;
+    min-width: 220px;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.55), 0 0 0 1px rgba(212,144,14,0.12);
+    opacity: 0;
+    transform: translateY(8px) scale(0.95);
+    transition: opacity 0.18s ease, transform 0.18s cubic-bezier(0.34,1.4,0.64,1);
+    pointer-events: none;
+}
+.dc-profile-menu.dc-profile-menu--open {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: all;
+}
+.dc-profile-menu-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 10px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    margin-bottom: 6px;
+}
+.dc-profile-menu-avatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    object-fit: cover; flex-shrink: 0;
+}
+.dc-profile-menu-name {
+    font-size: 13px; font-weight: 700; color: #fff;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.dc-profile-menu-tag {
+    font-size: 11px; color: rgba(255,255,255,0.4);
+}
+.dc-profile-menu-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; border-radius: 9px;
+    font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.75);
+    cursor: pointer; transition: background 0.13s, color 0.13s;
+    border: none; background: transparent; width: 100%; text-align: left;
+}
+.dc-profile-menu-item:hover { background: rgba(212,144,14,0.18); color: #fff; }
+.dc-profile-menu-item .pm-icon {
+    width: 28px; height: 28px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; flex-shrink: 0;
+}
+.dc-profile-menu-item.item-profile .pm-icon { background: rgba(212,144,14,0.2); color: rgba(255,255,255,0.55); }
+.dc-profile-menu-item.item-settings .pm-icon { background: rgba(116,185,255,0.15); color: #74b9ff; }
+.dc-profile-menu-item.item-logout  { color: rgba(255,118,117,0.85); }
+.dc-profile-menu-item.item-logout:hover { background: rgba(255,71,87,0.12); color: #ff6b6b; }
+.dc-profile-menu-item.item-logout .pm-icon { background: rgba(255,71,87,0.15); color: #ff4757; }
+.dc-profile-menu-divider {
+    height: 1px; background: rgba(255,255,255,0.07);
+    margin: 4px 6px;
+}
+
+/* Profil Ayarları Modalı (.settings-) -> profile-settings-modal.css'e taşındı */
+
+/* Mini Profil Popup (.mini-profile-popup, .mp-) -> mini-profile-popup.css'e taşındı */
+/* ── Engellenen kullanıcı banner'ı (DM giriş kutusunun üstünde) ── */
+.dc-blocked-banner {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    flex-wrap: wrap;
+    padding: 8px 14px;
+    background: rgba(255,118,117,0.1);
+    border-top: 1px solid rgba(255,118,117,0.25);
+    color: #ff7675;
+    font-size: 12px; font-weight: 600;
+    text-align: center;
+}
+/* Mini Profil Popup (.mp-, devamı) -> mini-profile-popup.css'e taşındı */
+
+/* ── Group Focus Overlay — Düzeltmeler ── */
+
+/* Mola sohbeti: !important yok, JS inline style ezebilsin */
+#group-focus-overlay .cws-break-chat {
+    width: 270px !important;
+}
+
+/* Timer controls: butonlar ve süre göstergesi ortalansın */
+#group-focus-overlay .timer-controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+/* Ayarlar satırı ile üstteki butonlar arasında boşluk */
+#group-focus-overlay .gf-metro-settings-row {
+    margin-top: 16px;
+}
+
+/* Timer container içindeki tüm elemanlar ortalansın */
+#group-focus-overlay .timer-container {
+    align-items: center;
+    text-align: center;
+}
+#group-focus-overlay .active-focus-task {
+    max-width: 560px;
+    width: 100%;
+    align-self: center;
+}
+#group-focus-overlay #gf-active-task-selector {
+    max-width: 480px;
+    align-self: center;
+}
+#group-focus-overlay .gf-metro-wrapper {
+    align-self: center;
+}
+
+/* Oturumu Bitir butonu (danger) */
+.control-btn.danger {
+    background: rgba(255, 71, 87, 0.15);
+    color: #ff4757;
+    border: 1px solid rgba(255, 71, 87, 0.35);
+}
+.control-btn.danger:hover {
+    background: rgba(255, 71, 87, 0.28);
+    transform: translateY(-2px);
+}
+
+/* Halka rengi: odaklanma=yeşil, mola=turuncu */
+#group-focus-overlay #gf-progress-ring {
+    transition: stroke 0.5s ease, stroke-dashoffset 1s linear;
+}
+#group-focus-overlay.gf-phase-focus #gf-progress-ring {
+    stroke: #2ed573 !important;
+    filter: drop-shadow(0 0 8px rgba(46, 213, 115, 0.5));
+}
+#group-focus-overlay.gf-phase-break #gf-progress-ring {
+    stroke: #ff9f43 !important;
+    filter: drop-shadow(0 0 8px rgba(255, 159, 67, 0.5));
+}
+
+/* Timer display wrapper + controls ortalansın */
+#group-focus-overlay .timer-display-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Tur bilgisi sürenin altında, butonların üstünde */
+#group-focus-overlay #gf-round-counter {
+    margin-top: 12px;
+    margin-bottom: 8px;
+}

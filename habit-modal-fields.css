@@ -1,0 +1,113 @@
+.hm-field { display: flex; flex-direction: column; gap: 6px; }
+.hm-field-half { flex: 1; }
+.hm-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--t2, #888);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.hm-label i { color: var(--a, #D4900E); opacity: 0.75; font-size: 10.5px; }
+.hm-optional { font-weight: 400; text-transform: none; letter-spacing: 0; font-size: 10.5px; color: var(--t2, #888); }
+.hm-sync-hint { color: #ff6b6b; font-size: 11px; }
+
+
+
+@keyframes hm-emoji-pop {
+    from { opacity:0; transform:translateY(-4px) scale(.97); }
+    to   { opacity:1; transform:translateY(0) scale(1); }
+}
+.hm-emoji-picker.hidden { display:none; }
+
+
+
+.hm-row { display: flex; gap: 12px; }
+
+.hm-stepper {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--b2, rgba(255,255,255,0.11));
+    border-radius: 12px;
+    padding: 9px 12px;
+    box-sizing: border-box;
+}
+.hm-step-btn {
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: rgba(255,255,255,0.6);
+    font-size: 11px;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    flex-shrink: 0;
+}
+.hm-step-btn:hover { background: rgba(212,144,14,0.16); border-color: rgba(212,144,14,0.35); color: #fff; }
+.hm-step-input {
+    width: 48px;
+    text-align: center;
+    background: transparent;
+    background-color: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    outline: none;
+    font-family: inherit;
+    -webkit-appearance: none;
+    -moz-appearance: textfield;
+    appearance: none;
+}
+.hm-step-input:focus-visible { outline: none; box-shadow: 0 0 0 2px rgba(212,144,14,0.35); border-color: var(--primary-color, #D4900E); }
+/* #habit-target artık type="text" (native number-spinner farklılıklarını
+   önlemek için) — bu da onu genel ".modal-content input[type='text']"
+   kuralının (arkaplan/kenarlık/border-radius, !important) kapsamına
+   sokuyordu ve rakamın etrafında istenmeyen bir "hap" görünümü oluşuyordu.
+   Buradaki yüksek özgüllük (id + iki class) o kuralı geçersiz kılar. */
+#habit-create-modal .modal-content .hm-stepper .hm-step-input {
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
+.hm-step-label { font-size: 12px; color: var(--t2, #888); }
+
+.hm-select {
+    width: 100%;
+    padding: 9px 12px !important;
+    font-size: 13px !important;
+}
+.hm-date {
+    width: 100%;
+    padding: 9px 12px !important;
+    font-size: 13px !important;
+    color: #fff !important;
+}
+.hm-cat-row { display: flex; gap: 6px; align-items: center; }
+.hm-cat-row .hm-select { flex: 1; }
+.hm-cat-btn {
+    width: 34px !important;
+    height: 34px !important;
+    border-radius: 7px !important;
+    flex-shrink: 0;
+    color: var(--t2, #888) !important;
+    border: 1px solid var(--b2, rgba(255,255,255,0.11)) !important;
+    background: rgba(255,255,255,0.03) !important;
+}
+.hm-cat-btn:hover { color: #fff !important; background: rgba(212,144,14,0.1) !important; border-color: rgba(212,144,14,0.3) !important; }
+.hm-cat-del:hover { color: #ff4757 !important; background: rgba(255,71,87,0.08) !important; border-color: rgba(255,71,87,0.2) !important; }
+
+.hm-pills { margin-top: 2px; }

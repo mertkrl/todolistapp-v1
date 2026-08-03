@@ -1,0 +1,299 @@
+/* style.css'ten çıkarıldı (Faz C, 2026-07-22). Zihin Kütüphanesi / İstatistikler / Sohbet Tabı / Zamanlayıcı 'aşama' düzeltmeleri. */
+
+/* ================================================================
+   [AŞAMA 1] ZİHİN KÜTÜPHANESİ LAYOUT DÜZELTMESİ
+   Kontrol barı sabit, kitaplık kendi içinde kaydırılabilir.
+   Yatay taşma yok, viewport aşımı yok.
+   ================================================================ */
+
+/* 1. Günlük sekmesi: flex sütun — üst kontroller sabit, alt kitaplık kaydırılır */
+#gunluk.page-section {
+    display: none;
+    flex-direction: column;
+    overflow: hidden !important;
+    padding: 20px 20px 0 20px !important;
+    box-sizing: border-box;
+}
+#gunluk.page-section.active {
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    height: 100% !important;
+}
+
+/* 2. Başlık ve kontrol barı — sabit alan, kaydırmaz */
+#gunluk .section-header {
+    flex-shrink: 0;
+}
+
+/* Günlük Sekmesi Scroll Düzeltmesi (#gunluk .library-grand-container) -> library-bookshelf.css'e taşındı */
+
+/* Günlük Sekmesi Scroll Düzeltmesi (#gunluk #library-room) -> library-bookshelf.css'e taşındı */
+
+/* 5. bookshelf-massive-frame: fazla min-height override'larını kaldır */
+
+
+/* 6. bookshelf-shelf: içerik sığmazsa mini kitapları klipple, scroll bar çıkmasın */
+
+
+/* 7. book-gap-filler: taşan mini kitapları gizle */
+
+
+/* ================================================================
+   [AŞAMA 2] İSTATİSTİKLER SADELEŞTİRME
+   ================================================================ */
+
+/* Hero Metrik Satırı Konteyneri (.stats-hero-row) -> statistics-page.css'e taşındı */
+
+/* Hero Metrik Satırı (.hero-) -> hero-metric-stats.css'e taşındı */
+
+
+
+/* ── FocusAI Analiz Kartı ── */
+
+
+/* ── Detaylı Rapor Toggle Butonu ── */
+
+
+
+
+
+
+/* ── Responsive: mobilde 1 sütun ── */
+@media (max-width: 600px) {
+    .hero-metric-value {
+        font-size: 1.8rem;
+    }
+}
+
+/* Social section sohbet butonu — unread badge */
+
+
+/* ================================================================
+   [AŞAMA 3] SOHBET TABİ — Panel artık fixed değil, satır içi
+   ================================================================ */
+
+/* Sohbet sekmesi: flex ile kalan alanı doldur */
+#tab-sohbet.social-content {
+    display: none;
+    flex-direction: row;
+    min-height: 0;
+}
+#tab-sohbet.social-content.active {
+    display: flex !important;
+    flex: 1 !important;
+    min-height: 0 !important;
+}
+
+/* panel içinde fixed yerine static */
+#tab-sohbet .social-sidebar-panel {
+    position: static !important;
+    width: 100% !important;
+    height: 100% !important;
+    transform: none !important;
+    border-left: none !important;
+    box-shadow: none !important;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.08);
+    flex-direction: row !important;
+    display: flex !important;
+    overflow: hidden;
+}
+
+/* hidden-sidebar: Tab içinde görünürlüğü etkilemesin */
+#tab-sohbet .social-sidebar-panel.hidden-sidebar {
+    transform: none !important;
+    display: flex !important;
+}
+
+/* Channel list: sabit genişlik */
+#tab-sohbet .dc-channel-list {
+    width: 260px !important;
+    min-width: 220px !important;
+    max-width: 280px !important;
+    height: 100% !important;
+    flex-shrink: 0 !important;
+    border-right: 1px solid rgba(255,255,255,0.06) !important;
+    overflow-y: auto !important;
+}
+
+/* Chat area: kalan alanı doldur */
+#tab-sohbet .dc-chat-area {
+    flex: 1 !important;
+    height: 100% !important;
+    min-width: 0 !important;
+}
+
+/* Kapat butonu: tab içinde Bireysel'e dön */
+#tab-sohbet #close-social-sidebar-btn {
+    display: none !important; /* Tab'dan çıkış zaten sekme geçişiyle olur */
+}
+
+/* Sosyal section: tab içinde scroll yönetimi */
+#arkadaslar.page-section {
+    display: none;
+    flex-direction: column;
+}
+#arkadaslar.page-section.active {
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    height: 100% !important;
+}
+
+/* Bireysel ve Gruplar sekmeleri normal scroll */
+#tab-bireysel.social-content.active,
+#tab-gruplar.social-content.active {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* ── SOHBET MODU: Maksimum alan — header + açıklama gizlenir ── */
+#arkadaslar.sohbet-active > header.section-header {
+    display: none !important;
+}
+/* TEK PANEL: bölüm dikey flex olmalı ki #tab-sohbet (flex:1) tüm alanı doldursun.
+   .page-section.active display:block verdiği için burada flex'e çevrilir. */
+#arkadaslar.page-section.sohbet-active.active {
+    display: flex !important;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    /* Alan verimliliği: panel kenardan kenara, boşluksuz oturur */
+    padding: 0 !important;
+    overflow: hidden !important;
+}
+#arkadaslar.sohbet-active #tab-sohbet .social-sidebar-panel {
+    border-radius: 0 !important;
+    border: none !important;
+}
+#arkadaslar.sohbet-active .social-tabs-container {
+    margin-bottom: 0 !important;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    background: rgba(0,0,0,0.15);
+    padding: 0 !important;
+}
+#arkadaslar.sohbet-active .social-tabs {
+    border-radius: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    display: flex !important;
+    width: 100%;
+}
+#arkadaslar.sohbet-active .social-tab-btn {
+    border-radius: 0 !important;
+    padding: 9px 18px !important;
+    font-size: 12px !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border-bottom: 2px solid transparent !important;
+    color: rgba(255,255,255,0.35) !important;
+    flex: none !important;
+}
+#arkadaslar.sohbet-active .social-tab-btn:hover {
+    color: rgba(255,255,255,0.7) !important;
+    background: rgba(255,255,255,0.04) !important;
+    box-shadow: none !important;
+}
+#arkadaslar.sohbet-active .social-tab-btn.active {
+    color: rgba(255,255,255,0.55) !important;
+    background: transparent !important;
+    border-bottom-color: #D4900E !important;
+    box-shadow: none !important;
+}
+#arkadaslar.sohbet-active #tab-sohbet.social-content.active {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    min-height: 0 !important;
+}
+
+/* Responsive */
+@media (max-width: 700px) {
+    #tab-sohbet .dc-channel-list {
+        width: 200px !important;
+        min-width: 180px !important;
+    }
+    #tab-sohbet.social-content {
+        height: calc(100vh - 180px);
+    }
+}
+
+/* ================================================================
+   [AŞAMA 4] ZAMANLAYICI — Odak Sesleri Entegrasyonu
+   ================================================================ */
+
+/* Timer section: scroll için flex column */
+#zamanlayici.page-section {
+    display: none;
+    flex-direction: column;
+    overflow-y: auto;
+}
+#zamanlayici.page-section.active {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    overflow-y: auto !important;
+}
+
+/* Ambient panel: timer-container içinde entegre bölüm */
+#zamanlayici .ambient-panel.timer-ambient-panel {
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    align-self: stretch !important;
+    margin: 20px 0 0 !important;
+    padding: 20px 24px 8px !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-top: 1px solid rgba(255,255,255,0.08) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    animation: none !important;
+    transform: none !important;
+    z-index: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+}
+
+/* timer-ambient-panel zamanlayıcıda her zaman görünür — minimize edilemez */
+#zamanlayici .ambient-panel.timer-ambient-panel {
+    display: flex !important;
+}
+#zamanlayici .ambient-panel.timer-ambient-panel.ambient-minimized {
+    display: flex !important;
+}
+
+/* Floating trigger: position relative ile X butonu düzgün konumlanır */
+#floating-ambient-trigger {
+    position: fixed !important;
+}
+#ambient-trigger-close-btn {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #ff4757;
+    border: none;
+    color: #fff;
+    font-size: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+    line-height: 1;
+    transition: transform 0.15s, background 0.15s;
+}
+#ambient-trigger-close-btn:hover {
+    background: #c0392b;
+    transform: scale(1.2);
+}
+
+/* Gelişmiş Zamanlayıcı Ayarları (.ts-) -> timer-settings-advanced.css'e taşındı */

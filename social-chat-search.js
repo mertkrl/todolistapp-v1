@@ -2,8 +2,9 @@
 // FOCUSAI SOCIAL — SOHBET ARAMA (İÇİ + TÜM SOHBETLER)
 // social.js'ten çıkarıldı (2026-07-18)
 // ============================================================
-(function () {
-'use strict';
+import { getDcGlobalMsgCache } from './state/dc-global-msg-cache-store.js';
+import { dcAvatar } from './social-misc-pure-utils.js';
+export let closeDcChatSearch, openDcGlobalSearch;
 
     // ── Sohbet İçi Arama ──────────────────────────────────────
     (function setupDcChatSearch() {
@@ -76,13 +77,13 @@
         }
 
         searchBtn.addEventListener('click', () => {
-            const visible = searchBar.style.display !== 'none';
-            searchBar.style.display = visible ? 'none' : 'flex';
+            const visible = !searchBar.classList.contains('is-hidden');
+            searchBar.classList.toggle('is-hidden', visible);
             if (!visible) searchInput.focus();
             else { searchInput.value = ''; clearSearch(); }
         });
         closeBtn?.addEventListener('click', () => {
-            searchBar.style.display = 'none';
+            searchBar.classList.add('is-hidden');
             searchInput.value = '';
             clearSearch();
         });
@@ -105,9 +106,9 @@
         });
 
         // Sohbet değiştiğinde arama çubuğunu kapat
-        window.closeDcChatSearch = () => {
-            if (searchBar.style.display === 'none') return;
-            searchBar.style.display = 'none';
+        closeDcChatSearch = () => {
+            if (searchBar.classList.contains('is-hidden')) return;
+            searchBar.classList.add('is-hidden');
             searchInput.value = '';
             clearSearch();
         };
@@ -163,7 +164,7 @@
             }
 
             const results = [];
-            Object.values(window._dcGlobalMsgCache || {}).forEach(entry => {
+            Object.values(getDcGlobalMsgCache() || {}).forEach(entry => {
                 Object.entries(entry.msgs || {}).forEach(([key, m]) => {
                     const text = m.text || m.decryptedText || '';
                     if (!text || !text.toLowerCase().includes(term)) return;
@@ -183,7 +184,7 @@
                 const chatName = esc(r.meta.displayName || '');
                 const snippet = highlight((r.m.text || r.m.decryptedText || '').slice(0, 140), term);
                 const time = r.m.timestamp ? new Date(r.m.timestamp).toLocaleString('tr-TR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }) : '';
-                const avatarUrl = r.m.customAvatar || (window.dcAvatar ? window.dcAvatar(sender, r.m.avatarColor || '6c5ce7') : `https://ui-avatars.com/api/?name=${encodeURIComponent(sender)}&background=${(r.m.avatarColor||'6c5ce7')}&color=fff`);
+                const avatarUrl = r.m.customAvatar || (dcAvatar ? dcAvatar(sender, r.m.avatarColor || '6c5ce7') : `https://ui-avatars.com/api/?name=${encodeURIComponent(sender)}&background=${(r.m.avatarColor||'6c5ce7')}&color=fff`);
                 return `
                     <div class="dc-global-search-item" data-idx="${idx}">
                         <img class="dc-global-search-avatar" src="${esc(avatarUrl)}" alt="">
@@ -226,7 +227,7 @@
                     <div class="dc-global-search-header">
                         <i class="fa-solid fa-magnifying-glass"></i>
                         <input type="text" class="dc-global-search-input" placeholder="Tüm sohbetlerde mesaj ara...">
-                        <button class="dc-global-search-close" title="Kapat"><i class="fa-solid fa-xmark"></i></button>
+                        <button class="dc-global-search-close" title="Kapat" aria-label="Kapat"><i class="fa-solid fa-xmark"></i></button>
                     </div>
                     <div class="dc-global-search-results"></div>
                 </div>
@@ -251,10 +252,8 @@
         // Üstteki birleşik arama kutusundan (sidebar-action-input) da açılabilsin —
         // kullanıcı @ ile başlamayan / grup kodu formatında olmayan bir metin
         // yazdığında bunu mesaj araması olarak yorumluyoruz.
-        window.openDcGlobalSearch = (prefill) => {
+        openDcGlobalSearch = (prefill) => {
             if (overlay) closeModal();
             openModal(prefill);
         };
     })();
-
-})();

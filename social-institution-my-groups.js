@@ -1,3 +1,9 @@
+import { computeActiveNowCount, computeUserInterestCategoriesSupabase, renderDiscoverGroups } from './social-group-discover.js';
+import { getFriends, _fetchNotifications } from './social-friends-notifications.js';
+
+import { setupGroupRecentConversationsSupabase } from './social-dm-notifications.js';
+
+import { getCurrentUser } from './state/current-user-store.js';
 // social-institution-my-groups.js
 // social-institution-panel.js'ten çıkarıldı (Faz refactor turu): "Kurumum"
 // modalı (öğretmenin sahip olduğu kurumlar + sınıflara öğrenci ataması +
@@ -30,8 +36,8 @@
 //    da hiç atanmamıştı (social-group-discover.js'te ayrıca düzeltildi).
 //
 // Köprüler:
-//  - window.FocusSupabase, window.currentUser, window._escapeHtml,
-//    window.dcShowToast, window.getFriends, window.getMyGroupsDataCache()/
+//  - window.FocusSupabase, getCurrentUser(), window._escapeHtml,
+//    window.dcShowToast, getFriends, window.getMyGroupsDataCache()/
 //    __setMyGroupsDataCacheRef(), window.__getCurrentActiveGroupCodeRef()/
 //    __setCurrentActiveGroupCodeRef() (social.js'te tanımlı state köprüleri).
 //  - window.computeActiveNowCount, window.computeUserInterestCategoriesSupabase,
@@ -41,113 +47,15 @@
 //    unqualified identifier olarak çözülüyor, tarayıcıda sorunsuz).
 //  - window._normalizeSupabaseGroup (social-groups.js'te tanımlı).
 //  - window.dcOpenGroupPanel, window.showGroupDetails, window.resetActiveGroupPanel,
-//    window.__dcCloseChatIfGroup, window.setupGroupRecentConversationsSupabase,
-//    window.loadUserGroupsForDc, window._fetchNotifications: opsiyonel,
+//    window.__dcCloseChatIfGroup, setupGroupRecentConversationsSupabase,
+//    window.loadUserGroupsForDc, _fetchNotifications: opsiyonel,
 //    varlık kontrolüyle çağrılıyor.
 
 // ── Kurumum modalı: öğretmenin sahip olduğu kurumlar + her birine bağlı sınıf grupları ──
 window.renderMyInstitutionModal = () => renderMyInstitutionModal(); // Faz refactor turu: eksik köprü eklendi (social.js buradan çağırıyor)
-export async function renderMyInstitutionModal() {
-    const listEl = document.getElementById('my-institution-list');
-    if (!listEl || !window.FocusSupabase || !window.currentUser?.id) return;
-    listEl.innerHTML = '<div style="text-align:center; color:var(--text-muted); font-size:13px; padding:20px;">Yükleniyor…</div>';
-
-    const { data: institutions, error: instErr } = await window.FocusSupabase
-        .from('institutions').select('id, name, created_at').eq('owner_id', window.currentUser.id).order('created_at', { ascending: true });
-    if (instErr) {
-        listEl.innerHTML = `<div style="color:#ff6b6b; font-size:13px; padding:10px;">Yüklenemedi: ${window._escapeHtml(instErr.message)}</div>`;
-        return;
-    }
-    if (!institutions || !institutions.length) {
-        listEl.innerHTML = '<div style="text-align:center; color:var(--text-muted); font-size:13px; padding:20px;">Henüz bir kurumun yok. "Grup Oluştur" → Sınıf tipiyle bir grup açtığında burada görünecek.</div>';
-        return;
-    }
-
-    const { data: groups } = await window.FocusSupabase
-        .from('groups').select('id, code, name, grade_level, institution_id')
-        .in('institution_id', institutions.map(i => i.id));
-
-    const groupsByInst = {};
-    (groups || []).forEach(g => { (groupsByInst[g.institution_id] = groupsByInst[g.institution_id] || []).push(g); });
-
-    // Her grubun üye sayısı + öğrenci-sınıf atama paneli için tam üye listesi
-    // (isim + hangi sınıfta olduğu) — öğretmen kullanıcı adı yazmadan, dropdown'la
-    // öğrencileri sınıflar arasında bölebilsin.
-    const groupIds = (groups || []).map(g => g.id);
-    const countByGroup = {};
-    let allMemberRows = [];
-    if (groupIds.length) {
-        const { data: memberRows } = await window.FocusSupabase
-            .from('group_members').select('group_id, user_id, profiles(id, username, display_name)').in('group_id', groupIds);
-        allMemberRows = memberRows || [];
-        allMemberRows.forEach(r => { countByGroup[r.group_id] = (countByGroup[r.group_id] || 0) + 1; });
-    }
-
-    // Sınıflar arası çapraz özet: her grup için bu haftaki pasif üye sayısı —
-    // öğretmen tek tek girmeden hangi sınıfın ilgi istediğini görsün.
-    const summaryByGroup = {};
-    await Promise.all(groupIds.map(async (gid) => {
-        const { data: stats } = await window.FocusSupabase.rpc('group_weekly_member_stats', { p_group_id: gid });
-        const rows = stats || [];
-        summaryByGroup[gid] = {
-            memberCount: countByGroup[gid] || 0,
-            // is_hidden olan üyeler null döner — gizlilik nedeniyle bilinmiyor demektir,
-            // pasif sayılıp yanlış alarm oluşturmasın.
-            inactiveCount: rows.filter(r => !r.is_hidden && !r.weekly_minutes).length
-        };
-    }));
-
-    listEl.innerHTML = institutions.map(inst => {
-        const gList = groupsByInst[inst.id] || [];
-        const gById = {}; gList.forEach(g => { gById[g.id] = g; });
-        // Bu kurumdaki tüm öğrenciler, mevcut sınıflarıyla birlikte — tekilleştirilmiş
-        // (bir öğrenci birden fazla sınıfta olabilir ama genelde tek sınıfta olur).
-        const studentsByUser = {};
-        allMemberRows.filter(r => gById[r.group_id] && r.profiles).forEach(r => {
-            const u = studentsByUser[r.user_id] || (studentsByUser[r.user_id] = { profile: r.profiles, groupIds: [] });
-            u.groupIds.push(r.group_id);
-        });
-        const studentList = Object.entries(studentsByUser)
-            .sort((a, b) => (a[1].profile.display_name || '').localeCompare(b[1].profile.display_name || '', 'tr'));
-        return `
-        <div class="glass-panel" style="padding:12px 14px; border:1px solid rgba(255,255,255,0.07); border-radius:12px; margin-bottom:12px;">
-            <div style="font-weight:600; color:#fff; font-size:14px; margin-bottom:8px;"><i class="fa-solid fa-building-columns" style="color:#74b9ff;"></i> ${window._escapeHtml(inst.name)}</div>
-            ${gList.length ? gList.map(g => {
-                const s = summaryByGroup[g.id] || { memberCount: 0, inactiveCount: 0 };
-                return `
-            <div class="my-inst-group-row" data-code="${window._escapeHtml(g.code)}" style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:8px 10px; border-radius:8px; cursor:pointer; background:rgba(255,255,255,0.03); margin-bottom:6px;">
-                <div style="min-width:0;">
-                    <div style="font-size:13px; color:#fff; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${window._escapeHtml(g.name)}</div>
-                    <div style="font-size:11px; color:var(--text-muted);">${g.grade_level ? window._escapeHtml(g.grade_level) + ' · ' : ''}${s.memberCount} üye${s.inactiveCount ? ` · <span style="color:#feca57;">${s.inactiveCount} pasif</span>` : ' · hepsi aktif ✓'}</div>
-                </div>
-                <i class="fa-solid fa-chevron-right" style="color:var(--text-muted); font-size:12px; flex-shrink:0;"></i>
-            </div>`;
-            }).join('') : '<p class="cp-hint">Bu kurumda henüz sınıf grubu yok.</p>'}
-        </div>
-        ${gList.length ? `
-        <div class="glass-panel my-inst-roster-block" data-inst-id="${inst.id}" style="padding:12px 14px; border:1px solid rgba(255,255,255,0.07); border-radius:12px; margin-bottom:12px;">
-            <div style="font-weight:600; color:#fff; font-size:14px; margin-bottom:8px;"><i class="fa-solid fa-users" style="color:#74b9ff;"></i> Öğrencileri Sınıflara Ayır</div>
-            <p class="cp-hint" style="margin:-4px 0 10px;">Her öğrencinin sınıfını buradan değiştirebilirsin — seçim yapınca anında uygulanır.</p>
-            <div class="my-inst-add-student-row" style="display:flex; gap:6px; margin-bottom:10px;">
-                <input class="cp-asg-pill-input my-inst-add-username" placeholder="Yeni öğrenci — kullanıcı adı" maxlength="40" style="flex:1;">
-                <select class="cp-asg-pill-input my-inst-add-class">
-                    ${gList.map(g => `<option value="${g.id}">${window._escapeHtml(g.name)}</option>`).join('')}
-                </select>
-                <button class="cp-asg-submit-btn my-inst-add-student-btn" title="Ekle"><i class="fa-solid fa-plus"></i></button>
-            </div>
-            <div class="my-inst-add-status cp-hint"></div>
-            <div class="my-inst-student-list">
-                ${studentList.length ? studentList.map(([userId, u]) => `
-                <div class="my-inst-student-row" style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:6px 4px; border-bottom:1px solid rgba(255,255,255,0.05);">
-                    <span style="font-size:12.5px; color:#fff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${window._escapeHtml(u.profile.display_name || u.profile.username)}</span>
-                    <select class="cp-asg-pill-input my-inst-student-class-select" data-user-id="${userId}" style="max-width:160px;">
-                        ${gList.map(g => `<option value="${g.id}" ${u.groupIds.includes(g.id) ? 'selected' : ''}>${window._escapeHtml(g.name)}</option>`).join('')}
-                    </select>
-                </div>`).join('') : '<p class="cp-hint">Henüz öğrenci yok — yukarıdan ekleyebilirsin.</p>'}
-            </div>
-        </div>` : ''}`;
-    }).join('');
-
+// renderMyInstitutionModal'dan ayrılan: liste render edildikten sonraki tüm
+// buton/select olaylarını bağlar. Faz S devamı, dev fonksiyon refactoru.
+function _wireMyInstitutionModalEvents(listEl) {
     listEl.querySelectorAll('.my-inst-group-row').forEach(row => {
         row.addEventListener('click', () => {
             const code = row.dataset.code;
@@ -210,6 +118,110 @@ export async function renderMyInstitutionModal() {
             }
         });
     });
+}
+
+export async function renderMyInstitutionModal() {
+    const listEl = document.getElementById('my-institution-list');
+    if (!listEl || !window.FocusSupabase || !getCurrentUser()?.id) return;
+    listEl.innerHTML = '<div class="u-text-align-center_color-var-text-muted_font-size-13px_padd">Yükleniyor…</div>';
+
+    const { data: institutions, error: instErr } = await window.FocusSupabase
+        .from('institutions').select('id, name, created_at').eq('owner_id', getCurrentUser().id).order('created_at', { ascending: true });
+    if (instErr) {
+        listEl.innerHTML = `<div class="u-color-hff6b6b_font-size-13px_padding-10px">Yüklenemedi: ${window._escapeHtml(instErr.message)}</div>`;
+        return;
+    }
+    if (!institutions || !institutions.length) {
+        listEl.innerHTML = '<div class="u-text-align-center_color-var-text-muted_font-size-13px_padd">Henüz bir kurumun yok. "Grup Oluştur" → Sınıf tipiyle bir grup açtığında burada görünecek.</div>';
+        return;
+    }
+
+    const { data: groups } = await window.FocusSupabase
+        .from('groups').select('id, code, name, grade_level, institution_id')
+        .in('institution_id', institutions.map(i => i.id));
+
+    const groupsByInst = {};
+    (groups || []).forEach(g => { (groupsByInst[g.institution_id] = groupsByInst[g.institution_id] || []).push(g); });
+
+    // Her grubun üye sayısı + öğrenci-sınıf atama paneli için tam üye listesi
+    // (isim + hangi sınıfta olduğu) — öğretmen kullanıcı adı yazmadan, dropdown'la
+    // öğrencileri sınıflar arasında bölebilsin.
+    const groupIds = (groups || []).map(g => g.id);
+    const countByGroup = {};
+    let allMemberRows = [];
+    if (groupIds.length) {
+        const { data: memberRows } = await window.FocusSupabase
+            .from('group_members').select('group_id, user_id, profiles(id, username, display_name)').in('group_id', groupIds);
+        allMemberRows = memberRows || [];
+        allMemberRows.forEach(r => { countByGroup[r.group_id] = (countByGroup[r.group_id] || 0) + 1; });
+    }
+
+    // Sınıflar arası çapraz özet: her grup için bu haftaki pasif üye sayısı —
+    // öğretmen tek tek girmeden hangi sınıfın ilgi istediğini görsün.
+    const summaryByGroup = {};
+    await Promise.all(groupIds.map(async (gid) => {
+        const { data: stats } = await window.FocusSupabase.rpc('group_weekly_member_stats', { p_group_id: gid });
+        const rows = stats || [];
+        summaryByGroup[gid] = {
+            memberCount: countByGroup[gid] || 0,
+            // is_hidden olan üyeler null döner — gizlilik nedeniyle bilinmiyor demektir,
+            // pasif sayılıp yanlış alarm oluşturmasın.
+            inactiveCount: rows.filter(r => !r.is_hidden && !r.weekly_minutes).length
+        };
+    }));
+
+    listEl.innerHTML = institutions.map(inst => {
+        const gList = groupsByInst[inst.id] || [];
+        const gById = {}; gList.forEach(g => { gById[g.id] = g; });
+        // Bu kurumdaki tüm öğrenciler, mevcut sınıflarıyla birlikte — tekilleştirilmiş
+        // (bir öğrenci birden fazla sınıfta olabilir ama genelde tek sınıfta olur).
+        const studentsByUser = {};
+        allMemberRows.filter(r => gById[r.group_id] && r.profiles).forEach(r => {
+            const u = studentsByUser[r.user_id] || (studentsByUser[r.user_id] = { profile: r.profiles, groupIds: [] });
+            u.groupIds.push(r.group_id);
+        });
+        const studentList = Object.entries(studentsByUser)
+            .sort((a, b) => (a[1].profile.display_name || '').localeCompare(b[1].profile.display_name || '', 'tr'));
+        return `
+        <div class="glass-panel u-padding-12px14px_border-1pxsolidrgba2552552550p07_border-r" >
+            <div class="u-font-weight-600_color-hfff_font-size-14px_margin-bottom-8p"><i class="fa-solid fa-building-columns u-color-h74b9ff-2" ></i> ${window._escapeHtml(inst.name)}</div>
+            ${gList.length ? gList.map(g => {
+                const s = summaryByGroup[g.id] || { memberCount: 0, inactiveCount: 0 };
+                return `
+            <div class="my-inst-group-row u-display-flex_align-items-center_justify-content-space-betw-16" data-code="${window._escapeHtml(g.code)}" >
+                <div class="u-min-width-0">
+                    <div class="u-font-size-13px_color-hfff_font-weight-500_overflow-hidden_">${window._escapeHtml(g.name)}</div>
+                    <div class="u-font-size-11px_color-var-text-muted">${g.grade_level ? window._escapeHtml(g.grade_level) + ' · ' : ''}${s.memberCount} üye${s.inactiveCount ? ` · <span class="u-color-hfeca57">${s.inactiveCount} pasif</span>` : ' · hepsi aktif ✓'}</div>
+                </div>
+                <i class="fa-solid fa-chevron-right u-color-var-text-muted_font-size-12px_flex-shrink-0" ></i>
+            </div>`;
+            }).join('') : '<p class="cp-hint">Bu kurumda henüz sınıf grubu yok.</p>'}
+        </div>
+        ${gList.length ? `
+        <div class="glass-panel my-inst-roster-block u-padding-12px14px_border-1pxsolidrgba2552552550p07_border-r" data-inst-id="${inst.id}" >
+            <div class="u-font-weight-600_color-hfff_font-size-14px_margin-bottom-8p"><i class="fa-solid fa-users u-color-h74b9ff-2" ></i> Öğrencileri Sınıflara Ayır</div>
+            <p class="cp-hint u-margin-4px010px" >Her öğrencinin sınıfını buradan değiştirebilirsin — seçim yapınca anında uygulanır.</p>
+            <div class="my-inst-add-student-row u-display-flex_gap-6px_margin-bottom-10px" >
+                <input class="cp-asg-pill-input my-inst-add-username u-flex-1" placeholder="Yeni öğrenci — kullanıcı adı" maxlength="40" >
+                <select class="cp-asg-pill-input my-inst-add-class">
+                    ${gList.map(g => `<option value="${g.id}">${window._escapeHtml(g.name)}</option>`).join('')}
+                </select>
+                <button class="cp-asg-submit-btn my-inst-add-student-btn" title="Ekle" aria-label="Ekle"><i class="fa-solid fa-plus"></i></button>
+            </div>
+            <div class="my-inst-add-status cp-hint"></div>
+            <div class="my-inst-student-list">
+                ${studentList.length ? studentList.map(([userId, u]) => `
+                <div class="my-inst-student-row u-display-flex_align-items-center_justify-content-space-betw-17" >
+                    <span class="u-font-size-12p5px_color-hfff_overflow-hidden_text-overflow-">${window._escapeHtml(u.profile.display_name || u.profile.username)}</span>
+                    <select class="cp-asg-pill-input my-inst-student-class-select u-max-width-160px" data-user-id="${userId}" >
+                        ${gList.map(g => `<option value="${g.id}" ${u.groupIds.includes(g.id) ? 'selected' : ''}>${window._escapeHtml(g.name)}</option>`).join('')}
+                    </select>
+                </div>`).join('') : '<p class="cp-hint">Henüz öğrenci yok — yukarıdan ekleyebilirsin.</p>'}
+            </div>
+        </div>` : ''}`;
+    }).join('');
+
+    _wireMyInstitutionModalEvents(listEl);
 
     _maybeSendWeeklyDigest(groupIds, groups, summaryByGroup);
 }
@@ -239,7 +251,7 @@ async function _maybeSendWeeklyDigest(groupIds, groups, summaryByGroup) {
         const g = groupById[gid];
         if (s.inactiveCount > 0 && g) {
             await window.FocusSupabase.from('notifications').insert({
-                user_id: window.currentUser.id,
+                user_id: getCurrentUser().id,
                 type: 'classroom_weekly_digest',
                 payload: { groupCode: g.code, groupName: g.name, inactiveCount: s.inactiveCount }
             });
@@ -248,7 +260,7 @@ async function _maybeSendWeeklyDigest(groupIds, groups, summaryByGroup) {
             .insert({ group_id: gid, week_start: weekStart, inactive_count: s.inactiveCount })
             .then(() => {}); // yarış durumunda unique ihlali sessizce yok sayılır
     }
-    if (typeof window._fetchNotifications === 'function') window._fetchNotifications();
+    _fetchNotifications();
 }
 
 // ── SUPABASE: "Gruplarım" listesi ──
@@ -261,7 +273,7 @@ export async function loadMyGroupsSupabase() {
     // kapsamında bir const olarak yaşıyor) — ReferenceError riski, gerçek bağımlılık
     // doğrulaması sırasında bulundu, burada düzeltildi.
     const myGroupsContainer = document.getElementById("my-groups-container");
-    if (!window.currentUser?.id || !myGroupsContainer) return;
+    if (!getCurrentUser()?.id || !myGroupsContainer) return;
 
     if (_myGroupsChannelSupabase) {
         await window.FocusSupabase.removeChannel(_myGroupsChannelSupabase);
@@ -272,7 +284,7 @@ export async function loadMyGroupsSupabase() {
         const { data: rows, error } = await window.FocusSupabase
             .from('group_members')
             .select('group_id, groups(*)')
-            .eq('user_id', window.currentUser.id);
+            .eq('user_id', getCurrentUser().id);
 
         if (error) {
             console.error('loadMyGroupsSupabase:', error);
@@ -283,22 +295,22 @@ export async function loadMyGroupsSupabase() {
         window.__setMyGroupsDataCacheRef({});
 
         if (!rows || rows.length === 0) {
-            myGroupsContainer.innerHTML = `<p style="color:var(--text-muted); font-size:13px; text-align:center; padding: 20px;">Henüz bir gruba üye değilsiniz.</p>`;
+            myGroupsContainer.innerHTML = `<p class="u-color-var-text-muted_font-size-13px_text-align-center_padd">Henüz bir gruba üye değilsiniz.</p>`;
 
             const activePanel = document.getElementById('active-group-panel');
             if (activePanel) {
                 activePanel.innerHTML = `
-                    <div style="text-align: center; padding: 40px 20px; color: var(--text-muted);">
-                        <i class="fa-solid fa-people-group" style="font-size: 32px; margin-bottom: 15px; color: var(--primary-color); opacity: 0.7;"></i>
-                        <p style="margin: 0; font-size: 14px;">Henüz aktif bir grubunuz yok.</p>
-                        <p style="margin: 5px 0 0 0; font-size: 12px; opacity: 0.7;">Yandaki listeden bir gruba katılabilir veya yeni bir grup oluşturabilirsiniz.</p>
+                    <div class="u-text-align-center_padding-40px20px_color-var-text-muted">
+                        <i class="fa-solid fa-people-group u-font-size-32px_margin-bottom-15px_color-var-primary-color_" ></i>
+                        <p class="u-margin-0_font-size-14px">Henüz aktif bir grubunuz yok.</p>
+                        <p class="u-margin-5px000_font-size-12px_opacity-0p7">Yandaki listeden bir gruba katılabilir veya yeni bir grup oluşturabilirsiniz.</p>
                     </div>
                 `;
             }
             if (window.__getCurrentActiveGroupCodeRef?.()) window.resetActiveGroupPanel();
-            if (typeof window.computeUserInterestCategoriesSupabase === 'function') {
-                window.computeUserInterestCategoriesSupabase();
-                window.renderDiscoverGroups();
+            if (typeof computeUserInterestCategoriesSupabase === 'function') {
+                computeUserInterestCategoriesSupabase();
+                renderDiscoverGroups();
             }
             return;
         }
@@ -318,11 +330,11 @@ export async function loadMyGroupsSupabase() {
             const groupData = await window._normalizeSupabaseGroup(groupRow, memberRows || []);
             window.getMyGroupsDataCache()[groupCode] = groupData;
 
-            const isOwner = groupData.createdBy === window.currentUser.username;
-            const ownerBadge = isOwner ? `<i class="fa-solid fa-crown" style="color:#feca57; font-size:11px;" title="Grup Sahibi"></i> ` : '';
-            const activeNow = window.computeActiveNowCount(groupData);
+            const isOwner = groupData.createdBy === getCurrentUser().username;
+            const ownerBadge = isOwner ? `<i class="fa-solid fa-crown u-color-hfeca57_font-size-11px" title="Grup Sahibi"></i> ` : '';
+            const activeNow = computeActiveNowCount(groupData);
             const activeNowHtml = activeNow > 0
-                ? `<span class="si-green"><i class="fa-solid fa-circle" style="font-size:7px;"></i> ${activeNow} kişi şu an aktif</span>`
+                ? `<span class="si-green"><i class="fa-solid fa-circle u-font-size-7px" ></i> ${activeNow} kişi şu an aktif</span>`
                 : "";
             const myGroupMemberCount = Object.keys(groupData.members).length;
 
@@ -371,17 +383,17 @@ export async function loadMyGroupsSupabase() {
             }
         }
 
-        if (typeof window.computeUserInterestCategoriesSupabase === 'function') {
-            window.computeUserInterestCategoriesSupabase();
-            window.renderDiscoverGroups();
+        if (typeof computeUserInterestCategoriesSupabase === 'function') {
+            computeUserInterestCategoriesSupabase();
+            renderDiscoverGroups();
         }
     };
 
     await renderList();
 
     _myGroupsChannelSupabase = window.FocusSupabase
-        .channel(`my-groups-${window.currentUser.id}`)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'group_members', filter: `user_id=eq.${window.currentUser.id}` }, (payload) => {
+        .channel(`my-groups-${getCurrentUser().id}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'group_members', filter: `user_id=eq.${getCurrentUser().id}` }, (payload) => {
             // Bir gruptan atıldığımızda (DELETE), o gruba ait "Son Mesajlaşmalar"
             // girişlerini temizle ve sohbeti açıksa kapat — hard reset gerekmesin.
             if (payload.eventType === 'DELETE') {
@@ -392,7 +404,7 @@ export async function loadMyGroupsSupabase() {
                     window.__dcCloseChatIfGroup(removedCode);
                 }
                 if (typeof window.setupGroupRecentConversationsSupabase === 'function') {
-                    window.setupGroupRecentConversationsSupabase();
+                    setupGroupRecentConversationsSupabase();
                 }
                 if (typeof window.loadUserGroupsForDc === 'function') {
                     window.loadUserGroupsForDc();
@@ -415,14 +427,14 @@ export async function openGroupInviteModal(code, data) {
     const listEl = document.getElementById("group-invite-modal-list");
     if (!modal || !codeEl || !listEl) return;
 
-    if (data.classroomType === 'classroom' && window.currentUser.institutionRole === 'teacher') {
+    if (data.classroomType === 'classroom' && getCurrentUser().institutionRole === 'teacher') {
         modal.classList.remove("hidden");
         codeRowEl?.classList.add('hidden');
         listEl.innerHTML = `
-            <p style="color:var(--text-muted); font-size:12px; margin:0 0 10px;">Bu sınıf davetli-girişlidir: öğrenciler yalnızca gönderdiğin daveti kabul ederek katılabilir.</p>
-            <div class="cp-asg-form" style="flex-direction:column; align-items:stretch; gap:8px;">
-                <input id="gim-inst-username" class="gsc-form-input" placeholder="Öğrencinin kullanıcı adını girin" maxlength="40" style="width:100%;">
-                <button id="gim-inst-send" class="control-btn secondary" style="align-self:flex-end; padding:5px 12px; font-size:11.5px;"><i class="fa-solid fa-paper-plane"></i> Gönder</button>
+            <p class="u-color-var-text-muted_font-size-12px_margin-0010px">Bu sınıf davetli-girişlidir: öğrenciler yalnızca gönderdiğin daveti kabul ederek katılabilir.</p>
+            <div class="cp-asg-form u-flex-direction-column_align-items-stretch_gap-8px" >
+                <input id="gim-inst-username" class="gsc-form-input u-width-100pct" placeholder="Öğrencinin kullanıcı adını girin" maxlength="40" >
+                <button id="gim-inst-send" class="control-btn secondary u-align-self-flex-end_padding-5px12px_font-size-11p5px" ><i class="fa-solid fa-paper-plane"></i> Gönder</button>
             </div>
             <div id="gim-inst-status" class="cp-hint"></div>`;
 
@@ -445,7 +457,7 @@ export async function openGroupInviteModal(code, data) {
                 if (existingMember) { statusEl.textContent = `@${target.username} zaten bu sınıfın öğrencisi.`; return; }
                 const { error: iErr } = await window.FocusSupabase.from('institution_invites').insert({
                     group_id: data._supaId,
-                    invited_by: window.currentUser.id,
+                    invited_by: getCurrentUser().id,
                     invited_user_id: target.id
                 });
                 if (iErr) {
@@ -464,18 +476,18 @@ export async function openGroupInviteModal(code, data) {
 
     codeEl.textContent = code;
     modal.classList.remove("hidden");
-    listEl.innerHTML = `<p style="color:var(--text-muted); font-size:12px; margin:8px 0;"><i class="fa-solid fa-spinner fa-spin"></i> Arkadaşlar yükleniyor...</p>`;
+    listEl.innerHTML = `<p class="u-color-var-text-muted_font-size-12px_margin-8px0"><i class="fa-solid fa-spinner fa-spin"></i> Arkadaşlar yükleniyor...</p>`;
 
-    const friends = window.getFriends();
+    const friends = getFriends();
     if (friends.length === 0) {
-        listEl.innerHTML = `<p style="color:var(--text-muted); font-size:12px; margin:8px 0; text-align:center;">Henüz bir arkadaşın yok.</p>`;
+        listEl.innerHTML = `<p class="u-color-var-text-muted_font-size-12px_margin-8px0_text-align">Henüz bir arkadaşın yok.</p>`;
         return;
     }
 
     let memberSet = new Set();
     let profileMap = {}; // username -> {displayName, avatarColor, customAvatar}
 
-    if (data._supaId && window.FocusSupabase && window.currentUser.id) {
+    if (data._supaId && window.FocusSupabase && getCurrentUser().id) {
         const { data: memberRows } = await window.FocusSupabase
             .from('group_members')
             .select('profiles(username)')
@@ -502,7 +514,7 @@ export async function openGroupInviteModal(code, data) {
             <div class="gir-name">${window._escapeHtml(displayName)}</div>
             ${isMember
                 ? `<span class="si-muted-xs"><i class="fa-solid fa-check"></i> Üye</span>`
-                : `<button class="control-btn primary group-invite-send-btn" style="font-size:11px; padding:5px 10px;" data-username="${window._escapeHtml(username)}" data-name="${window._escapeHtml(displayName)}">
+                : `<button class="control-btn primary group-invite-send-btn u-font-size-11px_padding-5px10px" data-username="${window._escapeHtml(username)}" data-name="${window._escapeHtml(displayName)}">
                     <i class="fa-solid fa-paper-plane"></i> Davet Et
                 </button>`}
         </div>`;
@@ -513,7 +525,7 @@ export async function openGroupInviteModal(code, data) {
             const targetUsername = btn.dataset.username;
             btn.disabled = true;
             try {
-                if (data._supaId && window.FocusSupabase && window.currentUser.id) {
+                if (data._supaId && window.FocusSupabase && getCurrentUser().id) {
                     const { data: targetProfile } = await window.FocusSupabase
                         .from('profiles').select('id').eq('username', targetUsername).maybeSingle();
                     if (targetProfile) {
@@ -522,10 +534,10 @@ export async function openGroupInviteModal(code, data) {
                             type: 'group_invite',
                             payload: {
                                 groupCode: code, groupName: data.name,
-                                fromUser: window.currentUser.username,
-                                fromName: window.currentUser.displayName || window.currentUser.username,
-                                fromColor: window.currentUser.avatarColor || '6c5ce7',
-                                fromCustomAvatar: window.currentUser.customAvatar || null
+                                fromUser: getCurrentUser().username,
+                                fromName: getCurrentUser().displayName || getCurrentUser().username,
+                                fromColor: getCurrentUser().avatarColor || '6c5ce7',
+                                fromCustomAvatar: getCurrentUser().customAvatar || null
                             }
                         });
                     }

@@ -1,0 +1,33 @@
+.social-color-opt {
+    transition: transform 0.15s ease, border 0.15s ease;
+    box-sizing: border-box;
+}
+.social-color-opt:hover { transform: scale(1.15); }
+.social-color-opt.selected { border: 3px solid #fff !important; transform: scale(1.1); }
+
+/* Sağ üstte beliren kısa süreli bildirim çubuğu (toast) */
+.social-toast-stack {
+    position: fixed; top: 20px; right: 20px;
+    display: flex; flex-direction: column; gap: 10px;
+    z-index: 100200;
+    pointer-events: none;
+}
+.social-toast {
+    display: flex; align-items: center; gap: 12px;
+    background: rgba(20,18,46,0.96);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px;
+    padding: 12px 16px;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+    min-width: 260px; max-width: 340px;
+    opacity: 0; transform: translateX(40px);
+    transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+    pointer-events: auto;
+}
+.social-toast.is-visible { opacity: 1; transform: translateX(0); }
+.social-toast.is-leaving { opacity: 0; transform: translateX(40px); }
+.social-toast .st-emoji { font-size: 22px; flex-shrink: 0; }
+.social-toast .st-text { font-size: 13px; color: #fff; line-height: 1.4; min-width: 0; }
+.social-toast .st-text b { font-weight: 700; }
+.social-toast .st-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+

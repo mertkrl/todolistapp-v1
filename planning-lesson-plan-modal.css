@@ -1,0 +1,100 @@
+/* Ders Planı Oluşturma Modalı (#pg-lp-modal, .pg-lp-) — style.css'ten 2 parça halinde çıkarıldı */
+
+/* ===== Modal Chrome + Body ===== */
+/* Ders Planı — oluşturma (minimal: sınıf + açıklama) */
+#pg-lp-modal .modal-content { max-height: 88vh; display: flex; flex-direction: column; padding: 18px 20px; }
+.pg-lp-body { overflow-y: auto; min-height: 0; padding-right: 10px; margin-right: -10px; }
+.pg-lp-body::-webkit-scrollbar { width: 5px; }
+.pg-lp-body::-webkit-scrollbar-track { margin: 6px 0; }
+
+/* Ders Planı modal — küçültülmüş başlık ve alt buton çubuğu */
+#pg-lp-modal .modal-header { margin-bottom: 12px; }
+#pg-lp-modal .modal-header h2 {
+    font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 7px;
+}
+#pg-lp-modal .modal-header h2 i { font-size: 14px; color: var(--a,#D4900E); }
+#pg-lp-modal .modal-header .icon-btn { font-size: 13px; padding: 4px; }
+#pg-lp-modal .modal-footer { margin-top: 14px; gap: 8px; }
+#pg-lp-modal .pg-lp-footer-back {
+    padding: 7px 12px; font-size: 12.5px; border-radius: 8px;
+    border: 1px solid rgba(255,255,255,.08); color: var(--text-muted); display: flex; align-items: center; gap: 5px;
+}
+#pg-lp-modal .pg-lp-footer-continue {
+    padding: 7px 16px; font-size: 12.5px; border-radius: 8px; gap: 5px;
+}
+
+/* ===== Adım/Footer + Seçenek Kartları ===== */
+#pg-lp-student-group.hidden { display: none; }
+#pg-lp-choice-step.hidden, #pg-lp-form-step.hidden, #pg-lp-form-footer.hidden,
+#pg-lp-template-step.hidden, #pg-lp-template-footer.hidden { display: none; }
+#pg-lp-form-footer, #pg-lp-template-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.pg-lp-footer-back {
+    flex-shrink: 0; display: flex; align-items: center; gap: 6px;
+    padding: 9px 16px; border-radius: 9px; font-size: 13px; font-weight: 600;
+    border: 1.5px solid rgba(255,255,255,.14); color: #ccc; background: rgba(255,255,255,.05);
+}
+.pg-lp-footer-back:hover { border-color: rgba(255,255,255,.28); background: rgba(255,255,255,.09); color: #fff; }
+.pg-lp-footer-continue { width: auto; padding: 6px 14px; font-size: 12.5px; }
+.pg-lp-choice-btn {
+    display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;
+    padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,.09);
+    background: rgba(255,255,255,.03); color: inherit; cursor: pointer;
+    transition: border-color .15s, background .15s; margin-bottom: 10px;
+}
+.pg-lp-choice-btn:hover { border-color: rgba(212,144,14,.5); background: rgba(212,144,14,.07); }
+.pg-lp-choice-btn i { font-size: 22px; color: #D4900E; flex-shrink: 0; }
+.pg-lp-choice-btn span { display: flex; flex-direction: column; gap: 3px; }
+.pg-lp-choice-btn b { font-size: 14.5px; }
+.pg-lp-choice-btn small { font-size: 12px; opacity: .65; line-height: 1.4; }
+.pg-lp-existing-section.hidden { display: none; }
+
+
+.pg-lp-existing-list { display: flex; flex-direction: column; gap: 6px; max-height: 360px; overflow-y: auto; }
+.pg-lp-existing-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 10px 12px; border-radius: 8px; background: rgba(255,255,255,.03);
+    border: 1px solid transparent; transition: all .15s;
+}
+.pg-lp-existing-row:hover { border-color: rgba(255,255,255,.08); }
+.pg-lp-existing-row-title { flex: 1 1 auto; min-width: 0; font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pg-lp-existing-row-meta { font-size: 11px; opacity: .55; flex-shrink: 0; }
+.pg-lp-existing-row-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.pg-lp-existing-edit {
+    display: flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 6px;
+    border: 1px solid rgba(212,144,14,.4); background: rgba(212,144,14,.08); color: #D4900E;
+    cursor: pointer; font-size: 12px; font-weight: 600; font-family: inherit; transition: all .15s;
+}
+.pg-lp-existing-edit:hover { background: rgba(212,144,14,.16); }
+.pg-lp-existing-use {
+    display: flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 6px;
+    border: 1px solid rgba(124,110,255,.4); background: rgba(124,110,255,.08); color: #a78bfa;
+    cursor: pointer; font-size: 12px; font-weight: 600; font-family: inherit; transition: all .15s;
+}
+.pg-lp-existing-use:hover { background: rgba(124,110,255,.16); }
+.pg-lp-existing-delete {
+    width: 28px; height: 28px; border-radius: 6px; border: none; background: transparent;
+    color: var(--t2,#888); cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all .15s;
+}
+.pg-lp-existing-delete:hover { color: #f87171; background: rgba(248,113,113,.1); }
+.pg-lp-browse-row { display: flex; gap: 10px; margin-top: 18px; }
+.pg-lp-browse-btn {
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 11px; border-radius: 10px; border: 1px solid rgba(255,255,255,.09);
+    background: rgba(255,255,255,.02); color: var(--t1,#F2F2F2); cursor: pointer;
+    font-size: 12.5px; font-weight: 600; font-family: inherit; transition: all .15s;
+}
+.pg-lp-browse-btn:hover { border-color: rgba(212,144,14,.4); background: rgba(212,144,14,.06); }
+.pg-lp-browse-count {
+    display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px;
+    padding: 0 5px; border-radius: 9px; background: rgba(255,255,255,.1); font-size: 10.5px; font-weight: 700;
+}
+.pg-lp-target-toggle {
+    display: flex; gap: 6px; padding: 4px; border-radius: 10px;
+    background: rgba(255,255,255,.04); margin-bottom: 16px;
+}
+.pg-lp-target-btn {
+    flex: 1; padding: 8px 10px; border-radius: 7px; border: none; background: transparent;
+    color: inherit; opacity: .6; cursor: pointer; font-size: 13px; font-weight: 600; transition: all .15s;
+}
+.pg-lp-target-btn.active { opacity: 1; background: rgba(212,144,14,.16); color: #D4900E; }

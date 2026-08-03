@@ -1,0 +1,38 @@
+/* style.css'ten çıkarıldı (Faz C, 2026-07-22). Hedef Detay Modalı boyut/layout stilleri (#goal-details-modal .modal-content max-width/width/display). */
+
+/* ================================================================
+   HEDEF DETAY MODALI
+   ================================================================ */
+#goal-details-modal .modal-content {
+    max-width: 680px !important;
+    width: 95% !important;
+    max-height: 90vh !important;
+    border-radius: 14px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+}
+#goal-details-modal .modal-header {
+    padding: 16px 22px !important;
+    border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+    background: rgba(255,255,255,0.015) !important;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+}
+#goal-details-modal .modal-header h2 {
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    color: #fff !important;
+    margin: 0;
+}
+#goal-details-modal .modal-header h2 i { display: none !important; }
+#goal-details-modal .modal-body {
+    padding: 20px 22px !important;
+    overflow-y: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+}

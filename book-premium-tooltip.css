@@ -1,0 +1,309 @@
+/* 4. Buzlu Cam (Glassmorphic) Premium Bilgi Kartı */
+.book-premium-tooltip {
+    position: absolute !important;
+    bottom: calc(100% + 14px) !important;
+    left: 50% !important;
+    transform: translateX(-50%) translateY(10px) scale(0.95) !important;
+    width: 200px !important;
+    /* Parşömen / eski kitap sayfası estetiği */
+    background:
+        linear-gradient(160deg,
+            rgba(36, 22, 10, 0.97) 0%,
+            rgba(24, 14, 6, 0.99) 100%
+        ) !important;
+    backdrop-filter: blur(18px) saturate(1.4) !important;
+    -webkit-backdrop-filter: blur(18px) saturate(1.4) !important;
+    border: 1px solid rgba(212, 165, 60, 0.28) !important;
+    border-top: 2px solid rgba(220, 175, 70, 0.75) !important;
+    border-radius: 14px !important;
+    padding: 14px 15px 12px !important;
+    color: #ede0c8 !important;
+    box-shadow:
+        0 24px 48px rgba(0, 0, 0, 0.88),
+        0 8px 16px rgba(0, 0, 0, 0.60),
+        0 0 0 1px rgba(0, 0, 0, 0.55),
+        inset 0 1px 0 rgba(255, 230, 130, 0.10),
+        inset 0 0 20px rgba(0, 0, 0, 0.20) !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    transition:
+        opacity 0.20s ease,
+        transform 0.20s cubic-bezier(0.34, 1.4, 0.64, 1),
+        visibility 0.20s ease !important;
+    z-index: 999999 !important;
+    pointer-events: none !important;
+    text-align: left !important;
+}
+
+/* Yatay çizgi süsü — eski kitap sayfası hissi */
+.book-premium-tooltip .bpt-divider {
+    height: 1px !important;
+    margin: 8px 0 !important;
+    background: linear-gradient(90deg,
+        transparent, rgba(212,165,60,0.3) 20%, rgba(212,165,60,0.3) 80%, transparent
+    ) !important;
+}
+
+/* Alttan çıkan ok — arka plan rengiyle eşleşen iki katman */
+.book-premium-tooltip::after {
+    content: '' !important;
+    position: absolute !important;
+    top: 100% !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    border: 8px solid transparent !important;
+    border-top-color: rgba(24, 14, 6, 0.99) !important;
+    z-index: 2 !important;
+}
+.book-premium-tooltip::before {
+    content: '' !important;
+    position: absolute !important;
+    top: calc(100% + 1px) !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    border: 9px solid transparent !important;
+    border-top-color: rgba(220, 175, 70, 0.6) !important;
+    z-index: 1 !important;
+}
+
+/* Hover aktif */
+#library-room .bookshelf-book:hover .book-premium-tooltip {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: translateX(-50%) translateY(0) scale(1) !important;
+}
+
+/* Tarih başlığı */
+
+
+/* Gün adı */
+
+
+/* İçerik önizleme */
+
+
+
+/* ==========================================================================
+   PREMIUM ULTRA-REALISTIC BOOKSHELF UPGRADE
+   ========================================================================== */
+
+/* Kitaplık Masif Çerçeve ve Arka Plan Derinliği */
+
+
+/* Ahşap damar doku çerçeve — pseudolar dış çerçeveyi kaplar */
+
+
+/* Pseudo ile ahşap çerçeve (override blok — bu kazanır) */
+
+
+/* Cila parlaklık katmanı */
+
+
+/* Üst Işık Huzmesi Efekti — yoğunlaştırıldı + tarama animasyonu */
+
+/* Sabit ambient tavan ışığı */
+
+/* Tarama huzmesi — kaldırıldı */
+
+
+/* Odak ve Derinlik Gölgelendirmesi */
+
+
+/* Antik Pirinç İsimlik Plakası */
+
+
+
+/* 3 BOYUTLU GERÇEKÇİ KİTAP SIRTI (SPINE) TASARIMI */
+
+
+/* Kitap Üst ve Alt Altın Yaldız Baskı Çizgileri */
+
+
+/* KİTAP ÜZERİNE GELİNDİĞİNDE (HOVER EFFECT) */
+
+
+
+/* ==========================================================================
+   CLASSIC ANTIQUE LIBRARY UPGRADE (REAL LEATHER & TEXTURE)
+   ========================================================================== */
+
+/* Kitap Konteyneri ve Katman Karıştırma Desteği */
+
+
+/* KİTAP SIRTLARI (KABARTMA DERİ DİKİŞ BANTLARI) */
+
+
+
+/* Antik Altın Mühür İkonu */
+
+
+/* Organik Kitap Boyut ve Doğal Eğrilik Çeşitliliği */
+
+
+
+
+
+
+
+/* =============================================
+   GERÇEKÇI SAYFA KENARI (KİTABIN SAĞ YÜZÜ)
+   ============================================= */
+   
+
+/* Sayfa kenarının üst kısmı — kitabın tepesi */
+
+
+/* ============================================================
+   ULTRA-REALİSTİK KİTAP CİLT TEMALARI — 10 Gelişmiş Antik Renk
+   ============================================================ */
+
+/* TEMA 1 — Victoria Bordo Deri */
+
+
+/* TEMA 2 — Saray Zümrütü Kumaş */
+
+
+/* TEMA 3 — Kraliyet Safir Deri */
+
+
+/* TEMA 4 — Antik Konyak Kumaş */
+
+
+/* TEMA 5 — Obsidyen Siyah Deri */
+
+
+/* TEMA 6 — Zeytin Yaprağı Kumaş */
+
+
+/* TEMA 7 — Çömlekçi Kerpici Deri */
+
+
+/* TEMA 8 — Prusya Mavisi Kumaş */
+
+
+/* TEMA 9 — Kadim Patlıcan Deri */
+
+
+/* TEMA 10 — İngiliz Tütünü Kumaş */
+
+
+/* ================================================================
+   [KUSURSUZ FİZİK] KATI VE İÇ İÇE GEÇMEYEN KİTAPLIK SİSTEMİ
+   ================================================================ */
+
+/* Hem ana kitapları hem minik kitapları ezilemez gerçek katı bloklar yapar */
+
+
+
+
+/* Kitapların üst ve altındaki altın şerit çizgiler */
+
+
+
+/* Canlı Degrade Renk Tonları */
+ 
+ 
+ 
+ 
+
+
+/* ================================================================
+   [KUSURSUZ FİZİK - V2] TÜM BEYAZ SAYFA VE SAĞ KENARLIKLARI SİLMA
+   ================================================================ */
+   
+
+/* Ana kitapların sağındaki tüm hayalet beyaz çizgileri ve gölgeleri sıfırlar */
+
+
+/* Eğer CSS'te kitapların arkasına eklenmiş ekstra sayfa pencereleri varsa onları da temizler */
+
+
+/* ================================================================
+   [KUSURSUZ KÜTÜPHANE] BOŞLUKSUZ VE SIFIR TAŞMALI KİLİTLEME SİSTEMİ
+   ================================================================ */
+   
+
+/* Ana kitapların o beğendiğiniz orijinal dağılım düzenini koruyoruz */
+
+
+/* Ana kitapların konumunu bozmadan aradaki boşluğu tamamen yutan akıllı tüp */
+
+
+
+
+/* ================================================================
+   [PREMIUM UI] KİTAPLIK SAĞ VE SOL KENAR BOŞLUKLARINI SIFIRLAMA
+   ================================================================ */
+
+/* 1. Dolabın ana gövdesindeki tüm iç yan boşlukları temizleyerek tam genişlik sağlıyoruz */
+
+
+/* 2. Rafların dolap yan duvarlarına sıfıra sıfır kaynaklanmasını sağlıyoruz */
+
+
+/* 3. Kitapların en sol ve en sağ duvarlara tamamen yaslanabilmesi için raf iç boşluklarını sıfırlıyoruz */
+
+
+/* 4. Kenarlardaki eski dikey yapay sütun gölgelerini kaldırarak alanı tamamen kitaplara açıyoruz */
+
+
+
+/* ================================================================
+   [PREMIUM UI] SADE VE GERÇEKÇİ KİTAP GÖRÜNÜMÜ MOTORU (OVERRIDE)
+   ================================================================ */
+
+/* 1. Kitap sırtlarının temel iskeletini mat, silindirik ve gerçekçi bir forma sokuyoruz */
+
+
+/* 2. Fareyle üzerine gelindiğinde sadece çok hafif ve asil bir öne çıkma efekti veriyoruz */
+
+
+/* 3. Gözü yoran tüm 3D yapay katmanları, dikiş şeridi çizgilerini ve püskülleri temizliyoruz */
+
+
+/* 4. Yazıları deriye sıcak baskıyla kazınmış mat fildişi varak kaligrafisine dönüştürüyoruz */
+
+
+
+
+/* 5. Kitap renk paletini tamamen mat, elit ve gerçekçi kütüphane tonlarına çekiyoruz */
+ /* Mat Bordo Deri */
+ /* Safir Orman Yeşili */
+ /* Gece Mavisi Kumaş */
+ /* Antik Taba */
+ /* Kömür Siyahı */
+ /* Zeytin Klasik */
+ /* Mat Kiremit */
+ /* Koyu Petrol */
+ /* Mürdüm Moru */
+ /* Çikolata Kahvesi */
+
+/* 6. Henüz yazılmamış (boş) kitap yuvalarını mat ve rafla bütünleşik tozlu tonda rezerve ediyoruz */
+
+
+/* Kitaplık özet kutusunun (tooltip) çerçeveler tarafından kırpılmasını önleme */
+#library-room {
+    overflow: visible !important;
+}
+
+
+/* Kutunun altındaki küçük okun (pointer) konumunu düzeltme */
+#library-room .bookshelf-book:hover .book-premium-tooltip.edge-right::after {
+    left: auto !important;
+    right: 15px !important;
+    transform: translateX(0) !important;
+}
+
+/* Sağ taraftaki kitaplar için özet kutusunu 20 piksel sola iterek rafın dışına taşmasını engelliyoruz */
+.bookshelf-book .book-premium-tooltip.edge-right {
+    left: auto !important;
+    right: 20px !important; /* Buradaki 20px değerini artırırsan kutu daha da sola kayar */
+    transform: translateX(0) !important;
+}
+
+/* Sağ kenara yakın kitapların özet kutusunu içeri doğru açma kuralı */
+#library-room .bookshelf-book:hover .book-premium-tooltip.edge-right {
+    left: auto !important;
+    right: 10px !important;
+    transform: translateX(0) translateY(0) !important;
+}

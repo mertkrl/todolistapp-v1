@@ -1,0 +1,1326 @@
+/* style.css'ten çıkarıldı (Faz C, 2026-07-22). Ders Planı Sihirbazı (Wizard Overlay/Panel/Adımlar 1-5, .pg-wz-*) + Ders Planı Görünümü/Takvimi/Çakışma Kontrolü (.pg-pv-*, .cdm-*) — planlama ailesinin en büyük tekil bileşen grubu. */
+
+/* ── Wizard Overlay ─────────────────────────── */
+.pg-wz-overlay {
+    position: fixed; inset: 0; z-index: 9500;
+    background: rgba(0,0,0,.78);
+    backdrop-filter: blur(12px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 16px;
+}
+.pg-wz-overlay.hidden { display: none; }
+
+/* ── Panel ───────────────────────────────────── */
+.pg-wz-panel {
+    background: #0e1016;
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 14px;
+    width: 100%; max-width: 780px;
+    max-height: 92vh;
+    display: flex; flex-direction: column;
+    box-shadow: 0 32px 100px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.04);
+    overflow: hidden;
+    animation: wz-panel-in .25s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes wz-panel-in {
+    from { opacity: 0; transform: scale(.96) translateY(16px); }
+    to   { opacity: 1; transform: scale(1)  translateY(0); }
+}
+
+/* ── Header ──────────────────────────────────── */
+.pg-wz-header {
+    display: flex; align-items: center; gap: 14px;
+    padding: 18px 24px 16px;
+    border-bottom: 1px solid rgba(255,255,255,.06);
+    flex-shrink: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,.03) 0%, transparent 100%);
+}
+.pg-wz-logo {
+    width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0;
+    background: linear-gradient(135deg, rgba(212,144,14,.2) 0%, rgba(212,144,14,.08) 100%);
+    border: 1px solid rgba(212,144,14,.3);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--a, #D4900E); font-size: 18px;
+    box-shadow: 0 0 12px rgba(212,144,14,.12);
+}
+.pg-wz-header-title { font-size: 15px; font-weight: 700; color: #fff; letter-spacing: -.01em; }
+.pg-wz-header-sub   { font-size: 11px; color: #555; margin-top: 2px; }
+.pg-wz-close-btn {
+    margin-left: auto; width: 32px; height: 32px; border-radius: 9px;
+    border: 1px solid rgba(255,255,255,.07); background: rgba(255,255,255,.03);
+    color: #555; cursor: pointer; display: flex; align-items: center;
+    justify-content: center; font-size: 15px; transition: all .15s; flex-shrink: 0;
+}
+.pg-wz-close-btn:hover { background: rgba(248,113,113,.1); border-color: rgba(248,113,113,.3); color: #f87171; }
+
+/* ── Step Progress Bar ───────────────────────── */
+.pg-wz-steps-bar {
+    display: flex; align-items: center; padding: 14px 28px;
+    border-bottom: 1px solid rgba(255,255,255,.05);
+    flex-shrink: 0; background: rgba(255,255,255,.01);
+}
+.pg-wz-step-item {
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+    cursor: default; user-select: none; min-width: 60px;
+}
+.pg-wz-step-dot {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: rgba(255,255,255,.04); border: 2px solid rgba(255,255,255,.1);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: #444;
+    transition: all .3s cubic-bezier(.34,1.56,.64,1);
+}
+.pg-wz-step-item span {
+    font-size: 10px; color: #444; font-weight: 600;
+    white-space: nowrap; transition: color .2s; letter-spacing: .02em;
+    text-transform: uppercase;
+}
+.pg-wz-step-item.active .pg-wz-step-dot {
+    background: linear-gradient(135deg, rgba(212,144,14,.25), rgba(212,144,14,.1));
+    border-color: var(--a, #D4900E);
+    color: var(--a, #D4900E);
+    box-shadow: 0 0 14px rgba(212,144,14,.2);
+    transform: scale(1.08);
+}
+.pg-wz-step-item.active span { color: var(--a, #D4900E); }
+.pg-wz-step-item.done .pg-wz-step-dot {
+    background: linear-gradient(135deg, rgba(74,222,128,.2), rgba(74,222,128,.08));
+    border-color: #4ade80; color: transparent;
+    box-shadow: 0 0 10px rgba(74,222,128,.15);
+    font-size: 0;
+}
+.pg-wz-step-item.done .pg-wz-step-dot::after {
+    content: '✓'; font-size: 13px; color: #4ade80;
+}
+.pg-wz-step-item.done span { color: #4ade80; }
+.pg-wz-step-line {
+    flex: 1; height: 2px;
+    background: rgba(255,255,255,.06);
+    margin: 0 2px 20px; border-radius: 1px;
+    transition: background .4s; overflow: hidden; position: relative;
+}
+.pg-wz-step-line.done { background: rgba(74,222,128,.35); }
+.pg-wz-step-line.done::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(74,222,128,.4), transparent);
+    animation: wz-line-shimmer 1.5s ease;
+}
+@keyframes wz-line-shimmer {
+    from { transform: translateX(-100%); }
+    to   { transform: translateX(100%); }
+}
+
+/* ── Body ────────────────────────────────────── */
+.pg-wz-body {
+    flex: 1; overflow-y: auto; padding: 24px 28px;
+    scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.08) transparent;
+}
+.pg-wz-body::-webkit-scrollbar { width: 4px; }
+.pg-wz-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,.08); border-radius: 2px; }
+
+/* ── Step Transitions ────────────────────────── */
+.pg-wz-step-body { display: none; }
+.pg-wz-step-body.active {
+    display: block;
+    animation: wz-step-in .28s cubic-bezier(.25,.46,.45,.94);
+}
+@keyframes wz-step-in {
+    from { opacity: 0; transform: translateX(18px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+.pg-wz-step-body.active.going-back {
+    animation: wz-step-back .28s cubic-bezier(.25,.46,.45,.94);
+}
+@keyframes wz-step-back {
+    from { opacity: 0; transform: translateX(-18px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ── Step Intro ──────────────────────────────── */
+.pg-wz-step-intro {
+    display: flex; align-items: flex-start; gap: 16px;
+    margin-bottom: 22px; padding: 16px 18px;
+    background: rgba(255,255,255,.025);
+    border: 1px solid rgba(255,255,255,.07);
+    border-radius: 12px;
+}
+.pg-wz-step-icon { font-size: 30px; line-height: 1; flex-shrink: 0; margin-top: 2px; }
+.pg-wz-step-intro h3 {
+    font-size: 16px; font-weight: 700; color: #fff;
+    margin-bottom: 4px; letter-spacing: -.02em;
+}
+.pg-wz-step-intro p { font-size: 13px; color: #777; line-height: 1.6; }
+
+/* ── Form labels ─────────────────────────────── */
+.pg-wz-label {
+    display: block; font-size: 12px; font-weight: 600;
+    color: #999; text-transform: uppercase; letter-spacing: .06em;
+    margin-bottom: 8px;
+}
+.pg-wz-required { color: #f87171; margin-left: 3px; }
+.pg-wz-opt {
+    font-size: 10px; color: #555; font-weight: 400;
+    text-transform: none; letter-spacing: 0; margin-left: 6px;
+}
+
+/* ── Step 1: Title input ─────────────────────── */
+.pg-wz-title-wrap { position: relative; }
+.pg-wz-title-input {
+    width: 100%; background: rgba(255,255,255,.04);
+    border: 2px solid rgba(255,255,255,.1); border-radius: 12px;
+    padding: 14px 52px 14px 16px; color: #fff;
+    font-size: 18px; font-weight: 600; font-family: inherit;
+    transition: border-color .2s, box-shadow .2s; outline: none;
+    box-sizing: border-box; letter-spacing: -.01em;
+}
+.pg-wz-title-input::placeholder { color: #333; font-weight: 400; font-size: 16px; }
+.pg-wz-title-input:focus {
+    border-color: var(--a, #D4900E);
+    box-shadow: 0 0 0 3px rgba(212,144,14,.1), 0 0 20px rgba(212,144,14,.06);
+}
+.pg-wz-char-count {
+    position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+    font-size: 11px; color: #444; font-weight: 600; pointer-events: none;
+}
+
+/* ── Step 1: Two-column layout ───────────────── */
+.pg-wz-s1-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 16px;
+}
+@media (max-width: 600px) { .pg-wz-s1-grid { grid-template-columns: 1fr; } }
+
+/* ── Category Cards ──────────────────────────── */
+.pg-wz-cat-grid {
+    display: flex; flex-wrap: wrap; gap: 6px;
+}
+.pg-wz-cat-card {
+    display: flex; flex-direction: row; align-items: center;
+    gap: 5px; padding: 5px 12px; border-radius: 20px;
+    border: 1.5px solid rgba(255,255,255,.1);
+    background: rgba(255,255,255,.03); cursor: pointer;
+    transition: all .15s ease; white-space: nowrap;
+}
+.pg-wz-cat-card:hover {
+    border-color: var(--cat-color, #888);
+    background: color-mix(in srgb, var(--cat-color, #888) 8%, transparent);
+}
+.pg-wz-cat-card.selected {
+    border-color: var(--cat-color, #888);
+    background: color-mix(in srgb, var(--cat-color, #888) 15%, transparent);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--cat-color, #888) 18%, transparent);
+}
+.pg-wz-cat-card-icon { font-size: 14px; line-height: 1; }
+.pg-wz-cat-card-label {
+    font-size: 12px; font-weight: 600; color: #888;
+    transition: color .15s;
+}
+.pg-wz-cat-card.selected .pg-wz-cat-card-label { color: var(--cat-color, #fff); }
+
+/* ── Collab Invite (Wizard) ──────────────────── */
+.pg-wz-collab-invite-area {
+    margin-top: 10px; padding: 12px 14px; border-radius: 10px;
+    border: 1.5px solid rgba(124,110,255,.25);
+    background: rgba(124,110,255,.06);
+    display: none;
+}
+.pg-wz-collab-invite-area.visible { display: block; }
+/* Ders Planı giriş noktası — mod seçim overlay */
+.pg-mode-lp-btn.hidden { display: none; }
+.pg-mode-lp-badge {
+    position: absolute; top: -9px; right: -6px;
+    background: #D4900E; color: #1a1206; font-size: 9px; font-weight: 700;
+    padding: 2px 6px; border-radius: 20px; letter-spacing: .02em;
+    box-shadow: 0 2px 6px rgba(212,144,14,.4);
+}
+
+/* Ders Planı Modalı — Chrome + Body (#pg-lp-modal, .pg-lp-body) -> planning-lesson-plan-modal.css'e taşındı */
+.pg-pv-ms-time-row.hidden { display: none !important; }
+
+/* Ders Planı — Aylık/Haftalık/Günlük anahtarı — "Bugün" butonuyla birebir aynı boyut/stil */
+.pg-pv-cal-view-btn.active {
+    border-color: rgba(212,144,14,.4); color: var(--a,#D4900E); background: rgba(212,144,14,.08);
+}
+
+/* Ders planı — saat-gridi Haftalık/Günlük görünüm (ana Takvim sekmesiyle aynı dil) */
+.pg-pv-hcal-wrap {
+    flex: 1; min-height: 0; overflow: auto;
+    border: 1px solid rgba(255,255,255,.07); border-radius: 12px;
+    background: rgba(255,255,255,.012);
+}
+.pg-pv-hcal-grid { display: grid; align-content: start; min-height: 100%; }
+.pg-pv-hcal-grid-week { grid-template-columns: 60px repeat(7, 1fr); }
+.pg-pv-hcal-grid-day { grid-template-columns: 60px 1fr; }
+.pg-pv-hcal-corner { position: sticky; top: 0; z-index: 2; background: var(--bg2, #1a1a1a); border-bottom: 1px solid rgba(255,255,255,.08); }
+.pg-pv-hcal-daycol-head {
+    position: sticky; top: 0; z-index: 2; background: var(--bg2, #1a1a1a);
+    text-align: center; font-size: 11.5px; font-weight: 700; color: #999;
+    padding: 8px 2px; border-bottom: 1px solid rgba(255,255,255,.08); border-left: 1px solid rgba(255,255,255,.05);
+}
+.pg-pv-hcal-daycol-head.today { color: #D4900E; }
+.pg-pv-hcal-hourlabel {
+    font-size: 10.5px; color: #666; text-align: right; padding: 3px 8px;
+    border-top: 1px solid rgba(255,255,255,.045); height: 60px; box-sizing: border-box;
+}
+.pg-pv-hcal-cell {
+    position: relative; border-top: 1px solid rgba(255,255,255,.045); border-left: 1px solid rgba(255,255,255,.05);
+    height: 60px; cursor: pointer; transition: background .15s;
+}
+.pg-pv-hcal-cell:hover { background: rgba(212,144,14,.06); }
+.pg-pv-hcal-chip {
+    position: absolute; z-index: 3; border-radius: 7px; box-sizing: border-box;
+    border-left: 3px solid; padding: 3px 7px; overflow: hidden; cursor: grab;
+    box-shadow: 0 1px 4px rgba(0,0,0,.15);
+}
+.pg-pv-hcal-chip.done { opacity: .55; text-decoration: line-through; }
+.pg-pv-hcal-chip.dragging { opacity: .35; cursor: grabbing; }
+/* Ders planı görünümünde bu plana ait olmayan (öğrencinin kendi) görevler —
+   kesikli kenarlıkla ayırt edilir, çakışma çözümünde net görünsün diye */
+.pg-pv-hcal-chip-foreign { border-left-style: dashed; border-left-width: 3px; }
+.pg-pv-hcal-cell.drag-over { background: rgba(212,144,14,.14); outline: 1px dashed rgba(212,144,14,.5); outline-offset: -1px; }
+.pg-pv-hcal-cell-busy {
+    background: repeating-linear-gradient(135deg, rgba(235,87,87,.10), rgba(235,87,87,.10) 6px, rgba(235,87,87,.17) 6px, rgba(235,87,87,.17) 12px);
+    box-shadow: inset 3px 0 0 rgba(235,87,87,.55);
+}
+.pg-pv-hcal-cell-busy:hover { background-color: rgba(235,87,87,.16); }
+.pg-pv-hcal-cell-busy-icon {
+    position: absolute; top: 3px; right: 4px; z-index: 2;
+    font-size: 10px; color: rgba(235,87,87,.85); line-height: 1; pointer-events: none;
+}
+.pg-pv-busy-toggle-btn.active { border-color: rgba(235,87,87,.55); color: #EB5757; background: rgba(235,87,87,.1); }
+.pg-pv-busy-legend {
+    display: flex; align-items: center; gap: 6px; font-size: 11px; color: #999; margin-left: 8px;
+}
+.pg-pv-busy-legend-swatch {
+    width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0;
+    background: repeating-linear-gradient(135deg, rgba(235,87,87,.15), rgba(235,87,87,.15) 4px, rgba(235,87,87,.32) 4px, rgba(235,87,87,.32) 8px);
+    box-shadow: inset 2px 0 0 rgba(235,87,87,.55);
+}
+/* Ders planı kabulünde saat çakışması düzenleme modu — öğrencinin gözünden
+   kaçmasın diye çakışan saat hücreleri yanıp sönen turuncu-kırmızı bir kenarlıkla vurgulanır */
+.pg-pv-hcal-cell-conflict {
+    background: repeating-linear-gradient(135deg, rgba(255,159,28,.14), rgba(255,159,28,.14) 6px, rgba(255,159,28,.24) 6px, rgba(255,159,28,.24) 12px);
+    box-shadow: inset 3px 0 0 #FF9F1C;
+    animation: pgPvConflictPulse 1.6s ease-in-out infinite;
+}
+.pg-pv-hcal-cell-conflict:hover { background-color: rgba(255,159,28,.22); }
+.pg-pv-hcal-cell-conflict-icon {
+    position: absolute; top: 3px; right: 4px; z-index: 2;
+    font-size: 11px; color: #FF9F1C; line-height: 1; pointer-events: none;
+    animation: pgPvConflictIconPulse 1.6s ease-in-out infinite;
+}
+@keyframes pgPvConflictPulse {
+    0%, 100% { box-shadow: inset 3px 0 0 #FF9F1C; }
+    50% { box-shadow: inset 3px 0 0 #FF9F1C, 0 0 0 1px rgba(255,159,28,.55) inset, 0 0 10px rgba(255,159,28,.35); }
+}
+@keyframes pgPvConflictIconPulse {
+    0%, 100% { transform: scale(1); opacity: .85; }
+    50% { transform: scale(1.25); opacity: 1; }
+}
+
+/* Aylık görünümde, öğrencinin o gün dolu bir saati varsa hücreyi işaretle */
+.pg-pv-main-cal-cell.pg-pv-cal-day-busy {
+    box-shadow: inset 3px 0 0 rgba(235,87,87,.55);
+}
+.pg-pv-cal-day-busy-icon {
+    position: absolute; top: 4px; right: 6px; z-index: 2;
+    font-size: 11px; color: rgba(235,87,87,.85); line-height: 1; pointer-events: none;
+}
+/* Aylık görünümde saat çakışması olan günler — hafta/gün gridine girmeden fark edilsin diye
+   nabız animasyonlu turuncu vurgu (bkz. _pvRenderMainCal conflictDates) */
+.pg-pv-main-cal-cell.pg-pv-cal-day-conflict {
+    box-shadow: inset 3px 0 0 #FF9F1C;
+    animation: pgPvCalDayConflictPulse 1.8s ease-in-out infinite;
+}
+.pg-pv-cal-day-conflict-icon {
+    position: absolute; top: 4px; right: 6px; z-index: 2;
+    font-size: 11px; color: #FF9F1C; line-height: 1; pointer-events: none;
+    animation: pgPvConflictIconPulse 1.6s ease-in-out infinite;
+}
+@keyframes pgPvCalDayConflictPulse {
+    0%, 100% { box-shadow: inset 3px 0 0 #FF9F1C; }
+    50% { box-shadow: inset 3px 0 0 #FF9F1C, 0 0 8px rgba(255,159,28,.4); }
+}
+
+/* Çakışma uyarı modalı — kişiye özel ders planlamada öğrencinin dolu saatine görev eklenirken */
+.pg-pv-conflict-overlay {
+    position: fixed; inset: 0; z-index: 10050; background: rgba(0,0,0,.55);
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+    animation: pgPvConflictFade .15s ease;
+}
+@keyframes pgPvConflictFade { from { opacity: 0; } to { opacity: 1; } }
+.pg-pv-conflict-box {
+    width: 100%; max-width: 400px; background: var(--bg2, #1a1a1a);
+    border: 1px solid rgba(255,255,255,.1); border-radius: 16px;
+    padding: 22px 22px 18px; box-shadow: 0 20px 60px rgba(0,0,0,.45);
+    animation: pgPvConflictPop .18s cubic-bezier(.2,.9,.3,1.2);
+}
+@keyframes pgPvConflictPop { from { opacity: 0; transform: translateY(6px) scale(.97); } to { opacity: 1; transform: none; } }
+.pg-pv-conflict-icon {
+    width: 44px; height: 44px; border-radius: 50%; background: rgba(235,87,87,.14);
+    color: #EB5757; display: flex; align-items: center; justify-content: center;
+    font-size: 20px; margin-bottom: 14px;
+}
+.pg-pv-conflict-title { font-size: 15.5px; font-weight: 700; margin-bottom: 6px; color: var(--text,#eee); }
+.pg-pv-conflict-msg { font-size: 13px; color: #aaa; line-height: 1.5; margin-bottom: 16px; }
+.pg-pv-conflict-msg b { color: #EB5757; font-weight: 600; }
+.pg-pv-conflict-suppress {
+    display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: #999;
+    margin-bottom: 18px; cursor: pointer; user-select: none;
+}
+.pg-pv-conflict-suppress input { accent-color: #D4900E; width: 15px; height: 15px; cursor: pointer; }
+.pg-pv-conflict-actions { display: flex; gap: 10px; }
+.pg-pv-conflict-btn {
+    flex: 1; padding: 10px 14px; border-radius: 10px; font-size: 13px; font-weight: 600;
+    border: 1px solid rgba(255,255,255,.1); cursor: pointer; transition: filter .12s, background .12s;
+}
+.pg-pv-conflict-btn:hover { filter: brightness(1.15); }
+.pg-pv-conflict-cancel { background: rgba(255,255,255,.06); color: #ccc; }
+.pg-pv-conflict-confirm { background: #D4900E; color: #1a1200; border-color: transparent; }
+.pg-pv-conflict-discard { background: rgba(248,113,113,.08); color: #f87171; border-color: rgba(248,113,113,.3); flex: 1; }
+.pg-pv-conflict-discard:hover { background: rgba(248,113,113,.16); }
+/* Ders Planı Modalı — Adım/Footer + Seçenek Kartları (.pg-lp-) -> planning-lesson-plan-modal.css'e taşındı */
+.pg-pv-hcal-chip-text { display: block; font-size: 11.5px; font-weight: 600; color: #eee; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pg-pv-hcal-chip-time { display: block; font-size: 10px; color: #999; }
+.pg-wz-collab-invite-label {
+    font-size: 12px; font-weight: 600; color: #a78bfa; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 6px;
+}
+.pg-wz-collab-invite-row {
+    display: flex; gap: 6px; align-items: center; margin-bottom: 8px;
+}
+.pg-wz-collab-code-box {
+    flex: 1; padding: 6px 10px; border-radius: 7px; font-size: 13px;
+    font-family: monospace; font-weight: 700; letter-spacing: 1px;
+    background: rgba(0,0,0,.25); border: 1px solid rgba(255,255,255,.08);
+    color: #e2e8f0; user-select: all;
+}
+.pg-wz-collab-copy-btn {
+    padding: 6px 12px; border-radius: 7px; font-size: 12px; cursor: pointer;
+    border: 1px solid rgba(124,110,255,.4); color: #a78bfa;
+    background: rgba(124,110,255,.12); transition: all .15s;
+}
+.pg-wz-collab-copy-btn:hover { background: rgba(124,110,255,.22); }
+.pg-wz-collab-members-list {
+    min-height: 32px;
+}
+.pg-wz-collab-member-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 5px 0; font-size: 12px; color: #ccc;
+    border-bottom: 1px solid rgba(255,255,255,.05);
+}
+.pg-wz-collab-member-item:last-child { border-bottom: none; }
+.pg-wz-collab-member-avatar {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: rgba(124,110,255,.3); display: flex;
+    align-items: center; justify-content: center; font-size: 11px; color: #fff;
+    flex-shrink: 0;
+}
+.pg-wz-collab-member-status {
+    margin-left: auto; font-size: 10px; padding: 2px 7px; border-radius: 10px;
+}
+.pg-wz-collab-member-status.accepted { background: rgba(74,222,128,.15); color: #4ade80; }
+.pg-wz-collab-member-status.pending  { background: rgba(255,209,102,.1); color: #ffd166; }
+.pg-wz-collab-wait-hint {
+    font-size: 11px; color: #666; margin-top: 6px; display: flex; align-items: center; gap: 5px;
+}
+.pg-wz-collab-refresh-btn {
+    font-size: 11px; color: #a78bfa; background: none; border: none;
+    cursor: pointer; text-decoration: underline; padding: 0;
+}
+
+/* Collab Plan Davet Kartı (.cpi-) -> collab-plan-invite-card.css'e taşındı */
+/* ── Collab delete modal butonları ─────────────────────────────── */
+.cdm-btn {
+    padding: 9px 4px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: opacity .15s, transform .12s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.cdm-btn:hover  { opacity: .85; transform: translateY(-1px); }
+.cdm-btn:active { transform: translateY(0); opacity: 1; }
+.cdm-btn--ghost  { background: rgba(255,255,255,.08); color: rgba(255,255,255,.6); }
+.cdm-btn--purple { background: #7c6eff; color: #fff; }
+.cdm-btn--danger { background: rgba(255,71,87,.15); color: #ff4757; border: 1px solid rgba(255,71,87,.25); }
+/* Collab Plan Davet Kartı spinner -> collab-plan-invite-card.css'e taşındı */
+
+/* ── Solo plan invite later (detail panel) ─── */
+.pg-pv-invite-later-btn {
+    display: flex; align-items: center; gap: 7px;
+    padding: 8px 14px; border-radius: 8px; font-size: 13px; cursor: pointer;
+    border: 1.5px dashed rgba(124,110,255,.35); color: #a78bfa;
+    background: rgba(124,110,255,.07); transition: all .15s; width: 100%;
+    margin-top: 8px;
+}
+.pg-pv-invite-later-btn:hover { background: rgba(124,110,255,.14); border-style: solid; }
+
+/* ── Ders planı: "Sınıfa Ata" — minimalist ─── */
+.pg-pv-assign-class-btn {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    width: 100%; margin-top: 8px; padding: 7px 12px; border-radius: 8px;
+    font-size: 12px; font-weight: 600; cursor: pointer;
+    border: 1px solid rgba(212,144,14,.3); color: var(--a,#D4900E);
+    background: rgba(212,144,14,.08); transition: all .15s;
+}
+.pg-pv-assign-class-btn:hover { background: rgba(212,144,14,.14); border-color: rgba(212,144,14,.45); }
+
+/* ── Ders planı: "Şablon Olarak Kaydet" ─────── */
+.pg-pv-save-template-btn {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    width: 100%; margin-top: 8px; padding: 7px 12px; border-radius: 8px;
+    font-size: 12px; font-weight: 600; cursor: pointer;
+    border: 1.5px dashed rgba(124,110,255,.35); color: #a78bfa;
+    background: rgba(124,110,255,.07); transition: all .15s;
+}
+.pg-pv-save-template-btn:hover { background: rgba(124,110,255,.14); border-style: solid; }
+
+/* "Şablon Olarak Kaydet" + "Öğrencilere Ata" yan yana */
+#pg-pv-invite-later-wrap:has(.pg-pv-save-template-btn):has(.pg-pv-assign-class-btn) {
+    display: flex; gap: 8px;
+}
+#pg-pv-invite-later-wrap:has(.pg-pv-save-template-btn):has(.pg-pv-assign-class-btn) .pg-pv-save-template-btn,
+#pg-pv-invite-later-wrap:has(.pg-pv-save-template-btn):has(.pg-pv-assign-class-btn) .pg-pv-assign-class-btn {
+    flex: 1; margin-top: 0;
+}
+
+/* ── Plan görünümü: sağ üst "Kaydet" butonu — Düzenle/Kapat ikon butonlarıyla aynı görsel dil ── */
+.pg-pv-save-btn {
+    display: flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px; padding: 0; border-radius: 9px; font-size: 15px;
+    border: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.03);
+    color: #666; cursor: pointer; font-family: inherit;
+    transition: all .15s;
+}
+.pg-pv-save-btn:hover { background: rgba(255,255,255,.07); color: #ccc; border-color: rgba(255,255,255,.15); }
+.pg-pv-save-btn.hidden { display: none; }
+
+/* Kaydet / Düzenle / Kapat — aynı görsel dil, farklı vurgu rengi */
+#pg-pv-save-btn { border-color: rgba(6,214,160,.35); color: #06d6a0; background: rgba(6,214,160,.07); }
+#pg-pv-save-btn:hover { border-color: rgba(6,214,160,.55); background: rgba(6,214,160,.14); color: #06d6a0; }
+#pg-pv-edit-goal { border-color: rgba(124,110,255,.35); color: #a78bfa; background: rgba(124,110,255,.07); }
+#pg-pv-edit-goal:hover { border-color: rgba(124,110,255,.55); background: rgba(124,110,255,.14); color: #a78bfa; }
+#pg-pv-close { border-color: rgba(248,113,113,.3); color: #f87171; background: rgba(248,113,113,.06); }
+#pg-pv-close:hover { border-color: rgba(248,113,113,.5); background: rgba(248,113,113,.13); color: #f87171; }
+
+/* ── Mode Select Cards ───────────────────────── */
+
+
+
+
+
+
+
+
+
+
+/* Hızlı Oluşturma Ortak Çalışma Rozeti (.pg-qc-collab-badge) -> planning-quick-create.css'e taşındı */
+
+/* Ortak Çalışma Bekleme Ekranı (.pg-cw-) -> planning-collab-wait.css'e taşındı */
+
+/* ── Priority Buttons ────────────────────────── */
+.pg-wz-priority-row {
+    display: flex; gap: 6px;
+}
+.pg-wz-pri-btn {
+    flex: 1; padding: 9px 6px; border-radius: 9px;
+    border: 2px solid rgba(255,255,255,.08);
+    background: rgba(255,255,255,.03); cursor: pointer;
+    font-size: 12px; font-weight: 600; color: #888;
+    transition: all .18s; font-family: inherit;
+}
+.pg-wz-pri-btn:hover { border-color: var(--pri-color, #888); color: var(--pri-color); }
+.pg-wz-pri-btn.selected {
+    border-color: var(--pri-color, #888); color: var(--pri-color);
+    background: color-mix(in srgb, var(--pri-color, #888) 10%, transparent);
+    box-shadow: 0 0 12px color-mix(in srgb, var(--pri-color, #888) 15%, transparent);
+}
+
+/* ── Quick Deadline Buttons ──────────────────── */
+.pg-wz-deadline-quick { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+.pg-wz-dl-btn {
+    padding: 5px 12px; border-radius: 16px; font-size: 12px; font-weight: 600;
+    border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.03);
+    color: #777; cursor: pointer; transition: all .15s; font-family: inherit;
+    white-space: nowrap;
+}
+.pg-wz-dl-btn:hover  { border-color: var(--a, #D4900E); color: var(--a, #D4900E); background: rgba(212,144,14,.06); }
+.pg-wz-dl-btn.selected { border-color: var(--a, #D4900E); color: var(--a, #D4900E); background: rgba(212,144,14,.1); }
+
+/* Duration hint */
+.pg-wz-duration-hint { font-size: 11px; color: var(--a, #D4900E); font-weight: 400; margin-left: 6px; }
+
+/* Motivation */
+.pg-wz-motivation-input {
+    width: 100%; background: rgba(255,255,255,.03);
+    border: 1.5px solid rgba(255,255,255,.08); border-radius: 10px;
+    padding: 11px 14px; color: #ccc; font-size: 13px; font-family: inherit;
+    resize: none; outline: none; transition: border-color .2s, box-shadow .2s;
+    box-sizing: border-box; line-height: 1.6;
+}
+.pg-wz-motivation-input::placeholder { color: #333; }
+.pg-wz-motivation-input:focus {
+    border-color: rgba(212,144,14,.4);
+    box-shadow: 0 0 0 3px rgba(212,144,14,.07);
+}
+
+/* ── Step 2: Template chips ──────────────────── */
+
+
+
+.pg-wz-chip {
+    padding: 6px 13px; border-radius: 20px; font-size: 12px; font-weight: 500;
+    background: rgba(255,255,255,.04); border: 1.5px solid rgba(255,255,255,.1);
+    color: #999; cursor: pointer; transition: all .18s cubic-bezier(.34,1.56,.64,1);
+    user-select: none; white-space: nowrap;
+}
+.pg-wz-chip:hover {
+    background: rgba(212,144,14,.08); border-color: rgba(212,144,14,.3);
+    color: var(--a, #D4900E); transform: translateY(-1px);
+}
+.pg-wz-chip.selected {
+    background: rgba(212,144,14,.15); border-color: var(--a, #D4900E);
+    color: var(--a, #D4900E); font-weight: 700;
+    box-shadow: 0 0 10px rgba(212,144,14,.12);
+    transform: translateY(-1px);
+}
+
+/* Custom add row */
+
+
+/* Milestone count badge */
+.pg-wz-ms-count-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700;
+    background: rgba(212,144,14,.12); border: 1px solid rgba(212,144,14,.25);
+    color: var(--a, #D4900E); margin-bottom: 10px;
+}
+
+/* Milestone list */
+.pg-wz-ms-list { display: flex; flex-direction: column; gap: 6px; }
+.pg-wz-ms-item {
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(255,255,255,.03);
+    border: 1.5px solid rgba(255,255,255,.08);
+    border-radius: 10px; padding: 10px 12px;
+    transition: all .18s; animation: wz-ms-item-in .2s ease;
+}
+@keyframes wz-ms-item-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.pg-wz-ms-item:hover { border-color: rgba(212,144,14,.2); background: rgba(212,144,14,.03); }
+.pg-wz-ms-num {
+    width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
+    background: rgba(212,144,14,.1); border: 1.5px solid rgba(212,144,14,.25);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 800; color: var(--a, #D4900E);
+}
+.pg-wz-ms-icon { font-size: 16px; flex-shrink: 0; }
+.pg-wz-ms-item-title { flex: 1; font-size: 13px; color: #ddd; font-weight: 600; }
+.pg-wz-ms-item-actions { display: flex; gap: 2px; }
+
+/* Empty state */
+
+
+
+/* ── Step 3: Split layout ────────────────────── */
+
+@media (max-width: 580px) {  }
+
+/* MS date rows */
+.pg-wz-ms-dates { display: flex; flex-direction: column; gap: 8px; }
+.pg-wz-ms-date-row {
+    display: flex; align-items: flex-start; gap: 10px;
+    background: rgba(255,255,255,.03); border: 1.5px solid rgba(255,255,255,.07);
+    border-radius: 10px; padding: 10px 12px; transition: border-color .15s;
+}
+.pg-wz-ms-date-row:hover { border-color: rgba(255,255,255,.12); }
+.pg-wz-ms-date-num {
+    width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
+    background: rgba(212,144,14,.1); border: 1.5px solid rgba(212,144,14,.25);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 800; color: var(--a, #D4900E); margin-top: 2px;
+}
+.pg-wz-ms-date-info { flex: 1; min-width: 0; }
+.pg-wz-ms-date-title {
+    font-size: 12px; color: #ccc; font-weight: 600; margin-bottom: 7px;
+    display: flex; align-items: center; gap: 6px;
+}
+.pg-wz-ms-date-inp {
+    width: 100%; font-size: 12px !important;
+    padding: 7px 10px !important; border-radius: 8px !important;
+}
+
+/* Mini calendar */
+
+.pg-wz-mini-cal {
+    background: rgba(255,255,255,.025); border: 1px solid rgba(255,255,255,.07);
+    border-radius: 12px; padding: 12px; font-size: 11px;
+}
+.pg-wz-cal-nav {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;
+}
+.pg-wz-cal-month-label { font-size: 12px; font-weight: 700; color: #ddd; }
+.pg-wz-cal-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center;
+}
+.pg-wz-cal-day-hdr { font-size: 9px; color: #444; padding: 3px 0; font-weight: 700; text-transform: uppercase; }
+.pg-wz-cal-cell {
+    font-size: 10px; color: #666; padding: 5px 2px; border-radius: 5px;
+    cursor: default; position: relative; line-height: 1; transition: background .12s;
+}
+.pg-wz-cal-cell.today {
+    background: rgba(212,144,14,.18); color: var(--a,#D4900E); font-weight: 800;
+    box-shadow: 0 0 8px rgba(212,144,14,.15);
+}
+.pg-wz-cal-cell.ms-day {
+    background: rgba(74,222,128,.12); color: #4ade80; font-weight: 800;
+}
+.pg-wz-cal-cell.deadline-day {
+    background: rgba(248,113,113,.12); color: #f87171; font-weight: 800;
+}
+.pg-wz-cal-ms-dot {
+    width: 4px; height: 4px; border-radius: 50%; background: #4ade80;
+    position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%);
+}
+
+
+
+.pg-wz-cal-dot.ms-dot     { background: rgba(74,222,128,.25); border: 1px solid #4ade80; }
+
+
+
+/* Mini Gantt preview */
+.pg-wz-gantt-preview {
+    margin-top: 16px;
+    background: rgba(255,255,255,.02); border: 1px solid rgba(255,255,255,.07);
+    border-radius: 12px; padding: 14px 16px;
+}
+.pg-wz-gantt-label {
+    font-size: 11px; font-weight: 700; color: #666;
+    text-transform: uppercase; letter-spacing: .06em; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 6px;
+}
+.pg-wz-gantt-track {
+    height: 32px; background: rgba(255,255,255,.04);
+    border-radius: 8px; position: relative; margin-bottom: 6px; overflow: visible;
+}
+.pg-wz-gantt-bg {
+    position: absolute; inset: 0; border-radius: 8px;
+    background: linear-gradient(90deg, rgba(212,144,14,.05), rgba(212,144,14,.02));
+}
+.pg-wz-gantt-marker {
+    position: absolute; top: 50%; transform: translate(-50%, -50%);
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    cursor: default;
+}
+.pg-wz-gantt-marker-dot {
+    width: 12px; height: 12px; border-radius: 50%;
+    border: 2px solid #0e1016;
+    box-shadow: 0 0 8px currentColor;
+    flex-shrink: 0;
+}
+.pg-wz-gantt-marker-label {
+    position: absolute; top: 20px; font-size: 9px; color: #888;
+    white-space: nowrap; max-width: 80px; overflow: hidden; text-overflow: ellipsis;
+}
+.pg-wz-gantt-today-mark {
+    position: absolute; left: 0; top: -4px; bottom: -4px; width: 2px;
+    background: var(--a, #D4900E); border-radius: 1px;
+}
+.pg-wz-gantt-today-mark::after {
+    content: 'Bugün'; position: absolute; top: -16px; left: 4px;
+    font-size: 9px; color: var(--a, #D4900E); white-space: nowrap; font-weight: 600;
+}
+.pg-wz-gantt-deadline-mark {
+    position: absolute; right: 0; top: -4px; bottom: -4px; width: 2px;
+    background: #f87171; border-radius: 1px;
+}
+.pg-wz-gantt-deadline-mark::after {
+    content: 'Son'; position: absolute; top: -16px; right: 4px;
+    font-size: 9px; color: #f87171; white-space: nowrap; font-weight: 600;
+}
+.pg-wz-gantt-dates {
+    display: flex; justify-content: space-between;
+    font-size: 10px; color: #555; margin-top: 22px;
+}
+
+/* Conflict warning */
+.pg-wz-conflict-warn {
+    margin-top: 12px; padding: 10px 14px; border-radius: 9px;
+    background: rgba(253,224,71,.06); border: 1px solid rgba(253,224,71,.2);
+    color: #fde047; font-size: 12px; display: flex; align-items: center; gap: 8px;
+}
+
+/* ── Step 4 ───────────────────────────────────── */
+
+
+
+
+
+/* Hours slider */
+
+.pg-wz-hours-slider {
+    flex: 1; min-width: 160px; height: 6px; border-radius: 3px;
+    appearance: none; background: rgba(255,255,255,.08); outline: none; cursor: pointer;
+    accent-color: var(--a, #D4900E);
+}
+.pg-wz-hours-slider::-webkit-slider-thumb {
+    appearance: none; width: 18px; height: 18px; border-radius: 50%;
+    background: var(--a, #D4900E); cursor: pointer;
+    box-shadow: 0 0 10px rgba(212,144,14,.4);
+}
+.pg-wz-hours-display {
+    background: rgba(212,144,14,.12); border: 1px solid rgba(212,144,14,.25);
+    border-radius: 8px; padding: 5px 12px; font-size: 14px; font-weight: 700;
+    color: var(--a, #D4900E); white-space: nowrap; min-width: 80px; text-align: center;
+}
+.pg-wz-time-calc {
+    font-size: 12px; color: #666; margin-top: 6px; font-style: italic;
+}
+.pg-wz-effort-indicator {
+    display: flex; align-items: center; gap: 6px; margin-top: 8px;
+    font-size: 12px; color: #888;
+}
+
+/* Subtasks */
+.pg-wz-subtasks-list { display: flex; flex-direction: column; gap: 5px; margin-bottom: 4px; }
+.pg-wz-subtask-item {
+    display: flex; align-items: center; gap: 9px;
+    background: rgba(74,222,128,.04); border: 1px solid rgba(74,222,128,.12);
+    border-radius: 8px; padding: 7px 12px; font-size: 13px; color: #ccc;
+    animation: wz-ms-item-in .18s ease;
+}
+.pg-wz-subtask-item i { color: #4ade80; font-size: 14px; flex-shrink: 0; }
+.pg-wz-subtask-item span { flex: 1; }
+
+/* ── Step 5 ───────────────────────────────────── */
+.pg-wz-summary { margin-bottom: 18px; }
+.pg-wz-summary-card {
+    border: 1.5px solid rgba(255,255,255,.08); border-radius: 14px;
+    padding: 16px 18px; background: rgba(255,255,255,.025);
+    position: relative; overflow: hidden;
+}
+.pg-wz-summary-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--summary-color, #D4900E), transparent);
+    opacity: .6;
+}
+.pg-wz-summary-row {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,.04);
+    font-size: 13px; gap: 14px;
+}
+.pg-wz-summary-row:last-child { border-bottom: none; }
+.pg-wz-summary-label { color: #555; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+.pg-wz-summary-val   { color: #ddd; font-weight: 600; text-align: right; }
+.pg-wz-summary-ms-list {
+    display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px;
+}
+.pg-wz-summary-ms-item {
+    display: flex; align-items: center; gap: 5px; font-size: 12px;
+    padding: 4px 10px; border-radius: 20px;
+    background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08);
+    color: #bbb;
+}
+.pg-wz-summary-ms-date { color: #555; font-size: 10px; }
+
+/* Mode cards */
+
+
+
+.pg-wz-mode-card.selected {
+    border-color: var(--a, #D4900E);
+    background: rgba(212,144,14,.07);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0,0,0,.2), 0 0 0 1px rgba(212,144,14,.15);
+}
+.pg-wz-mode-card.selected::after {
+    content: '✓';
+    position: absolute; top: 10px; right: 12px;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--a, #D4900E); color: #000;
+    font-size: 11px; font-weight: 900;
+    display: flex; align-items: center; justify-content: center;
+    line-height: 20px;
+}
+
+
+
+
+/* Celebration animation */
+.pg-wz-celebration {
+    text-align: center; margin-bottom: 16px; padding: 14px;
+    background: linear-gradient(135deg, rgba(212,144,14,.07), rgba(74,222,128,.05));
+    border: 1px solid rgba(212,144,14,.2); border-radius: 12px;
+    animation: wz-celebrate-pulse 2s ease infinite;
+}
+@keyframes wz-celebrate-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(212,144,14,.15); }
+    50%       { box-shadow: 0 0 20px 4px rgba(212,144,14,.08); }
+}
+.pg-wz-celebration-emoji { font-size: 36px; display: block; margin-bottom: 6px; }
+.pg-wz-celebration-text { font-size: 18px; font-weight: 800; color: var(--a,#D4900E); letter-spacing: -.02em; }
+.pg-wz-celebration-sub  { font-size: 12px; color: #666; margin-top: 3px; }
+
+/* ── Footer ───────────────────────────────────── */
+.pg-wz-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 28px; border-top: 1px solid rgba(255,255,255,.06);
+    flex-shrink: 0; background: rgba(255,255,255,.01);
+}
+.pg-wz-step-counter { font-size: 12px; color: #444; font-weight: 700; letter-spacing: .04em; }
+
+/* Error shake */
+.pg-wz-error-shake {
+    animation: wz-shake .4s cubic-bezier(.36,.07,.19,.97);
+    border-color: #f87171 !important;
+}
+@keyframes wz-shake {
+    0%,100% { transform: translateX(0); }
+    20%      { transform: translateX(-8px); }
+    40%      { transform: translateX(8px); }
+    60%      { transform: translateX(-5px); }
+    80%      { transform: translateX(5px); }
+}
+
+
+/* ── Wizard Yeniden Tasarım — Context Box, Mode Toggle, Day Picker, Milestone Detail ── */
+
+/* Info button & tooltip */
+.pg-wz-info-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 16px; height: 16px; border-radius: 50%; border: none;
+    background: transparent; color: #444; cursor: pointer;
+    padding: 0; vertical-align: middle; margin-left: 4px;
+    transition: color .15s;
+    position: relative; top: -1px;
+}
+.pg-wz-info-btn:hover { color: var(--a, #D4900E); }
+.pg-wz-info-btn i { font-size: 14px; pointer-events: none; }
+
+#pg-wz-info-tooltip {
+    position: fixed; z-index: 99999;
+    background: #1a1a1a; border: 1px solid rgba(255,255,255,.12);
+    border-radius: 10px; padding: 13px 15px;
+    box-shadow: 0 8px 32px rgba(0,0,0,.6);
+    pointer-events: none; opacity: 0;
+    transform: translateY(6px); transition: opacity .18s, transform .18s;
+    max-width: 280px;
+}
+#pg-wz-info-tooltip.show {
+    opacity: 1; transform: translateY(0); pointer-events: auto;
+}
+#pg-wz-info-tooltip.pg-wz-tip-above { transform: translateY(-6px); }
+#pg-wz-info-tooltip.pg-wz-tip-above.show { transform: translateY(0); }
+.pg-wz-tip-title {
+    font-size: 12px; font-weight: 700; color: var(--a, #D4900E);
+    margin-bottom: 7px; letter-spacing: .01em;
+}
+.pg-wz-tip-text {
+    font-size: 12px; color: #aaa; line-height: 1.65;
+}
+
+/* Count selector (step 2) */
+.pg-wz-count-selector {
+    display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px;
+}
+.pg-wz-count-btn {
+    width: 44px; height: 44px; border-radius: 10px; font-size: 16px; font-weight: 700;
+    border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.04);
+    color: #666; cursor: pointer; transition: all .15s;
+    display: flex; align-items: center; justify-content: center;
+}
+.pg-wz-count-btn:hover { border-color: var(--a,#D4900E); color: var(--a,#D4900E); }
+.pg-wz-count-btn.active {
+    border-color: var(--a,#D4900E); background: rgba(212,144,14,.12);
+    color: var(--a,#D4900E); box-shadow: 0 0 0 3px rgba(212,144,14,.12);
+}
+
+/* Milestone name inputs (step 2) */
+.pg-wz-ms-inputs { display: flex; flex-direction: column; gap: 8px; }
+.pg-wz-ms-inp-row {
+    display: flex; align-items: center; gap: 10px;
+}
+.pg-wz-ms-inp-num {
+    width: 26px; height: 26px; border-radius: 7px; font-size: 11px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.pg-wz-ms-inp-icon { font-size: 18px; flex-shrink: 0; }
+.pg-wz-ms-title-inp { flex: 1; font-size: 14px !important; }
+
+/* Calendar primary layout (step 3 — full width, prominent) */
+
+.pg-wz-cal-primary .pg-wz-mini-cal { width: 100%; }
+.pg-wz-cal-primary .pg-wz-cal-grid {
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+}
+.pg-wz-cal-primary .pg-wz-cal-cell {
+    height: 38px; font-size: 13px; border-radius: 8px;
+}
+
+/* Footer buttons */
+.pg-wz-back-btn {
+    display: flex; align-items: center; gap: 6px;
+    padding: 8px 16px; border-radius: 9px;
+    border: 1px solid rgba(255,255,255,.1);
+    background: rgba(255,255,255,.04);
+    color: #666; font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all .15s;
+}
+.pg-wz-back-btn:hover {
+    border-color: rgba(255,255,255,.22); color: #ccc;
+    background: rgba(255,255,255,.07);
+}
+.pg-wz-back-btn i { font-size: 15px; }
+.pg-wz-next-btn {
+    display: flex; align-items: center; gap: 6px;
+    padding: 9px 22px; border-radius: 9px;
+    border: none; background: var(--a,#D4900E);
+    color: #fff; font-size: 13px; font-weight: 700;
+    cursor: pointer; transition: all .15s;
+    box-shadow: 0 2px 12px rgba(212,144,14,.3);
+}
+.pg-wz-next-btn:hover {
+    background: #e8a020; box-shadow: 0 4px 18px rgba(212,144,14,.45);
+    transform: translateY(-1px);
+}
+.pg-wz-next-btn i { font-size: 15px; }
+
+/* Mode toggle (step 1) */
+.pg-wz-s1-mode-wrap { margin-top: 16px; }
+.pg-wz-mode-toggle {
+    display: flex; gap: 8px; margin-top: 8px; margin-bottom: 6px;
+}
+.pg-wz-mode-toggle-btn {
+    flex: 1; padding: 9px 14px; border-radius: 8px; font-size: 13px; font-weight: 600;
+    border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.04);
+    color: #777; cursor: pointer; transition: all .18s;
+}
+.pg-wz-mode-toggle-btn:hover { border-color: rgba(255,255,255,.2); color: #ccc; }
+.pg-wz-mode-toggle-btn.selected {
+    border-color: var(--a, #D4900E); color: var(--a, #D4900E);
+    background: rgba(212,144,14,.08);
+}
+.pg-wz-mode-toggle-hint { font-size: 11px; color: #555; transition: color .2s; }
+
+/* Day picker (step 4) */
+
+
+
+
+.pg-wz-day-btn.active {
+    border-color: #a78bfa; background: rgba(167,139,250,.15); color: #a78bfa; font-weight: 800;
+}
+
+
+/* All-milestone detail accordion (step 4) */
+
+
+.pg-wz-ms-det-card.expanded { border-color: rgba(255,255,255,.14); }
+
+
+
+
+
+
+
+
+.pg-wz-ms-det-card.expanded .pg-wz-ms-det-chevron { transform: rotate(180deg); color: #888; }
+
+.pg-wz-ms-det-card.expanded .pg-wz-ms-det-body { display: block; padding-top: 14px; }
+
+/* Collab info box (step 5) */
+.pg-wz-collab-info {
+    margin-top: 12px; padding: 11px 14px; border-radius: 9px;
+    background: rgba(124,110,255,.08); border: 1px solid rgba(124,110,255,.25);
+    color: #a78bfa; font-size: 12px; line-height: 1.6;
+    display: flex; align-items: flex-start; gap: 8px;
+}
+.pg-wz-collab-info i { margin-top: 1px; flex-shrink: 0; }
+.pg-wz-collab-info strong { color: #c4b5fd; }
+
+/* ── Adım 3 — Booking Takvimi ───────────────────────────────── */
+.pg-wz-booking-cal { margin-bottom: 0; }
+.pg-wz-bcal-wrap { background: rgba(255,255,255,.02); border: 1px solid rgba(255,255,255,.08); border-radius: 14px; padding: 16px; }
+.pg-wz-bcal-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 10px; }
+.pg-wz-bcal-nav-label { font-size: 12px; font-weight: 700; color: #888; text-align: center; flex: 1; }
+.pg-wz-bcal-months { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media (max-width: 560px) { .pg-wz-bcal-months { grid-template-columns: 1fr; } }
+
+.pg-wz-bcal-month-label { font-size: 12px; font-weight: 700; color: #aaa; text-align: center; margin-bottom: 10px; letter-spacing: .01em; }
+.pg-wz-bcal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 1px; }
+.pg-wz-bcal-day-hdr { text-align: center; font-size: 9px; font-weight: 700; color: #3a3a3a; padding: 4px 0; text-transform: uppercase; letter-spacing: .04em; }
+.pg-wz-bcal-day {
+    position: relative; aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+    border-radius: 6px; cursor: pointer; transition: background .1s; flex-direction: column; gap: 1px;
+}
+.pg-wz-bcal-day.empty { pointer-events: none; }
+.pg-wz-bcal-day.past  { opacity: .28; pointer-events: none; }
+.pg-wz-bcal-day:not(.empty):not(.past):not([style*="background"]):hover { background: rgba(255,255,255,.08); }
+.pg-wz-bcal-day.today .pg-wz-bcal-d-num { color: var(--a,#D4900E); font-weight: 900; }
+.pg-wz-bcal-day.deadline { outline: 1px dashed #f87171; outline-offset: -1px; }
+.pg-wz-bcal-day.active-ms { outline: 2px solid var(--a,#D4900E); outline-offset: -2px; border-radius: 6px; }
+
+/* Range renk kutuları */
+.pg-wz-bcal-d-num { font-size: 11px; font-weight: 500; color: #aaa; line-height: 1; z-index: 1; }
+.pg-wz-bcal-ms-badge {
+    position: absolute; bottom: 2px; right: 2px;
+    width: 14px; height: 14px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 8px; font-weight: 900; color: #fff; z-index: 2;
+}
+.pg-wz-bcal-range-flag {
+    position: absolute; top: 3px; left: 3px;
+    width: 6px; height: 6px; border-radius: 50%; z-index: 2;
+}
+.pg-wz-bcal-dl-dot { width: 5px; height: 5px; border-radius: 50%; background: #f87171; }
+
+/* Dönüm noktaları listesi */
+.pg-wz-booking-ms-list { margin-top: 14px; }
+
+.pg-wz-bms-chips { display: flex; flex-direction: column; gap: 6px; }
+.pg-wz-bms-chip {
+    display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+    border-radius: 10px; border: 1px solid rgba(255,255,255,.08);
+    background: rgba(255,255,255,.03); cursor: pointer; transition: all .14s;
+}
+.pg-wz-bms-chip:hover { filter: brightness(1.15); }
+.pg-wz-bms-num { width: 22px; height: 22px; border-radius: 6px; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.pg-wz-bms-icon { font-size: 16px; flex-shrink: 0; }
+.pg-wz-bms-title { font-size: 13px; font-weight: 600; color: #ccc; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+
+.pg-wz-bms-active-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; animation: bms-pulse 1.4s ease-in-out infinite; }
+@keyframes bms-pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .5; transform: scale(.7); } }
+.pg-wz-bms-chip.last-ms { cursor: default; }
+.pg-wz-bms-chip.last-ms:hover { filter: none; }
+.pg-wz-bms-last-tag { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 5px; flex-shrink: 0; }
+.pg-wz-bms-body { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.pg-wz-bms-range { font-size: 10px; font-weight: 600; }
+.pg-wz-bms-hint {
+    display: flex; align-items: center; gap: 7px; margin-bottom: 10px;
+    padding: 9px 12px; border-radius: 9px; font-size: 12px;
+    border: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.03);
+}
+.pg-wz-bms-hint.done {
+    border-color: rgba(74,222,128,.3); background: rgba(74,222,128,.06); color: #4ade80;
+}
+
+/* ── Adım 4 — Granülasyon Seçimi ─────────────────────────────── */
+.pg-wz-gran-btns { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-top: 4px; }
+.pg-wz-gran-btn { padding: 16px 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.04); cursor: pointer; transition: all .16s; text-align: center; }
+.pg-wz-gran-btn:hover { border-color: rgba(255,255,255,.22); background: rgba(255,255,255,.07); transform: translateY(-2px); }
+.pg-wz-gran-btn.active { border-color: var(--a,#D4900E); background: rgba(212,144,14,.08); box-shadow: 0 0 0 3px rgba(212,144,14,.12); }
+.pg-wz-gran-icon { font-size: 28px; margin-bottom: 8px; }
+.pg-wz-gran-label { font-size: 14px; font-weight: 700; color: #ddd; margin-bottom: 4px; }
+.pg-wz-gran-desc { font-size: 11px; color: #555; }
+
+/* ── Adım 4 — Sıralı Milestone Planlayıcı ────────────────────── */
+
+.pg-wz-s4-mode-chip { font-size: 11px; font-weight: 700; color: var(--a,#D4900E); background: rgba(212,144,14,.1); border: 1px solid rgba(212,144,14,.25); border-radius: 6px; padding: 3px 8px; }
+.pg-wz-s4-change-gran:hover { color: #aaa; }
+.pg-wz-s4-ms-info { display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: rgba(255,255,255,.03); border-radius: 10px; border: 1px solid rgba(255,255,255,.07); margin-bottom: 12px; }
+.pg-wz-s4-ms-num { font-size: 10px; font-weight: 800; padding: 3px 7px; border-radius: 6px; flex-shrink: 0; }
+.pg-wz-s4-ms-icon { font-size: 18px; flex-shrink: 0; }
+.pg-wz-s4-ms-name { font-size: 14px; font-weight: 700; flex: 1; }
+.pg-wz-s4-ms-due { font-size: 11px; color: #555; display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.pg-wz-s4-ms-due i { font-size: 12px; }
+
+/* Calendar in planner */
+.pg-wz-s4-cal-wrap { max-height: 360px; overflow-y: auto; margin-bottom: 12px; border-radius: 10px; }
+.pg-wz-s4-cal-wrap::-webkit-scrollbar { width: 4px; }
+.pg-wz-s4-cal-wrap::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 2px; }
+.pg-wz-s4-no-range { text-align: center; padding: 24px; color: #555; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+
+/* Planlayıcı toolbar */
+.pg-wz-plan-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; padding: 10px 14px; background: rgba(255,255,255,.03); border-radius: 10px; border: 1px solid rgba(255,255,255,.07); }
+.pg-wz-plan-counter-wrap { flex: 1; min-width: 0; }
+.pg-wz-plan-counter { font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 5px; white-space: nowrap; transition: color .2s; }
+.pg-wz-plan-counter i { font-size: 13px; }
+.pg-wz-plan-quick-btns { display: flex; gap: 5px; flex-wrap: wrap; }
+.pg-wz-plan-qbtn { padding: 4px 10px; border-radius: 7px; font-size: 11px; font-weight: 600; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.05); color: #888; cursor: pointer; transition: all .13s; white-space: nowrap; }
+.pg-wz-plan-qbtn:hover { border-color: rgba(255,255,255,.25); color: #ccc; background: rgba(255,255,255,.09); }
+.pg-wz-plan-qbtn-clear { border-color: rgba(248,113,113,.3); color: #f87171; background: rgba(248,113,113,.05); }
+.pg-wz-plan-qbtn-clear:hover { background: rgba(248,113,113,.12); }
+
+/* Daily plan */
+.pg-wz-plan-month-block { margin-bottom: 16px; }
+.pg-wz-plan-month-label { font-size: 12px; font-weight: 700; color: #888; margin-bottom: 8px; text-align: center; text-transform: uppercase; letter-spacing: .04em; }
+.pg-wz-plan-day-hdrs { display: grid; grid-template-columns: repeat(7,1fr); text-align: center; margin-bottom: 4px; }
+.pg-wz-plan-day-hdrs div { font-size: 9px; color: #444; font-weight: 700; letter-spacing: .04em; }
+.pg-wz-plan-day-hdrs .weekend-hdr { color: #665; }
+.pg-wz-plan-day-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 3px; }
+.pg-wz-plan-day { position: relative; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 12px; border-radius: 8px; border: 1px solid transparent; transition: all .12s; cursor: default; flex-direction: column; gap: 1px; }
+.pg-wz-plan-day.in-range { color: #bbb; cursor: pointer; background: rgba(255,255,255,.04); }
+.pg-wz-plan-day.in-range:hover { background: rgba(255,255,255,.12) !important; transform: scale(1.08); }
+.pg-wz-plan-day.out-range { color: #2a2a2a; }
+.pg-wz-plan-day.weekend.in-range { background: rgba(255,255,255,.02); color: #666; }
+.pg-wz-plan-day.today { outline: 1px solid rgba(255,255,255,.3); outline-offset: -1px; }
+.pg-wz-plan-day.selected { transform: scale(1.0); }
+.pg-wz-plan-day.empty { pointer-events: none; }
+.pg-wz-plan-today-dot { width: 3px; height: 3px; border-radius: 50%; background: currentColor; position: absolute; bottom: 3px; }
+
+/* Weekly plan */
+.pg-wz-plan-weeks { display: flex; flex-direction: column; gap: 7px; }
+.pg-wz-plan-week { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 11px; border: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.03); cursor: pointer; transition: all .14s; }
+.pg-wz-plan-week:hover { border-color: rgba(255,255,255,.2); background: rgba(255,255,255,.06); transform: translateX(2px); }
+.pg-wz-plan-week.selected { }
+.pg-wz-plan-week.current { border-color: rgba(255,255,255,.18) !important; }
+.pg-wz-week-main { flex: 1; min-width: 0; }
+.pg-wz-week-dates { font-size: 13px; color: #bbb; margin-bottom: 2px; }
+.pg-wz-week-current-badge { font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; border: 1px solid; display: inline-block; }
+.pg-wz-week-day-dots { display: flex; gap: 3px; }
+.pg-wz-week-day-dot { width: 14px; height: 14px; border-radius: 4px; background: rgba(255,255,255,.06); transition: background .15s; }
+.pg-wz-week-day-dot.active { background: rgba(255,255,255,.15); }
+.pg-wz-week-icon { font-size: 16px; flex-shrink: 0; transition: transform .15s; }
+.pg-wz-plan-week.selected .pg-wz-week-icon { transform: scale(1.2); }
+
+/* Monthly plan */
+.pg-wz-plan-months { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; }
+.pg-wz-plan-month-card { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 14px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.03); cursor: pointer; transition: all .15s; position: relative; }
+.pg-wz-plan-month-card:hover { border-color: rgba(255,255,255,.2); background: rgba(255,255,255,.06); transform: translateY(-2px); }
+.pg-wz-month-abbr { font-size: 22px; font-weight: 900; color: #555; line-height: 1; transition: color .15s; }
+.pg-wz-month-full { font-size: 12px; color: #888; transition: color .15s, font-weight .15s; }
+.pg-wz-month-days-hint { font-size: 10px; color: #444; }
+.pg-wz-month-check { position: absolute; top: 10px; right: 10px; width: 24px; height: 24px; border-radius: 50%; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.1); display: flex; align-items: center; justify-content: center; transition: background .15s; }
+.pg-wz-plan-month-card.selected .pg-wz-month-abbr { font-size: 24px; }
+
+/* Granülasyon hint */
+.pg-wz-gran-hint { margin-top:12px; font-size:12px; color:var(--a,#D4900E); display:flex; align-items:center; gap:6px; }
+
+/* ⑤ Accordion */
+.pg-wz-acc-item { border:1px solid rgba(255,255,255,.08); border-radius:12px; overflow:hidden; margin-bottom:8px; transition:border-color .15s; }
+.pg-wz-acc-item.open { border-color:rgba(255,255,255,.16); }
+.pg-wz-acc-header { display:flex; align-items:center; gap:10px; padding:12px 14px; cursor:pointer; user-select:none; transition:background .13s; }
+.pg-wz-acc-header:hover { background:rgba(255,255,255,.04); }
+.pg-wz-acc-num { width:24px; height:24px; border-radius:7px; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.pg-wz-acc-icon { font-size:18px; flex-shrink:0; }
+.pg-wz-acc-info { flex:1; min-width:0; }
+.pg-wz-acc-name { display:block; font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.pg-wz-acc-due { font-size:11px; color:#555; }
+.pg-wz-acc-badges { display:flex; align-items:center; gap:5px; flex-shrink:0; }
+.pg-wz-acc-count { font-size:10px; font-weight:700; padding:2px 7px; border-radius:8px; white-space:nowrap; }
+.pg-wz-acc-crit-badge { font-size:10px; font-weight:700; padding:2px 6px; border-radius:6px; background:rgba(74,222,128,.12); color:#4ade80; }
+.pg-wz-acc-chevron { font-size:14px; color:#444; transition:transform .22s; flex-shrink:0; }
+.pg-wz-acc-item.open .pg-wz-acc-chevron { transform:rotate(180deg); color:#888; }
+.pg-wz-acc-body { display:none; border-top:1px solid rgba(255,255,255,.07); }
+.pg-wz-acc-item.open .pg-wz-acc-body { display:block; }
+.pg-wz-acc-content { padding:14px; }
+
+/* ⑥ Yük göstergesi */
+.pg-wz-s4-workload { display:flex; gap:14px; flex-wrap:wrap; align-items:center; margin-bottom:14px; padding:9px 12px; background:rgba(255,255,255,.03); border-radius:8px; border:1px solid rgba(255,255,255,.07); }
+.pg-wz-s4-workload span { font-size:11px; font-weight:600; color:#666; display:flex; align-items:center; gap:4px; }
+.pg-wz-s4-workload i { font-size:12px; }
+
+/* ② Tarihli görev — tarih badge */
+.pg-wz-s4-task-date-badge { font-size:10px; font-weight:700; padding:2px 7px; border-radius:6px; flex-shrink:0; white-space:nowrap; }
+.pg-wz-s4-task-date-inp { padding:8px 10px; border-radius:9px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.05); color:#888; font-size:12px; cursor:pointer; width:130px; flex-shrink:0; outline:none; transition:border-color .15s; }
+.pg-wz-s4-task-date-inp:focus { border-color:rgba(255,255,255,.3); }
+.pg-wz-s4-task-date-inp::-webkit-calendar-picker-indicator { filter:invert(.4); cursor:pointer; }
+
+/* Saat aralığı (Bugün panelindeki 09:00-10:00 seçicileriyle aynı stil) */
+.pg-wz-s4-task-time-row { display:flex; align-items:center; gap:6px; }
+.pg-wz-s4-task-time-inp { padding:8px 10px; border-radius:9px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.05); color:#888; font-size:12px; cursor:pointer; width:88px; flex-shrink:0; outline:none; transition:border-color .15s; }
+.pg-wz-s4-task-time-inp:focus { border-color:rgba(255,255,255,.3); }
+.pg-wz-s4-task-time-inp::-webkit-calendar-picker-indicator { filter:invert(.4); cursor:pointer; }
+.pg-wz-s4-task-time-sep { color:#555; font-size:11px; flex-shrink:0; }
+.pg-wz-s4-task-time-badge { font-size:10px; font-weight:700; padding:2px 7px; border-radius:6px; flex-shrink:0; white-space:nowrap; color:#74b9ff; background:rgba(116,185,255,.12); }
+
+/* "Bugün" panelindeki Yoğunluk çubuğuyla aynı görünüm — bu dönüm noktasının
+   çalışma yükünü (tarihli görev / toplam gün) segmentli bir çubukla gösterir. */
+.pg-wz-s4-capacity-row { display:flex; align-items:center; gap:8px; margin:0 0 12px; padding:6px 10px; border-radius:8px; background:rgba(128,128,128,.06); border:1px solid rgba(128,128,128,.1); }
+.pg-wz-s4-capacity-label { font-size:10px; color:#888; white-space:nowrap; flex-shrink:0; }
+.pg-wz-s4-capacity-segs { flex:1; display:flex; gap:2px; }
+.pg-wz-s4-capacity-seg { flex:1; height:3px; border-radius:2px; background:rgba(128,128,128,.15); }
+.pg-wz-s4-capacity-val { font-size:10px; font-weight:600; white-space:nowrap; flex-shrink:0; }
+
+/* Step 4 — Header top row (mod chip + değiştir) */
+.pg-wz-s4-header-top { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.pg-wz-s4-change-gran { font-size: 11px; color: #555; background: none; border: none; cursor: pointer; text-decoration: underline; padding: 0; transition: color .15s; }
+
+/* Step 4 — Takvimde Gör toggle */
+.pg-wz-s4-cal-toggle-btn {
+    display: flex; align-items: center; gap: 5px; margin-left: auto;
+    padding: 5px 12px; border-radius: 8px; font-size: 11px; font-weight: 700;
+    border: 1px solid rgba(255,255,255,.15); background: rgba(255,255,255,.05);
+    color: #888; cursor: pointer; transition: all .15s; white-space: nowrap; flex-shrink: 0;
+}
+.pg-wz-s4-cal-toggle-btn:hover { color: #ccc; border-color: rgba(255,255,255,.25); background: rgba(255,255,255,.09); }
+.pg-wz-s4-cal-panel { margin-bottom: 12px; border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,.08); }
+
+/* Step 4 — Milestone title wrap */
+.pg-wz-s4-ms-title-wrap { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+
+/* Step 4 — Başarı kriteri */
+.pg-wz-s4-criteria-wrap { margin-bottom: 16px; }
+.pg-wz-s4-criteria-label { font-size: 11px; font-weight: 700; color: #666; margin-bottom: 6px; display: flex; align-items: center; gap: 5px; }
+.pg-wz-s4-criteria-label i { font-size: 13px; color: #555; }
+.pg-wz-s4-criteria-label .pg-wz-opt { color: #444; font-weight: 400; }
+.pg-wz-s4-criteria-inp { font-size: 13px !important; }
+
+/* Step 4 — Görev bölümü */
+.pg-wz-s4-task-section { background: rgba(255,255,255,.02); border: 1px solid rgba(255,255,255,.07); border-radius: 12px; padding: 14px; }
+.pg-wz-s4-task-section-label { font-size: 11px; font-weight: 700; color: #777; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.pg-wz-s4-task-count { font-size: 10px; font-weight: 800; padding: 1px 7px; border-radius: 10px; }
+
+/* Öneri chipler */
+.pg-wz-s4-suggestions { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.pg-wz-s4-sug-chip { padding: 5px 11px; border-radius: 8px; font-size: 12px; font-weight: 500; border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.04); color: #777; cursor: pointer; transition: all .13s; }
+.pg-wz-s4-sug-chip:hover { border-color: rgba(255,255,255,.22); color: #bbb; }
+.pg-wz-s4-sug-chip.selected { font-weight: 600; }
+
+/* Görev girişi */
+.pg-wz-s4-task-input-row { display: flex; gap: 8px; margin-bottom: 4px; flex-wrap: wrap; }
+.pg-wz-s4-task-inp {
+    flex: 1; min-width: 160px; padding: 10px 14px; border-radius: 10px; font-size: 14px;
+    border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.06);
+    color: #eee; outline: none; transition: border-color .15s;
+}
+.pg-wz-s4-task-inp::placeholder { color: #444; }
+.pg-wz-s4-task-inp:focus { border-color: rgba(255,255,255,.3); background: rgba(255,255,255,.08); }
+.pg-wz-s4-add-task-btn {
+    padding: 10px 16px; border-radius: 10px; border: none;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    font-size: 13px; font-weight: 700; cursor: pointer; flex-shrink: 0; white-space: nowrap;
+    transition: opacity .15s, transform .12s; color: #000;
+}
+.pg-wz-s4-add-task-btn i { font-size: 13px; }
+.pg-wz-s4-add-task-btn:hover { opacity: .85; transform: scale(1.03); }
+.pg-wz-s4-task-charcount { text-align: right; font-size: 10px; color: #444; margin-bottom: 10px; }
+
+/* Görev listesi */
+.pg-wz-s4-task-list { display: flex; flex-direction: column; gap: 6px; }
+.pg-wz-s4-task-empty { text-align: center; color: #333; font-size: 13px; padding: 18px 0; display: flex; align-items: center; justify-content: center; gap: 7px; }
+.pg-wz-s4-task-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 9px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.06); transition: all .13s; }
+.pg-wz-s4-task-item:hover { background: rgba(255,255,255,.07); }
+.pg-wz-s4-task-item.done .pg-wz-s4-task-title { text-decoration: line-through; color: #444; }
+.pg-wz-s4-task-check {
+    width: 20px; height: 20px; border-radius: 6px; border: 1.5px solid; flex-shrink: 0;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .15s;
+}
+.pg-wz-s4-task-check:hover { opacity: .8; }
+.pg-wz-s4-task-title { flex: 1; font-size: 13px; color: #ccc; line-height: 1.4; }
+.pg-wz-s4-task-del { width: 24px; height: 24px; border-radius: 6px; border: none; background: rgba(248,113,113,.0); color: #444; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; transition: all .13s; }
+.pg-wz-s4-task-del:hover { background: rgba(248,113,113,.12); color: #f87171; }
+
+/* Details + nav */
+
+
+.pg-wz-s4-nav { display: flex; align-items: center; justify-content: space-between; padding-top: 14px; border-top: 1px solid rgba(255,255,255,.06); }
+.pg-wz-s4-nav-btn { display: flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 9px; font-size: 13px; font-weight: 600; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.05); color: #888; cursor: pointer; transition: all .15s; }
+.pg-wz-s4-nav-btn:hover { color: #ccc; border-color: rgba(255,255,255,.25); background: rgba(255,255,255,.09); }
+.pg-wz-s4-nav-next { border-color: rgba(212,144,14,.4); background: rgba(212,144,14,.08); color: var(--a,#D4900E); }
+.pg-wz-s4-nav-next:hover { background: rgba(212,144,14,.15); }
+.pg-wz-s4-nav-done { border-color: rgba(74,222,128,.4); background: rgba(74,222,128,.08); color: #4ade80; }
+.pg-wz-s4-nav-done:hover { background: rgba(74,222,128,.15); }
+.pg-wz-s4-ms-dots { display: flex; align-items: center; gap: 6px; }
+.pg-wz-s4-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,.1); transition: all .2s; }
+.pg-wz-s4-dot.active { width: 20px; border-radius: 4px; }
+.pg-wz-s4-dot.done { background: rgba(74,222,128,.4); }

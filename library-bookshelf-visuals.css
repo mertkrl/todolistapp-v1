@@ -1,0 +1,251 @@
+/* style.css'ten çıkarıldı (Faz C, 2026-07-22). Zihin Kütüphanesi rozet/mühür sistemi + raf dekoratif objeleri + kitap dış görünüşü (cilt anatomisi) + yazılmamış kitaplar ayraç sistemi + premium kütüphanelik görsel geliştirmeleri (#book-detail-modal ve .book-/.shelf- aileleri). */
+
+/* ════════════════════════════════════════════════════════════════════
+   ZİHİN KÜTÜPHANESİ — ROZET / MÜHÜR SİSTEMİ
+   ════════════════════════════════════════════════════════════════════ */
+
+/* Kitap üzerindeki SVG rozet konteyneri */
+
+
+
+
+/* Altın yıldız — pulse parlaması */
+@keyframes badgeGoldPulse {
+    0%, 100% { filter: drop-shadow(0 1px 3px rgba(0,0,0,0.7)) drop-shadow(0 0 3px rgba(255,215,0,0.4)); }
+    50%       { filter: drop-shadow(0 1px 3px rgba(0,0,0,0.7)) drop-shadow(0 0 7px rgba(255,215,0,0.8)); }
+}
+
+
+
+
+
+
+/* Boş/gelecek kitaplarda rozet gizle */
+
+
+/* Tooltip istatistik satırları */
+
+
+
+
+
+/* ════════════════════════════════════════════════════════════════════
+   RAF DEKORATİF OBJELERİ — Atmosfer elemanları
+   ════════════════════════════════════════════════════════════════════ */
+
+/* Raf köşesine küçük dekoratif obje */
+
+
+
+
+
+/* Kum saati */
+
+
+/* Mum */
+
+/* Mum alevi animasyonu */
+@keyframes candleFlicker {
+    0%,100% { transform: scaleX(1)   scaleY(1)    rotate(0deg);   opacity: 1;    }
+    20%     { transform: scaleX(0.9) scaleY(1.1)  rotate(-2deg);  opacity: 0.9;  }
+    40%     { transform: scaleX(1.1) scaleY(0.9)  rotate(2deg);   opacity: 1;    }
+    60%     { transform: scaleX(0.95) scaleY(1.05) rotate(-1deg); opacity: 0.85; }
+    80%     { transform: scaleX(1.05) scaleY(0.95) rotate(1deg);  opacity: 0.95; }
+}
+
+
+/* Kadran/pusula */
+
+@keyframes compassSpin {
+    0%   { transform: rotate(0deg);   }
+    100% { transform: rotate(360deg); }
+}
+
+/* Pirinç köşe inlay'ler: z-index kazanması için */
+
+
+
+
+
+
+/* Toz partikülleri: animasyon açık kalmalı */
+
+
+/* Kitap tema renkleri: eski sade override üstüne dokuları geri ekliyoruz */
+
+
+/* Altın folyo kitap yazısı — son kural olarak kazanır */
+
+
+/* Boş kitap yazısı: altın değil, soluk */
+
+
+
+/* Modal açılma animasyonu — sayfa çevirme efekti */
+/* ── Kitap Açılma: sol kapak sağa katlanarak açılıyor ── */
+@keyframes bookPageTurn {
+    0%   {
+        opacity: 0;
+        transform: perspective(1600px)
+                   rotateY(-72deg)
+                   rotateX(10deg)
+                   scale(0.78)
+                   translateZ(-160px)
+                   translateY(20px);
+        filter: brightness(0.5);
+    }
+    35%  {
+        opacity: 1;
+        filter: brightness(0.85);
+    }
+    60%  {
+        transform: perspective(1600px)
+                   rotateY(6deg)
+                   rotateX(-1.5deg)
+                   scale(1.015)
+                   translateZ(12px)
+                   translateY(-4px);
+        filter: brightness(1.05);
+    }
+    80%  {
+        transform: perspective(1600px)
+                   rotateY(-2deg)
+                   rotateX(0.5deg)
+                   scale(0.997)
+                   translateZ(0);
+        filter: brightness(1.00);
+    }
+    100% {
+        opacity: 1;
+        transform: perspective(1600px)
+                   rotateY(0deg)
+                   rotateX(0deg)
+                   scale(1)
+                   translateZ(0)
+                   translateY(0);
+        filter: brightness(1);
+    }
+}
+
+/* Modal — perspective ve overlay */
+#book-detail-modal {
+    perspective: 1600px !important;
+    /* overlay background mevcut .modal-overlay kuralından geliyor, burada override etme */
+}
+
+/* Panel başlangıç durumu: opacity: 0 ama !important YOK — animation override edebilsin */
+#book-detail-modal .book-detail-panel,
+#book-detail-modal .notebook-layout {
+    transform-style: preserve-3d !important;
+    opacity: 0;
+    will-change: transform, opacity, filter;
+}
+
+/* animate-open eklenince panel animasyona girer */
+#book-detail-modal.animate-open .book-detail-panel,
+#book-detail-modal.animate-open .notebook-layout {
+    animation: bookPageTurn 0.60s cubic-bezier(0.22, 1, 0.36, 1) both !important;
+}
+
+/* Kitap Detay Modalı Notebook Menteşe/Sayfa Derinliği (.notebook-spine-middle/.notebook-page) — misc-small-widgets.css'e taşındı */
+
+/* Deri doku noise overlay — her tema için en üst katman */
+
+
+/* ════════════════════════════════════════════════════════════════════
+   KİTAP DIŞ GÖRÜNÜŞÜ — GERÇEK CİLTLİ KİTAP ANATOMİSİ
+   ════════════════════════════════════════════════════════════════════ */
+
+/* Kitap sol cilt parlaması + silindirik ışık efekti */
+
+
+/* Kitap üst kenar — tavan ışığıyla aydınlanan kağıt yığını */
+
+
+/* Kitap sağ kenar — sayfa yığını daha zengin doku */
+
+
+/* Altın yaldız bant çizgileri — üst ve alt kapak kenarı */
+
+
+/* Sırt oluğu / kapak geçiş çizgileri (book-ribs) */
+
+
+/* Sırt üst kısmı — kapak başlangıcı koyu çizgisi */
+
+
+/* Alt kapak kenarı — kapanış gölgesi */
+
+
+/* ════════════════════════════════════════════════════════════════════
+   YAZILMAMIŞ KİTAPLAR — Karartma yerine ORTA AYRAÇ SİSTEMİ
+   ════════════════════════════════════════════════════════════════════ */
+
+/* Boş geçmiş kitaplar: karartma sıfırlandı, sade görünüm */
+
+
+
+/* Gelecek kitaplar: daha şeffaf, meraklı */
+
+
+/* Orta yatay ayraç: yazılmamış kitabın tam ortasında ince ipek şerit */
+
+
+/* Ayraç üstünde küçük orta düğme */
+
+
+/* Boş kitap için ayraç görünür */
+
+
+/* Dolu ve gelecek kitaplarda ayraç gizli */
+
+
+/* Boş kitap yazısı: soluk ama tamamen karanlık değil */
+
+
+
+/* ════════════════════════════════════════════════════════════════════
+   PREMIUM KÜTÜPHANELİK — TOPLU GÖRSEL GELİŞTİRMELER
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. RENK DOYGUNLUĞU: Antik cilt hissi ── */
+/* Tüm aktif kitaplar hafif solmuş, yaşanmış görünür */
+
+/* Hover: canlı renk geri gelir */
+
+/* Bugünün kitabı her zaman canlı */
+
+
+/* ── 2. ARKA DUVAR YATAYlambrİ PANELLERİ ── */
+/* Kitapların arkasında görünen kuytu duvar alanlarına yatay tahta ek çizgileri */
+
+
+/* ── 3. KİTAP ÜSTÜ TAVAN IŞIĞI ŞERÍDI ── */
+/* Tavan lambası kitap sırtlarının üstüne fiziksel olarak vurur */
+
+
+/* ── 4. RAF ÖN PROFİLİ (MOLDING) ── */
+/* Raf tahtasının ön yüzüne oyma profil çıkıntısı + altın varak şerit */
+
+
+/* ── 7. AY ETİKETİ RAF KENARI ── */
+
+
+
+/* ── 8. PERSPEKTİF YAN DUVAR ── */
+/* Kitaplık sol ve sağında arka plana uzanan perspektif duvar yanakları */
+
+
+/* Sol perspektif duvar yanak */
+
+
+
+
+/* Yan duvar dikey çizgili panel dokusu */
+
+
+/* Yan duvar raf gölgeleri — her raf hizasında koyu yatay şerit */
+
+
+/* ── KAPAK KÖŞE AŞINMASI ── */
+/* Eski kitapların sol üst ve sol alt köşeleri yıpranmış görünür */

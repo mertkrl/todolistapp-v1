@@ -31,21 +31,10 @@ import {
 } from './script.js';
 
      window.renderCalendar = () => renderCalendar(); // Faz 6: script-convert-modal.js için
-    export function renderCalendar() {
-         const year = getCurrentDateRef().getFullYear(); 
-         const month = getCurrentDateRef().getMonth();
-         window.monthYearDisplay.textContent = `${monthNames[month]} ${year}`; 
-         window.calendarDays.innerHTML = '';
-         
-         const firstDay = new Date(year, month, 1).getDay();
-         const lastDate = new Date(year, month + 1, 0).getDate();
-         const startDay = firstDay === 0 ? 6 : firstDay - 1;
-         
-         for (let i = 0; i < startDay; i++) {
-             window.calendarDays.appendChild(Object.assign(document.createElement('div'), {className:'cal-day empty'}));
-         }
-         
-         for (let i = 1; i <= lastDate; i++) {
+    // renderCalendar'ın gün-hücresi oluşturma katmanı — tek bir günün DOM elementini
+    // (noktalar, hover popup, sürükle-bırak dahil) kurup döner, DOM'a eklemez.
+    // Faz S devamı, dev fonksiyon refactoru.
+    function _buildCalDayCell(year, month, i) {
              const d = document.createElement('div'); 
              d.className = 'cal-day'; 
              d.textContent = i;
@@ -181,12 +170,32 @@ import {
             });
              // -------------------------------------------------------------
  
-             window.calendarDays.appendChild(d);
+        return d;
+    }
+
+    export function renderCalendar() {
+         const year = getCurrentDateRef().getFullYear(); 
+         const month = getCurrentDateRef().getMonth();
+         window.monthYearDisplay.textContent = `${monthNames[month]} ${year}`; 
+         window.calendarDays.innerHTML = '';
+         
+         const firstDay = new Date(year, month, 1).getDay();
+         const lastDate = new Date(year, month + 1, 0).getDate();
+         const startDay = firstDay === 0 ? 6 : firstDay - 1;
+         
+         for (let i = 0; i < startDay; i++) {
+             window.calendarDays.appendChild(Object.assign(document.createElement('div'), {className:'cal-day empty'}));
+         }
+         
+         for (let i = 1; i <= lastDate; i++) {
+             window.calendarDays.appendChild(_buildCalDayCell(year, month, i));
          }
      }
  
      window.renderEvents = () => renderEvents(); // Faz 6: script-convert-modal.js için
-    export function renderEvents() {
+    // renderEvents'ten ayrılan: arama/filtre durumuna göre günün öğelerini hesaplar (DOM yazmaz, sadece veri döner).
+    // Faz S devamı, dev fonksiyon refactoru.
+    function _evComputeDayItems() {
          const check = window.formatDateToString(getSelectedDateRef());
          
          // Arama ve Filtreleme Değerlerini Al
@@ -270,7 +279,12 @@ import {
              const timeB = b.timeStart || "00:00";
              return timeA.localeCompare(timeB);
          });
- 
+        return { check, searchQuery, filterValue, dayEvents, dayHabits, highlightList };
+    }
+
+    // renderEvents'ten ayrılan: mikro ilerleme (günlük tamamlanma) halkasını günceller.
+    // Faz S devamı, dev fonksiyon refactoru.
+    function _evUpdateProgressRing(check, dayEvents, dayHabits, highlightList) {
          window.eventsCountDisplay.textContent = `${dayEvents.length + dayHabits.length + highlightList.length} Plan`;
  
          // --- YENİ: Mikro İlerleme (Günlük Tamamlanma Yüzdesi) ---
@@ -307,20 +321,12 @@ import {
                  calProgContainer.style.display = 'none';
              }
          }
-         // ---------------------------------------------------------
- 
-         if (dayEvents.length === 0 && dayHabits.length === 0 && highlightList.length === 0) {
-             if (searchQuery !== '' || filterValue !== 'all') {
-                 window.eventList.innerHTML = '<div class="empty-state">Arama kriterlerine uygun plan bulunamadı.</div>';
-             } else {
-                 window.eventList.innerHTML = '<div class="empty-state">Bu tarih için plan yok.</div>';
-             }
-             return;
-         }
- 
-         let html = '';
- 
-       // 1. ANA HEDEFLERİ EKRANA YAZDIR
+    }
+
+    // renderEvents'ten ayrılan: 'Ana Hedef' (highlight) kartlarının HTML'ini üretir.
+    // Faz S devamı, dev fonksiyon refactoru.
+    function _evBuildHighlightHtml(highlightList) {
+        let html = '';
        highlightList.forEach(hl => {
          const isCompleted = hl.data.completed;
          const hlDateStr = hl.date;
@@ -331,24 +337,24 @@ import {
          if (hl.data.parentGoal) {
              const pg = getGoalsRef().find(g => String(g.id) === String(hl.data.parentGoal));
              if (pg) {
-                 parentBadgeHTML = `<span style="font-size:10px; background:rgba(108,92,231,0.15); color:#a29bfe; padding:3px 10px; border-radius:20px; border:1px solid rgba(108,92,231,0.3); display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-mountain-sun"></i> ${escapeHtml(pg.title)}</span>`;
+                 parentBadgeHTML = `<span class="u-font-size-10px_background-rgba108922310p15_color-ha29bfe_p"><i class="fa-solid fa-mountain-sun"></i> ${escapeHtml(pg.title)}</span>`;
              }
          }
 
          html += `
-         <li style="list-style:none; margin-bottom:16px;">
+         <li class="u-list-style-none_margin-bottom-16px">
              <div class="cal-highlight-card ${isCompleted ? 'cal-highlight-done' : ''}">
                  <div class="cal-highlight-top">
                      <div class="cal-highlight-icon-wrap">
                          <i class="fa-solid fa-star"></i>
                      </div>
-                     <div style="flex:1; min-width:0;">
-                         <div style="font-size:10px; font-weight:700; letter-spacing:1.5px; color:#ff9f43; text-transform:uppercase; margin-bottom:5px;">✦ Günün Odak Hedefi</div>
-                         <div style="font-size:15px; font-weight:700; color:${isCompleted ? 'var(--text-muted)' : '#fff'}; ${isCompleted ? 'text-decoration:line-through; opacity:0.6;' : ''} line-height:1.4; word-break:break-word;">${hl.data.text}</div>
-                         <div style="margin-top:8px; display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
-                             <span style="font-size:10px; background:rgba(255,255,255,0.05); color:var(--text-muted); padding:2px 8px; border-radius:20px; border:1px solid rgba(255,255,255,0.08);"><i class="fa-regular fa-calendar" style="margin-right:4px;"></i>${shortDate}</span>
+                     <div class="u-flex-1_min-width-0">
+                         <div class="u-font-size-10px_font-weight-700_letter-spacing-1p5px_color-">✦ Günün Odak Hedefi</div>
+                         <div class="cal-highlight-text u-font-size-15px_font-weight-700_line-height-1p4_word-break-" data-completed="${isCompleted ? '1' : '0'}">${hl.data.text}</div>
+                         <div class="u-margin-top-8px_display-flex_gap-6px_flex-wrap-wrap_align-i">
+                             <span class="u-font-size-10px_background-rgba2552552550p05_color-var-text"><i class="fa-regular fa-calendar u-margin-right-4px" ></i>${shortDate}</span>
                              ${parentBadgeHTML}
-                             ${isCompleted ? '<span style="font-size:10px; background:rgba(46,213,115,0.15); color:#2ed573; padding:2px 10px; border-radius:20px; border:1px solid rgba(46,213,115,0.3); display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-check"></i> Tamamlandı</span>' : ''}
+                             ${isCompleted ? '<span class="u-font-size-10px_background-rgba462131150p15_color-h2ed573_p"><i class="fa-solid fa-circle-check"></i> Tamamlandı</span>' : ''}
                          </div>
                      </div>
                      <button class="cal-highlight-check-btn ${isCompleted ? 'done' : ''}" data-action="toggle-highlight-task" data-date="${hlDateStr}" title="${isCompleted ? 'Geri al' : 'Tamamla'}">
@@ -358,7 +364,12 @@ import {
              </div>
          </li>`;
          });
- 
+        return html;
+    }
+
+    // renderEvents'ten ayrılan: yatay alışkanlık bandını render eder (kendi DOM'una yazar).
+    // Faz S devamı, dev fonksiyon refactoru.
+    function _evRenderHabitsBand(dayHabits, check, searchQuery) {
         // 2. ALIŞKANLIKLARI YATAY BANDA YAZDIR (YENİ)
         const calHabitsBand = document.getElementById('calendar-habits-band');
         const calHabitsList = document.getElementById('calendar-habits-list');
@@ -374,53 +385,68 @@ import {
                     const isFutureDate = check > todayStrForHabit; 
                     const clickAttr = isFutureDate ? '' : `data-action="toggle-habit-today" data-id="${habit.id}" data-date="${check}"`;
                     
-                    let checkIcon = isCompleted ? '<i class="fa-solid fa-circle-check" style="color: #2ed573; font-size: 16px;"></i>' : 
-                                   (isFutureDate ? '<i class="fa-solid fa-lock" style="color: var(--text-muted); opacity: 0.6; font-size: 16px;"></i>' : '<i class="fa-regular fa-circle" style="color: var(--text-muted); font-size: 16px;"></i>');
+                    let checkIcon = isCompleted ? '<i class="fa-solid fa-circle-check u-color-h2ed573_font-size-16px-2" ></i>' : 
+                                   (isFutureDate ? '<i class="fa-solid fa-lock u-color-var-text-muted_opacity-0p6_font-size-16px" ></i>' : '<i class="fa-regular fa-circle u-color-var-text-muted_font-size-16px" ></i>');
  
                     habitsHTML += `
-                    <div class="cal-habit-band-card ${isCompleted ? 'completed' : ''}" ${clickAttr} ${isFutureDate ? 'style="opacity:0.6; cursor:not-allowed;"' : ''}>
+                    <div class="cal-habit-band-card ${isCompleted ? 'completed' : ''}" ${clickAttr} data-future="${isFutureDate ? '1' : '0'}">
                         <div>${checkIcon}</div>
-                        <div style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; font-weight: 500; ${isCompleted ? 'text-decoration:line-through; opacity:0.7;' : 'color:#fff;'}">${escapeHtml(habit.name)}</div>
+                        <div class="cal-habit-band-name u-flex-1_overflow-hidden_text-overflow-ellipsis_white-space-" data-completed="${isCompleted ? '1' : '0'}">${escapeHtml(habit.name)}</div>
                     </div>`;
                 });
                 calHabitsList.innerHTML = habitsHTML;
+                calHabitsList.querySelectorAll('.cal-habit-band-card[data-future="1"]').forEach(el => {
+                    el.style.opacity = '0.6';
+                    el.style.cursor = 'not-allowed';
+                });
+                calHabitsList.querySelectorAll('.cal-habit-band-name').forEach(el => {
+                    if (el.dataset.completed === '1') {
+                        el.style.textDecoration = 'line-through';
+                        el.style.opacity = '0.7';
+                    } else {
+                        el.style.color = '#fff';
+                    }
+                });
             } else {
                 calHabitsBand.style.display = 'none';
                 calHabitsList.innerHTML = '';
             }
         }
- 
-         // 3. GÖREVLERİ EKRANA YAZDIR
-         html += dayEvents.map((ev) => {
+    }
+
+    // renderEvents'ten ayrılan: görev/milestone timeline kartlarının HTML'ini üretir.
+    // Faz S devamı, dev fonksiyon refactoru.
+    function _evBuildEventsHtml(dayEvents, check) {
+         return dayEvents.map((ev) => {
              // F1.2 — Planlama milestone event'leri özel render
              if (ev.isMilestone) {
                  const msId = ev.id.replace('ms_cal_', '');
                  const mColor = ev.milestoneColor || '#a78bfa';
                  const planningGoals = (typeof FocusStorage !== 'undefined')
                      ? FocusStorage.get('planning_goals', [])
-                     : JSON.parse(localStorage.getItem('planning_goals') || '[]');
+                     : JSON.parse(localStorage.getItem('planning_goals') || '[]', window._safeJsonReviver);
                  let msDone = false;
                  for (const g of planningGoals) {
                      const ms = (g.milestones || []).find(m => m.id === msId);
                      if (ms) { msDone = !!ms.done; break; }
                  }
                  return `
-                 <li class="cal-event-item${msDone ? ' completed' : ''}" style="--pColor:${mColor};">
-                     <div class="tc-time-pill" style="color:${mColor};border-color:${mColor}44;">
+                 <li class="cal-event-item${msDone ? ' completed' : ''}" data-ms-color="${mColor}">
+                     <div class="tc-time-pill" data-ms-color-text="${mColor}">
                          <i class="fa-solid fa-flag-checkered"></i> Milestone
                      </div>
-                     <div class="timeline-card" style="border-color:${mColor}33;">
-                         <div class="tc-glow-bar" style="background:${mColor};"></div>
+                     <div class="timeline-card" data-ms-color-border33="${mColor}">
+                         <div class="tc-glow-bar" data-ms-color-bg="${mColor}"></div>
                          <div class="tc-inner">
-                             <div class="tc-checkbox${msDone ? ' tc-checked' : ''}" style="${msDone ? 'background:'+mColor+';border-color:'+mColor+';' : 'border-color:'+mColor+';'}"
+                             <div class="tc-checkbox${msDone ? ' tc-checked' : ''}" data-ms-checkbox-color="${mColor}" data-ms-done="${msDone ? '1' : '0'}"
                                   data-action="toggle-planning-milestone" data-id="${ev.id}">
                                  ${msDone ? '<i class="fa-solid fa-check"></i>' : ''}
                              </div>
                              <div class="tc-content">
-                                 <div class="tc-title${msDone ? ' tc-done' : ''}" style="color:${msDone ? 'rgba(255,255,255,.4)' : '#fff'};">${ev.text}</div>
+                                 <div class="tc-title${msDone ? ' tc-done' : ''}" data-ms-done="${msDone ? '1' : '0'}">${ev.text}</div>
                                  <div class="tc-meta">
-                                     <span class="tc-badge" style="background:${mColor}18;color:${mColor};border:1px solid ${mColor}44;"><i class="fa-solid fa-flag-checkered"></i> Dönüm Noktası</span>
-                                     <span class="tc-badge" style="cursor:pointer;opacity:.6;" data-action="switch-tab-planlama">Planlamaya Git →</span>
+                                     <span class="tc-badge" data-ms-color-badge="${mColor}"><i class="fa-solid fa-flag-checkered"></i> Dönüm Noktası</span>
+                                     <span class="tc-badge u-cursor-pointer_opacity-p6" data-action="switch-tab-planlama">Planlamaya Git →</span>
                                  </div>
                              </div>
                          </div>
@@ -443,7 +469,7 @@ import {
              let parentBadgeHTML = '';
              if (ev.parentHabit) {
                  const ph = getHabitsRef().find(h => String(h.id) === String(ev.parentHabit));
-                 if (ph) parentBadgeHTML = `<span class="parent-habit-badge" style="font-size:10px; padding:2px 8px;"><i class="fa-solid fa-bullseye"></i> ${escapeHtml(ph.name)}</span>`;
+                 if (ph) parentBadgeHTML = `<span class="parent-habit-badge u-font-size-10px_padding-2px8px" ><i class="fa-solid fa-bullseye"></i> ${escapeHtml(ph.name)}</span>`;
              }
 
              const priorityColors = { 'high': '#ff4757', 'medium': '#ff9f43', 'low': '#2ed573' };
@@ -470,14 +496,70 @@ import {
                          </div>
                          <div class="tc-actions">
                              <i class="fa-solid fa-grip-vertical tc-drag-icon" title="Sürükle & Taşı"></i>
-                             <button class="tc-edit-btn" data-action="edit-task" data-id="${ev.id}" title="Düzenle"><i class="fa-solid fa-pen"></i></button>
-                             <button class="tc-del-btn" data-action="delete-task" data-id="${ev.id}" data-date="${evDate}" title="Sil"><i class="fa-solid fa-trash-can"></i></button>
+                             <button class="tc-edit-btn" data-action="edit-task" data-id="${ev.id}" title="Düzenle" aria-label="Düzenle"><i class="fa-solid fa-pen"></i></button>
+                             <button class="tc-del-btn" data-action="delete-task" data-id="${ev.id}" data-date="${evDate}" title="Sil" aria-label="Sil"><i class="fa-solid fa-trash-can"></i></button>
                          </div>
                      </div>
                  </div>
              </li>`;
          }).join('');
- 
+    }
+
+    export function renderEvents() {
+        const { check, searchQuery, filterValue, dayEvents, dayHabits, highlightList } = _evComputeDayItems();
+
+        _evUpdateProgressRing(check, dayEvents, dayHabits, highlightList);
+
+         if (dayEvents.length === 0 && dayHabits.length === 0 && highlightList.length === 0) {
+             if (searchQuery !== '' || filterValue !== 'all') {
+                 window.eventList.innerHTML = '<div class="empty-state">Arama kriterlerine uygun plan bulunamadı.</div>';
+             } else {
+                 window.eventList.innerHTML = '<div class="empty-state">Bu tarih için plan yok.</div>';
+             }
+             return;
+         }
+
+        let html = _evBuildHighlightHtml(highlightList);
+
+        _evRenderHabitsBand(dayHabits, check, searchQuery);
+
+        html += _evBuildEventsHtml(dayEvents, check);
+
          window.eventList.innerHTML = html;
+
+        window.eventList.querySelectorAll('.cal-highlight-text[data-completed]').forEach(el => {
+            const done = el.dataset.completed === '1';
+            el.style.color = done ? 'var(--text-muted)' : '#fff';
+            if (done) { el.style.textDecoration = 'line-through'; el.style.opacity = '0.6'; }
+        });
+        window.eventList.querySelectorAll('[data-ms-color]').forEach(el => {
+            el.style.setProperty('--pColor', el.dataset.msColor);
+        });
+        window.eventList.querySelectorAll('[data-ms-color-text]').forEach(el => {
+            const c = el.dataset.msColorText;
+            el.style.color = c;
+            el.style.borderColor = c + '44';
+        });
+        window.eventList.querySelectorAll('[data-ms-color-border33]').forEach(el => {
+            el.style.borderColor = el.dataset.msColorBorder33 + '33';
+        });
+        window.eventList.querySelectorAll('[data-ms-color-bg]').forEach(el => {
+            el.style.background = el.dataset.msColorBg;
+        });
+        window.eventList.querySelectorAll('[data-ms-checkbox-color]').forEach(el => {
+            const c = el.dataset.msCheckboxColor;
+            if (el.dataset.msDone === '1') { el.style.background = c; el.style.borderColor = c; }
+            else { el.style.borderColor = c; }
+        });
+        window.eventList.querySelectorAll('.tc-title[data-ms-done]').forEach(el => {
+            el.style.color = el.dataset.msDone === '1' ? 'rgba(255,255,255,.4)' : '#fff';
+        });
+        window.eventList.querySelectorAll('[data-ms-color-badge]').forEach(el => {
+            const c = el.dataset.msColorBadge;
+            el.style.background = c + '18';
+            el.style.color = c;
+            el.style.border = `1px solid ${c}44`;
+        });
+
          _initCalEventListDnD(check);
-     }
+    }

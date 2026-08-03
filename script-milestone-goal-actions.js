@@ -12,15 +12,24 @@
 // script.js'ten SONRA, orijinal DOMContentLoaded zamanlamasını korumak
 // için kendi DOMContentLoaded sarmalayıcısında yüklenir.
 // ============================================================
-(function () {
-'use strict';
+import { formatDateToString, toInputDate, fromInputDate, timeToMins, addOneHour } from './script-date-time-utils.js';
+import { generateId } from './storage-manager.js';
+import { renderGoals } from './script-goal-modal.js';
+import {
+    showPremiumModal, hasTimeConflict, addGlobalTask, updateGoalDetailsUI,
+    checkGoalDateBoundaries, renderTasks, renderCalendarRef, renderEventsRef, getGoalsRef,
+    getNextAvailableTimeSlot
+} from './script.js';
+
+export let editMilestone, deleteMilestone;
+
 document.addEventListener('DOMContentLoaded', () => {
 
      // --- Aşama (Milestone) Aksiyon Fonksiyonları ---
 
- 
-     window.editMilestone = function(goalId, milestoneId) {
-         const goals = window.__getGoalsRef();
+
+     editMilestone = function(goalId, milestoneId) {
+         const goals = getGoalsRef();
          const goal = goals.find(g => String(g.id) === String(goalId));
          if (!goal || !goal.milestones) return;
          const ms = goal.milestones.find(m => String(m.id) === String(milestoneId));
@@ -48,13 +57,16 @@ document.addEventListener('DOMContentLoaded', () => {
          msMetaEl.style.display = 'none';
  
          const editWrapper = document.createElement('div');
-         editWrapper.style.cssText = 'display:flex; flex-direction:column; gap:6px; width:100%;';
+         editWrapper.style.display = 'flex';
+         editWrapper.style.flexDirection = 'column';
+         editWrapper.style.gap = '6px';
+         editWrapper.style.width = '100%';
          editWrapper.innerHTML = `
-             <input class="ms-edit-input premium-input" type="text" value="${escapeHtml(currentText)}" style="font-size:13px; padding:6px 10px; width:100%; box-sizing:border-box;">
-             <div style="display:flex; gap:6px; align-items:center;">
+             <input class="ms-edit-input premium-input u-font-size-13px_padding-6px10px_width-100pct_box-sizing-bor" type="text" value="${escapeHtml(currentText)}" >
+             <div class="u-display-flex_gap-6px_align-items-center">
                  <input class=\"ms-edit-date premium-input\" type=\"date\" value=\"${currentDate}\" ${goal.createdAt ? `min="${new Date(goal.createdAt).toISOString().split('T')[0]}"` : ''} ${goal.deadline ? `max="${goal.deadline.split('-')[0].length===4 ? goal.deadline : goal.deadline.split('-').reverse().join('-')}"` : ''} style=\"font-size:12px; padding:5px 8px; flex:1; color:#fff; cursor:pointer;\">
-                 <button class="ms-edit-save primary-btn" style="padding:5px 12px; font-size:12px; background:rgba(9,132,227,0.2); border-color:rgba(9,132,227,0.4); color:#74b9ff; white-space:nowrap;"><i class="fa-solid fa-check"></i> Kaydet</button>
-                 <button class="ms-edit-cancel ms-delete-btn" style="opacity:1; width:auto; padding:5px 10px; font-size:12px;"><i class="fa-solid fa-xmark"></i></button>
+                 <button class="ms-edit-save primary-btn u-padding-5px12px_font-size-12px_background-rgba91322270p2_b" ><i class="fa-solid fa-check"></i> Kaydet</button>
+                 <button class="ms-edit-cancel ms-delete-btn u-opacity-1_width-auto_padding-5px10px_font-size-12px"  aria-label="İptal"><i class="fa-solid fa-xmark"></i></button>
              </div>
          `;
  
@@ -125,8 +137,8 @@ document.addEventListener('DOMContentLoaded', () => {
          editWrapper.querySelector('.ms-edit-input').focus();
      };
  
-     window.deleteMilestone = function(goalId, milestoneId) {
-         const goals = window.__getGoalsRef();
+     deleteMilestone = function(goalId, milestoneId) {
+         const goals = getGoalsRef();
          const goal = goals.find(g => String(g.id) === String(goalId));
          if(goal && goal.milestones) {
              goal.milestones = goal.milestones.filter(m => m.id !== milestoneId);
@@ -138,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
    // Görev Ekle butonuna tıklanınca modalı aç
    document.getElementById('detail-add-task-btn').addEventListener('click', () => {
      const goalId = document.getElementById('detail-active-goal-id').value;
-     const goals = window.__getGoalsRef();
+     const goals = getGoalsRef();
      const goal = goals.find(g => String(g.id) === String(goalId));
  
      // Modal başlığını güncelle
@@ -233,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
              }
 
              // --- AKSİYON PLANI ANA HEDEF TARİH SINIRLARI DENETİMİ (YENİ ENGELLEME) ---
-                if (goalId && dateStr && !window.checkGoalDateBoundaries(goalId, dateStr)) {
+                if (goalId && dateStr && !checkGoalDateBoundaries(goalId, dateStr)) {
                     return; // Eğer tarih hedefin sınırları dışındaysa görevi eklemez, işlemi tamamen durdurur!
                 }
 
@@ -253,10 +265,10 @@ document.addEventListener('DOMContentLoaded', () => {
              input.focus();
 
              updateGoalDetailsUI(goalId);
-             window.renderTasks();
+             renderTasks();
              if (typeof renderGoals === 'function') renderGoals();
-             if (typeof window.renderCalendarRef === 'function') window.renderCalendarRef();
-             if (typeof window.renderEventsRef === 'function') window.renderEventsRef();
+             if (typeof renderCalendarRef === 'function') renderCalendarRef();
+             if (typeof renderEventsRef === 'function') renderEventsRef();
          }
      };
  
@@ -301,7 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
      // Dönüm Noktası Ekle butonuna tıklanınca modalı aç
      document.getElementById('detail-add-milestone-btn').addEventListener('click', () => {
          const goalId = document.getElementById('detail-active-goal-id').value;
-         const goals = window.__getGoalsRef();
+         const goals = getGoalsRef();
          const goal = goals.find(g => String(g.id) === String(goalId));
          const goalNameEl = document.getElementById('add-milestone-modal-goal-name');
          if (goalNameEl && goal) goalNameEl.textContent = goal.title;
@@ -336,7 +348,15 @@ document.addEventListener('DOMContentLoaded', () => {
                          if (isStart || isEnd) { dayElem.style.background = `${range.color}55`; dayElem.style.border = `1px solid ${range.color}`; }
                          if (isEnd) {
                              const dot = document.createElement('span');
-                             dot.style.cssText = `display:block;width:5px;height:5px;border-radius:50%;background:${range.color};position:absolute;bottom:2px;left:50%;transform:translateX(-50%);`;
+                             dot.style.display = 'block';
+                             dot.style.width = '5px';
+                             dot.style.height = '5px';
+                             dot.style.borderRadius = '50%';
+                             dot.style.background = range.color;
+                             dot.style.position = 'absolute';
+                             dot.style.bottom = '2px';
+                             dot.style.left = '50%';
+                             dot.style.transform = 'translateX(-50%)';
                              dayElem.style.position = 'relative';
                              dayElem.appendChild(dot);
                          }
@@ -405,19 +425,28 @@ document.addEventListener('DOMContentLoaded', () => {
                      };
                      const sLabel = _fmtDisp(ms.startDate);
                      const eLabel = _fmtDisp(ms.date);
-                     const done = ms.completed ? 'opacity:.45;text-decoration:line-through;' : '';
-                     return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;${done}">
-                         <div style="width:10px;height:10px;border-radius:50%;background:${c};flex-shrink:0;"></div>
-                         <span style="font-size:12px;color:#fff;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(ms.text)}</span>
-                         <span style="font-size:11px;color:rgba(255,255,255,0.4);white-space:nowrap;">${sLabel} → ${eLabel}</span>
-                         ${ms.completed ? '<span style="font-size:10px;color:#2ed573;">✓</span>' : ''}
+                     return `<div class="mga-occ-row u-display-flex_align-items-center_gap-8px_padding-5px0" data-occ-idx="${i}" >
+                         <div class="mga-occ-dot u-width-10px_height-10px_border-radius-50pct_flex-shrink-0" ></div>
+                         <span class="u-font-size-12px_color-hfff_flex-1_min-width-0_white-space-n">${escapeHtml(ms.text)}</span>
+                         <span class="u-font-size-11px_color-rgba2552552550p4_white-space-nowrap">${sLabel} → ${eLabel}</span>
+                         ${ms.completed ? '<span class="u-font-size-10px_color-h2ed573">✓</span>' : ''}
                      </div>`;
                  }).join('');
                  occupiedEl.innerHTML = `
-                     <div style="border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:10px 14px;background:rgba(0,0,0,0.2);">
-                         <div style="font-size:10px;font-weight:700;letter-spacing:.6px;color:rgba(255,255,255,0.35);text-transform:uppercase;margin-bottom:8px;"><i class="fa-solid fa-flag-checkered" style="margin-right:5px;color:#0984e3;opacity:.7;"></i>Mevcut Dönüm Noktaları</div>
+                     <div class="u-border-1pxsolidrgba2552552550p07_border-radius-10px_paddin">
+                         <div class="u-font-size-10px_font-weight-700_letter-spacing-p6px_color-r"><i class="fa-solid fa-flag-checkered u-margin-right-5px_color-h0984e3_opacity-p7" ></i>Mevcut Dönüm Noktaları</div>
                          ${items}
                      </div>`;
+                 occupiedEl.querySelectorAll('.mga-occ-row').forEach(row => {
+                     const i = parseInt(row.dataset.occIdx, 10);
+                     const ms = msList[i];
+                     if (ms.completed) {
+                         row.style.opacity = '.45';
+                         row.style.textDecoration = 'line-through';
+                     }
+                     const dot = row.querySelector('.mga-occ-dot');
+                     if (dot) dot.style.background = colors[i % colors.length];
+                 });
                  occupiedEl.style.display = 'block';
              } else {
                  occupiedEl.style.display = 'none';
@@ -445,7 +474,7 @@ document.addEventListener('DOMContentLoaded', () => {
          const text = input.value.trim();
          const selectedStart = startInput ? startInput.value : '';
          const selectedDate = dateInput ? dateInput.value : '';
-         const goals = window.__getGoalsRef();
+         const goals = getGoalsRef();
          const goal = goals.find(g => String(g.id) === String(goalId));
  
          if (!text) {
@@ -507,7 +536,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             document.getElementById('add-milestone-modal').classList.add('hidden');
             updateGoalDetailsUI(goalId);
-            if (typeof window.renderTasks === 'function') window.renderTasks();
+            if (typeof renderTasks === 'function') renderTasks();
             if (typeof renderGoals === 'function') renderGoals();
         }
      };
@@ -522,4 +551,3 @@ document.addEventListener('DOMContentLoaded', () => {
  
 
 });
-})();

@@ -1,7 +1,7 @@
 // ─── GRUP ODAK OVERLAY — SAF RENDER YARDIMCILARI ──────────────────────
 // social.js dosyasından çıkarıldı (Faz 2, 2026-07-19). İkisi de sadece
 // parametre + DOM kullanıyor, paylaşılan sohbet/oturum state'ine dokunmuyor.
-function gfRenderMetroTimeline(rounds, activeIndex, focusMin, breakMin) {
+export function gfRenderMetroTimeline(rounds, activeIndex, focusMin, breakMin) {
     const track = document.getElementById('gf-metro-track');
     if (!track) return;
     // Tur sayısına göre boyut sınıfı uygula
@@ -24,7 +24,7 @@ function gfRenderMetroTimeline(rounds, activeIndex, focusMin, breakMin) {
             : '<i class="fa-solid fa-mug-hot"></i>';
         html += `<div class="gf-metro-station ${st.type} ${stateClass}" data-idx="${idx}">
             <div class="gf-metro-dot">${icon}</div>
-            <div class="gf-metro-label">${st.label}<br><span style="font-weight:400;opacity:.7">${st.sub}</span></div>
+            <div class="gf-metro-label">${st.label}<br><span class="u-font-weight-400_opacity-p7">${st.sub}</span></div>
         </div>`;
         if (idx < stations.length - 1) {
             const railClass = isDone ? 'done' : 'ahead';
@@ -39,7 +39,7 @@ function gfRenderMetroTimeline(rounds, activeIndex, focusMin, breakMin) {
 window.gfRenderMetroTimeline = gfRenderMetroTimeline;
 
 // ── Katılımcı grid — "Birlikte Çalışalım" odasındaki kartlarla birebir aynı ──
-function gfRenderParticipants(people) {
+export function gfRenderParticipants(people) {
     const pcountEl = document.getElementById('gf-pcount');
     const listEl = document.getElementById('gf-participants');
     if (!pcountEl || !listEl) return;
@@ -54,7 +54,7 @@ window.gfRenderParticipants = gfRenderParticipants;
 
 // ── İlerleme halkası + geri sayım metni ──
 const GF_RING_CIRCUMFERENCE = 816.8;
-function gfUpdateRing(remainingMs, totalMs) {
+export function gfUpdateRing(remainingMs, totalMs) {
     const ring = document.getElementById('gf-progress-ring');
     const minEl = document.getElementById('gf-minutes');
     const secEl = document.getElementById('gf-seconds');

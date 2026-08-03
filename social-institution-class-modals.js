@@ -10,10 +10,13 @@
 //
 // Dış bağımlılıklar (hepsi window.* üzerinden, gerçek import gerektirmiyor):
 // window.FocusSupabase, window.dcShowToast, window.showFocusaiConfirm,
-// window._escapeHtml, window.currentUser.
+// window._escapeHtml, getCurrentUser().
 //
 // Bu dosyadaki fonksiyonlar social-institution-panel.js'in geri kalanı
 // (renderClassroomTab) tarafından gerçek ES `import` ile kullanılıyor.
+
+import { getCurrentUser } from './state/current-user-store.js';
+import { generateGroupCode } from './social-misc-pure-utils.js';
 
        // ─── Sınıflar modalları (Yeni Sınıf / Sınıf Detayı) ──────────────
        // Bu iki modal index.html'de sabit (panel yeniden render olsa da DOM'dan
@@ -28,9 +31,9 @@
            if (!listEl) return;
            listEl.innerHTML = members.length
                ? members.map(m => `
-                   <div class="cp-inst-class-member-row" data-user-id="${m.userId}" style="display:flex; align-items:center; justify-content:space-between; gap:8px; padding:6px 4px; border-bottom:1px solid rgba(255,255,255,0.05);">
-                       <span style="font-size:12.5px; color:#fff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${window._escapeHtml(m.displayName)}</span>
-                       <button class="cp-classdetail-member-remove-btn control-btn secondary" data-user-id="${m.userId}" data-name="${window._escapeHtml(m.displayName)}" style="font-size:11px; padding:3px 8px; flex-shrink:0;" title="Sınıftan çıkar"><i class="fa-solid fa-user-xmark"></i></button>
+                   <div class="cp-inst-class-member-row u-display-flex_align-items-center_justify-content-space-betw-14" data-user-id="${m.userId}" >
+                       <span class="u-font-size-12p5px_color-hfff_overflow-hidden_text-overflow-">${window._escapeHtml(m.displayName)}</span>
+                       <button class="cp-classdetail-member-remove-btn control-btn secondary u-font-size-11px_padding-3px8px_flex-shrink-0" data-user-id="${m.userId}" data-name="${window._escapeHtml(m.displayName)}" title="Sınıftan çıkar" aria-label="Sınıftan çıkar"><i class="fa-solid fa-user-xmark"></i></button>
                    </div>`).join('')
                : `<p class="cp-hint">Henüz öğrenci yok — yukarıdan ekleyebilirsin.</p>`;
            // Bu liste modal açıkken sık sık yeniden çiziliyor (innerHTML ile) — bu yüzden
@@ -83,16 +86,16 @@
                    try {
                        let newGroup = null;
                        for (let attempt = 0; attempt < 5; attempt++) {
-                           const code = window.generateGroupCode();
+                           const code = generateGroupCode();
                            const { data: g, error } = await window.FocusSupabase.from('groups').insert({
                                code, name: className, classroom_type: 'classroom', institution_id: institutionId,
-                               created_by: window.currentUser.id,
+                               created_by: getCurrentUser().id,
                            }).select().single();
                            if (!error) { newGroup = g; break; }
                            if (error.code !== '23505') throw error;
                        }
                        if (!newGroup) throw new Error('Sınıf kodu üretilemedi, tekrar dene.');
-                       await window.FocusSupabase.from('group_members').insert({ group_id: newGroup.id, user_id: window.currentUser.id, role: 'admin' });
+                       await window.FocusSupabase.from('group_members').insert({ group_id: newGroup.id, user_id: getCurrentUser().id, role: 'admin' });
                        await window.FocusSupabase.from('group_custom_roles').insert([
                            { group_id: newGroup.id, name: 'Öğretmen', color: '00b894', manage_rooms: true, kick_members: true, lock_rooms: true, assign_roles: true, priority: 200 },
                            { group_id: newGroup.id, name: 'Öğrenci', color: '74b9ff', manage_rooms: false, kick_members: false, lock_rooms: false, assign_roles: false, priority: 50 }
@@ -135,7 +138,7 @@
            }
            if (name !== 'builder') {
                const titleEl = document.getElementById('cp-schedule-modal-title');
-               if (titleEl) titleEl.innerHTML = '<i class="fa-solid fa-calendar-days" style="color:#4ecdc4;"></i> Ders Programı';
+               if (titleEl) titleEl.innerHTML = '<i class="fa-solid fa-calendar-days u-color-h4ecdc4" ></i> Ders Programı';
            }
        }
 
@@ -150,13 +153,13 @@
            const groupId = window._cpSchedState.groupId;
            const secId = (sectionId && sectionId !== '__general__') ? sectionId : null;
            let q = window.FocusSupabase.from('group_schedule_programs').select('*')
-               .eq('group_id', groupId).eq('created_by', window.currentUser.id).eq('status', 'draft');
+               .eq('group_id', groupId).eq('created_by', getCurrentUser().id).eq('status', 'draft');
            q = secId ? q.eq('class_section_id', secId) : q.is('class_section_id', null);
            const { data: existing } = await q.order('created_at', { ascending: false }).limit(1).maybeSingle();
            if (existing) return existing;
            const { data: created, error } = await window.FocusSupabase
                .from('group_schedule_programs')
-               .insert({ group_id: groupId, class_section_id: secId, created_by: window.currentUser.id, status: 'draft' })
+               .insert({ group_id: groupId, class_section_id: secId, created_by: getCurrentUser().id, status: 'draft' })
                .select().single();
            if (error) { window.dcShowToast('Taslak oluşturulamadı: ' + error.message, 'error'); return null; }
            return created;
@@ -164,9 +167,9 @@
 
        export async function _cpSchedUpdateTemplatesCount() {
            const el = document.getElementById('cp-sched-templates-count');
-           if (!el || !window.FocusSupabase || !window.currentUser?.id) return;
+           if (!el || !window.FocusSupabase || !getCurrentUser()?.id) return;
            const { count } = await window.FocusSupabase
-               .from('schedule_templates').select('id', { count: 'exact', head: true }).eq('owner_id', window.currentUser.id);
+               .from('schedule_templates').select('id', { count: 'exact', head: true }).eq('owner_id', getCurrentUser().id);
            el.textContent = count || 0;
        }
 
@@ -180,9 +183,9 @@
            const listEl = document.getElementById('cp-sched-classpick-list');
            if (!listEl) return;
            listEl.innerHTML = window._cpSchedState.classes.map(c => `
-               <button type="button" class="glass-panel cp-sched-classpick-card" data-id="${c.id}" data-name="${window._escapeHtml(c.name)}" style="padding:12px 8px; border:1px solid rgba(255,255,255,0.07); border-radius:10px; text-align:center; cursor:pointer; background:rgba(255,255,255,0.03); color:inherit; font:inherit;">
-                   <i class="fa-solid fa-chalkboard" style="color:#4ecdc4; font-size:16px; margin-bottom:4px; display:block;"></i>
-                   <div style="font-weight:600; color:#fff; font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${window._escapeHtml(c.name)}</div>
+               <button type="button" class="glass-panel cp-sched-classpick-card u-padding-12px8px_border-1pxsolidrgba2552552550p07_border-ra" data-id="${c.id}" data-name="${window._escapeHtml(c.name)}" >
+                   <i class="fa-solid fa-chalkboard u-color-h4ecdc4_font-size-16px_margin-bottom-4px_display-blo" ></i>
+                   <div class="u-font-weight-600_color-hfff_font-size-12px_overflow-hidden_">${window._escapeHtml(c.name)}</div>
                </button>`).join('');
            listEl.querySelectorAll('.cp-sched-classpick-card').forEach(btn => {
                btn.addEventListener('click', () => _cpSchedShowSource({ id: btn.dataset.id, name: btn.dataset.name }));
@@ -199,16 +202,16 @@
        export async function _cpSchedShowTemplatePickForApply() {
            _cpSchedShowStep('templatepick');
            const listEl = document.getElementById('cp-sched-templatepick-list');
-           if (!listEl || !window.FocusSupabase || !window.currentUser?.id) return;
+           if (!listEl || !window.FocusSupabase || !getCurrentUser()?.id) return;
            listEl.innerHTML = '<p class="cp-hint">Yükleniyor…</p>';
            const { data: templates } = await window.FocusSupabase
-               .from('schedule_templates').select('id, name').eq('owner_id', window.currentUser.id).order('created_at', { ascending: false });
+               .from('schedule_templates').select('id, name').eq('owner_id', getCurrentUser().id).order('created_at', { ascending: false });
            if (!templates || !templates.length) {
                listEl.innerHTML = '<p class="cp-hint">Henüz şablonun yok — önce ana ekrandan "Şablon Oluştur" ile bir tane hazırla.</p>';
                return;
            }
            listEl.innerHTML = templates.map(t => `
-               <button type="button" class="control-btn secondary cp-sched-template-apply-btn" data-id="${t.id}" data-name="${window._escapeHtml(t.name)}" style="width:100%; justify-content:space-between; font-size:12.5px;">
+               <button type="button" class="control-btn secondary cp-sched-template-apply-btn u-width-100pct_justify-content-space-between_font-size-12p5p" data-id="${t.id}" data-name="${window._escapeHtml(t.name)}" >
                    <span><i class="fa-solid fa-copy"></i> ${window._escapeHtml(t.name)}</span> <i class="fa-solid fa-arrow-right"></i>
                </button>`).join('');
            listEl.querySelectorAll('.cp-sched-template-apply-btn').forEach(btn => {
@@ -223,7 +226,7 @@
                            .from('schedule_template_slots').select('day_of_week, time_start, time_end, subject').eq('template_id', btn.dataset.id);
                        if (slots && slots.length) {
                            await window.FocusSupabase.from('group_class_schedule').insert(
-                               slots.map(s => ({ program_id: program.id, group_id: window._cpSchedState.groupId, day_of_week: s.day_of_week, time_start: s.time_start, time_end: s.time_end, subject: s.subject, created_by: window.currentUser.id }))
+                               slots.map(s => ({ program_id: program.id, group_id: window._cpSchedState.groupId, day_of_week: s.day_of_week, time_start: s.time_start, time_end: s.time_end, subject: s.subject, created_by: getCurrentUser().id }))
                            );
                        }
                        window.dcShowToast(`"${btn.dataset.name}" şablonu "${cls.name}" sınıfına taslak olarak uygulandı.`, 'success');
@@ -246,10 +249,10 @@
        export async function _cpSchedShowTemplatesList() {
            _cpSchedShowStep('templateslist');
            const listEl = document.getElementById('cp-sched-templateslist-list');
-           if (!listEl || !window.FocusSupabase || !window.currentUser?.id) return;
+           if (!listEl || !window.FocusSupabase || !getCurrentUser()?.id) return;
            listEl.innerHTML = '<p class="cp-hint">Yükleniyor…</p>';
            const { data: templates } = await window.FocusSupabase
-               .from('schedule_templates').select('id, name').eq('owner_id', window.currentUser.id).order('created_at', { ascending: false });
+               .from('schedule_templates').select('id, name').eq('owner_id', getCurrentUser().id).order('created_at', { ascending: false });
            if (!templates || !templates.length) {
                listEl.innerHTML = '<p class="cp-hint">Henüz şablonun yok.</p>';
                return;
@@ -259,12 +262,12 @@
            const countByTemplate = {};
            (allSlots || []).forEach(s => { countByTemplate[s.template_id] = (countByTemplate[s.template_id] || 0) + 1; });
            listEl.innerHTML = templates.map(t => `
-               <div class="cp-asg-card" style="display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 12px;">
-                   <span style="font-size:12.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"><i class="fa-solid fa-copy" style="color:#4ecdc4;"></i> ${window._escapeHtml(t.name)} <span class="cp-hint">· ${countByTemplate[t.id] || 0} ders</span></span>
-                   <div style="display:flex; gap:6px; flex-shrink:0;">
-                       <button class="control-btn secondary cp-sched-tpl-edit-btn" data-id="${t.id}" data-name="${window._escapeHtml(t.name)}" style="font-size:11px; padding:4px 8px;" title="Düzenle"><i class="fa-solid fa-pen"></i></button>
-                       <button class="control-btn secondary cp-sched-tpl-apply-btn" data-id="${t.id}" data-name="${window._escapeHtml(t.name)}" style="font-size:11px; padding:4px 8px;" title="Bir sınıfa uygula"><i class="fa-solid fa-share"></i></button>
-                       <button class="control-btn secondary cp-sched-tpl-del-btn" data-id="${t.id}" data-name="${window._escapeHtml(t.name)}" style="font-size:11px; padding:4px 8px;" title="Sil"><i class="fa-solid fa-trash-can"></i></button>
+               <div class="cp-asg-card u-display-flex_align-items-center_justify-content-space-betw-15" >
+                   <span class="u-font-size-12p5px_overflow-hidden_text-overflow-ellipsis_wh"><i class="fa-solid fa-copy u-color-h4ecdc4" ></i> ${window._escapeHtml(t.name)} <span class="cp-hint">· ${countByTemplate[t.id] || 0} ders</span></span>
+                   <div class="u-display-flex_gap-6px_flex-shrink-0">
+                       <button class="control-btn secondary cp-sched-tpl-edit-btn u-font-size-11px_padding-4px8px" data-id="${t.id}" data-name="${window._escapeHtml(t.name)}" title="Düzenle" aria-label="Düzenle"><i class="fa-solid fa-pen"></i></button>
+                       <button class="control-btn secondary cp-sched-tpl-apply-btn u-font-size-11px_padding-4px8px" data-id="${t.id}" data-name="${window._escapeHtml(t.name)}" title="Bir sınıfa uygula" aria-label="Bir sınıfa uygula"><i class="fa-solid fa-share"></i></button>
+                       <button class="control-btn secondary cp-sched-tpl-del-btn u-font-size-11px_padding-4px8px" data-id="${t.id}" data-name="${window._escapeHtml(t.name)}" title="Sil" aria-label="Sil"><i class="fa-solid fa-trash-can"></i></button>
                    </div>
                </div>`).join('');
            listEl.querySelectorAll('.cp-sched-tpl-edit-btn').forEach(btn => {
@@ -277,9 +280,9 @@
                    const listEl2 = document.getElementById('cp-sched-classpick-list');
                    if (!listEl2) return;
                    listEl2.innerHTML = window._cpSchedState.classes.map(c => `
-                       <button type="button" class="glass-panel cp-sched-classpick-card" data-id="${c.id}" data-name="${window._escapeHtml(c.name)}" style="padding:12px 8px; border:1px solid rgba(255,255,255,0.07); border-radius:10px; text-align:center; cursor:pointer; background:rgba(255,255,255,0.03); color:inherit; font:inherit;">
-                           <i class="fa-solid fa-chalkboard" style="color:#4ecdc4; font-size:16px; margin-bottom:4px; display:block;"></i>
-                           <div style="font-weight:600; color:#fff; font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${window._escapeHtml(c.name)}</div>
+                       <button type="button" class="glass-panel cp-sched-classpick-card u-padding-12px8px_border-1pxsolidrgba2552552550p07_border-ra" data-id="${c.id}" data-name="${window._escapeHtml(c.name)}" >
+                           <i class="fa-solid fa-chalkboard u-color-h4ecdc4_font-size-16px_margin-bottom-4px_display-blo" ></i>
+                           <div class="u-font-weight-600_color-hfff_font-size-12px_overflow-hidden_">${window._escapeHtml(c.name)}</div>
                        </button>`).join('');
                    listEl2.querySelectorAll('.cp-sched-classpick-card').forEach(cardBtn => {
                        cardBtn.addEventListener('click', async () => {
@@ -292,7 +295,7 @@
                                .from('schedule_template_slots').select('day_of_week, time_start, time_end, subject').eq('template_id', tpl.id);
                            if (slots && slots.length) {
                                await window.FocusSupabase.from('group_class_schedule').insert(
-                                   slots.map(s => ({ program_id: program.id, group_id: window._cpSchedState.groupId, day_of_week: s.day_of_week, time_start: s.time_start, time_end: s.time_end, subject: s.subject, created_by: window.currentUser.id }))
+                                   slots.map(s => ({ program_id: program.id, group_id: window._cpSchedState.groupId, day_of_week: s.day_of_week, time_start: s.time_start, time_end: s.time_end, subject: s.subject, created_by: getCurrentUser().id }))
                                );
                            }
                            window.dcShowToast(`"${tpl.name}" şablonu "${cls.name}" sınıfına taslak olarak uygulandı.`, 'success');
@@ -348,8 +351,8 @@
                        <div class="cp-sched-slot-time">${(r.time_start || '').slice(0,5)}–${(r.time_end || '').slice(0,5)}</div>
                        <div class="cp-sched-slot-subject">${window._escapeHtml(r.subject)}</div>
                        <span class="cp-sched-slot-actions">
-                           <button class="cp-sched-slot-edit cp-schedule-modal-slot-edit" data-id="${r.id}" data-day="${r.day_of_week}" data-start="${(r.time_start||'').slice(0,5)}" data-end="${(r.time_end||'').slice(0,5)}" data-subject="${window._escapeHtml(r.subject)}" title="Düzenle"><i class="fa-solid fa-pen"></i></button>
-                           <button class="cp-sched-slot-del cp-schedule-modal-slot-del" data-id="${r.id}" title="Sil"><i class="fa-solid fa-xmark"></i></button>
+                           <button class="cp-sched-slot-edit cp-schedule-modal-slot-edit" data-id="${r.id}" data-day="${r.day_of_week}" data-start="${(r.time_start||'').slice(0,5)}" data-end="${(r.time_end||'').slice(0,5)}" data-subject="${window._escapeHtml(r.subject)}" title="Düzenle" aria-label="Düzenle"><i class="fa-solid fa-pen"></i></button>
+                           <button class="cp-sched-slot-del cp-schedule-modal-slot-del" data-id="${r.id}" title="Sil" aria-label="Sil"><i class="fa-solid fa-xmark"></i></button>
                        </span>
                    </div>`).join('') : `<div class="cp-sched-day-empty">—</div>`}
                </div>`;
@@ -399,11 +402,11 @@
            if (titleEl) {
                if (target.groupId) {
                    const badge = target.programStatus === 'published'
-                       ? `<span style="font-size:10.5px; font-weight:600; padding:2px 8px; border-radius:20px; background:rgba(46,204,113,0.15); color:#2ecc71; margin-left:8px;"><i class="fa-solid fa-circle-check"></i> Yayında</span>`
-                       : `<span style="font-size:10.5px; font-weight:600; padding:2px 8px; border-radius:20px; background:rgba(255,193,7,0.15); color:#ffc107; margin-left:8px;"><i class="fa-solid fa-pen"></i> Taslak</span>`;
-                   titleEl.innerHTML = `<i class="fa-solid fa-chalkboard" style="color:#4ecdc4;"></i> ${window._escapeHtml(target.groupName)} — Ders Programı ${badge}`;
+                       ? `<span class="u-font-size-10p5px_font-weight-600_padding-2px8px_border-rad"><i class="fa-solid fa-circle-check"></i> Yayında</span>`
+                       : `<span class="u-font-size-10p5px_font-weight-600_padding-2px8px_border-rad-2"><i class="fa-solid fa-pen"></i> Taslak</span>`;
+                   titleEl.innerHTML = `<i class="fa-solid fa-chalkboard u-color-h4ecdc4" ></i> ${window._escapeHtml(target.groupName)} — Ders Programı ${badge}`;
                } else {
-                   titleEl.innerHTML = `<i class="fa-solid fa-copy" style="color:#4ecdc4;"></i> ${window._escapeHtml(target.templateName)} — Şablon`;
+                   titleEl.innerHTML = `<i class="fa-solid fa-copy u-color-h4ecdc4" ></i> ${window._escapeHtml(target.templateName)} — Şablon`;
                }
            }
            const publishBtn = document.getElementById('cp-sched-publish-btn');
@@ -427,7 +430,7 @@
            const modal = document.getElementById('cp-schedule-view-modal');
            const titleEl = document.getElementById('cp-schedule-view-modal-title');
            const gridEl = document.getElementById('cp-schedule-view-modal-grid');
-           if (titleEl) titleEl.innerHTML = `<i class="fa-solid fa-calendar-days" style="color:#4ecdc4;"></i> ${window._escapeHtml(groupName)} — Ders Programı`;
+           if (titleEl) titleEl.innerHTML = `<i class="fa-solid fa-calendar-days u-color-h4ecdc4" ></i> ${window._escapeHtml(groupName)} — Ders Programı`;
            if (gridEl) gridEl.innerHTML = '<p class="cp-hint">Yükleniyor…</p>';
            modal?.classList.remove('hidden');
            if (modal && !modal.dataset.bound) {
@@ -454,20 +457,9 @@
            }).join('');
        }
 
-       export function _cpOpenScheduleModal(classes, subjectOptions, onAdded, groupId) {
-           window._cpSchedState.classes = classes || [];
-           window._cpSchedState.onAdded = onAdded;
-           window._cpSchedState.groupId = groupId;
-           window._cpSchedState.pendingClass = null;
-           window._cpSchedState.target = null;
-           const modal = document.getElementById('cp-schedule-modal');
-           const datalistEl = document.getElementById('cp-schedule-modal-subject-list');
-           if (datalistEl) datalistEl.innerHTML = (subjectOptions || []).map(s => `<option value="${window._escapeHtml(s)}">`).join('');
-           modal?.classList.remove('hidden');
-           _cpSchedShowChoice();
-
-           if (modal && !modal.dataset.bound) {
-               modal.dataset.bound = '1';
+       // _cpOpenScheduleModal'ın tek-seferlik olay bağlama katmanı — modal DOM'a zaten
+       // eklenmiş olmalı. Faz S devamı, dev fonksiyon refactoru.
+       function _cpWireScheduleModalEvents(modal) {
                // Ders eklerken/silerken alttaki Sınıf Paneli'ni her seferinde tam yeniden
                // render etmek (renderClassroomTab) sayfa yenileniyormuş gibi göz kırpıyordu
                // (bkz. kullanıcı geri bildirimi) — bu yüzden panel, modal içindeki her
@@ -512,7 +504,7 @@
                    btn.disabled = true;
                    try {
                        const { data: tpl, error } = await window.FocusSupabase
-                           .from('schedule_templates').insert({ owner_id: window.currentUser.id, name }).select().single();
+                           .from('schedule_templates').insert({ owner_id: getCurrentUser().id, name }).select().single();
                        if (error) { if (status) status.textContent = 'Oluşturulamadı: ' + error.message; return; }
                        _cpSchedShowBuilder({ templateId: tpl.id, templateName: tpl.name });
                    } finally {
@@ -561,7 +553,7 @@
                                .eq('id', editingId));
                        } else {
                            const row = target.groupId
-                               ? { program_id: target.programId, group_id: target.groupId, day_of_week: day, time_start: start, time_end: end, subject, created_by: window.currentUser.id }
+                               ? { program_id: target.programId, group_id: target.groupId, day_of_week: day, time_start: start, time_end: end, subject, created_by: getCurrentUser().id }
                                : { template_id: target.templateId, day_of_week: day, time_start: start, time_end: end, subject };
                            ({ error } = await window.FocusSupabase.from(table).insert(row));
                        }
@@ -613,6 +605,23 @@
                        publishBtn.disabled = false;
                    }
                });
+       }
+
+       export function _cpOpenScheduleModal(classes, subjectOptions, onAdded, groupId) {
+           window._cpSchedState.classes = classes || [];
+           window._cpSchedState.onAdded = onAdded;
+           window._cpSchedState.groupId = groupId;
+           window._cpSchedState.pendingClass = null;
+           window._cpSchedState.target = null;
+           const modal = document.getElementById('cp-schedule-modal');
+           const datalistEl = document.getElementById('cp-schedule-modal-subject-list');
+           if (datalistEl) datalistEl.innerHTML = (subjectOptions || []).map(s => `<option value="${window._escapeHtml(s)}">`).join('');
+           modal?.classList.remove('hidden');
+           _cpSchedShowChoice();
+
+           if (modal && !modal.dataset.bound) {
+               modal.dataset.bound = '1';
+               _cpWireScheduleModalEvents(modal);
            }
        }
 
@@ -625,7 +634,7 @@
            const titleEl = document.getElementById('cp-classdetail-modal-title');
            const statusEl = document.getElementById('cp-classdetail-add-status');
            const uInput = document.getElementById('cp-classdetail-add-username');
-           if (titleEl) titleEl.innerHTML = `<i class="fa-solid fa-chalkboard-user" style="color:#4ecdc4;"></i> ${window._escapeHtml(groupName)}`;
+           if (titleEl) titleEl.innerHTML = `<i class="fa-solid fa-chalkboard-user u-color-h4ecdc4" ></i> ${window._escapeHtml(groupName)}`;
            if (statusEl) statusEl.textContent = '';
            if (uInput) uInput.value = '';
            _cpRenderClassDetailMembers(members);
@@ -754,7 +763,7 @@
            const st = window._cpSectionDetailState;
            if (!st) return;
            const titleEl = document.getElementById('cp-section-detail-modal-title');
-           if (titleEl) titleEl.innerHTML = `<i class="fa-solid fa-chalkboard" style="color:#4ecdc4;"></i> ${window._escapeHtml(st.sectionName)}`;
+           if (titleEl) titleEl.innerHTML = `<i class="fa-solid fa-chalkboard u-color-h4ecdc4" ></i> ${window._escapeHtml(st.sectionName)}`;
            const countEl = document.getElementById('cp-section-detail-student-count');
            if (countEl) countEl.textContent = `(${(st.students || []).length})`;
            const studentsEl = document.getElementById('cp-section-detail-students');
@@ -762,28 +771,28 @@
                studentsEl.innerHTML = (st.students && st.students.length) ? st.students.map(m => `
                    <div class="cp-roster-row">
                        <span class="cp-roster-row-name">${window._escapeHtml(m.displayName)}</span>
-                       <button type="button" class="cp-section-detail-unassign-btn cp-roster-iconbtn" data-user-id="${m.userId}" data-name="${window._escapeHtml(m.displayName)}" title="Şubeden çıkar"><i class="fa-solid fa-right-from-bracket"></i></button>
-                   </div>`).join('') : `<p class="cp-hint" style="margin:0;">Bu şubede henüz ${st.memberLabel.toLowerCase()} yok.</p>`;
+                       <button type="button" class="cp-section-detail-unassign-btn cp-roster-iconbtn" data-user-id="${m.userId}" data-name="${window._escapeHtml(m.displayName)}" title="Şubeden çıkar" aria-label="Şubeden çıkar"><i class="fa-solid fa-right-from-bracket"></i></button>
+                   </div>`).join('') : `<p class="cp-hint u-margin-0" >Bu şubede henüz ${st.memberLabel.toLowerCase()} yok.</p>`;
            }
            const schedEl = document.getElementById('cp-section-detail-schedule');
            if (schedEl) {
                const info = st.scheduleInfo;
                if (info && info.hasPublished) {
                    schedEl.innerHTML = `
-                   <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); border-radius:10px; padding:10px 14px;">
-                       <span style="font-size:12.5px; font-weight:600; color:#2ecc71;"><i class="fa-solid fa-circle-check"></i> Yayında</span>
-                       <span style="display:flex; gap:6px;">
+                   <div class="u-display-flex_align-items-center_justify-content-space-betw-4">
+                       <span class="u-font-size-12p5px_font-weight-600_color-h2ecc71"><i class="fa-solid fa-circle-check"></i> Yayında</span>
+                       <span class="u-display-flex_gap-6px">
                            <button type="button" class="cp-section-detail-sched-view cp-roster-pillbtn" data-program-id="${info.program.id}">Görüntüle</button>
-                           <button type="button" class="cp-section-detail-sched-del cp-roster-iconbtn cp-roster-iconbtn--danger" data-program-id="${info.program.id}" title="Sil"><i class="fa-solid fa-trash-can"></i></button>
+                           <button type="button" class="cp-section-detail-sched-del cp-roster-iconbtn cp-roster-iconbtn--danger" data-program-id="${info.program.id}" title="Sil" aria-label="Sil"><i class="fa-solid fa-trash-can"></i></button>
                        </span>
                    </div>`;
                } else if (info && info.draftProgram) {
                    schedEl.innerHTML = `
-                   <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); border-radius:10px; padding:10px 14px;">
-                       <span style="font-size:12.5px; font-weight:600; color:#ffc107;"><i class="fa-solid fa-pen"></i> Taslak</span>
-                       <span style="display:flex; gap:6px;">
+                   <div class="u-display-flex_align-items-center_justify-content-space-betw-4">
+                       <span class="u-font-size-12p5px_font-weight-600_color-hffc107"><i class="fa-solid fa-pen"></i> Taslak</span>
+                       <span class="u-display-flex_gap-6px">
                            <button type="button" class="cp-section-detail-sched-edit cp-roster-pillbtn" data-program-id="${info.draftProgram.id}">Devam Et</button>
-                           <button type="button" class="cp-section-detail-sched-del cp-roster-iconbtn cp-roster-iconbtn--danger" data-program-id="${info.draftProgram.id}" title="Sil"><i class="fa-solid fa-trash-can"></i></button>
+                           <button type="button" class="cp-section-detail-sched-del cp-roster-iconbtn cp-roster-iconbtn--danger" data-program-id="${info.draftProgram.id}" title="Sil" aria-label="Sil"><i class="fa-solid fa-trash-can"></i></button>
                        </span>
                    </div>`;
                } else {

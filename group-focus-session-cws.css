@@ -1,0 +1,483 @@
+/* Ortak Odaklanma — Katılımcılar + Mola Sohbeti (.cws-) — style.css'ten çıkarıldı */
+
+/* ===== Katılımcılar Bölümü ===== */
+/* ── GRUP ODAKLANMASI — Katılımcılar (bireysel zamanlayıcının altına eklenen grup-özel parça) ── */
+.cws-participants-section { margin-bottom: 36px; text-align: center; }
+.cws-pcount-label { font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 14px; }
+.cws-participants-grid { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; max-width: 420px; }
+.cws-participant-chip {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px; padding: 6px 14px;
+    font-size: 12px; color: #fff;
+    animation: chipIn 0.3s ease;
+}
+@keyframes chipIn {
+    from { opacity: 0; transform: scale(0.8); }
+    to   { opacity: 1; transform: scale(1); }
+}
+.cws-participant-avatar {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--primary-color);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700; flex-shrink: 0;
+}
+
+/* ═══════════════════════════════════════════════
+   ☕  MOLA SOHBETİ PANEL
+═══════════════════════════════════════════════ */
+.cws-break-chat {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(360px, 92vw);
+    max-height: none;
+    background: rgba(12, 10, 35, 0.97);
+    border: 1px solid rgba(116,185,255,0.25);
+    border-left: 1px solid rgba(116,185,255,0.25);
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: -20px 0 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04);
+    opacity: 0;
+    transform: translateX(100%);
+    pointer-events: none;
+    transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    z-index: 60;
+}
+.cws-break-chat.visible {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: all;
+}
+.cws-bc-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 9px 12px;
+    background: rgba(116,185,255,0.08);
+    border-bottom: 1px solid rgba(116,185,255,0.15);
+    flex-shrink: 0;
+    cursor: grab;
+    user-select: none;
+}
+.cws-bc-header:active { cursor: grabbing; }
+.cws-bc-header-left { display: flex; align-items: center; gap: 8px; }
+.cws-bc-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #74b9ff;
+    box-shadow: 0 0 8px rgba(116,185,255,0.8);
+    animation: bcPulse 1.5s infinite;
+}
+@keyframes bcPulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.3); opacity: 0.7; }
+}
+.cws-bc-title { font-size: 13px; font-weight: 700; color: #74b9ff; }
+.cws-bc-badge {
+    font-size: 10px; font-weight: 600;
+    background: rgba(116,185,255,0.15);
+    color: #74b9ff;
+    border: 1px solid rgba(116,185,255,0.3);
+    padding: 2px 8px; border-radius: 20px;
+}
+.cws-break-chat-messages {
+    flex: 1; overflow-y: auto; padding: 8px 10px;
+    display: flex; flex-direction: column; gap: 5px;
+    min-height: 80px;
+}
+.cws-break-chat-messages::-webkit-scrollbar { width: 3px; }
+.cws-break-chat-messages::-webkit-scrollbar-track { background: transparent; }
+.cws-break-chat-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+.cws-bc-empty {
+    text-align: center; color: var(--text-muted);
+    font-size: 12px; margin: auto; padding: 16px;
+}
+.cws-bc-msg {
+    max-width: 85%;
+    display: flex; flex-direction: column; gap: 2px;
+    align-self: flex-start;
+    animation: bcMsgIn 0.25s ease;
+}
+.cws-bc-msg.mine { align-self: flex-end; }
+@keyframes bcMsgIn {
+    from { opacity:0; transform: translateY(6px); }
+    to   { opacity:1; transform: translateY(0); }
+}
+.cws-bc-name {
+    font-size: 10px; font-weight: 600;
+    color: #74b9ff; padding-left: 4px;
+}
+.cws-bc-text {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px 12px 12px 3px;
+    padding: 7px 11px; font-size: 12px; color: #fff;
+    line-height: 1.4; display: block;
+}
+.cws-bc-msg.mine .cws-bc-text {
+    background: rgba(116,185,255,0.18);
+    border-color: rgba(116,185,255,0.3);
+    border-radius: 12px 12px 3px 12px;
+}
+.cws-bc-input-row {
+    display: flex; gap: 6px; padding: 7px 10px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    flex-shrink: 0;
+}
+.cws-bc-input {
+    flex: 1; background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px; padding: 8px 12px;
+    color: #fff; font-size: 12px; outline: none;
+    transition: border-color 0.2s;
+}
+.cws-bc-input:focus { border-color: rgba(116,185,255,0.5); }
+.cws-bc-input::placeholder { color: var(--text-muted); }
+.cws-bc-send-btn {
+    width: 34px; height: 34px; border-radius: 10px;
+    background: rgba(116,185,255,0.15);
+    border: 1px solid rgba(116,185,255,0.3);
+    color: #74b9ff; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; transition: all 0.2s; flex-shrink: 0;
+}
+.cws-bc-send-btn:hover { background: rgba(116,185,255,0.3); transform: scale(1.05); }
+
+/* ===== Ortak Odaklanma Mod Seçici Butonları (.scw-mode-btn, .bf-) ===== */
+.scw-mode-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.scw-mode-btn.active {
+    background: var(--primary-color);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(212, 144, 14, 0.4);
+}
+
+/* ── Detaylı Süre Ayarlama (gf-* Odak Arayüzü) ── */
+.bf-mode-pills {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.bf-mode-btn {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.bf-mode-btn:hover {
+    color: #fff;
+    border-color: rgba(255,255,255,0.2);
+}
+
+.bf-mode-btn.active {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(212, 144, 14, 0.4);
+}
+
+
+
+
+
+
+
+.bf-settings-group {
+    width: 100%;
+    margin-bottom: 16px;
+    text-align: left;
+}
+
+
+
+.bf-settings-toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    color: #fff;
+    font-size: 13px;
+}
+
+.bf-settings-toggle-row:last-child {
+    border-bottom: none;
+}
+
+.bf-switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 22px;
+    flex-shrink: 0;
+}
+
+.bf-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.bf-switch-slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background: rgba(255,255,255,0.12);
+    border-radius: 22px;
+    transition: background 0.2s ease;
+}
+
+.bf-switch-slider::before {
+    content: "";
+    position: absolute;
+    height: 16px;
+    width: 16px;
+    left: 3px;
+    bottom: 3px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.2s ease;
+}
+
+.bf-switch input:checked + .bf-switch-slider {
+    background: var(--primary-color);
+}
+
+.bf-switch input:checked + .bf-switch-slider::before {
+    transform: translateX(18px);
+}
+
+/* ──────────────────────────────────────────────────────
+   YUMUŞAK AŞAMA GEÇİŞ EKRANI — "☕ Mola Zamanı!" / "🧠 Odaklanma Başlıyor!"
+   şeklinde tüm overlay'i kısa süreliğine kaplayan splash animasyonu
+   ────────────────────────────────────────────────────── */
+.bf-phase-transition {
+    position: absolute; inset: 0; z-index: 50;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+    background: rgba(8, 6, 20, 0.88);
+    backdrop-filter: blur(10px);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.45s ease;
+}
+.bf-phase-transition.visible { opacity: 1; pointer-events: auto; }
+.bf-phase-transition.hidden { display: none !important; }
+.bf-phase-transition-emoji {
+    font-size: 64px;
+    animation: bfPhaseEmojiPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.bf-phase-transition-text {
+    font-size: 22px; font-weight: 800; color: #fff;
+    letter-spacing: 0.3px;
+    text-shadow: 0 4px 24px rgba(212,144,14,0.4);
+    animation: bfPhaseTextRise 0.5s ease-out 0.1s both;
+}
+@keyframes bfPhaseEmojiPop {
+    0%   { transform: scale(0.3) rotate(-12deg); opacity: 0; }
+    60%  { transform: scale(1.18) rotate(4deg); opacity: 1; }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+@keyframes bfPhaseTextRise {
+    from { transform: translateY(14px); opacity: 0; }
+    to   { transform: translateY(0); opacity: 1; }
+}
+
+/* ===== Ortak Odaklanma Çalışma Durum Kartı (.scw-status-card, .scw-ctrl-btn) ===== */
+/* Çalışma Durum Kartı */
+.scw-status-card {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+}
+
+.scw-status-card.solo-mode {
+    color: rgba(255,255,255,0.55);
+    background: rgba(212, 144, 14, 0.1);
+    border: 1px dashed rgba(212, 144, 14, 0.3);
+}
+
+.scw-status-card.pair-mode {
+    color: #2ed573;
+    background: rgba(46, 213, 115, 0.1);
+    border: 1px solid rgba(46, 213, 115, 0.3);
+    /* Seans boyunca (25dk+) sürdüğü için düşük genlik + yavaş tempo:
+       "yanımda biri çalışıyor" bilgisini verir, uyarı gibi çakmaz. */
+    animation: pulseGlow 4s infinite ease-in-out;
+}
+
+/* Büyük Dijital Süre Göstergesi */
+
+
+/* Saniyede bir sonsuza dek titreyen iki nokta üst üste hiçbir bilgi
+   taşımıyordu (rakamlar zaten değişiyor) — tüm seans boyunca (25dk+)
+   süren, salt dekoratif bir "sürekli uyaran"dı. Sabit bırakıldı;
+   eşli çalışma anında zaten .scw-status-card.pair-mode kendi (yavaşlatılmış,
+   anlamlı) titreşimiyle "canlı" sinyalini veriyor. */
+
+
+/* Kontrol Butonları Satırı */
+
+
+
+
+.scw-ctrl-btn.primary {
+    background: linear-gradient(135deg, #D4900E, #D4900E);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(212, 144, 14, 0.3);
+}
+
+.scw-ctrl-btn.secondary {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-muted);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.scw-ctrl-btn.danger {
+    width: auto;
+    border-radius: 8px;
+    padding: 0 14px;
+    font-size: 12px;
+    font-weight: 600;
+    background: rgba(255, 71, 87, 0.1);
+    color: #ff4757;
+    border: 1px solid rgba(255, 71, 87, 0.2);
+}
+
+
+
+.scw-ctrl-btn.primary:hover {
+    box-shadow: 0 6px 16px rgba(212,144,14,0.5);
+}
+
+.scw-ctrl-btn.secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.scw-ctrl-btn.danger:hover {
+    background: #ff4757;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(255, 71, 87, 0.3);
+}
+
+/* ===== Grup Odak Overlay — Ana Konteyner + Mod Davranışları (#group-focus-overlay) ===== */
+#group-focus-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10100;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    background: var(--bg-color, #0b0a17);
+    overflow-y: auto;
+    padding: 30px 20px;
+}
+#group-focus-overlay.visible { display: flex; }
+
+#group-focus-overlay.group-focus-mode-active {
+    background-color: #05040f;
+}
+
+/* Odak modunda sadece başlık metni gizlenir, butonlar kalır */
+#group-focus-overlay.group-focus-mode-active .section-header {
+    display: flex !important;
+    background: transparent !important;
+    border-bottom: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+#group-focus-overlay.group-focus-mode-active .section-header .header-text {
+    display: none !important;
+}
+
+/* Odak modunda motivasyon sözleri her zaman görünür */
+#group-focus-overlay.group-focus-mode-active .focus-quote {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    color: rgba(255, 255, 255, 0.75);
+}
+
+#group-focus-overlay.group-focus-mode-active .timer-container {
+    transform: scale(1.05);
+    transition: all 0.6s ease;
+}
+
+/* Odak modunda mola sohbeti her zaman görünebilir (CSS tarafından engellenmez) */
+#group-focus-overlay.group-focus-mode-active .cws-break-chat.visible {
+    display: flex !important;
+}
+
+#group-focus-overlay.group-ghost-mode-active {
+    cursor: none !important;
+}
+/* Ghost modda header tamamen gizli kalır (focus-mode-active'den miras) */
+#group-focus-overlay.group-ghost-mode-active .section-header {
+    display: none;
+}
+#group-focus-overlay.group-ghost-mode-active .timer-modes,
+#group-focus-overlay.group-ghost-mode-active #gf-round-counter,
+#group-focus-overlay.group-ghost-mode-active .timer-controls,
+#group-focus-overlay.group-ghost-mode-active .active-focus-task,
+#group-focus-overlay.group-ghost-mode-active #gf-active-task-selector,
+#group-focus-overlay.group-ghost-mode-active .cws-participants-section,
+#group-focus-overlay.group-ghost-mode-active .gf-metro-settings-row {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-10px);
+    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+/* Metro hattı ghost modda görünür kalır */
+#group-focus-overlay.group-ghost-mode-active .gf-metro-wrapper {
+    opacity: 1 !important;
+    pointer-events: none;
+    transform: none !important;
+    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+#group-focus-overlay.group-ghost-mode-active .timer-container {
+    transform: scale(1.1);
+    transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#group-focus-overlay.group-ghost-mode-active .focus-quote {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    font-size: 17px;
+    color: rgba(255, 255, 255, 0.85);
+    margin-bottom: 45px;
+    text-shadow: 0 4px 20px rgba(0,0,0,0.6);
+    letter-spacing: 0.5px;
+}
+
+/* Ghost modda mola sohbeti görünür kalır */
+#group-focus-overlay.group-ghost-mode-active .cws-break-chat.visible {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transform: none !important;
+}

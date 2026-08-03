@@ -1,0 +1,245 @@
+/* style.css'ten çıkarıldı (Faz C, 2026-07-22). Flatpickr input hizalama düzeltmesi + Özel Saat Seçici (.custom-time-*, .time-*, .premium-time-slot, .num-btn) + Görev listesi öncelik/silme ikonları (.task-item, .priority-low, .delete-icon-btn, .icon-btn, .primary-btn). */
+
+/* Flatpickr, orijinal input[type=date]'i gizleyip yerine bir "altInput" (görünen metin kutusu)
+   ekliyor; bu altInput orijinalin class'ını devralıyor ama inline style'ını (örn. width:100%,
+   padding, font-size) devralmıyor. Sonuç: takvim kutusu, yanındaki select/input'lardan hem
+   daha dar hem daha kısa (padding'siz) görünüyordu. */
+input.flatpickr-input + input.form-control {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 10px 14px !important;
+    font-size: 13px !important;
+}
+
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    opacity: 0.6;
+    cursor: pointer;
+    transition: 0.3s;
+}
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.premium-time-slot {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 6px 12px;
+    border-radius: 12px;
+    border: 1px solid var(--glass-border);
+}
+
+.time-slot-icon {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-right: 2px;
+}
+
+.custom-time-wrapper {
+    position: relative;
+}
+
+.time-box {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 4px 12px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 65px;
+    user-select: none;
+}
+
+.time-box:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(212,144,14,0.5);
+    box-shadow: 0 0 10px rgba(212, 144, 14, 0.2);
+}
+
+.time-box.active {
+    background: var(--primary-color);
+    color: #fff;
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 15px rgba(212, 144, 14, 0.4);
+}
+
+.time-display {
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.custom-time-dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 50%;
+    width: 90px;
+    max-height: 200px;
+    overflow-y: auto;
+    list-style: none;
+    padding: 5px;
+    margin: 0;
+    z-index: 1000;
+
+    background: rgba(15, 12, 41, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+
+    opacity: 0;
+    visibility: hidden;
+    transform: translate(-50%, -10px);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.custom-time-dropdown.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, 0);
+}
+
+.custom-time-option {
+    padding: 8px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: 0.2s;
+    margin-bottom: 2px;
+}
+
+.custom-time-option:hover {
+    background: rgba(212, 144, 14, 0.3);
+    color: #fff;
+}
+
+.custom-time-option.selected {
+    background: var(--primary-color);
+    color: #fff;
+}
+
+.custom-time-dropdown::-webkit-scrollbar { width: 4px; }
+.custom-time-dropdown::-webkit-scrollbar-track { background: transparent; }
+.custom-time-dropdown::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; }
+
+.time-divider {
+    color: var(--text-muted);
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.premium-time-slot:hover .time-divider {
+    color: var(--primary-color);
+    transform: scale(1.1);
+}
+
+
+
+
+
+.no-spinners::-webkit-outer-spin-button,
+.no-spinners::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    appearance: none;
+    margin: 0;
+}
+.no-spinners {
+    -moz-appearance: textfield;
+}
+
+
+
+.num-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: #fff;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: 0.3s;
+    font-size: 12px;
+}
+
+.num-btn:hover {
+    background: var(--primary-color);
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(212, 144, 14, 0.4);
+}
+
+
+
+.primary-btn {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+}
+
+.primary-btn:hover {
+    background: #5a4bcf;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(212, 144, 14, 0.4);
+}
+
+.icon-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 0 5px;
+    transition: 0.3s;
+}
+.delete-icon-btn:hover { color: #ff4757; }
+.goal-archive-del-btn:hover { opacity: 1 !important; }
+#task-list { list-style: none; }
+.task-item {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    margin-bottom: 8px;
+    padding: 12px 16px;
+    border-radius: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: transform 0.2s, background 0.3s, opacity 0.2s, border 0.2s;
+    border-left: 4px solid transparent;
+}
+
+.task-item.dragging {
+    opacity: 0.5;
+    transform: scale(1.02);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+}
+.task-item.drag-over {
+    border-top: 2px dashed var(--primary-color);
+}
+
+
+
+.priority-low{border-left-color:#2ed573}

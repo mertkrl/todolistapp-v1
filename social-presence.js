@@ -1,3 +1,6 @@
+import { _resolveProfileByUsername } from './social-dc-profile-resolve.js';
+import { __getProfileIdByUsernameRef, getFriends } from './social-friends-notifications.js';
+import { getCurrentUser } from './state/current-user-store.js';
 // ─── PRESENCE (ÇEVRİMİÇİ DURUM) ────────────────────────────────────
 // social.js dosyasından çıkarıldı (Faz 6): heartbeat + hedefli polling motoru.
 //
@@ -26,7 +29,7 @@
 // - _presenceHeartbeatTick: setFocusState/setWaitingState tarafından
 //   doğrudan çağrılıyor → window._presenceHeartbeatTick köprüsü.
 // - startPresence: social.js'te 2 yerden bare çağrılıyordu → window.startPresence.
-// - window.currentUser / window.FocusSupabase / window.getFriends /
+// - getCurrentUser() / window.FocusSupabase / window.getFriends /
 //   window.__getProfileIdByUsernameRef / window.__getGscSessionsCacheRef →
 //   zaten global.
     let _presencePayload = null;
@@ -56,7 +59,7 @@
     }
 
     async function _refreshWatchedPresence() {
-        if (!window.FocusSupabase || !window.currentUser?.id) return;
+        if (!window.FocusSupabase || !getCurrentUser()?.id) return;
         // Sayfa yeni yüklendiğinde (hard refresh) _profileIdByUsername henüz boştur —
         // arkadaşların profile id'leri sadece Kişiler/DM panelleri render olunca
         // (_resolveProfileByUsername ile) dolar. O panel bu ilk tick'ten SONRA
@@ -64,22 +67,22 @@
         // "çevrimdışı" görünür. Burada arkadaş listesini doğrudan çözüp id'lerini
         // önceden garantiye alıyoruz — böylece ilk çağrıda da doğru sonuç gelir.
         try {
-            const friendUsernames = (typeof window.getFriends === 'function') ? window.getFriends() : [];
-            const missingUsernames = friendUsernames.filter(u => u && !window.__getProfileIdByUsernameRef()[u]);
+            const friendUsernames = getFriends();
+            const missingUsernames = friendUsernames.filter(u => u && !__getProfileIdByUsernameRef()[u]);
             if (missingUsernames.length) {
                 const { data: friendProfiles } = await window.FocusSupabase
                     .from('profiles').select('id, username').in('username', missingUsernames);
-                (friendProfiles || []).forEach(p => { if (p.username) window.__getProfileIdByUsernameRef()[p.username] = p.id; });
+                (friendProfiles || []).forEach(p => { if (p.username) __getProfileIdByUsernameRef()[p.username] = p.id; });
             }
         } catch (e) { /* arkadaş id çözümü başarısız olsa da presence akışı devam etsin */ }
-        registerPresenceWatchIds(Object.values(window.__getProfileIdByUsernameRef() || {}));
+        registerPresenceWatchIds(Object.values(__getProfileIdByUsernameRef() || {}));
         // `gscSessionsCache` artık social-group-details.js'te tanımlı (Faz 5
         // çıkarması) — window.__getGscSessionsCacheRef() köprüsüyle okunuyor.
         // Modül henüz yüklenmediyse (erken tetiklenme) boş nesne kullan.
         const _gscCache = typeof window.__getGscSessionsCacheRef === 'function' ? window.__getGscSessionsCacheRef() : {};
         registerPresenceWatchIds(Object.values(_gscCache).flatMap(s =>
             s.attendees ? Object.values(s.attendees).map(a => a.userId) : []));
-        _presenceWatchIds.add(window.currentUser.id);
+        _presenceWatchIds.add(getCurrentUser().id);
         const ids = [..._presenceWatchIds];
         if (!ids.length) return;
 
@@ -113,11 +116,11 @@
 
     window.startPresence = startPresence; // social.js'te 2 yerden bare çağrılıyordu
     function startPresence() {
-        if (!window.currentUser) return;
-        if (!window.FocusSupabase || !window.currentUser.id) return;
+        if (!getCurrentUser()) return;
+        if (!window.FocusSupabase || !getCurrentUser().id) return;
 
         _presencePayload = {
-            user_id: window.currentUser.id,
+            user_id: getCurrentUser().id,
             studying: false,
             focusMode: null,
             gscSessionId: null,

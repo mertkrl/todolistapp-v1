@@ -1,0 +1,40 @@
+/* style.css'ten çıkarıldı (Faz C, 2026-07-22). Sohbet Butonu Sürükleme Animasyon Patch'i (#floating-quick-add-btn transition/will-change) + Sohbet Alt Odaları Rol Yönetimi (.chat-room-pill, #live-chat-rooms-list scrollbar). */
+
+/* ============ SOHBET BUTONU PREMIUM SÜZÜLME VE KENARSA YAKINSAMA ANIMASYONLARI ============ */
+#floating-quick-add-btn {
+    /* Mevcut transition değerini eziyoruz, sürükleme esnasında koordinatların süzülmesi için transform ve konum özelliklerine cubic-bezier ekliyoruz */
+    transition: bottom 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55), transform 0.2s ease, box-shadow 0.3s ease, left 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), top 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+    will-change: transform, left, top;
+}
+
+/* Buton tutulup hareket ettirilirken (Sürükleme anında) anlık tepki vermesi için yumuşatmayı azaltan sınıf */
+
+
+/* Bırakıldığı an en yakın kenara süzülerek uçmasını sağlayan sınıfsal tetikleyici */
+
+
+/* ======================================================= */
+/* YENİ EKLENEN: SOHBET ALT ODALARI VE ROL YÖNETİM STİLLERİ */
+/* ======================================================= */
+
+/* Alt Oda Seçim Butonları (Pill) */
+
+
+
+
+.chat-room-pill.active {
+    background: linear-gradient(135deg, rgba(212,144,14,0.25), rgba(162, 155, 254, 0.25));
+    border-color: var(--primary-color);
+    color: #fff;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(212, 144, 14, 0.15);
+}
+
+/* Yatay Oda Listesi Kaydırma Çubuğu Özelleştirmesi */
+#live-chat-rooms-list::-webkit-scrollbar {
+    height: 4px;
+}
+#live-chat-rooms-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}

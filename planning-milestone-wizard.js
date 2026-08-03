@@ -1,3 +1,5 @@
+import { CATEGORIES, fmtDate, fmtShort, getCat, msUid } from './planning-utils.js';
+import { _wzBindInfoBtns } from './planning-wizard-info-tooltip.js';
 // ─── PLANLAMA — HEDEF OLUŞTURMA SİHİRBAZI (5 Adım) ─────────────────────
 // planning.js dosyasından çıkarıldı (Faz 2, 2026-07-20). Bireysel/ortak
 // hedef oluşturmanın 5 adımlı sihirbazı: 1) temel bilgiler, 2) milestone
@@ -28,7 +30,7 @@
 import {
     _wzPlannerCalHTML, _wzAllDaysInRange, _wzWeekdaysInRange, _wzWeekendsInRange,
     _wzAllWeeksInRange, _wzAllMonthsInRange, _wzPlanToolbar, _wzDailyCalHTML,
-    _wzWeeklyCalHTML, _wzMonthlyCalHTML, _wzBindPlannerCal,
+    _wzWeeklyCalHTML, _wzMonthlyCalHTML, _wzBindPlannerCal, _wzApplyPlannerCalColors,
 } from './planning-milestone-wizard-cal.js';
 
 export let wizardState  = null;
@@ -138,7 +140,7 @@ function _wzValidate(step) {
         wizardState.mode = document.querySelector('.pg-wz-mode-toggle-btn.selected')?.dataset.mode || 'solo';
         // Collab: block if no one has accepted yet
         if (wizardState.mode === 'collab') {
-            const pending = JSON.parse(localStorage.getItem('_wz_pending_collab') || '{}');
+            const pending = JSON.parse(localStorage.getItem('_wz_pending_collab') || '{}', window._safeJsonReviver);
             const session = wizardState._tempInviteCode ? pending[wizardState._tempInviteCode] : null;
             const hasAccepted = (session?.members || []).some(m => m.accepted) || wizardState._collabAccepted;
             if (!hasAccepted) {
@@ -289,7 +291,7 @@ function _wzInitCollabInvite() {
     if (!wizardState._tempInviteCode) {
         wizardState._tempInviteCode = Math.random().toString(36).slice(2, 8).toUpperCase();
         // Store pending collab session in localStorage so others can "join" via invite flow
-        const pending = JSON.parse(localStorage.getItem('_wz_pending_collab') || '{}');
+        const pending = JSON.parse(localStorage.getItem('_wz_pending_collab') || '{}', window._safeJsonReviver);
         pending[wizardState._tempInviteCode] = {
             code: wizardState._tempInviteCode,
             created: Date.now(),
@@ -327,11 +329,11 @@ function _wzInitCollabInvite() {
 function _wzRefreshCollabMembers() {
     const listEl = document.getElementById('pg-wz-collab-members-list');
     if (!listEl || !wizardState?._tempInviteCode) return;
-    const pending = JSON.parse(localStorage.getItem('_wz_pending_collab') || '{}');
+    const pending = JSON.parse(localStorage.getItem('_wz_pending_collab') || '{}', window._safeJsonReviver);
     const session = pending[wizardState._tempInviteCode] || { members: [] };
     const members = session.members || [];
     if (!members.length) {
-        listEl.innerHTML = '<div style="font-size:12px;color:#555;">Henüz katılan yok…</div>';
+        listEl.innerHTML = '<div class="u-font-size-12px_color-h555">Henüz katılan yok…</div>';
     } else {
         listEl.innerHTML = members.map(m => `
             <div class="pg-wz-collab-member-item">
@@ -351,7 +353,7 @@ function _wzRefreshCollabMembers() {
                 const members = dbMembers.filter(m => m.role !== 'owner');
                 listEl.innerHTML = members.map(m => `
                     <div class="pg-wz-collab-member-item">
-                        <div class="pg-wz-collab-member-avatar">${(m.user_id||'?')[0].toUpperCase()}</div>
+                        <div class="pg-wz-collab-member-avatar">${window.esc((m.user_id||'?')[0].toUpperCase())}</div>
                         <span>${window.esc(m.user_id)}</span>
                         <span class="pg-wz-collab-member-status accepted">Kabul etti</span>
                     </div>`).join('');
@@ -381,11 +383,16 @@ function _wzRenderCatCards(currentCat) {
     if (!grid) return;
     grid.innerHTML = window.CATEGORIES.map(cat => `
         <div class="pg-wz-cat-card${cat.id === currentCat ? ' selected' : ''}"
-            data-cat="${cat.id}" style="--cat-color:${cat.color};">
+            data-cat="${cat.id}">
             <div class="pg-wz-cat-card-icon">${cat.icon}</div>
             <div class="pg-wz-cat-card-label">${cat.label}</div>
         </div>`
     ).join('');
+
+    grid.querySelectorAll('.pg-wz-cat-card').forEach(card => {
+        const catData = window.CATEGORIES.find(c => c.id === card.dataset.cat);
+        if (catData) card.style.setProperty('--cat-color', catData.color);
+    });
 
     grid.querySelectorAll('.pg-wz-cat-card').forEach(card => {
         card.addEventListener('click', () => {
@@ -410,10 +417,14 @@ function _wzRenderPriorityBtns(current) {
     ];
     row.innerHTML = priorities.map(p => `
         <button class="pg-wz-pri-btn${p.val === current ? ' selected' : ''}"
-            data-pri="${p.val}" style="--pri-color:${p.color};" type="button">
+            data-pri="${p.val}" type="button">
             ${p.emoji} ${p.label}
         </button>`
     ).join('');
+    row.querySelectorAll('.pg-wz-pri-btn').forEach(btn => {
+        const p = priorities.find(pp => pp.val === parseInt(btn.dataset.pri));
+        if (p) btn.style.setProperty('--pri-color', p.color);
+    });
     row.querySelectorAll('.pg-wz-pri-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             row.querySelectorAll('.pg-wz-pri-btn').forEach(b => b.classList.remove('selected'));
@@ -529,7 +540,7 @@ function _wzEnsureMilestoneCount(n) {
     if (n > current) {
         for (let i = current; i < n; i++) {
             wizardState.milestones.push({
-                id: window.msUid(), title: '', icon: MS_ICONS[i % MS_ICONS.length],
+                id: msUid(), title: '', icon: MS_ICONS[i % MS_ICONS.length],
                 _tpl: null, due_date: '', _weeks: 4,
             });
         }
@@ -549,10 +560,10 @@ function _wzFlushMsInputs() {
 function _wzRenderMsNameInputs() {
     const el = document.getElementById('pg-wz-ms-inputs');
     if (!el) return;
-    const cat = window.getCat(wizardState.goal.category);
+    const cat = getCat(wizardState.goal.category);
     el.innerHTML = wizardState.milestones.map((m, i) => `
         <div class="pg-wz-ms-inp-row">
-            <div class="pg-wz-ms-inp-num" style="background:${cat.color}18;color:${cat.color};">${i + 1}</div>
+            <div class="pg-wz-ms-inp-num">${i + 1}</div>
             <span class="pg-wz-ms-inp-icon">${m.icon}</span>
             <input type="text" class="premium-input pg-wz-ms-title-inp"
                 data-ms-title-inp="${i}"
@@ -561,6 +572,10 @@ function _wzRenderMsNameInputs() {
                 maxlength="60">
         </div>`
     ).join('');
+    el.querySelectorAll('.pg-wz-ms-inp-num').forEach(numEl => {
+        numEl.style.background = cat.color + '18';
+        numEl.style.color = cat.color;
+    });
     el.querySelectorAll('[data-ms-title-inp]').forEach(inp => {
         inp.addEventListener('input', () => {
             const idx = parseInt(inp.dataset.msTitleInp);
@@ -730,6 +745,21 @@ function _wzDrawBookingCal() {
             </div>
         </div>`;
 
+    el.querySelectorAll('.pg-wz-bcal-day[data-bg-color]').forEach(dayEl => {
+        dayEl.style.background = dayEl.dataset.bgColor;
+        dayEl.style.borderRadius = dayEl.dataset.br;
+    });
+    el.querySelectorAll('.pg-wz-bcal-ms-badge[data-badge-color]').forEach(badgeEl => {
+        badgeEl.style.background = badgeEl.dataset.badgeColor;
+    });
+    el.querySelectorAll('.pg-wz-bcal-range-flag[data-flag-color]').forEach(flagEl => {
+        flagEl.style.background = flagEl.dataset.flagColor;
+    });
+    el.querySelectorAll('.pg-wz-bcal-d-num[data-endnum="1"]').forEach(numEl => {
+        numEl.style.color = '#fff';
+        numEl.style.fontWeight = '800';
+    });
+
     el.querySelector('.pg-wz-bcal-prev-btn')?.addEventListener('click', () => {
         _wzCalMonth--; if (_wzCalMonth < 0) { _wzCalMonth = 11; _wzCalYear--; }
         _wzDrawBookingCal();
@@ -804,16 +834,18 @@ function _wzRenderBookingMonth(year, month, ranges) {
             if (dateObj >= r.start && dateObj <= r.end) { rng = r; break; }
         }
 
-        let inlineStyle = '';
+        let bgColor = '', brVal = '';
         let extraHtml   = '';
         let cls = 'pg-wz-bcal-day';
         if (isToday)    cls += ' today';
         if (isPast)     cls += ' past';
         if (isAfterDl)  cls += ' past'; // aynı görsel: soluk, tıklanamaz
+        let isRangeEndDay = false;
 
         if (rng) {
             const isRangeStart = dateObj.getTime() === rng.start.getTime();
             const isRangeEnd   = dateObj.getTime() === rng.end.getTime();
+            isRangeEndDay = isRangeEnd;
             const isRowStart   = dow === 0; // Pazartesi
             const isRowEnd     = dow === 6; // Pazar
 
@@ -828,15 +860,16 @@ function _wzRenderBookingMonth(year, month, ranges) {
 
             // Aralık sonu (due date): daha koyu, rozet göster
             const bgAlpha = isRangeEnd ? 'bb' : '2e';
-            inlineStyle = `background:${rng.color}${bgAlpha};border-radius:${br};`;
+            bgColor = `${rng.color}${bgAlpha}`;
+            brVal   = br;
 
             if (isRangeEnd) {
                 cls += ' bcal-range-end';
-                extraHtml = `<div class="pg-wz-bcal-ms-badge" style="background:${rng.color};">${rng.msIdx + 1}</div>`;
+                extraHtml = `<div class="pg-wz-bcal-ms-badge" data-badge-color="${rng.color}">${rng.msIdx + 1}</div>`;
             }
             if (isRangeStart && !isRangeEnd) {
                 cls += ' bcal-range-start';
-                extraHtml = `<div class="pg-wz-bcal-range-flag" style="background:${rng.color};"></div>`;
+                extraHtml = `<div class="pg-wz-bcal-range-flag" data-flag-color="${rng.color}"></div>`;
             }
         } else if (deadlineDay === d) {
             cls += ' deadline';
@@ -847,8 +880,8 @@ function _wzRenderBookingMonth(year, month, ranges) {
         const activeMs = wizardState.milestones[_wzS3ActiveMs];
         if (activeMs?.due_date === dateStr) cls += ' active-ms';
 
-        cells += `<div class="${cls}"${!isOutOfRange ? ` data-date="${dateStr}" role="button"` : ''} style="${inlineStyle}">
-            <span class="pg-wz-bcal-d-num" style="${rng?.end.getTime()===dateObj.getTime()?`color:#fff;font-weight:800;`:''}">${d}</span>
+        cells += `<div class="${cls}"${!isOutOfRange ? ` data-date="${dateStr}" role="button"` : ''}${bgColor ? ` data-bg-color="${bgColor}" data-br="${brVal}"` : ''}>
+            <span class="pg-wz-bcal-d-num"${isRangeEndDay ? ' data-endnum="1"' : ''}>${d}</span>
             ${extraHtml}
         </div>`;
     }
@@ -897,12 +930,13 @@ function _wzDrawBookingMsList() {
         ? msList.slice(0, lastIdx).every(m => m.due_date)
         : msList.every(m => m.due_date);
     let hint = '';
+    let hintColor = '';
     if (allSet) {
         hint = `<div class="pg-wz-bms-hint done"><i class="ti ti-check"></i> Tüm bitiş tarihleri seçildi</div>`;
     } else {
         const activeMs = msList[_wzS3ActiveMs];
-        const color    = MS_RANGE_COLORS[_wzS3ActiveMs % MS_RANGE_COLORS.length];
-        hint = `<div class="pg-wz-bms-hint" style="border-color:${color}44;color:${color};">
+        hintColor      = MS_RANGE_COLORS[_wzS3ActiveMs % MS_RANGE_COLORS.length];
+        hint = `<div class="pg-wz-bms-hint">
             <i class="ti ti-calendar-event"></i>
             <strong>${window.esc(activeMs?.icon || '')} ${window.esc(activeMs?.title || '')}</strong> için bitiş tarihini seçin
         </div>`;
@@ -917,25 +951,49 @@ function _wzDrawBookingMsList() {
             const { startStr, endStr } = getMsStartEnd(i);
 
             // Aralık etiketi
-            const startLabel = startStr ? window.fmtShort(startStr) : '—';
-            const endLabel   = endStr   ? window.fmtShort(endStr)   : 'seçilmedi';
+            const startLabel = startStr ? fmtShort(startStr) : '—';
+            const endLabel   = endStr   ? fmtShort(endStr)   : 'seçilmedi';
             const rangeLabel = `${startLabel} → ${endLabel}`;
             const hasDate    = !!endStr;
 
             return `<div class="pg-wz-bms-chip${isActive ? ' active' : ''}${hasDate ? ' assigned' : ''}${isAutoLast ? ' last-ms' : ''}"
-                 data-bms="${i}"
-                 style="border-color:${isActive ? color : isAutoLast ? color+'55' : 'rgba(255,255,255,.08)'};
-                        background:${isActive ? color+'18' : isAutoLast ? color+'0a' : 'rgba(255,255,255,.03)'};">
-                <span class="pg-wz-bms-num" style="background:${color}22;color:${color};">${i + 1}</span>
+                 data-bms="${i}">
+                <span class="pg-wz-bms-num">${i + 1}</span>
                 <span class="pg-wz-bms-icon">${m.icon}</span>
                 <div class="pg-wz-bms-body">
                     <span class="pg-wz-bms-title">${window.esc(m.title)}</span>
-                    <span class="pg-wz-bms-range" style="color:${hasDate ? color : '#444'};">${rangeLabel}</span>
+                    <span class="pg-wz-bms-range">${rangeLabel}</span>
                 </div>
-                ${isAutoLast ? `<span class="pg-wz-bms-last-tag" style="color:${color};background:${color}18;">🏁 Otomatik</span>` : ''}
-                ${isActive ? `<span class="pg-wz-bms-active-dot" style="background:${color};"></span>` : ''}
+                ${isAutoLast ? `<span class="pg-wz-bms-last-tag">🏁 Otomatik</span>` : ''}
+                ${isActive ? `<span class="pg-wz-bms-active-dot"></span>` : ''}
             </div>`;
         }).join('') + `</div>`;
+
+    const hintEl = el.querySelector('.pg-wz-bms-hint:not(.done)');
+    if (hintEl && hintColor) {
+        hintEl.style.borderColor = hintColor + '44';
+        hintEl.style.color = hintColor;
+    }
+
+    el.querySelectorAll('[data-bms]').forEach(chip => {
+        const idx        = parseInt(chip.dataset.bms);
+        const color      = MS_RANGE_COLORS[idx % MS_RANGE_COLORS.length];
+        const isAutoLast = idx === lastIdx && hasDeadline;
+        const isActive   = (idx === _wzS3ActiveMs) && !isAutoLast;
+        const { endStr } = getMsStartEnd(idx);
+        const hasDate    = !!endStr;
+
+        chip.style.borderColor = isActive ? color : isAutoLast ? color + '55' : 'rgba(255,255,255,.08)';
+        chip.style.background  = isActive ? color + '18' : isAutoLast ? color + '0a' : 'rgba(255,255,255,.03)';
+        const numEl = chip.querySelector('.pg-wz-bms-num');
+        if (numEl) { numEl.style.background = color + '22'; numEl.style.color = color; }
+        const rangeEl = chip.querySelector('.pg-wz-bms-range');
+        if (rangeEl) rangeEl.style.color = hasDate ? color : '#444';
+        const lastTagEl = chip.querySelector('.pg-wz-bms-last-tag');
+        if (lastTagEl) { lastTagEl.style.color = color; lastTagEl.style.background = color + '18'; }
+        const activeDotEl = chip.querySelector('.pg-wz-bms-active-dot');
+        if (activeDotEl) activeDotEl.style.background = color;
+    });
 
     el.querySelectorAll('[data-bms]').forEach(chip => {
         const idx = parseInt(chip.dataset.bms);
@@ -952,10 +1010,10 @@ function _wzDrawBookingMsList() {
 function _wzRenderMsDates() {
     const el = document.getElementById('pg-wz-ms-dates');
     if (!el) return;
-    const cat = window.getCat(wizardState.goal.category);
+    const cat = getCat(wizardState.goal.category);
     el.innerHTML = wizardState.milestones.map((m, i) => `
         <div class="pg-wz-ms-date-row">
-            <div class="pg-wz-ms-date-num" style="background:${cat.color}18;border-color:${cat.color}44;color:${cat.color};">${i + 1}</div>
+            <div class="pg-wz-ms-date-num">${i + 1}</div>
             <div class="pg-wz-ms-date-info">
                 <div class="pg-wz-ms-date-title">
                     <span>${m.icon}</span>${window.esc(m.title)}
@@ -965,6 +1023,12 @@ function _wzRenderMsDates() {
             </div>
         </div>`
     ).join('');
+
+    el.querySelectorAll('.pg-wz-ms-date-num').forEach(numEl => {
+        numEl.style.background = cat.color + '18';
+        numEl.style.borderColor = cat.color + '44';
+        numEl.style.color = cat.color;
+    });
 
     el.querySelectorAll('.pg-wz-ms-date-inp').forEach(inp => {
         inp.addEventListener('change', () => {
@@ -1005,7 +1069,7 @@ function _wzDrawMiniCal() {
 
     const dayHdrs = ['Pt','Sa','Ça','Pe','Cu','Ct','Pz'];
     let cells = '';
-    for (let i = 0; i < startDow; i++) cells += '<div class="pg-wz-cal-cell" style="opacity:0;"></div>';
+    for (let i = 0; i < startDow; i++) cells += '<div class="pg-wz-cal-cell u-opacity-0" ></div>';
     for (let d = 1; d <= lastDate; d++) {
         const isToday = d === today.getDate() && _wzCalYear === today.getFullYear() && _wzCalMonth === today.getMonth();
         const isMsDay = !!msDates[d];
@@ -1049,7 +1113,7 @@ function _wzRenderMiniGantt() {
     el.style.display = '';
 
     const totalDays = Math.max(1, Math.ceil((deadline - today) / 86400000));
-    const cat = window.getCat(wizardState.goal.category);
+    const cat = getCat(wizardState.goal.category);
 
     const markers = ms.map(m => {
         const days = Math.ceil((new Date(m.due_date) - today) / 86400000);
@@ -1058,14 +1122,14 @@ function _wzRenderMiniGantt() {
     });
 
     el.innerHTML = `
-        <div class="pg-wz-gantt-label"><i class="ti ti-timeline" style="color:${cat.color};"></i> Zaman Çizelgesi — ${ms.length} dönüm noktası</div>
+        <div class="pg-wz-gantt-label"><i class="ti ti-timeline"></i> Zaman Çizelgesi — ${ms.length} dönüm noktası</div>
         <div class="pg-wz-gantt-track">
             <div class="pg-wz-gantt-bg"></div>
             <div class="pg-wz-gantt-today-mark"></div>
             <div class="pg-wz-gantt-deadline-mark"></div>
             ${markers.map(m => `
-                <div class="pg-wz-gantt-marker" style="left:${m.pct}%;">
-                    <div class="pg-wz-gantt-marker-dot" style="background:${cat.color};color:${cat.color};"></div>
+                <div class="pg-wz-gantt-marker" data-marker-id="${m.id}">
+                    <div class="pg-wz-gantt-marker-dot"></div>
                     <div class="pg-wz-gantt-marker-label">${m.icon} ${window.esc(m.title.length > 10 ? m.title.slice(0, 9) + '…' : m.title)}</div>
                 </div>`).join('')}
         </div>
@@ -1073,6 +1137,15 @@ function _wzRenderMiniGantt() {
             <span>Bugün</span>
             <span>${deadline.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
         </div>`;
+
+    el.querySelector('.pg-wz-gantt-label i')?.style.setProperty('color', cat.color);
+    el.querySelectorAll('.pg-wz-gantt-marker[data-marker-id]').forEach(markerEl => {
+        const m = markers.find(mm => mm.id === markerEl.dataset.markerId);
+        if (!m) return;
+        markerEl.style.left = m.pct + '%';
+        const dotEl = markerEl.querySelector('.pg-wz-gantt-marker-dot');
+        if (dotEl) { dotEl.style.background = cat.color; dotEl.style.color = cat.color; }
+    });
 }
 
 function _wzCheckConflicts() {
@@ -1111,7 +1184,7 @@ function _wzStep4Render() {
 function _wzRenderGranSelector() {
     const header = document.getElementById('pg-wz-s4-ms-header');
     if (header) header.innerHTML = '';
-    document.getElementById('pg-wz-s4-cal-panel')?.style.setProperty('display','none');
+    document.getElementById('pg-wz-s4-cal-panel')?.classList.add('is-hidden');
     document.getElementById('pg-wz-s4-ms-dots')?.style.setProperty('display','none');
     document.getElementById('pg-wz-s4-prev')?.style.setProperty('display','none');
     document.getElementById('pg-wz-s4-next')?.style.setProperty('display','none');
@@ -1125,7 +1198,7 @@ function _wzRenderGranSelector() {
             <div class="pg-wz-step-icon">⚡</div>
             <div><h3>Çalışma Planı</h3><p>Seçiminize göre her dönüm noktası için otomatik görev taslağı oluşturulur. İstediğiniz gibi düzenleyebilirsiniz.</p></div>
         </div>
-        <label class="pg-wz-label" style="margin-bottom:12px;display:block;">Nasıl planlamak istersiniz?</label>
+        <label class="pg-wz-label u-margin-bottom-12px_display-block" >Nasıl planlamak istersiniz?</label>
         <div class="pg-wz-gran-btns">
             <button type="button" class="pg-wz-gran-btn" data-gran="daily">
                 <div class="pg-wz-gran-icon">📅</div>
@@ -1179,7 +1252,7 @@ function _wzAutoGenerateTasks(ms, idx, mode) {
         const cur = new Date(start); let n = 0;
         while (cur <= end && n < 30) {
             const ds = cur.toISOString().split('T')[0];
-            det.subtasks.push({ id: window.msUid(), title: `Çalışma — ${window.fmtShort(ds)}`, done: false, date: ds });
+            det.subtasks.push({ id: msUid(), title: `Çalışma — ${fmtShort(ds)}`, done: false, date: ds });
             cur.setDate(cur.getDate() + 1); n++;
         }
     } else if (mode === 'weekly') {
@@ -1189,14 +1262,14 @@ function _wzAutoGenerateTasks(ms, idx, mode) {
         while (cur <= end) {
             const ws = new Date(cur); const we = new Date(cur); we.setDate(we.getDate() + 6);
             const actualEnd = we > end ? end : we;
-            det.subtasks.push({ id: window.msUid(), title: `Hafta ${wn}: ${window.fmtShort(ws.toISOString().split('T')[0])} – ${window.fmtShort(actualEnd.toISOString().split('T')[0])}`, done: false, date: ws.toISOString().split('T')[0] });
+            det.subtasks.push({ id: msUid(), title: `Hafta ${wn}: ${fmtShort(ws.toISOString().split('T')[0])} – ${fmtShort(actualEnd.toISOString().split('T')[0])}`, done: false, date: ws.toISOString().split('T')[0] });
             cur.setDate(cur.getDate() + 7); wn++;
         }
     } else if (mode === 'monthly') {
         let cur = new Date(start.getFullYear(), start.getMonth(), 1);
         let mn = 1;
         while (cur <= end) {
-            det.subtasks.push({ id: window.msUid(), title: `${mn}. Ay — ${cur.toLocaleDateString('tr-TR', {month:'long', year:'numeric'})}`, done: false, date: `${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,'0')}-01` });
+            det.subtasks.push({ id: msUid(), title: `${mn}. Ay — ${cur.toLocaleDateString('tr-TR', {month:'long', year:'numeric'})}`, done: false, date: `${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,'0')}-01` });
             cur.setMonth(cur.getMonth() + 1); mn++;
         }
     }
@@ -1204,13 +1277,13 @@ function _wzAutoGenerateTasks(ms, idx, mode) {
 
 // ⑤ Tüm milestone'ları accordion'da göster
 function _wzRenderMilestoneAccordion() {
-    const cat = window.getCat(wizardState.goal.category);
+    const cat = getCat(wizardState.goal.category);
 
     // Nav butonlarını gizle (accordion navigation'ı yer alıyor)
     document.getElementById('pg-wz-s4-prev')?.style.setProperty('display','none');
     document.getElementById('pg-wz-s4-next')?.style.setProperty('display','none');
     document.getElementById('pg-wz-s4-ms-dots')?.style.setProperty('display','none');
-    document.getElementById('pg-wz-s4-cal-panel')?.style.setProperty('display','none');
+    document.getElementById('pg-wz-s4-cal-panel')?.classList.add('is-hidden');
 
     // Header: mod chip + değiştir
     const header = document.getElementById('pg-wz-s4-ms-header');
@@ -1241,14 +1314,14 @@ function _wzRenderMilestoneAccordion() {
         const subs = det.subtasks || [];
         return `<div class="pg-wz-acc-item${idx === 0 ? ' open' : ''}" data-acc-idx="${idx}">
             <div class="pg-wz-acc-header" data-acc-toggle="${idx}" role="button" tabindex="0">
-                <span class="pg-wz-acc-num" style="background:${cat.color}18;color:${cat.color};">${idx+1}</span>
+                <span class="pg-wz-acc-num">${idx+1}</span>
                 <span class="pg-wz-acc-icon">${ms.icon}</span>
                 <div class="pg-wz-acc-info">
-                    <span class="pg-wz-acc-name" style="color:${cat.color};">${window.esc(ms.title)}</span>
-                    <span class="pg-wz-acc-due">${ms.due_date ? window.fmtShort(ms.due_date) : '—'}</span>
+                    <span class="pg-wz-acc-name">${window.esc(ms.title)}</span>
+                    <span class="pg-wz-acc-due">${ms.due_date ? fmtShort(ms.due_date) : '—'}</span>
                 </div>
                 <div class="pg-wz-acc-badges">
-                    ${subs.length > 0 ? `<span class="pg-wz-acc-count" style="background:${cat.color}22;color:${cat.color};">${subs.length} görev</span>` : ''}
+                    ${subs.length > 0 ? `<span class="pg-wz-acc-count">${subs.length} görev</span>` : ''}
                     ${det.criteria ? `<span class="pg-wz-acc-crit-badge">✓</span>` : ''}
                 </div>
                 <i class="ti ti-chevron-down pg-wz-acc-chevron" aria-hidden="true"></i>
@@ -1258,6 +1331,16 @@ function _wzRenderMilestoneAccordion() {
             </div>
         </div>`;
     }).join('');
+
+    taskArea.querySelectorAll('.pg-wz-acc-num').forEach(el2 => {
+        el2.style.background = cat.color + '18';
+        el2.style.color = cat.color;
+    });
+    taskArea.querySelectorAll('.pg-wz-acc-name').forEach(el2 => { el2.style.color = cat.color; });
+    taskArea.querySelectorAll('.pg-wz-acc-count').forEach(el2 => {
+        el2.style.background = cat.color + '22';
+        el2.style.color = cat.color;
+    });
 
     // Accordion toggle
     taskArea.querySelectorAll('[data-acc-toggle]').forEach(hdr => {
@@ -1304,20 +1387,19 @@ function _wzRenderAccContent(idx, cat) {
         </div>
         ${totalDays > 0 ? `<div class="pg-wz-s4-workload">
             <span><i class="ti ti-checklist" aria-hidden="true"></i> ${subs.length} görev</span>
-            ${datedCount > 0 ? `<span style="color:#60a5fa;"><i class="ti ti-calendar-check" aria-hidden="true"></i> ${datedCount} tarihli</span>` : ''}
+            ${datedCount > 0 ? `<span class="u-color-h60a5fa"><i class="ti ti-calendar-check" aria-hidden="true"></i> ${datedCount} tarihli</span>` : ''}
             <span><i class="ti ti-calendar" aria-hidden="true"></i> ${totalDays} günlük aralık</span>
-            ${subs.length > 0 && totalDays > 0 ? `<span style="color:${cat.color};"><i class="ti ti-chart-bar" aria-hidden="true"></i> ${Math.round((datedCount/totalDays)*100)}% kapsama</span>` : ''}
+            ${subs.length > 0 && totalDays > 0 ? `<span class="pg-wz-s4-workload-cov"><i class="ti ti-chart-bar" aria-hidden="true"></i> ${Math.round((datedCount/totalDays)*100)}% kapsama</span>` : ''}
         </div>` : ''}
         <div class="pg-wz-s4-task-section">
             <div class="pg-wz-s4-task-section-label">
-                <i class="ti ti-checklist" style="color:${cat.color};" aria-hidden="true"></i>
+                <i class="ti ti-checklist" aria-hidden="true"></i>
                 Görevler
             </div>
             ${_wzRenderCapacityBar(subs, cat)}
             ${suggestions.length ? `<div class="pg-wz-s4-suggestions">
                 ${suggestions.map(s => `<div class="pg-wz-s4-sug-chip${subs.some(st=>st.title===s)?' selected':''}"
-                    data-sug="${window.esc(s)}"
-                    style="${subs.some(st=>st.title===s)?`background:${cat.color}20;border-color:${cat.color};color:${cat.color};`:''}">
+                    data-sug="${window.esc(s)}">
                     ${window.esc(s)}
                 </div>`).join('')}
             </div>` : ''}
@@ -1332,7 +1414,7 @@ function _wzRenderAccContent(idx, cat) {
                     <span class="pg-wz-s4-task-time-sep">–</span>
                     <input type="time" class="pg-wz-s4-task-time-inp" title="Bitiş saati (isteğe bağlı)" data-time="end">
                 </div>
-                <button class="pg-wz-s4-add-task-btn" type="button" style="background:${cat.color};">
+                <button class="pg-wz-s4-add-task-btn" type="button">
                     <i class="ti ti-plus" aria-hidden="true"></i> Ekle
                 </button>
             </div>
@@ -1340,8 +1422,29 @@ function _wzRenderAccContent(idx, cat) {
             <div class="pg-wz-s4-task-list">${_wzRenderAccTaskItems(subs, cat)}</div>
         </div>`;
 
+    _wzApplyAccContentColors(contentEl, cat, subs);
     _wzBindAccContent(contentEl, ms, det, cat, idx);
     setTimeout(_wzBindInfoBtns, 0);
+}
+
+// Faz CSP: contentEl.innerHTML'e yerleştirilen tüm dinamik style="..." değerlerini
+// (kategori rengine bağlı) doğrudan .style özellik ataması ile uygular.
+function _wzApplyAccContentColors(contentEl, cat, subs) {
+    const covEl = contentEl.querySelector('.pg-wz-s4-workload-cov');
+    if (covEl) covEl.style.color = cat.color;
+    const iconEl = contentEl.querySelector('.pg-wz-s4-task-section-label > i');
+    if (iconEl) iconEl.style.color = cat.color;
+    const addBtn = contentEl.querySelector('.pg-wz-s4-add-task-btn');
+    if (addBtn) addBtn.style.background = cat.color;
+    contentEl.querySelectorAll('.pg-wz-s4-sug-chip').forEach(chip => {
+        if (chip.classList.contains('selected')) {
+            chip.style.background = cat.color + '20';
+            chip.style.borderColor = cat.color;
+            chip.style.color = cat.color;
+        }
+    });
+    _wzApplyCapacityColors(contentEl, cat);
+    _wzApplyAccTaskItemColors(contentEl, cat);
 }
 
 // "Bugün" gün-paneliyle aynı Yoğunluk çubuğu — tarihli görevlerin toplam gün
@@ -1353,30 +1456,55 @@ function _wzRenderCapacityBar(subs, cat) {
     const pct = Math.round((doneCount / total) * 100);
     const filledSegs = Math.min(8, Math.round((doneCount / total) * 8));
     const segsHtml = Array.from({length:8},(_,i)=>
-        `<div class="pg-wz-s4-capacity-seg" style="${i<filledSegs?`background:${cat.color};`:''}"></div>`
+        `<div class="pg-wz-s4-capacity-seg${i<filledSegs?' filled':''}"></div>`
     ).join('');
     return `
         <div class="pg-wz-s4-capacity-row">
             <span class="pg-wz-s4-capacity-label">İlerleme</span>
             <div class="pg-wz-s4-capacity-segs">${segsHtml}</div>
-            <span class="pg-wz-s4-capacity-val" style="color:${cat.color};">${doneCount} / ${total} · %${pct}</span>
+            <span class="pg-wz-s4-capacity-val">${doneCount} / ${total} · %${pct}</span>
         </div>`;
+}
+
+// Faz CSP: _wzRenderCapacityBar'ın döndürdüğü statik HTML üzerinde kategori
+// rengine bağlı stilleri doğrudan .style atamasıyla uygular (birden fazla
+// çağrı noktasından — _wzRenderAccContent ve _wzRefreshAccTaskList — sonra çağrılır).
+function _wzApplyCapacityColors(root, cat) {
+    root.querySelectorAll('.pg-wz-s4-capacity-seg.filled').forEach(seg => { seg.style.background = cat.color; });
+    const valEl = root.querySelector('.pg-wz-s4-capacity-val');
+    if (valEl) valEl.style.color = cat.color;
 }
 
 function _wzRenderAccTaskItems(subs, cat) {
     if (!subs.length) return `<div class="pg-wz-s4-task-empty"><i class="ti ti-clipboard" aria-hidden="true"></i> Henüz görev yok</div>`;
     return subs.map((st, i) => `
         <div class="pg-wz-s4-task-item${st.done?' done':''}">
-            <div class="pg-wz-s4-task-check${st.done?' done':''}" data-check="${i}"
-                style="${st.done?`background:${cat.color};border-color:${cat.color};`:`border-color:${cat.color}66;`}">
-                ${st.done?`<i class="ti ti-check" style="color:#fff;font-size:11px;" aria-hidden="true"></i>`:''}
+            <div class="pg-wz-s4-task-check${st.done?' done':''}" data-check="${i}">
+                ${st.done?`<i class="ti ti-check u-color-hfff_font-size-11px" aria-hidden="true"></i>`:''}
             </div>
             ${st.timeStart ? `<span class="pg-wz-s4-task-time-badge">${st.timeStart}${st.timeEnd ? `–${st.timeEnd}` : ''}</span>` : ''}
             <span class="pg-wz-s4-task-title">${window.esc(st.title)}</span>
-            ${st.date ? `<span class="pg-wz-s4-task-date-badge" style="color:${cat.color};background:${cat.color}18;">${window.fmtShort(st.date)}</span>` : ''}
+            ${st.date ? `<span class="pg-wz-s4-task-date-badge">${fmtShort(st.date)}</span>` : ''}
             <button class="pg-wz-s4-task-del" data-del="${i}" type="button"><i class="ti ti-x" aria-hidden="true"></i></button>
         </div>`
     ).join('');
+}
+
+// Faz CSP: _wzRenderAccTaskItems'ın döndürdüğü statik HTML üzerinde kategori
+// rengine bağlı stilleri doğrudan .style atamasıyla uygular.
+function _wzApplyAccTaskItemColors(root, cat) {
+    root.querySelectorAll('.pg-wz-s4-task-check').forEach(chk => {
+        if (chk.classList.contains('done')) {
+            chk.style.background = cat.color;
+            chk.style.borderColor = cat.color;
+        } else {
+            chk.style.borderColor = cat.color + '66';
+        }
+    });
+    root.querySelectorAll('.pg-wz-s4-task-date-badge').forEach(badge => {
+        badge.style.color = cat.color;
+        badge.style.background = cat.color + '18';
+    });
 }
 
 function _wzBindAccContent(el, ms, det, cat, idx) {
@@ -1392,7 +1520,7 @@ function _wzBindAccContent(el, ms, det, cat, idx) {
             const subs  = wizardState.msDet[ms.id].subtasks;
             const i     = subs.findIndex(s => s.title === title);
             if (i !== -1) subs.splice(i, 1);
-            else subs.push({ id: window.msUid(), title, done: false, date: '' });
+            else subs.push({ id: msUid(), title, done: false, date: '' });
             _wzRenderAccContent(idx, cat);
         });
     });
@@ -1409,7 +1537,7 @@ function _wzBindAccContent(el, ms, det, cat, idx) {
         const date      = dateInp?.value || '';
         const timeStart = startInp?.value || '';
         const timeEnd   = endInp?.value || '';
-        wizardState.msDet[ms.id].subtasks.push({ id: window.msUid(), title: val, done: false, date, timeStart, timeEnd });
+        wizardState.msDet[ms.id].subtasks.push({ id: msUid(), title: val, done: false, date, timeStart, timeEnd });
         inp.value = ''; if (dateInp) dateInp.value = ''; if (startInp) startInp.value = ''; if (endInp) endInp.value = '';
         if (charCountEl) charCountEl.textContent = '0';
         _wzRefreshAccTaskList(el, ms, det, cat, idx);
@@ -1431,15 +1559,16 @@ function _wzBindAccContent(el, ms, det, cat, idx) {
 
 function _wzRefreshAccTaskList(el, ms, det, cat, idx) {
     const list = el.querySelector('.pg-wz-s4-task-list');
-    if (list) list.innerHTML = _wzRenderAccTaskItems(det.subtasks || [], cat);
+    if (list) { list.innerHTML = _wzRenderAccTaskItems(det.subtasks || [], cat); _wzApplyAccTaskItemColors(list, cat); }
     // Yoğunluk/İlerleme çubuğunu güncelle
     const capRow = el.querySelector('.pg-wz-s4-capacity-row');
     const capHtml = _wzRenderCapacityBar(det.subtasks || [], cat);
     if (capRow) {
-        if (capHtml) capRow.outerHTML = capHtml;
+        if (capHtml) { capRow.outerHTML = capHtml; _wzApplyCapacityColors(el, cat); }
         else capRow.remove();
     } else if (capHtml) {
         el.querySelector('.pg-wz-s4-task-section-label')?.insertAdjacentHTML('afterend', capHtml);
+        _wzApplyCapacityColors(el, cat);
     }
     // Yük özeti güncelle
     const datedCount = (det.subtasks||[]).filter(s=>s.date).length;
@@ -1457,9 +1586,13 @@ function _wzRefreshAccHeader(idx, cat) {
     const ms  = wizardState.milestones[idx];
     const det = wizardState.msDet[ms?.id] || {};
     const badge = hdr.querySelector('.pg-wz-acc-badges');
-    if (badge) badge.innerHTML = `
-        ${det.subtasks?.length > 0 ? `<span class="pg-wz-acc-count" style="background:${cat.color}22;color:${cat.color};">${det.subtasks.length} görev</span>` : ''}
-        ${det.criteria ? `<span class="pg-wz-acc-crit-badge">✓</span>` : ''}`;
+    if (badge) {
+        badge.innerHTML = `
+            ${det.subtasks?.length > 0 ? `<span class="pg-wz-acc-count">${det.subtasks.length} görev</span>` : ''}
+            ${det.criteria ? `<span class="pg-wz-acc-crit-badge">✓</span>` : ''}`;
+        const countEl = badge.querySelector('.pg-wz-acc-count');
+        if (countEl) { countEl.style.background = cat.color + '22'; countEl.style.color = cat.color; }
+    }
 }
 
 // (Not: burada bir önceki _wzFlushS4Details tanımı vardı — orijinal planning.js'te
@@ -1467,22 +1600,9 @@ function _wzRefreshAccHeader(idx, cat) {
 // nedeniyle o zaten geçersiz kılıyordu; ES modülünde duplicate top-level function
 // declaration SyntaxError verdiği için bu ölü/no-op ilk tanım kaldırıldı.)
 
-function _wzRenderMsPlanner(idx) {
-    wizardState.s4MsIdx = idx;
-    const ms  = wizardState.milestones[idx];
-    if (!ms) return;
-    const cat = window.getCat(wizardState.goal.category);
-    if (!wizardState.msDet[ms.id])
-        wizardState.msDet[ms.id] = { criteria: '', subtasks: [], resources: '', expanded: false, planned_units: [] };
-    const det = wizardState.msDet[ms.id];
-
-    // Nav butonlarını görünür yap (granülasyon ekranında gizlenebilir)
-    const prevBtnEl = document.getElementById('pg-wz-s4-prev');
-    const nextBtnEl = document.getElementById('pg-wz-s4-next');
-    if (prevBtnEl) prevBtnEl.style.visibility = idx > 0 ? 'visible' : 'hidden';
-    if (nextBtnEl) nextBtnEl.style.visibility = 'visible';
-
-    // ── Header ──────────────────────────────────────
+// _wzRenderMsPlanner'dan ayrılan: aşama başlığı + takvim-göster panelini render eder.
+// Faz S devamı, dev fonksiyon refactoru.
+function _wzRenderMsHeader(idx, ms, cat) {
     const modeMap  = { daily: '📅 Gün gün', weekly: '📆 Haftalık', monthly: '🗓️ Aylık' };
     const modeLabel = modeMap[wizardState.planMode] || '';
     const header = document.getElementById('pg-wz-s4-ms-header');
@@ -1493,41 +1613,49 @@ function _wzRenderMsPlanner(idx) {
                 <button class="pg-wz-s4-change-gran" type="button">Değiştir</button>
             </div>
             <div class="pg-wz-s4-ms-info">
-                <span class="pg-wz-s4-ms-num" style="background:${cat.color}18;color:${cat.color};">${idx+1}/${wizardState.milestones.length}</span>
+                <span class="pg-wz-s4-ms-num">${idx+1}/${wizardState.milestones.length}</span>
                 <span class="pg-wz-s4-ms-icon">${ms.icon}</span>
                 <div class="pg-wz-s4-ms-title-wrap">
-                    <span class="pg-wz-s4-ms-name" style="color:${cat.color};">${window.esc(ms.title)}</span>
-                    ${ms.due_date ? `<span class="pg-wz-s4-ms-due"><i class="ti ti-calendar"></i> ${window.fmtDate(ms.due_date)}</span>` : ''}
+                    <span class="pg-wz-s4-ms-name">${window.esc(ms.title)}</span>
+                    ${ms.due_date ? `<span class="pg-wz-s4-ms-due"><i class="ti ti-calendar"></i> ${fmtDate(ms.due_date)}</span>` : ''}
                 </div>
                 <button class="pg-wz-s4-cal-toggle-btn" id="pg-wz-s4-cal-toggle" type="button">
                     <i class="ti ti-calendar-stats"></i> Takvimde Gör
                 </button>
             </div>`;
+        const msNumEl = header.querySelector('.pg-wz-s4-ms-num');
+        if (msNumEl) { msNumEl.style.background = cat.color + '18'; msNumEl.style.color = cat.color; }
+        const msNameEl = header.querySelector('.pg-wz-s4-ms-name');
+        if (msNameEl) msNameEl.style.color = cat.color;
         header.querySelector('.pg-wz-s4-change-gran')?.addEventListener('click', () => {
             wizardState.planMode = null;
             const calPanel = document.getElementById('pg-wz-s4-cal-panel');
-            if (calPanel) calPanel.style.display = 'none';
+            if (calPanel) calPanel.classList.add('is-hidden');
             _wzRenderGranSelector();
         });
         header.querySelector('#pg-wz-s4-cal-toggle')?.addEventListener('click', () => {
             const panel = document.getElementById('pg-wz-s4-cal-panel');
             if (!panel) return;
-            const open = panel.style.display === '';
+            const open = !panel.classList.contains('is-hidden');
             if (open) {
-                panel.style.display = 'none';
+                panel.classList.add('is-hidden');
                 header.querySelector('#pg-wz-s4-cal-toggle').innerHTML = '<i class="ti ti-calendar-stats"></i> Takvimde Gör';
             } else {
-                panel.style.display = '';
+                panel.classList.remove('is-hidden');
                 const calWrap = document.getElementById('pg-wz-s4-cal-wrap');
                 if (calWrap) {
                     calWrap.innerHTML = _wzPlannerCalHTML(ms, idx, cat, det);
+                    _wzApplyPlannerCalColors(calWrap, cat);
                 }
                 header.querySelector('#pg-wz-s4-cal-toggle').innerHTML = '<i class="ti ti-x"></i> Kapat';
             }
         });
     }
+}
 
-    // ── Görev ekleme alanı ──────────────────────────
+// _wzRenderMsPlanner'dan ayrılan: başarı kriteri + görev ekleme alanını render eder.
+// Faz S devamı, dev fonksiyon refactoru.
+function _wzRenderMsTaskArea(ms, det, cat, idx) {
     const taskArea = document.getElementById('pg-wz-s4-task-area');
     if (taskArea) {
         const suggestions = window.SUBTASK_SUGGESTIONS[wizardState.goal.category] || [];
@@ -1548,15 +1676,14 @@ function _wzRenderMsPlanner(idx) {
             <!-- Hızlı görev ekleme -->
             <div class="pg-wz-s4-task-section">
                 <div class="pg-wz-s4-task-section-label">
-                    <i class="ti ti-checklist" style="color:${cat.color};"></i>
+                    <i class="ti ti-checklist"></i>
                     Görevler
-                    ${subtasks.length > 0 ? `<span class="pg-wz-s4-task-count" style="background:${cat.color}22;color:${cat.color};">${subtasks.length}</span>` : ''}
+                    ${subtasks.length > 0 ? `<span class="pg-wz-s4-task-count">${subtasks.length}</span>` : ''}
                 </div>
                 <!-- Öneri chipler -->
                 ${suggestions.length ? `<div class="pg-wz-s4-suggestions">
                     ${suggestions.map(s => `<div class="pg-wz-s4-sug-chip${subtasks.some(st=>st.title===s)?' selected':''}"
-                        data-sug="${window.esc(s)}"
-                        style="${subtasks.some(st=>st.title===s)?`background:${cat.color}20;border-color:${cat.color};color:${cat.color};`:''}">
+                        data-sug="${window.esc(s)}">
                         ${window.esc(s)}
                     </div>`).join('')}
                 </div>` : ''}
@@ -1565,7 +1692,7 @@ function _wzRenderMsPlanner(idx) {
                     <input type="text" class="pg-wz-s4-task-inp" id="pg-wz-s4-task-inp"
                         placeholder="Görev ekle ve Enter'a bas..."
                         autocomplete="off" maxlength="100">
-                    <button class="pg-wz-s4-add-task-btn" id="pg-wz-s4-add-btn" type="button" style="background:${cat.color};">
+                    <button class="pg-wz-s4-add-task-btn" id="pg-wz-s4-add-btn" type="button">
                         <i class="ti ti-plus"></i>
                     </button>
                 </div>
@@ -1575,9 +1702,8 @@ function _wzRenderMsPlanner(idx) {
                         ? `<div class="pg-wz-s4-task-empty"><i class="ti ti-clipboard"></i> Henüz görev yok</div>`
                         : subtasks.map((st, i) => `
                             <div class="pg-wz-s4-task-item${st.done?' done':''}" data-stidx="${i}">
-                                <div class="pg-wz-s4-task-check${st.done?' done':''}" data-check="${i}"
-                                    style="${st.done?`background:${cat.color};border-color:${cat.color};`:`border-color:${cat.color}66;`}">
-                                    ${st.done?'<i class="ti ti-check" style="color:#fff;font-size:11px;"></i>':''}
+                                <div class="pg-wz-s4-task-check${st.done?' done':''}" data-check="${i}">
+                                    ${st.done?'<i class="ti ti-check u-color-hfff_font-size-11px" ></i>':''}
                                 </div>
                                 <span class="pg-wz-s4-task-title">${window.esc(st.title)}</span>
                                 <button class="pg-wz-s4-task-del" data-del="${i}" type="button">
@@ -1588,9 +1714,56 @@ function _wzRenderMsPlanner(idx) {
                 </div>
             </div>`;
 
+        _wzApplyMsTaskAreaColors(taskArea, cat);
         _wzBindS4TaskArea(taskArea, ms, det, cat, idx);
         setTimeout(_wzBindInfoBtns, 0);
     }
+}
+
+// Faz CSP: _wzRenderMsTaskArea'nın yerleştirdiği tüm dinamik style="..." değerlerini
+// (kategori rengine bağlı) doğrudan .style özellik ataması ile uygular.
+function _wzApplyMsTaskAreaColors(taskArea, cat) {
+    const iconEl = taskArea.querySelector('.pg-wz-s4-task-section-label > i');
+    if (iconEl) iconEl.style.color = cat.color;
+    const countEl = taskArea.querySelector('.pg-wz-s4-task-count');
+    if (countEl) { countEl.style.background = cat.color + '22'; countEl.style.color = cat.color; }
+    taskArea.querySelectorAll('.pg-wz-s4-sug-chip.selected').forEach(chip => {
+        chip.style.background = cat.color + '20';
+        chip.style.borderColor = cat.color;
+        chip.style.color = cat.color;
+    });
+    const addBtn = taskArea.querySelector('#pg-wz-s4-add-btn');
+    if (addBtn) addBtn.style.background = cat.color;
+    taskArea.querySelectorAll('.pg-wz-s4-task-check').forEach(chk => {
+        if (chk.classList.contains('done')) {
+            chk.style.background = cat.color;
+            chk.style.borderColor = cat.color;
+        } else {
+            chk.style.borderColor = cat.color + '66';
+        }
+    });
+}
+
+function _wzRenderMsPlanner(idx) {
+    wizardState.s4MsIdx = idx;
+    const ms  = wizardState.milestones[idx];
+    if (!ms) return;
+    const cat = getCat(wizardState.goal.category);
+    if (!wizardState.msDet[ms.id])
+        wizardState.msDet[ms.id] = { criteria: '', subtasks: [], resources: '', expanded: false, planned_units: [] };
+    const det = wizardState.msDet[ms.id];
+
+    // Nav butonlarını görünür yap (granülasyon ekranında gizlenebilir)
+    const prevBtnEl = document.getElementById('pg-wz-s4-prev');
+    const nextBtnEl = document.getElementById('pg-wz-s4-next');
+    if (prevBtnEl) prevBtnEl.style.visibility = idx > 0 ? 'visible' : 'hidden';
+    if (nextBtnEl) nextBtnEl.style.visibility = 'visible';
+
+    _wzRenderMsHeader(idx, ms, cat);
+
+
+    _wzRenderMsTaskArea(ms, det, cat, idx);
+
 
     // ── İlerleme noktaları ───────────────────────────
     const dots = document.getElementById('pg-wz-s4-ms-dots');
@@ -1598,9 +1771,12 @@ function _wzRenderMsPlanner(idx) {
         dots.innerHTML = wizardState.milestones.map((m, i) => {
             const d    = wizardState.msDet[m.id];
             const done = !!(d?.criteria || d?.subtasks?.length);
-            return `<div class="pg-wz-s4-dot${i===idx?' active':''}${done?' done':''}"
-                style="${i===idx?`background:${cat.color};box-shadow:0 0 0 3px ${cat.color}33;`:''}"></div>`;
+            return `<div class="pg-wz-s4-dot${i===idx?' active':''}${done?' done':''}"></div>`;
         }).join('');
+        dots.querySelectorAll('.pg-wz-s4-dot.active').forEach(dotEl => {
+            dotEl.style.background = cat.color;
+            dotEl.style.boxShadow = `0 0 0 3px ${cat.color}33`;
+        });
     }
 
     // ── Nav butonları ────────────────────────────────
@@ -1621,7 +1797,7 @@ function _wzRenderMsPlanner(idx) {
 
     // Takvim paneli kapat (aşama geçişinde)
     const calPanel = document.getElementById('pg-wz-s4-cal-panel');
-    if (calPanel) calPanel.style.display = 'none';
+    if (calPanel) calPanel.classList.add('is-hidden');
 }
 
 function _wzBindS4TaskArea(area, ms, det, cat, idx) {
@@ -1640,7 +1816,7 @@ function _wzBindS4TaskArea(area, ms, det, cat, idx) {
             if (i !== -1) {
                 subs.splice(i, 1);
             } else {
-                subs.push({ id: window.msUid(), title, done: false });
+                subs.push({ id: msUid(), title, done: false });
             }
             _wzRenderMsPlanner(idx);
         });
@@ -1652,7 +1828,7 @@ function _wzBindS4TaskArea(area, ms, det, cat, idx) {
     const addTask = () => {
         const val = inp?.value.trim();
         if (!val) return;
-        wizardState.msDet[ms.id].subtasks.push({ id: window.msUid(), title: val, done: false });
+        wizardState.msDet[ms.id].subtasks.push({ id: msUid(), title: val, done: false });
         inp.value = '';
         _wzRenderS4TaskList(idx, cat);
         inp.focus();
@@ -1689,13 +1865,20 @@ function _wzRenderS4TaskList(idx, cat) {
         ? `<div class="pg-wz-s4-task-empty"><i class="ti ti-clipboard"></i> Henüz görev yok</div>`
         : subs.map((st, i) => `
             <div class="pg-wz-s4-task-item${st.done?' done':''}" data-stidx="${i}">
-                <div class="pg-wz-s4-task-check${st.done?' done':''}" data-check="${i}"
-                    style="${st.done?`background:${cat.color};border-color:${cat.color};`:`border-color:${cat.color}66;`}">
-                    ${st.done?'<i class="ti ti-check" style="color:#fff;font-size:11px;"></i>':''}
+                <div class="pg-wz-s4-task-check${st.done?' done':''}" data-check="${i}">
+                    ${st.done?'<i class="ti ti-check u-color-hfff_font-size-11px" ></i>':''}
                 </div>
                 <span class="pg-wz-s4-task-title">${window.esc(st.title)}</span>
                 <button class="pg-wz-s4-task-del" data-del="${i}" type="button"><i class="ti ti-x"></i></button>
             </div>`).join('');
+    list.querySelectorAll('.pg-wz-s4-task-check').forEach(chk => {
+        if (chk.classList.contains('done')) {
+            chk.style.background = cat.color;
+            chk.style.borderColor = cat.color;
+        } else {
+            chk.style.borderColor = cat.color + '66';
+        }
+    });
 
     // Sayacı güncelle
     const counter = document.querySelector('.pg-wz-s4-task-count');
@@ -1774,12 +1957,12 @@ function _wzRenderSubtasks() {
 // ── Step 5 ────────────────────────────────
 function _wzStep5Render() {
     const { goal, milestones, firstMsDetail } = wizardState;
-    const cat = window.getCat(goal.category);
+    const cat = getCat(goal.category);
 
     // Celebration sub text
     const subEl = document.getElementById('pg-wz-celebration-sub');
     if (subEl) {
-        subEl.textContent = `${cat.icon} ${goal.title} · ${milestones.length} aşama · ${goal.deadline ? window.fmtDate(goal.deadline) + ' hedef tarihi' : 'Esnek takvim'}`;
+        subEl.textContent = `${cat.icon} ${goal.title} · ${milestones.length} aşama · ${goal.deadline ? fmtDate(goal.deadline) + ' hedef tarihi' : 'Esnek takvim'}`;
     }
 
     // Summary
@@ -1791,14 +1974,14 @@ function _wzStep5Render() {
     const sumEl = document.getElementById('pg-wz-summary');
     if (sumEl) {
         sumEl.innerHTML = `
-        <div class="pg-wz-summary-card" style="--summary-color:${cat.color};">
+        <div class="pg-wz-summary-card">
             <div class="pg-wz-summary-row">
                 <span class="pg-wz-summary-label">Hedef</span>
                 <span class="pg-wz-summary-val">${cat.icon} ${window.esc(goal.title)}</span>
             </div>
             ${goal.deadline ? `<div class="pg-wz-summary-row">
                 <span class="pg-wz-summary-label">Son Tarih</span>
-                <span class="pg-wz-summary-val">${window.fmtDate(goal.deadline)}</span>
+                <span class="pg-wz-summary-val">${fmtDate(goal.deadline)}</span>
             </div>` : ''}
             <div class="pg-wz-summary-row">
                 <span class="pg-wz-summary-label">Dönüm Noktaları</span>
@@ -1807,8 +1990,8 @@ function _wzStep5Render() {
             <div class="pg-wz-summary-ms-list">
                 ${milestones.map(m => `<div class="pg-wz-summary-ms-item">
                     ${m.icon} ${window.esc(m.title)}
-                    ${m.due_date ? `<span class="pg-wz-summary-ms-date">· ${window.fmtShort(m.due_date)}</span>` : ''}
-                    ${msDet[m.id]?.criteria ? `<span class="pg-wz-summary-ms-date" style="color:#4ade80;"> ✓ ${window.esc(msDet[m.id].criteria)}</span>` : ''}
+                    ${m.due_date ? `<span class="pg-wz-summary-ms-date">· ${fmtShort(m.due_date)}</span>` : ''}
+                    ${msDet[m.id]?.criteria ? `<span class="pg-wz-summary-ms-date u-color-h4ade80" > ✓ ${window.esc(msDet[m.id].criteria)}</span>` : ''}
                 </div>`).join('')}
             </div>
             ${workDays.length ? `<div class="pg-wz-summary-row">
@@ -1824,6 +2007,7 @@ function _wzStep5Render() {
                 <span class="pg-wz-summary-val">${totalSubs} hazır</span>
             </div>` : ''}
         </div>`;
+        sumEl.querySelector('.pg-wz-summary-card')?.style.setProperty('--summary-color', cat.color);
     }
 
     // Collab info — adım 1'de seçilen moda göre göster
@@ -1835,7 +2019,7 @@ function _wzStep5Render() {
 function _wzSave() {
     if (!wizardState) return;
     const { goal, milestones, firstMsDetail, mode } = wizardState;
-    const cat = window.getCat(goal.category);
+    const cat = getCat(goal.category);
 
     const newGoal = {
         id: window.uid(), title: goal.title.trim(),

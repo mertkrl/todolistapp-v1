@@ -4,15 +4,25 @@
 // _dhsDateKey/_dhsGreetingSuggestion/renderHomeSummary/
 // _updateArenaActionEmptyState/getLocalXP/renderArenaGroupGoals.
 //
-// Dış bağımlılıklar (window.* üzerinden): window.currentUser, window._escapeHtml,
+// Dış bağımlılıklar (window.* üzerinden): getCurrentUser(), window._escapeHtml,
 // window.playNotificationSound, window.showGenericNotifToast, window.postActivity,
 // window.renderArenaDailyRace, window.getMyWeeklyXP, window.leagueOf,
-// window.LEAGUE_PROMOTE_XP, window._leagueDaysLeft, window._mySeasonState,
+// window.LEAGUE_PROMOTE_XP, window._leagueDaysLeft, getMySeasonState(),
 // window._seasonLabel, window._seasonDaysLeft, window._leagueWeekStartIso,
 // window._xpGet/_xpSet, window.dcOpenGroupPanel, window.formatFocusMinutes,
 // window._toggleOnlinePeoplePopover, window.switchTab,
-// window._onlineFriendsPresenceCb, window._refreshMyAssignmentsBadge,
-// window._myLeagueState, window.FocusSupabase.
+// getOnlineFriendsPresenceCb(), window._refreshMyAssignmentsBadge,
+// getMyLeagueState(), window.FocusSupabase.
+import { _toggleOnlinePeoplePopover } from './social-online-people-popover.js';
+import { _refreshMyAssignmentsBadge } from './social-assignments-badge.js';
+import {
+    _xpGet, _xpSet, LEAGUE_PROMOTE_XP, _leagueDaysLeft, _leagueWeekStartIso,
+    _seasonDaysLeft, _seasonLabel, getMyWeeklyXP, leagueOf
+} from './social-gamification.js';
+import { getCurrentUser } from './state/current-user-store.js';
+import { getMyLeagueState } from './state/my-league-state-store.js';
+import { getMySeasonState } from './state/my-season-state-store.js';
+import { getOnlineFriendsPresenceCb } from './state/online-friends-presence-cb-store.js';
 (function () {
 'use strict';
 
@@ -62,7 +72,7 @@
         try {
             fh = typeof FocusStorage !== 'undefined'
                 ? (FocusStorage.get('focus_history', {}) || {})
-                : JSON.parse(localStorage.getItem('focusai_focus_history') || '{}');
+                : JSON.parse(localStorage.getItem('focusai_focus_history') || '{}', window._safeJsonReviver);
         } catch { fh = {}; }
 
         // Bugün/bu hafta/seri kartları kaldırıldı (2026-07-03, kullanıcı kararı:
@@ -70,18 +80,18 @@
         // yalnızca bugünkü dakika gerekiyor.
         const todayMin = Number(fh[_dhsDateKey(new Date())]) || 0;
 
-        const myWeekly = window.getMyWeeklyXP();
+        const myWeekly = getMyWeeklyXP();
 
         // Arkadaşlar arası sıra — pozitif rekabetin kalbi (haftalık XP üzerinden)
         let rankInfo = null;
         try {
             const entries = Object.entries(_lastUsersSnapshot || {}).map(([u, d]) => ({ username: u, ...d }));
-            if (window.currentUser && entries.length >= 2) {
+            if (getCurrentUser() && entries.length >= 2) {
                 const sorted = entries
-                    .filter(e => e.username !== window.currentUser.username)
-                    .concat([{ username: window.currentUser.username, weeklyXp: myWeekly }])
+                    .filter(e => e.username !== getCurrentUser().username)
+                    .concat([{ username: getCurrentUser().username, weeklyXp: myWeekly }])
                     .sort((a, b) => (b.weeklyXp || 0) - (a.weeklyXp || 0) || (b.xp || 0) - (a.xp || 0));
-                const idx = sorted.findIndex(u => u.username === window.currentUser.username);
+                const idx = sorted.findIndex(u => u.username === getCurrentUser().username);
                 if (idx !== -1) {
                     const ahead = idx > 0 ? sorted[idx - 1] : null;
                     rankInfo = {
@@ -96,7 +106,7 @@
 
         const hour = new Date().getHours();
         const greet = hour < 6 ? 'İyi geceler' : hour < 12 ? 'Günaydın' : hour < 18 ? 'İyi günler' : 'İyi akşamlar';
-        const name = window.currentUser ? (window.currentUser.displayName || window.currentUser.username) : '';
+        const name = getCurrentUser() ? (getCurrentUser().displayName || getCurrentUser().username) : '';
         const suggestion = _dhsGreetingSuggestion(hour, todayMin);
 
         // ── 1. Selamlama şeridi (sade — istatistikler ayrı bölümde) ──
@@ -118,7 +128,7 @@
                     </span>
                 </div>
                 <button id="dhs-online-badge" class="dhs-rank-badge dhs-rank-badge--big dhs-online-badge" type="button" title="Kişiler">
-                    <i class="fa-solid fa-circle" id="dhs-online-dot" style="font-size:8px;"></i>
+                    <i class="fa-solid fa-circle u-font-size-8px" id="dhs-online-dot" ></i>
                     <span id="dhs-online-count">0</span> Çevrimiçi
                 </button>
                 ${rankInfo ? `<div class="dhs-rank-badge dhs-rank-badge--big"><i class="fa-solid fa-trophy"></i> ${rankInfo.rank}. sıradasın</div>` : ''}
@@ -126,19 +136,19 @@
 
         document.getElementById('dhs-online-badge')?.addEventListener('click', (e) => {
             e.stopPropagation();
-            window._toggleOnlinePeoplePopover(e.currentTarget);
+            _toggleOnlinePeoplePopover(e.currentTarget);
         });
         document.getElementById('dhs-greeting-cta')?.addEventListener('click', () => {
             if (typeof window.switchTab === 'function') window.switchTab(suggestion.action === 'plan' ? 'planlama' : 'zamanlayici');
         });
         // Rozet az önce yeniden oluşturuldu (innerHTML replace) — sayaç/nokta
         // sıfırlandı; presence dinleyicisi zaten kuruluysa hemen tazele.
-        if (typeof window._onlineFriendsPresenceCb === 'function') window._onlineFriendsPresenceCb();
+        if (typeof getOnlineFriendsPresenceCb() === 'function') getOnlineFriendsPresenceCb()();
         // "Aktif Ödev" rozeti kaldırıldı (kullanıcı isteği, 2026-07-13) — ama
         // _refreshMyAssignmentsBadge() çağrısı KALMALI: window.FocusAssignments.items
         // burada dolduruluyor ve script.js'teki Bugün/Takvim görünümleri bu veriyi
         // kullanıyor (bkz. fonksiyonun başındaki yorum, social.js:664).
-        if (typeof window._refreshMyAssignmentsBadge === 'function') window._refreshMyAssignmentsBadge();
+        if (typeof _refreshMyAssignmentsBadge === 'function') _refreshMyAssignmentsBadge();
 
         // ── 2. Performans bölümü (rekabet odaklı, animasyonlu) ──
         let statsEl = document.getElementById('dc-home-stats');
@@ -149,31 +159,43 @@
         }
 
         // Lig kartı verileri
-        const _st = window._myLeagueState;
-        const myLeague = window.leagueOf(_st?.league || 1);
+        const _st = getMyLeagueState();
+        const myLeague = leagueOf(_st?.league || 1);
         const promoteAt = window.LEAGUE_PROMOTE_XP[(_st?.league || 1) - 1];
         const leaguePct = isFinite(promoteAt) ? Math.min(100, Math.round((myWeekly / promoteAt) * 100)) : 100;
-        const daysLeft = window._leagueDaysLeft();
+        const daysLeft = _leagueDaysLeft();
 
         // ── Sadeleştirme (2026-07-03): Bugün/Bu hafta/Odak serisi kartları da
         //    kaldırıldı (kullanıcı kararı: İstatistikler sekmesinde zaten var).
         //    Geriye tek kart kalıyor: Lig — Arena'ya özgü, başka sekmede yok.
-        const seasonLine = window._mySeasonState
-            ? `<div class="dhs-stat-sub dhs-stat-sub--secondary"><i class="fa-solid fa-flag-checkered"></i> ${window._escapeHtml(window._seasonLabel(window._mySeasonState.season))} sezonu: <b>${(window._mySeasonState.seasonXp || 0) + myWeekly} XP</b> · ${window._seasonDaysLeft()} gün kaldı</div>`
+        const seasonLine = getMySeasonState()
+            ? `<div class="dhs-stat-sub dhs-stat-sub--secondary"><i class="fa-solid fa-flag-checkered"></i> ${window._escapeHtml(_seasonLabel(getMySeasonState().season))} sezonu: <b>${(getMySeasonState().seasonXp || 0) + myWeekly} XP</b> · ${_seasonDaysLeft()} gün kaldı</div>`
             : '';
 
         statsEl.innerHTML = `
             <div class="dhs-stats-grid">
-                <div class="dhs-stat-card dhs-anim dhs-stat-card--league" style="--i:0; --league-color:${myLeague.color};">
-                    <div class="dhs-stat-head"><i class="fa-solid ${myLeague.icon}" style="color:${myLeague.color};"></i> Lig · <b>${myWeekly} XP</b> bu hafta</div>
-                    <div class="dhs-stat-big dhs-league-name" style="color:${myLeague.color};">${myLeague.name}</div>
-                    <div class="dhs-progress"><div class="dhs-progress-fill" data-w="${leaguePct}" style="background:linear-gradient(90deg, ${myLeague.color}88, ${myLeague.color});"></div></div>
+                <div class="dhs-stat-card dhs-anim dhs-stat-card--league">
+                    <div class="dhs-stat-head"><i class="fa-solid ${myLeague.icon}"></i> Lig · <b>${myWeekly} XP</b> bu hafta</div>
+                    <div class="dhs-stat-big dhs-league-name">${myLeague.name}</div>
+                    <div class="dhs-progress"><div class="dhs-progress-fill" data-w="${leaguePct}"></div></div>
                     <div class="dhs-stat-sub">${isFinite(promoteAt)
                         ? `Yükselmek için <b>${Math.max(0, promoteAt - myWeekly)} XP</b> kaldı · <b>${daysLeft} gün</b>`
                         : `En üst ligdesin — zirveyi koru! 👑 · <b>${daysLeft} gün</b>`}</div>
                     ${seasonLine}
                 </div>
             </div>`;
+
+        const _leagueCard = statsEl.querySelector('.dhs-stat-card--league');
+        if (_leagueCard) {
+            _leagueCard.style.setProperty('--i', 0);
+            _leagueCard.style.setProperty('--league-color', myLeague.color);
+            const _headIcon = _leagueCard.querySelector('.dhs-stat-head i');
+            if (_headIcon) _headIcon.style.color = myLeague.color;
+            const _nameEl = _leagueCard.querySelector('.dhs-league-name');
+            if (_nameEl) _nameEl.style.color = myLeague.color;
+            const _fillEl = _leagueCard.querySelector('.dhs-progress-fill');
+            if (_fillEl) _fillEl.style.background = `linear-gradient(90deg, ${myLeague.color}88, ${myLeague.color})`;
+        }
 
         // ── Animasyonlar: sayı sayacı + progress dolumu ──
         statsEl.querySelectorAll('.dhs-count').forEach(cEl => {
@@ -215,7 +237,7 @@
         try {
             const tasks = typeof FocusStorage !== 'undefined'
                 ? FocusStorage.get('tasks', [])
-                : JSON.parse(localStorage.getItem('focusai_tasks') || '[]');
+                : JSON.parse(localStorage.getItem('focusai_tasks') || '[]', window._safeJsonReviver);
 
             let xp = 0;
             (Array.isArray(tasks) ? tasks : [])
@@ -224,7 +246,7 @@
 
             const hl = typeof FocusStorage !== 'undefined'
                 ? FocusStorage.get('highlight_history', {})
-                : JSON.parse(localStorage.getItem('focusai_highlight_history') || '{}');
+                : JSON.parse(localStorage.getItem('focusai_highlight_history') || '{}', window._safeJsonReviver);
             Object.values(hl || {}).filter(h => h.completed).forEach(() => { xp += 20; });
 
             const fm = typeof FocusStorage !== 'undefined'
@@ -245,13 +267,13 @@
 
     async function renderArenaGroupGoals() {
         const el = document.getElementById('arena-group-goals');
-        if (!el || !window.FocusSupabase || !window.currentUser?.id) return;
+        if (!el || !window.FocusSupabase || !getCurrentUser()?.id) return;
         if (_arenaGoalsRenderBusy) return;
         _arenaGoalsRenderBusy = true;
         try {
             const { data: rows, error } = await window.FocusSupabase
                 .from('group_members').select('groups(id, name, code, weekly_goal)')
-                .eq('user_id', window.currentUser.id);
+                .eq('user_id', getCurrentUser().id);
             if (error) { el.innerHTML = ''; return; }
             const myGroups = (rows || []).map(r => r.groups).filter(g => g && (g.weekly_goal || 0) > 0);
             if (!myGroups.length) { el.innerHTML = ''; return; }
@@ -267,8 +289,8 @@
             // tutarsızlık. Grup başarısı bireysel utandırma riski taşımadığı için
             // (herkesin ortak başarısı) her zaman herkese açık kutlanır — dedup
             // localStorage'da (grup, hafta) bazında, aynı hafta tekrar tetiklenmez.
-            const _thisGoalWeek = window._leagueWeekStartIso();
-            const _celebrated = window._xpGet('group_goal_celebrated', {});
+            const _thisGoalWeek = _leagueWeekStartIso();
+            const _celebrated = _xpGet('group_goal_celebrated', {});
             let _celebratedChanged = false;
 
             // Fikir A (2026-07-03): kart yerine tek satır — ilerleme çubuğu satırın
@@ -276,7 +298,7 @@
             el.innerHTML = myGroups.map((g, i) => {
                 const rowsG = stats[i];
                 const total = rowsG.reduce((s, r) => s + (r.weekly_minutes || 0), 0);
-                const mine = rowsG.find(r => r.user_id === window.currentUser.id)?.weekly_minutes || 0;
+                const mine = rowsG.find(r => r.user_id === getCurrentUser().id)?.weekly_minutes || 0;
                 const pct = Math.min(100, Math.round((total / g.weekly_goal) * 100));
                 const done = total >= g.weekly_goal;
 
@@ -290,16 +312,18 @@
 
                 return `
                     <div class="arena-row arena-row--goal${done ? ' arena-row--done' : ''}" data-gcode="${window._escapeHtml(g.code || '')}">
-                        <span class="arena-row-icon"><i class="fa-solid fa-bullseye" style="color:#2ed573;"></i></span>
+                        <span class="arena-row-icon"><i class="fa-solid fa-bullseye"></i></span>
                         <div class="arena-row-main">
                             <span class="arena-row-title">${window._escapeHtml(g.name)}</span>
                             <span class="arena-row-meta">${done ? '✓ Tamamlandı' : `%${pct}`} · ${window.formatFocusMinutes(total)} / ${window.formatFocusMinutes(g.weekly_goal)} · katkın ${window.formatFocusMinutes(mine)}</span>
-                            <div class="arena-row-bar"><div class="arena-row-bar-fill${done ? ' arena-row-bar-fill--done' : ''}" style="width:${Math.max(4, pct)}%"></div></div>
+                            <div class="arena-row-bar"><div class="arena-row-bar-fill${done ? ' arena-row-bar-fill--done' : ''}" data-w="${Math.max(4, pct)}"></div></div>
                         </div>
                     </div>`;
             }).join('');
 
-            if (_celebratedChanged) window._xpSet('group_goal_celebrated', _celebrated);
+            if (_celebratedChanged) _xpSet('group_goal_celebrated', _celebrated);
+            el.querySelectorAll('.arena-row--goal .arena-row-icon i').forEach(icn => { icn.style.color = '#2ed573'; });
+            el.querySelectorAll('.arena-row-bar-fill').forEach(bf => { bf.style.width = bf.dataset.w + '%'; });
 
             el.querySelectorAll('.arena-row--goal[data-gcode]').forEach(c => c.addEventListener('click', () => {
                 if (c.dataset.gcode && typeof window.dcOpenGroupPanel === 'function') window.dcOpenGroupPanel(c.dataset.gcode);

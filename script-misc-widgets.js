@@ -162,15 +162,16 @@ window.updateGlobalStreak = updateGlobalStreak;
          const ty = Math.sin(angle) * dist - (Math.random() * 18);
          const size = 3 + Math.random() * 4;
          const dur  = 550 + Math.random() * 250;
-         p.style.cssText = [
-             `left:${cx}px`, `top:${cy}px`,
-             `width:${size}px`, `height:${size}px`,
-             `background:${COLORS[i % COLORS.length]}`,
-             `--tx:${tx}px`, `--ty:${ty}px`,
-             `--dur:${dur}ms`,
-             `border-radius:${Math.random() > 0.4 ? '50%' : '2px'}`,
-             `box-shadow:0 0 4px ${COLORS[i % COLORS.length]}88`
-         ].join(';');
+         p.style.left = cx + 'px';
+         p.style.top = cy + 'px';
+         p.style.width = size + 'px';
+         p.style.height = size + 'px';
+         p.style.background = COLORS[i % COLORS.length];
+         p.style.setProperty('--tx', tx + 'px');
+         p.style.setProperty('--ty', ty + 'px');
+         p.style.setProperty('--dur', dur + 'ms');
+         p.style.borderRadius = Math.random() > 0.4 ? '50%' : '2px';
+         p.style.boxShadow = `0 0 4px ${COLORS[i % COLORS.length]}88`;
          document.body.appendChild(p);
          p.addEventListener('animationend', () => p.remove(), { once: true });
      }

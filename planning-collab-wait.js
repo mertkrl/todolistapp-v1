@@ -1,3 +1,4 @@
+import { getFriendsForFilter } from './social-friends-notifications.js';
 // ─── ORTAKLAŞA HEDEF — DAVET BEKLEME EKRANI ────────────────────────────
 // planning.js dosyasından çıkarıldı (Faz 2, 2026-07-19 — yüksek risk grubu).
 // Bir hedef "ortaklaşa" modda oluşturulunca (bkz. planning-quick-create.js
@@ -10,10 +11,11 @@
 // - persistGoals, render, toast, openPlanView, esc, uid (kullanılmıyor
 //   burada — DOM dataset "uid" değişkeni farklı, planning.js'in uid()
 //   fonksiyonuyla alakasız) → window.*
-// - window.getFriendsForFilter / window.getCommunityPresenceState /
-//   window.FocusSupabase / window.PlanningCollab / window.currentUser →
+// - getFriendsForFilter / window.getCommunityPresenceState /
+//   window.FocusSupabase / window.PlanningCollab / getCurrentUser() →
 //   zaten global
 import { getPgGoals, persistGoals, toast, esc, openPlanView } from './planning.js';
+import { getCurrentUser } from './state/current-user-store.js';
 
 let _collabWaitPollTimer = null;
 let _collabWaitGoal      = null;
@@ -96,7 +98,7 @@ async function _collabWaitLoadFriends(goal) {
     const listEl = document.getElementById('pg-cw-friends-list');
     if (!listEl) return;
 
-    const friends = (window.getFriendsForFilter?.() || []);
+    const friends = (getFriendsForFilter?.() || []);
 
     if (!friends.length) {
         listEl.innerHTML = '<p class="pg-cw-empty">Henüz arkadaşın yok. Aşağıdaki kodu paylaşabilirsin.</p>';
@@ -141,7 +143,7 @@ async function _collabWaitLoadFriends(goal) {
             <div class="pg-cw-friend-avatar-wrap">
                 ${hasCustomAvatar
                     ? `<img src="${esc(p.custom_avatar)}" class="pg-cw-friend-avatar-img" alt="${esc(displayName)}">`
-                    : `<div class="pg-cw-friend-avatar" style="background:${esc(color)};">${esc(initials)}</div>`}
+                    : `<div class="pg-cw-friend-avatar">${esc(initials)}</div>`}
                 ${isOnline ? '<span class="pg-cw-online-dot"></span>' : ''}
             </div>
             <div class="pg-cw-friend-info">
@@ -154,13 +156,22 @@ async function _collabWaitLoadFriends(goal) {
         </div>`;
     }).join('');
 
+    listEl.querySelectorAll('.pg-cw-friend-row').forEach(row => {
+        const avatarDiv = row.querySelector('.pg-cw-friend-avatar');
+        if (avatarDiv) {
+            const uname = row.dataset.username;
+            const cached = _cwFriendCache[uname];
+            if (cached) avatarDiv.style.background = cached.color;
+        }
+    });
+
     // Butonlara tıklama olayı
     listEl.querySelectorAll('.pg-cw-invite-btn').forEach(btn => {
         btn.addEventListener('click', async () => {
             const username = btn.dataset.username;
             const uid      = btn.dataset.uid;
             btn.disabled = true;
-            btn.innerHTML = '<i class="ti ti-loader" style="animation:spin .8s linear infinite;display:inline-block;"></i>';
+            btn.innerHTML = '<i class="ti ti-loader u-animation-spinp8slinearinfinite_display-inline-block" ></i>';
             const ok = await _collabWaitSendInvite(username, uid, goal);
             if (ok) {
                 btn.innerHTML = '<i class="ti ti-check"></i> Gönderildi';
@@ -197,7 +208,7 @@ async function _collabWaitSendInvite(username, userId, goal) {
             return false;
         }
 
-        const cu           = window.currentUser || {};
+        const cu           = getCurrentUser() || {};
         const fromName     = cu.displayName || cu.username || 'Biri';
         const fromUsername = cu.username || '';
 
@@ -246,20 +257,27 @@ function _collabWaitRefreshWaitingList() {
         const color       = cached.color || _cwAvatarColor(uname);
         const initials    = displayName.slice(0, 2).toUpperCase();
         return `
-        <div class="pg-cw-friend-row" style="padding:8px 10px;">
+        <div class="pg-cw-friend-row u-padding-8px10px" data-wait-uname="${esc(uname)}" >
             <div class="pg-cw-friend-avatar-wrap">
-                <div class="pg-cw-friend-avatar" style="background:${color};width:32px;height:32px;font-size:12px;">${initials}</div>
+                <div class="pg-cw-friend-avatar u-width-32px_height-32px_font-size-12px" >${initials}</div>
                 ${status === 'accepted' ? '<span class="pg-cw-online-dot"></span>' : ''}
             </div>
             <div class="pg-cw-friend-info">
-                <span class="pg-cw-friend-name" style="font-size:13px;">${esc(displayName)}</span>
+                <span class="pg-cw-friend-name u-font-size-13px" >${esc(displayName)}</span>
                 <span class="pg-cw-friend-username">@${esc(uname)}</span>
             </div>
             ${status === 'accepted'
                 ? '<span class="pg-cw-member-joined">✓ Katıldı</span>'
-                : '<span class="pg-cw-member-waiting"><span class="pg-cw-pulse-dot" style="width:7px;height:7px;"></span> Bekleniyor</span>'}
+                : '<span class="pg-cw-member-waiting"><span class="pg-cw-pulse-dot u-width-7px_height-7px" ></span> Bekleniyor</span>'}
         </div>`;
     }).join('');
+    listEl.querySelectorAll('.pg-cw-friend-row').forEach(row => {
+        const uname = row.dataset.waitUname;
+        const cached = _cwFriendCache[uname] || {};
+        const color = cached.color || _cwAvatarColor(uname);
+        const avatarDiv = row.querySelector('.pg-cw-friend-avatar');
+        if (avatarDiv) avatarDiv.style.background = color;
+    });
 }
 window._collabWaitRefreshWaitingList = _collabWaitRefreshWaitingList;
 
@@ -295,7 +313,7 @@ async function _collabWaitRefreshAccepted(goal) {
         const proceedWrap = document.getElementById('pg-cw-proceed-wrap');
         if (proceedWrap && !proceedWrap.querySelector('#pg-cw-proceed-btn')) {
             proceedWrap.innerHTML = `
-                <button id="pg-cw-proceed-btn" class="primary-btn" style="width:100%;margin-top:12px;padding:12px 0;font-size:15px;">
+                <button id="pg-cw-proceed-btn" class="primary-btn u-width-100pct_margin-top-12px_padding-12px0_font-size-15px" >
                     <i class="ti ti-arrow-right"></i> Planlamaya Başla
                 </button>`;
             document.getElementById('pg-cw-proceed-btn')?.addEventListener('click', () => {

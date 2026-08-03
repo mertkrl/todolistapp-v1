@@ -324,8 +324,8 @@
             <div class="gsc-modal-box">
                 <p class="gsc-modal-title"><i class="fa-solid fa-hourglass-half"></i> Bekleme Odası</p>
                 <p class="gsc-detail-title">${_escapeHtml(s.title || 'Seans')}</p>
-                <p style="font-size:13px; color:var(--text-muted); margin:0;">${subTxt}</p>
-                <div class="gsc-waiting-list" style="display:flex; flex-wrap:wrap; gap:6px;">${listHtml}</div>
+                <p class="u-font-size-13px_color-var-text-muted_margin-0">${subTxt}</p>
+                <div class="gsc-waiting-list u-display-flex_flex-wrap-wrap_gap-6px" >${listHtml}</div>
                 <div class="gsc-modal-footer">
                     ${isAuthorized ? '<button id="gsc-waiting-start-btn" class="control-btn primary-btn"><i class="fa-solid fa-play"></i> Oturumu Başlat</button>' : ''}
                     <button id="gsc-waiting-leave-btn" class="control-btn secondary">Ayrıl</button>
@@ -446,7 +446,7 @@
         // Yeni kazanılanları localStorage'a kaydet (bildirim için fark tespiti)
         if (groupKey && earned.length > 0) {
             const key = `focusai_grp_ach_${groupKey}_${username}`;
-            const prev = new Set(JSON.parse(localStorage.getItem(key) || '[]'));
+            const prev = new Set(JSON.parse(localStorage.getItem(key) || '[]', window._safeJsonReviver));
             const newOnes = earned.filter(a => !prev.has(a.id));
             if (newOnes.length > 0) {
                 newOnes.forEach(a => prev.add(a.id));
@@ -500,18 +500,22 @@
         const picker = document.createElement('div');
         picker.className = 'grp-theme-picker';
         picker.innerHTML = `
-            <div style="font-size:11px; font-weight:600; color:var(--text-muted); margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px;">Grup Teması</div>
-            <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+            <div class="u-font-size-11px_font-weight-600_color-var-text-muted_margin">Grup Teması</div>
+            <div class="u-display-flex_flex-wrap-wrap_gap-8px_margin-bottom-10px">
                 ${GROUP_THEME_COLORS.map(c => `
                     <button class="grp-theme-swatch${c.hex === current ? ' active' : ''}" data-hex="${c.hex}"
-                        style="background:#${c.hex};" title="${c.label}"></button>`).join('')}
+                        title="${c.label}"></button>`).join('')}
             </div>
-            <button id="grp-theme-reset" style="font-size:11px; color:var(--text-muted); background:none; border:none; cursor:pointer; padding:0;">Varsayılana sıfırla</button>
+            <button id="grp-theme-reset" class="u-font-size-11px_color-var-text-muted_background-none_border">Varsayılana sıfırla</button>
         `;
         const rect = anchorEl.getBoundingClientRect();
-        picker.style.cssText = `position:fixed; top:${rect.bottom+6}px; right:${window.innerWidth-rect.right}px; z-index:20000;`;
+        picker.style.position = 'fixed';
+        picker.style.top = `${rect.bottom+6}px`;
+        picker.style.right = `${window.innerWidth-rect.right}px`;
+        picker.style.zIndex = '20000';
         document.body.appendChild(picker);
         picker.querySelectorAll('.grp-theme-swatch').forEach(btn => {
+            btn.style.background = '#' + btn.dataset.hex;
             btn.onclick = () => {
                 localStorage.setItem(_groupThemeKey(supaId), btn.dataset.hex);
                 _applyGroupTheme(supaId);
@@ -538,7 +542,7 @@
         // Her seansın olaylarını topla: oluşturulma + tamamlanma + check-in'ler
         const events = [];
         Object.values(gscSessionsCache).forEach(s => {
-            const sessionLabel = `<b style="color:#fff;">${_escapeHtml(s.title || 'Seans')}</b>`;
+            const sessionLabel = `<b class="u-color-hfff">${_escapeHtml(s.title || 'Seans')}</b>`;
             const [y, m, d] = (s.date || '').split('-');
             const dateStr = y ? `${d} ${months[parseInt(m)-1]}` : '';
 
@@ -576,7 +580,7 @@
                             ts: a.checkedInAt,
                             icon: 'fa-bolt',
                             color: '#D4900E',
-                            text: `<b style="color:#fff;">@${_escapeHtml(username)}</b> ${sessionLabel} seansına katıldı.`,
+                            text: `<b class="u-color-hfff">@${_escapeHtml(username)}</b> ${sessionLabel} seansına katıldı.`,
                             sub: ''
                         });
                     }
@@ -588,7 +592,7 @@
         const slice = events.slice(0, 12);
 
         if (slice.length === 0) {
-            el.innerHTML = `<p style="font-size:12px; color:var(--text-muted); margin:0; padding:6px 0;">Henüz aktivite yok.</p>`;
+            el.innerHTML = `<p class="u-font-size-12px_color-var-text-muted_margin-0_padding-6px0">Henüz aktivite yok.</p>`;
             return;
         }
 
@@ -602,15 +606,20 @@
             return `${d.getDate()} ${months[d.getMonth()]}`;
         };
 
-        el.innerHTML = slice.map(ev => `
-            <div class="grp-feed-item">
-                <div class="grp-feed-dot" style="background:${ev.color};"></div>
+        el.innerHTML = slice.map((ev, i) => `
+            <div class="grp-feed-item" data-feed-idx="${i}">
+                <div class="grp-feed-dot"></div>
                 <div class="si-flex1">
-                    <div style="font-size:12px; color:rgba(255,255,255,0.8); line-height:1.4;">${ev.text}</div>
-                    ${ev.sub ? `<div style="font-size:10px; color:var(--text-muted); margin-top:1px;">${ev.sub}</div>` : ''}
+                    <div class="u-font-size-12px_color-rgba2552552550p8_line-height-1p4">${ev.text}</div>
+                    ${ev.sub ? `<div class="u-font-size-10px_color-var-text-muted_margin-top-1px">${ev.sub}</div>` : ''}
                 </div>
-                <div style="font-size:10px; color:var(--text-muted); flex-shrink:0; white-space:nowrap;">${fmtTs(ev.ts)}</div>
+                <div class="u-font-size-10px_color-var-text-muted_flex-shrink-0_white-sp">${fmtTs(ev.ts)}</div>
             </div>`).join('');
+        el.querySelectorAll('.grp-feed-item').forEach(item => {
+            const i = parseInt(item.dataset.feedIdx, 10);
+            const dot = item.querySelector('.grp-feed-dot');
+            if (dot) dot.style.background = slice[i].color;
+        });
     }
 
     function gscRenderHistory() {
@@ -634,9 +643,9 @@
         if (past.length === 0) {
             container.innerHTML = `
                 <div class="grp-onboarding-card">
-                    <i class="fa-solid fa-clock-rotate-left" style="font-size:26px; color:var(--primary-color); margin-bottom:8px;"></i>
-                    <p style="font-size:13px; font-weight:600; color:#fff; margin:0 0 4px;">${isTeacherView ? 'Henüz tamamlanan seans yok' : 'Henüz katıldığın tamamlanmış bir seans yok'}</p>
-                    <p style="font-size:12px; color:var(--text-muted); margin:0;">${isTeacherView ? 'Takvim sekmesinden ilk seansı planla, katıl ve burada geçmişini gör.' : 'Takvim sekmesinden bir seansa katılıp check-in yaptığında burada görünür.'}</p>
+                    <i class="fa-solid fa-clock-rotate-left u-font-size-26px_color-var-primary-color_margin-bottom-8px" ></i>
+                    <p class="u-font-size-13px_font-weight-600_color-hfff_margin-004px">${isTeacherView ? 'Henüz tamamlanan seans yok' : 'Henüz katıldığın tamamlanmış bir seans yok'}</p>
+                    <p class="u-font-size-12px_color-var-text-muted_margin-0">${isTeacherView ? 'Takvim sekmesinden ilk seansı planla, katıl ve burada geçmişini gör.' : 'Takvim sekmesinden bir seansa katılıp check-in yaptığında burada görünür.'}</p>
                 </div>`;
             return;
         }
@@ -654,24 +663,24 @@
                 .map(u => avatarImgHtml({ ...s.attendees[u], displayName: s.attendees[u].displayName || u }, 18))
                 .join('');
             const shownCount = isTeacherView ? attendees.length : checkedIn.length;
-            const overflow = shownCount > 5 ? `<span style="font-size:10px; color:var(--text-muted); margin-left:4px;">+${shownCount-5}</span>` : '';
+            const overflow = shownCount > 5 ? `<span class="u-font-size-10px_color-var-text-muted_margin-left-4px">+${shownCount-5}</span>` : '';
             return `
                 <div class="grp-history-card${iWasIn ? ' mine' : ''}">
-                    <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap;">
+                    <div class="u-display-flex_align-items-center_justify-content-space-betw-12">
                         <div class="si-min0">
                             <div class="si-title-bold">${_escapeHtml(s.title || 'Seans')}</div>
                             <div class="si-meta">
-                                <i class="fa-solid fa-calendar-day" style="font-size:9px;"></i> ${dateLabel}
+                                <i class="fa-solid fa-calendar-day u-font-size-9px" ></i> ${dateLabel}
                                 &nbsp;·&nbsp;
-                                <i class="fa-solid fa-clock" style="font-size:9px;"></i> ${timeRange}
+                                <i class="fa-solid fa-clock u-font-size-9px" ></i> ${timeRange}
                                 &nbsp;·&nbsp;
-                                <i class="fa-solid fa-hourglass-half" style="font-size:9px;"></i> ${durationMin} dk
-                                ${!isTeacherView ? `<span style="color:#74b9ff; margin-left:6px;"><i class="fa-solid fa-circle-check" style="font-size:9px;"></i> Katıldım</span>` : ''}
+                                <i class="fa-solid fa-hourglass-half u-font-size-9px" ></i> ${durationMin} dk
+                                ${!isTeacherView ? `<span class="u-color-h74b9ff_margin-left-6px"><i class="fa-solid fa-circle-check u-font-size-9px" ></i> Katıldım</span>` : ''}
                             </div>
                         </div>
-                        <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
-                            ${shownCount > 0 ? `<div style="display:flex; align-items:center; gap:-4px;">${avatarsHtml}${overflow}</div>` : ''}
-                            ${isTeacherView ? `<span style="font-size:11px; color:rgba(255,255,255,0.5);">${checkedIn.length}/${attendees.length} katıldı</span>` : ''}
+                        <div class="u-display-flex_align-items-center_gap-10px_flex-shrink-0">
+                            ${shownCount > 0 ? `<div class="u-display-flex_align-items-center_gap-4px">${avatarsHtml}${overflow}</div>` : ''}
+                            ${isTeacherView ? `<span class="u-font-size-11px_color-rgba2552552550p5">${checkedIn.length}/${attendees.length} katıldı</span>` : ''}
                         </div>
                     </div>
                 </div>`;
@@ -883,7 +892,7 @@
                 : (isMine ? '✓ Varım' : (attendeeCount > 0 ? `${attendeeCount} kişi katılıyor` : 'Henüz kimse yok'));
             return `
                 <div class="gsc-day-detail-row${isPast ? ' completed' : ''}${isMine ? ' mine' : ''}" data-key="${key}">
-                    <div class="gsc-ddr-time">${timeRange}${s.recurrenceGroupId ? ' <i class="fa-solid fa-repeat" style="font-size:9px; opacity:0.7;" title="Tekrarlayan seans"></i>' : ''}</div>
+                    <div class="gsc-ddr-time">${timeRange}${s.recurrenceGroupId ? ' <i class="fa-solid fa-repeat u-font-size-9px_opacity-0p7" title="Tekrarlayan seans"></i>' : ''}</div>
                     <div class="gsc-ddr-main">
                         <div class="gsc-ddr-title">${_escapeHtml(s.title || 'Seans')}</div>
                         <div class="gsc-ddr-sub">${subText}</div>
@@ -897,7 +906,7 @@
         panel.innerHTML = `
             <div class="gsc-day-detail-head">
                 <span>${dayLabel}${daySessions.length > 0 ? ` · ${daySessions.length} seans` : ''}</span>
-                ${gscCanManageSessions ? `<button id="gsc-day-detail-add" class="control-btn secondary" style="padding:4px 10px; font-size:11px;"><i class="fa-solid fa-plus"></i> Seans Ekle</button>` : ''}
+                ${gscCanManageSessions ? `<button id="gsc-day-detail-add" class="control-btn secondary u-padding-4px10px_font-size-11px" ><i class="fa-solid fa-plus"></i> Seans Ekle</button>` : ''}
             </div>
             ${daySessions.length > 0
                 ? `<div class="gsc-day-detail-list">${rowsHtml}</div>`
@@ -925,9 +934,9 @@
     // tekrar ayarına dokunmaz (seri yeniden oluşturma karmaşıklığından kaçınmak için
     // bilinçli bir kapsam sınırı: tekrarlayan bir seansın tekrar deseni değiştirilemez,
     // sadece tek tek seanslar silinebilir/yeniden oluşturulabilir).
-    function gscOpenCreateModal(prefDate, editSession) {
-        if (!gscCanManageSessions) return; // yetki sistemi: sadece admin/moderatör seans planlayabilir
-
+    // gscOpenCreateModal'ın veri hazırlama + HTML üretim katmanı — overlay elementini
+    // oluşturup döner (henüz DOM'a eklenmemiş). Faz S devamı, dev fonksiyon refactoru.
+    function _gscBuildCreateModalOverlay(prefDate, editSession) {
         const existing = document.getElementById('gsc-create-modal');
         if (existing) existing.remove();
 
@@ -941,9 +950,9 @@
         overlay.className = 'gsc-modal-overlay';
         overlay.innerHTML = `
             <div class="gsc-modal-box">
-                <div style="display:flex; align-items:center; justify-content:space-between;">
+                <div class="u-display-flex_align-items-center_justify-content-space-betw-13">
                     <div class="gsc-modal-title"><i class="fa-solid ${isEdit ? 'fa-pen' : 'fa-calendar-plus'}"></i> ${isEdit ? 'Seansı Düzenle' : 'Yeni Seans Planla'}</div>
-                    <button id="gsc-cm-close" class="icon-btn si-muted"><i class="fa-solid fa-xmark"></i></button>
+                    <button id="gsc-cm-close" class="icon-btn si-muted" aria-label="Kapat"><i class="fa-solid fa-xmark"></i></button>
                 </div>
                 <div class="gsc-form-row">
                     <label class="gsc-form-label">Seans Başlığı</label>
@@ -963,30 +972,34 @@
                         <input id="gsc-cm-time-end" type="time" class="gsc-form-input" value="${endTime}">
                     </div>
                 </div>
-                <p id="gsc-cm-time-error" style="display:none; font-size:11px; color:#ff4757; margin:-8px 0 0;"></p>
+                <p id="gsc-cm-time-error" class="u-display-none_font-size-11px_color-hff4757_margin-8px00"></p>
                 <div class="gsc-form-row">
                     <label class="gsc-form-label">Not (isteğe bağlı)</label>
                     <input id="gsc-cm-note" class="gsc-form-input" placeholder="Konu, bağlantı vs." maxlength="120" value="${isEdit ? _escapeHtml(es.note || '') : ''}">
                 </div>
-                ${isEdit ? (es.recurrenceGroupId ? `<p style="font-size:11px; color:var(--text-muted); margin:0;"><i class="fa-solid fa-circle-info"></i> Bu, tekrarlayan bir serinin parçası. Buradaki değişiklik yalnızca bu tek seansı etkiler.</p>` : '') : `
+                ${isEdit ? (es.recurrenceGroupId ? `<p class="u-font-size-11px_color-var-text-muted_margin-0"><i class="fa-solid fa-circle-info"></i> Bu, tekrarlayan bir serinin parçası. Buradaki değişiklik yalnızca bu tek seansı etkiler.</p>` : '') : `
                 <div class="gsc-form-row">
-                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px; color:#fff;">
-                        <input id="gsc-cm-repeat" type="checkbox" style="width:16px; height:16px; cursor:pointer;">
-                        <i class="fa-solid fa-repeat" style="color:var(--primary-color); font-size:12px;"></i> Her hafta aynı gün/saatte tekrarla
+                    <label class="u-display-flex_align-items-center_gap-8px_cursor-pointer_fon">
+                        <input id="gsc-cm-repeat" type="checkbox" class="u-width-16px_height-16px_cursor-pointer">
+                        <i class="fa-solid fa-repeat u-color-var-primary-color_font-size-12px" ></i> Her hafta aynı gün/saatte tekrarla
                     </label>
                 </div>
-                <div class="gsc-form-row" id="gsc-cm-repeat-weeks-row" style="display:none;">
+                <div class="gsc-form-row u-display-none" id="gsc-cm-repeat-weeks-row" >
                     <label class="gsc-form-label">Kaç hafta sürsün?</label>
                     <input id="gsc-cm-repeat-weeks" type="number" class="gsc-form-input" value="8" min="2" max="12">
                 </div>`}
                 <div class="gsc-modal-footer">
-                    <button id="gsc-cm-cancel" class="control-btn secondary" style="padding:9px 18px;">İptal</button>
-                    <button id="gsc-cm-save" class="primary-btn" style="padding:9px 20px;"><i class="fa-solid fa-check"></i> ${isEdit ? 'Kaydet' : 'Planla'}</button>
+                    <button id="gsc-cm-cancel" class="control-btn secondary u-padding-9px18px" >İptal</button>
+                    <button id="gsc-cm-save" class="primary-btn u-padding-9px20px" ><i class="fa-solid fa-check"></i> ${isEdit ? 'Kaydet' : 'Planla'}</button>
                 </div>
             </div>
         `;
-        document.body.appendChild(overlay);
+        return overlay;
+    }
 
+    // gscOpenCreateModal'ın olay bağlama katmanı — overlay zaten DOM'a eklenmiş olmalı.
+    // Faz S devamı, dev fonksiyon refactoru.
+    function _gscWireCreateModalEvents(overlay, isEdit, editSession) {
         overlay.querySelector('#gsc-cm-close').onclick  = () => overlay.remove();
         overlay.querySelector('#gsc-cm-cancel').onclick = () => overlay.remove();
         overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
@@ -1127,10 +1140,18 @@
         };
     }
 
-    function gscOpenDetailModal(sessionKey, s) {
-        const existing = document.getElementById('gsc-detail-modal');
-        if (existing) existing.remove();
+    // Seans oluşturma/düzenleme modalını açar: veri+HTML katmanını kurar, DOM'a ekler, sonra olayları bağlar.
+    function gscOpenCreateModal(prefDate, editSession) {
+        if (!gscCanManageSessions) return; // yetki sistemi: sadece admin/moderatör seans planlayabilir
+        const overlay = _gscBuildCreateModalOverlay(prefDate, editSession);
+        document.body.appendChild(overlay);
+        _gscWireCreateModalEvents(overlay, !!editSession, editSession);
+    }
 
+    // gscOpenDetailModal'ın veri hazırlama + HTML üretim katmanı — overlay elementini
+    // oluşturup döner (henüz DOM'a eklenmemiş), ayrıca event wiring için gereken
+    // bayrakları (isMine/isPast/canManage) da döner. Faz S devamı, dev fonksiyon refactoru.
+    function _gscBuildDetailModalOverlay(sessionKey, s) {
         const isPast     = gscIsPast(s);
         const isMine     = s.attendees && s.attendees[currentUser.username];
         const isCreator  = s.createdBy === currentUser.username;
@@ -1147,9 +1168,9 @@
         // Geçmiş seans özeti: kaç kişi "Varım" demişti, kaçı gerçekten check-in yaptı
         const checkedInCount = attendees.filter(u => s.attendees[u].checkedInAt).length;
         const recapHtml = isPast && attendees.length > 0
-            ? `<div style="display:flex; align-items:center; gap:8px; padding:10px 14px; background:rgba(212,144,14,0.08); border:1px solid rgba(212,144,14,0.2); border-radius:10px; font-size:12px; color:var(--text-muted);">
-                <i class="fa-solid fa-clipboard-check" style="color:#D4900E;"></i>
-                <span><b style="color:#fff;">${checkedInCount}/${attendees.length}</b> kişi gerçekten katıldı (check-in yaptı).</span>
+            ? `<div class="u-display-flex_align-items-center_gap-8px_padding-10px14px_b">
+                <i class="fa-solid fa-clipboard-check u-color-hD4900E" ></i>
+                <span><b class="u-color-hfff">${checkedInCount}/${attendees.length}</b> kişi gerçekten katıldı (check-in yaptı).</span>
                </div>`
             : '';
 
@@ -1158,7 +1179,7 @@
         overlay.className = 'gsc-modal-overlay';
         overlay.innerHTML = `
             <div class="gsc-modal-box">
-                <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px;">
+                <div class="u-display-flex_align-items-flex-start_justify-content-space-">
                     <div>
                         <p class="gsc-detail-title">${_escapeHtml(s.title || 'Seans')}</p>
                         <div class="gsc-detail-meta">
@@ -1169,33 +1190,37 @@
                             ${isPast ? '<span class="gsc-detail-badge green"><i class="fa-solid fa-check"></i> Tamamlandı</span>' : ''}
                         </div>
                     </div>
-                    <button id="gsc-dm-close" class="icon-btn" style="color:var(--text-muted); flex-shrink:0;"><i class="fa-solid fa-xmark"></i></button>
+                    <button id="gsc-dm-close" class="icon-btn u-color-var-text-muted_flex-shrink-0"  aria-label="Kapat"><i class="fa-solid fa-xmark"></i></button>
                 </div>
-                ${s.note ? `<p style="font-size:13px; color:var(--text-muted); margin:0; padding:10px 14px; background:rgba(255,255,255,0.03); border-radius:10px; border:1px solid rgba(255,255,255,0.06);">${_escapeHtml(s.note)}</p>` : ''}
+                ${s.note ? `<p class="u-font-size-13px_color-var-text-muted_margin-0_padding-10px1">${_escapeHtml(s.note)}</p>` : ''}
                 ${recapHtml}
                 <div>
-                    <p style="font-size:12px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin:0 0 10px 0;">
+                    <p class="u-font-size-12px_font-weight-600_color-var-text-muted_text-t">
                         <i class="fa-solid fa-user-check"></i> Katılımcılar (${attendees.length})
                     </p>
                     <div class="gsc-attendee-grid" id="gsc-attendee-list">
-                        ${attendees.map(u => `<div class="gsc-attendee-chip">${avatarImgHtml({ ...s.attendees[u], displayName: s.attendees[u].displayName || u }, 18)}${_escapeHtml(s.attendees[u].displayName || u)}${s.attendees[u].checkedInAt ? ' <i class="fa-solid fa-circle-check" style="color:#74b9ff; font-size:10px;" title="Check-in yaptı"></i>' : ''}</div>`).join('')}
-                        ${attendees.length === 0 ? '<span style="color:var(--text-muted);font-size:12px;">Henüz kimse katılmadı.</span>' : ''}
+                        ${attendees.map(u => `<div class="gsc-attendee-chip">${avatarImgHtml({ ...s.attendees[u], displayName: s.attendees[u].displayName || u }, 18)}${_escapeHtml(s.attendees[u].displayName || u)}${s.attendees[u].checkedInAt ? ' <i class="fa-solid fa-circle-check u-color-h74b9ff_font-size-10px" title="Check-in yaptı"></i>' : ''}</div>`).join('')}
+                        ${attendees.length === 0 ? '<span class="u-font-size-12px_color-var-text-muted">Henüz kimse katılmadı.</span>' : ''}
                     </div>
                 </div>
-                ${canStartNow ? `<button id="gsc-start-now-btn" class="primary-btn" style="width:100%; padding:11px;"><i class="fa-solid fa-bolt"></i> Şimdi Başla</button>` : ''}
+                ${canStartNow ? `<button id="gsc-start-now-btn" class="primary-btn u-width-100pct_padding-11px" ><i class="fa-solid fa-bolt"></i> Şimdi Başla</button>` : ''}
                 ${!isPast && !canManage ? `<button id="gsc-rsvp-btn" class="gsc-rsvp-btn ${isMine ? 'leave' : 'join'}">
                     ${isMine
                         ? '<i class="fa-solid fa-xmark"></i> Katılımı İptal Et'
                         : '<i class="fa-solid fa-hand-point-up"></i> Ben Varım!'}
                 </button>` : ''}
-                ${canManage && !isPast ? `<button id="gsc-dm-edit" class="control-btn secondary" style="width:100%; padding:9px;"><i class="fa-solid fa-pen"></i> Düzenle</button>` : ''}
+                ${canManage && !isPast ? `<button id="gsc-dm-edit" class="control-btn secondary u-width-100pct_padding-9px" ><i class="fa-solid fa-pen"></i> Düzenle</button>` : ''}
                 ${canManage ? `<button id="gsc-dm-delete" class="gsc-delete-btn"><i class="fa-solid fa-trash-can"></i> Seansı Sil</button>` : ''}
-                ${canManage && s.recurrenceGroupId ? `<button id="gsc-dm-delete-series" class="gsc-delete-btn" style="margin-top:6px;"><i class="fa-solid fa-trash-can"></i> Bu ve Sonraki Tüm Tekrarları Sil</button>` : ''}
-                <p style="font-size:11px; color:rgba(255,255,255,0.25); margin:0; text-align:right;">Oluşturan: @${_escapeHtml(s.createdBy || '')}</p>
+                ${canManage && s.recurrenceGroupId ? `<button id="gsc-dm-delete-series" class="gsc-delete-btn u-margin-top-6px" ><i class="fa-solid fa-trash-can"></i> Bu ve Sonraki Tüm Tekrarları Sil</button>` : ''}
+                <p class="u-font-size-11px_color-rgba2552552550p25_margin-0_text-align">Oluşturan: @${_escapeHtml(s.createdBy || '')}</p>
             </div>
         `;
-        document.body.appendChild(overlay);
+        return { overlay, isMine, isPast, canManage };
+    }
 
+    // gscOpenDetailModal'ın buton/RSVP olay bağlama katmanı — overlay zaten DOM'a
+    // eklenmiş olmalı. Faz S devamı, dev fonksiyon refactoru.
+    function _gscWireDetailModalEvents(overlay, sessionKey, s, isMine, canManage) {
         overlay.querySelector('#gsc-dm-close').onclick = () => overlay.remove();
         overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
 
@@ -1345,6 +1370,13 @@
                 if (typeof gscRenderCalendar === 'function') gscRenderCalendar();
             };
         }
+    }
+
+    // Seans detay modalını açar: veri+HTML katmanını kurar, DOM'a ekler, sonra olayları bağlar.
+    function gscOpenDetailModal(sessionKey, s) {
+        const { overlay, isMine, canManage } = _gscBuildDetailModalOverlay(sessionKey, s);
+        document.body.appendChild(overlay);
+        _gscWireDetailModalEvents(overlay, sessionKey, s, isMine, canManage);
     }
 
 // ── Dışa açılan köprüler ──────────────────────────────────────────────

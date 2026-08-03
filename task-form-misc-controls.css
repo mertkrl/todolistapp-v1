@@ -1,0 +1,110 @@
+/* style.css'ten çıkarıldı (Faz C, 2026-07-22). Görev Formu Küçük Bileşenleri — sahnelenen görev kaldırma butonu, modern select, öncelik checkbox/seçim öğeleri, görev seçenekleri satırı, tükenmişlik uyarısı, input[type=date] renk şeması. */
+
+.remove-staged-btn {
+    background: transparent;
+    border: none;
+    color: #ff4757;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: 0.3s;
+    font-size: 16px;
+    padding: 5px;
+}
+
+.remove-staged-btn:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.burnout-warning {
+    color: #ff4757;
+    font-size: 13px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    display: none;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 71, 87, 0.1);
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 71, 87, 0.3);
+    animation: fadeIn 0.3s ease;
+}
+
+.priority-select-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 12px 15px;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.priority-select-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.priority-select-item.selected {
+    border-color: #ff9f43;
+    background: rgba(255, 159, 67, 0.1);
+}
+
+.priority-checkbox {
+    width: 18px;
+    height: 18px;
+    accent-color: #ff9f43;
+    cursor: pointer;
+}
+
+
+
+
+
+
+
+
+
+.task-options-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.option-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 8px 15px;
+    border-radius: 12px;
+    border: 1px solid var(--glass-border);
+}
+
+.option-group i {
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+.modern-select {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    outline: none;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 14px;
+}
+.modern-select:focus-visible { outline: none; box-shadow: 0 0 0 2px rgba(212,144,14,0.35); border-color: var(--primary-color, #D4900E); }
+
+.modern-select option {
+    background: #1a163a;
+    color: #fff;
+}
+
+input[type="date"] {
+    color-scheme: dark;
+}

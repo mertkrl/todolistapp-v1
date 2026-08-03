@@ -11,7 +11,7 @@ let gfIdleBound = false;
 let gfIsRunning = false;
 let gfGhostModeEnabled = true;
 
-function gfResetIdleTimer() {
+export function gfResetIdleTimer() {
     clearTimeout(gfIdleTimeout);
     const overlay = document.getElementById('group-focus-overlay');
     if (!overlay) return;
@@ -24,7 +24,7 @@ function gfResetIdleTimer() {
 }
 window.gfResetIdleTimer = gfResetIdleTimer;
 
-function gfEnsureIdleBindings() {
+export function gfEnsureIdleBindings() {
     if (gfIdleBound) return;
     gfIdleBound = true;
     ['mousemove', 'mousedown', 'keydown', 'touchstart'].forEach(evt => {
@@ -33,7 +33,7 @@ function gfEnsureIdleBindings() {
 }
 window.gfEnsureIdleBindings = gfEnsureIdleBindings;
 
-function gfEnsureFocusModeBinding() {
+export function gfEnsureFocusModeBinding() {
     const btn = document.getElementById('gf-focus-mode-btn');
     if (!btn || btn.dataset.gfBound) return;
     btn.dataset.gfBound = '1';
@@ -55,7 +55,7 @@ function gfEnsureFocusModeBinding() {
 }
 window.gfEnsureFocusModeBinding = gfEnsureFocusModeBinding;
 
-function gfExitFocusMode() {
+export function gfExitFocusMode() {
     const overlay = document.getElementById('group-focus-overlay');
     const btn = document.getElementById('gf-focus-mode-btn');
     if (overlay) overlay.classList.remove('group-focus-mode-active', 'group-ghost-mode-active');
@@ -69,12 +69,12 @@ function gfExitFocusMode() {
 window.gfExitFocusMode = gfExitFocusMode;
 
 // ── Dışarıdan (social.js) durum güncellemesi için setter'lar ──
-function gfSetRunning(isRunning) {
+export function gfSetRunning(isRunning) {
     gfIsRunning = !!isRunning;
 }
 window.gfSetRunning = gfSetRunning;
 
-function gfSetGhostModeEnabled(enabled) {
+export function gfSetGhostModeEnabled(enabled) {
     gfGhostModeEnabled = !!enabled;
     if (!gfGhostModeEnabled) {
         clearTimeout(gfIdleTimeout);

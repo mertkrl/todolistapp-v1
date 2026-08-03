@@ -1,3 +1,9 @@
+import { dcShowConfirm } from './social-dc-confirm-toasts.js';
+import { renderLeaderboardFromCache, _syncBlockToSupabase, removeFriend } from './social-friends-notifications.js';
+
+import { loadJsonList, saveJsonList, _dcGetBlockedByOthers, renderRecentConversations } from './social-dm-notifications.js';
+
+import { getActiveChatTarget } from './state/active-chat-target-store.js';
 // ─── ENGELLE ────────────────────────────────────────────────────────
 // social.js dosyasından çıkarıldı (Faz 2, 2026-07-19 — en geniş kapsamlı
 // çıkarma: isBlockedEitherWay tek başına ~30 yerde kullanılıyordu, bir kısmı
@@ -11,43 +17,43 @@
 // - loadJsonList/saveJsonList → window.* köprüsü (social.js'te kalıyor,
 //   Sohbet Listesi Eylemleri özelliği de kullanıyor)
 // - _blockedByOthers (initSocial() dinleyicisi tarafından yazılan paylaşılan
-//   Set, taşınmadı) → window._dcGetBlockedByOthers() salt-okunur getter
+//   Set, taşınmadı) → _dcGetBlockedByOthers() salt-okunur getter
 // - _syncBlockToSupabase / removeFriend → social.js'te kalıyor, window.*
 //   köprüsü eklendi
 // - renderRecentConversations / syncDcContactList / renderLeaderboardFromCache
 //   → zaten window.* köprülüydü
 // - _escapeHtml → window.escapeHtml
-// - window.dcShowConfirm / window.dcShowToast / window._activeChatTarget /
+// - window.dcShowConfirm / window.dcShowToast / getActiveChatTarget() /
 //   window.FocusSupabase → zaten global
 function isUserBlocked(username) {
-    return window.loadJsonList('focusai_blocked_users').includes(username);
+    return loadJsonList('focusai_blocked_users').includes(username);
 }
 window.isUserBlocked = isUserBlocked;
 
 // Ben onu engelledim VEYA o beni engelledi — her iki durumda da
 // birbirimizin profilini, mesajlarını ve istatistiklerini göremeyiz.
 export function isBlockedEitherWay(username) {
-    return isUserBlocked(username) || window._dcGetBlockedByOthers().has(username);
+    return isUserBlocked(username) || _dcGetBlockedByOthers().has(username);
 }
 window.isBlockedEitherWay = isBlockedEitherWay;
 
 function toggleUserBlocked(username) {
-    let list = window.loadJsonList('focusai_blocked_users');
+    let list = loadJsonList('focusai_blocked_users');
     const nowBlocked = !list.includes(username);
     if (nowBlocked) list.push(username);
     else list = list.filter(u => u !== username);
-    window.saveJsonList('focusai_blocked_users', list);
-    window._syncBlockToSupabase(username, nowBlocked);
+    saveJsonList('focusai_blocked_users', list);
+    _syncBlockToSupabase(username, nowBlocked);
 
-    if (nowBlocked && typeof window.removeFriend === 'function') window.removeFriend(username);
-    if (typeof window.renderRecentConversations === 'function') window.renderRecentConversations();
+    if (nowBlocked) removeFriend(username);
+    if (typeof window.renderRecentConversations === 'function') renderRecentConversations();
     if (typeof refreshBlockSensitiveUI === 'function') refreshBlockSensitiveUI();
     return nowBlocked;
 }
 window.toggleUserBlocked = toggleUserBlocked;
 
 async function isBlockedByUser(username) {
-    return window._dcGetBlockedByOthers().has(username);
+    return _dcGetBlockedByOthers().has(username);
 }
 window.isBlockedByUser = isBlockedByUser;
 
@@ -55,9 +61,9 @@ window.isBlockedByUser = isBlockedByUser;
 // bir kullanıcı engellendiğinde/engeli kaldırıldığında her yerden
 // anında kaybolması/geri gelmesi için.
 function refreshBlockSensitiveUI() {
-    if (typeof window.renderRecentConversations === 'function') window.renderRecentConversations();
+    if (typeof window.renderRecentConversations === 'function') renderRecentConversations();
     if (typeof window.syncDcContactList === 'function') window.syncDcContactList();
-    if (typeof window.renderLeaderboardFromCache === 'function') window.renderLeaderboardFromCache();
+    renderLeaderboardFromCache();
     if (typeof renderBlockedUsersSettings === 'function') renderBlockedUsersSettings();
     document.querySelectorAll('.mini-profile-popup').forEach(el => el.remove());
 }
@@ -73,7 +79,7 @@ function updateDcBlockedBanner(targetUsername) {
     const blocked = isBlockedEitherWay(targetUsername);
 
     // Bu süre zarfında sohbet değişmiş olabilir
-    if (!window._activeChatTarget || window._activeChatTarget.type !== 'dm' || window._activeChatTarget.username !== targetUsername) return;
+    if (!getActiveChatTarget() || getActiveChatTarget().type !== 'dm' || getActiveChatTarget().username !== targetUsername) return;
 
     let banner = document.getElementById('dc-blocked-banner');
     if (!blocked) {
@@ -102,9 +108,9 @@ export async function renderBlockedUsersSettings() {
     const listEl = document.getElementById('settings-blocked-list');
     if (!listEl) return;
 
-    const blocked = window.loadJsonList('focusai_blocked_users');
+    const blocked = loadJsonList('focusai_blocked_users');
     if (!blocked.length) {
-        listEl.innerHTML = `<div style="font-size:12px; color:var(--text-muted); padding:6px 0;">Engellediğin kimse yok.</div>`;
+        listEl.innerHTML = `<div class="u-font-size-12px_color-var-text-muted_padding-6px0">Engellediğin kimse yok.</div>`;
         return;
     }
 
@@ -113,7 +119,7 @@ export async function renderBlockedUsersSettings() {
         <div class="settings-blocked-item" data-username="${esc(username)}">
             <div class="settings-blocked-avatar" id="settings-blocked-avatar-${esc(username)}">${esc(username.charAt(0).toUpperCase())}</div>
             <div class="settings-blocked-name" id="settings-blocked-name-${esc(username)}">@${esc(username)}</div>
-            <button class="control-btn secondary settings-blocked-unblock-btn" data-username="${esc(username)}" style="font-size:12px; padding:6px 12px;">
+            <button class="control-btn secondary settings-blocked-unblock-btn u-font-size-12px_padding-6px12px" data-username="${esc(username)}" >
                 <i class="fa-solid fa-ban"></i> Engeli Kaldır
             </button>
         </div>
@@ -138,7 +144,7 @@ export async function renderBlockedUsersSettings() {
     listEl.querySelectorAll('.settings-blocked-unblock-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const username = btn.dataset.username;
-            window.dcShowConfirm({
+            dcShowConfirm({
                 title: 'Engeli Kaldır',
                 message: `@${username} adlı kullanıcının engelini kaldırmak istediğine emin misin? Tekrar profilini görebilir, mesajlaşabilir ve aynı gruptaysanız mesajlarını görebilirsiniz.`,
                 confirmText: 'Engeli Kaldır',

@@ -1,6 +1,20 @@
+import { _resolveProfileById } from './social-dc-profile-resolve.js';
+import { getCurrentUser } from './state/current-user-store.js';
+import { getGmMembersSupabaseChannel, setGmMembersSupabaseChannel } from './state/gm-members-channel-store.js';
+import { getGmCustomRolesSupabaseChannel, setGmCustomRolesSupabaseChannel } from './state/gm-custom-roles-channel-store.js';
+function _applyDynStyles(root) {
+    if (!root) return;
+    root.querySelectorAll('[data-dyn-bg]').forEach(el => { el.style.backgroundColor = el.getAttribute('data-dyn-bg'); });
+    root.querySelectorAll('[data-dyn-color]').forEach(el => { el.style.color = el.getAttribute('data-dyn-color'); });
+    root.querySelectorAll('[data-dyn-bdc]').forEach(el => { el.style.borderLeftColor = el.getAttribute('data-dyn-bdc'); });
+    root.querySelectorAll('[data-dyn-shadow]').forEach(el => { el.style.boxShadow = el.getAttribute('data-dyn-shadow'); });
+    root.querySelectorAll('[data-dyn-cursor]').forEach(el => { el.style.cursor = el.getAttribute('data-dyn-cursor'); });
+    root.querySelectorAll('[data-dyn-opacity]').forEach(el => { el.style.opacity = el.getAttribute('data-dyn-opacity'); });
+    root.querySelectorAll('[data-dyn-bordercolor]').forEach(el => { el.style.borderColor = el.getAttribute('data-dyn-bordercolor'); });
+}
 // social-roles.js — Grup rolleri, izinler, üyelik yönetimi (moderasyon paneli)
 // social.js'ten çıkarıldı; ayrı top-level scope'ta çalışır — social.js'in IIFE-özel değişkenlerine
-// (window.currentUser gibi) doğrudan erişemez, bu yüzden window.currentUser kullanılır (social.js her atamada senkronlar).
+// (getCurrentUser() gibi) doğrudan erişemez, bu yüzden getCurrentUser() kullanılır (social.js her atamada senkronlar).
 
 // =======================================================================
 // YENİ EKLENEN: SOHBET ALT ODALARI, RÜTBE VE YÖNETİM SİSTEMİ FONKSİYONLARI
@@ -9,7 +23,7 @@
 // ─── ÖZEL ROL & İZİN SİSTEMİ ────────────────────────────
 // Yerleşik roller için varsayılan izinler. Özel roller "groups/{code}/customRoles/{roleId}" altında saklanır.
 // Hiyerarşi: yüksek "priority" düşük olanı yönetebilir (admin her zaman en üstte, üye en altta)
-const BUILTIN_ROLE_PERMS = {
+export const BUILTIN_ROLE_PERMS = {
     admin:     { name: 'Admin',     color: 'ff4757', manageRooms: true,  kickMembers: true,  lockRooms: true,  assignRoles: true,  manageSessions: true,  priority: 1000 },
     moderator: { name: 'Moderatör', color: '74b9ff', manageRooms: true,  kickMembers: true,  lockRooms: false, assignRoles: true,  manageSessions: true,  priority: 500  },
     member:    { name: 'Üye',       color: '636e72', manageRooms: false, kickMembers: false, lockRooms: false, assignRoles: false, manageSessions: false, priority: 0    }
@@ -17,26 +31,23 @@ const BUILTIN_ROLE_PERMS = {
 // social.js bu sabite window. öneki OLMADAN, çıplak global olarak erişiyor (bkz. social.js:15399,
 // 20205) — bu dosya IIFE ile sarılmadığı için zaten bir global'di; burada window.X olarak da
 // açıkça dışa vermek davranışı değiştirmiyor, sadece dosyalar-arası bu bağımlılığı belgeliyor.
-window.BUILTIN_ROLE_PERMS = BUILTIN_ROLE_PERMS;
 const CUSTOM_ROLE_BASE_PRIORITY = 100; // özel roller varsayılan olarak Üye ile Moderatör arasına yerleşir
 const MAX_CUSTOM_ROLES = 10; // bir grupta oluşturulabilecek en fazla özel rol sayısı
 
 // Bir rolün hiyerarşi sırasını döndürür (yerleşik veya özel)
-function getRolePriority(role, customRoles) {
+export function getRolePriority(role, customRoles) {
     if (BUILTIN_ROLE_PERMS[role]) return BUILTIN_ROLE_PERMS[role].priority;
     const cr = customRoles && customRoles[role];
     return (cr && typeof cr.priority === 'number') ? cr.priority : CUSTOM_ROLE_BASE_PRIORITY;
 }
-window.getRolePriority = getRolePriority;
 
 // Bir üyenin (yerleşik veya özel) rolüne göre izinlerini getirir
 // channelCtx verilirse (ör. {subId}) o kanala özel izin istisnaları (override) da değerlendirilir
 // Firebase kaldırıldı: Firebase-dönemi grupları artık yok; bu çağrı her zaman
 // 'Üye' izinleriyle döner. Supabase gruplarında getMemberPermissionsSupabase kullanılır.
-function getMemberPermissions(groupId, username, callback) {
+export function getMemberPermissions(groupId, username, callback) {
     callback({ ...BUILTIN_ROLE_PERMS.member, role: 'member' });
 }
-window.getMemberPermissions = getMemberPermissions;
 
 // Bir rolün izinlerini küçük etiketler halinde listeler ("Roller & İzinler" satırları için)
 function _gmPermLabelList(r) {
@@ -45,7 +56,7 @@ function _gmPermLabelList(r) {
     if (r.kickMembers)  perms.push('<i class="fa-solid fa-user-xmark" title="Üye Ekleme / Üye Atma"></i> Üye Ekleme / Üye Atma');
     if (r.lockRooms)    perms.push('<i class="fa-solid fa-lock" title="Oda Kilitleme"></i> Oda Kilitleme');
     if (r.assignRoles)  perms.push('<i class="fa-solid fa-user-tag" title="Rol Atama"></i> Rol Atama');
-    return perms.length ? perms.join('<span style="opacity:0.3;">•</span>') : 'İzin tanımlanmadı';
+    return perms.length ? perms.join('<span class="u-opacity-0p3">•</span>') : 'İzin tanımlanmadı';
 }
 
 // Rol formunu "düzenleme" moduna geçirir ve mevcut rol verileriyle doldurur
@@ -95,7 +106,7 @@ function enterRoleEditMode(groupId, roleId, role, isBuiltin) {
 }
 
 // Rol formunu varsayılan "yeni rol oluştur" moduna sıfırlar
-function resetRoleForm() {
+export function resetRoleForm() {
     const editingInput = document.getElementById('gm-editing-role-id');
     const nameInput = document.getElementById('gm-new-role-name');
     const titleText = document.getElementById('gm-role-form-title-text');
@@ -128,7 +139,6 @@ function resetRoleForm() {
 
     updateRolePreviewChip();
 }
-window.resetRoleForm = resetRoleForm;
 
 // Rol oluşturma formundaki canlı önizleme rozetini günceller
 function updateRolePreviewChip() {
@@ -171,18 +181,17 @@ const GM_AUDIT_TYPE_META = {
 };
 
 // M2b-4 Bölüm 1: Supabase grupları için logGroupAudit eşdeğeri (fire-and-forget)
-function logGroupAuditSupabase(groupId, type, detail) {
-    if (!window.FocusSupabase || !window.currentUser || !window.currentUser.id || !groupId) return;
+export function logGroupAuditSupabase(groupId, type, detail) {
+    if (!window.FocusSupabase || !getCurrentUser() || !getCurrentUser().id || !groupId) return;
     window.FocusSupabase.from('group_audit_log').insert({
         group_id: groupId,
-        actor_id: window.currentUser.id,
+        actor_id: getCurrentUser().id,
         type,
         detail
     }).then(({ error }) => {
         if (error) console.warn('logGroupAuditSupabase:', error.message);
     });
 }
-window.logGroupAuditSupabase = logGroupAuditSupabase;
 
 // M2b-4 Bölüm 1: Supabase grupları için loadGroupAuditLog eşdeğeri
 function loadGroupAuditLogSupabase(groupId, listEl) {
@@ -203,7 +212,7 @@ function loadGroupAuditLogSupabase(groupId, listEl) {
         const actorIds = [...new Set(entries.map(e => e.actor_id).filter(Boolean))];
         const actors = {};
         await Promise.all(actorIds.map(async id => {
-            const p = await window._resolveProfileById(id);
+            const p = await _resolveProfileById(id);
             if (p) actors[id] = p;
         }));
         listEl.innerHTML = entries.map(e => {
@@ -213,17 +222,18 @@ function loadGroupAuditLogSupabase(groupId, listEl) {
             const date = new Date(e.created_at);
             const timeStr = date.toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
             return `
-                <div style="display:flex; align-items:flex-start; gap:10px; padding:9px 10px; border-radius:9px; background:rgba(255,255,255,0.02);">
-                    <span style="width:28px; height:28px; border-radius:50%; background:#${meta.color}1f; color:#${meta.color}; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:12px;">
+                <div class="u-display-flex_align-items-flex-start_gap-10px_padding-9px10">
+                    <span data-dyn-bg="#${meta.color}1f" data-dyn-color="#${meta.color}" class="u-width-28px_height-28px_border-radius-50pct_display-flex_al">
                         <i class="fa-solid ${meta.icon}"></i>
                     </span>
                     <div class="si-min0">
-                        <div style="font-size:12px; color:#fff; line-height:1.4;"><b>${window._escapeHtml(actorName)}</b> — ${window._escapeHtml(e.detail || '')}</div>
-                        <div style="font-size:10px; color:var(--text-muted); margin-top:2px;">${timeStr}</div>
+                        <div class="u-font-size-12px_color-hfff_line-height-1p4"><b>${window._escapeHtml(actorName)}</b> — ${window._escapeHtml(e.detail || '')}</div>
+                        <div class="u-font-size-10px_color-var-text-muted_margin-top-2px">${timeStr}</div>
                     </div>
                 </div>
             `;
         }).join('');
+        _applyDynStyles(listEl);
     };
 
     render();
@@ -237,11 +247,10 @@ function loadGroupAuditLogSupabase(groupId, listEl) {
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'group_audit_log', filter: `group_id=eq.${groupId}` }, render)
         .subscribe();
 }
-window.loadGroupAuditLogSupabase = loadGroupAuditLogSupabase;
 
 // ─── M2b-4 BÖLÜM 2a: ROL ATAMA + ÜYE ATMA (Supabase) ─────
 // `group_custom_roles` satırlarını Firebase `customRoles` şekline çevirir
-async function loadGroupCustomRolesMapSupabase(groupId) {
+export async function loadGroupCustomRolesMapSupabase(groupId) {
     if (!window.FocusSupabase || !groupId) return {};
     const { data, error } = await window.FocusSupabase
         .from('group_custom_roles')
@@ -262,11 +271,10 @@ async function loadGroupCustomRolesMapSupabase(groupId) {
     });
     return map;
 }
-window.loadGroupCustomRolesMapSupabase = loadGroupCustomRolesMapSupabase;
 
 // `getMemberPermissions`in Supabase karşılığı (kanal bazlı permOverrides M2b-4 Bölüm 2c'de)
 // channelCtx verilirse (ör. {subId}) o alt-kanala özel izin istisnaları da değerlendirilir
-async function getMemberPermissionsSupabase(groupId, userId, callback, channelCtx) {
+export async function getMemberPermissionsSupabase(groupId, userId, callback, channelCtx) {
     if (!window.FocusSupabase || !groupId || !userId) { callback({ ...BUILTIN_ROLE_PERMS.member }); return; }
 
     const [{ data: groupRow }, { data: memberRow }, customRoles] = await Promise.all([
@@ -305,41 +313,47 @@ async function getMemberPermissionsSupabase(groupId, userId, callback, channelCt
 
     callback(basePerms);
 }
-window.getMemberPermissionsSupabase = getMemberPermissionsSupabase;
 
 // `openChannelPermOverridePopover`ın Supabase karşılığı (M2b-4 Bölüm 2c)
-function openChannelPermOverridePopoverSupabase(anchorEl, groupId, subId, roomName) {
+export function openChannelPermOverridePopoverSupabase(anchorEl, groupId, subId, roomName) {
     document.querySelectorAll('.gm-perm-override-popover').forEach(p => p.remove());
     if (!window.FocusSupabase) return;
     _ensurePermOverrideStyles();
 
     const popover = document.createElement('div');
     popover.className = 'gm-perm-override-popover glass-panel';
-    popover.style.cssText = `
-        position:absolute; z-index:10200; min-width:290px; max-width:330px; padding:0;
-        border-radius:14px; background:rgba(22,22,32,0.98); border:1px solid rgba(255,255,255,0.08);
-        box-shadow:0 16px 40px rgba(0,0,0,0.5); overflow:hidden;
-        opacity:0; transform:translateY(-6px) scale(0.97); transition:opacity 0.14s ease, transform 0.14s ease;
-    `;
+    popover.style.position = 'absolute';
+    popover.style.zIndex = '10200';
+    popover.style.minWidth = '290px';
+    popover.style.maxWidth = '330px';
+    popover.style.padding = '0';
+    popover.style.borderRadius = '14px';
+    popover.style.background = 'rgba(22,22,32,0.98)';
+    popover.style.border = '1px solid rgba(255,255,255,0.08)';
+    popover.style.boxShadow = '0 16px 40px rgba(0,0,0,0.5)';
+    popover.style.overflow = 'hidden';
+    popover.style.opacity = '0';
+    popover.style.transform = 'translateY(-6px) scale(0.97)';
+    popover.style.transition = 'opacity 0.14s ease, transform 0.14s ease';
     popover.innerHTML = `
-        <div style="display:flex; align-items:flex-start; gap:10px; padding:14px 14px 12px; background:linear-gradient(135deg, rgba(116,185,255,0.14), rgba(116,185,255,0.02)); border-bottom:1px solid rgba(255,255,255,0.06);">
-            <div style="width:32px; height:32px; border-radius:9px; background:rgba(116,185,255,0.18); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                <i class="fa-solid fa-sliders" style="color:#74b9ff; font-size:14px;"></i>
+        <div class="u-display-flex_align-items-flex-start_gap-10px_padding-14px1">
+            <div class="u-width-32px_height-32px_border-radius-9px_background-rgba11">
+                <i class="fa-solid fa-sliders u-color-h74b9ff_font-size-14px" ></i>
             </div>
             <div class="si-flex1">
-                <div style="font-size:12.5px; font-weight:700; color:#fff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"># ${window._escapeHtml(roomName)}</div>
-                <div style="font-size:10.5px; color:var(--text-muted); margin-top:1px;">İzin İstisnaları</div>
+                <div class="u-font-size-12p5px_font-weight-700_color-hfff_overflow-hidde"># ${window._escapeHtml(roomName)}</div>
+                <div class="u-fs10p5_color-text-muted_mt1">İzin İstisnaları</div>
             </div>
-            <button class="gm-perm-override-close" title="Kapat" style="background:rgba(255,255,255,0.06); border:none; color:var(--text-muted); width:24px; height:24px; border-radius:7px; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:11px;">
+            <button class="gm-perm-override-close u-background-rgba2552552550p06_border-none_color-var-text-mu" title="Kapat"  aria-label="Kapat">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
-        <div style="padding:12px 14px;">
-            <div style="display:flex; gap:8px; align-items:flex-start; font-size:10.5px; color:var(--text-muted); line-height:1.45; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); border-radius:9px; padding:9px 10px; margin-bottom:10px;">
-                <i class="fa-solid fa-circle-info" style="color:#74b9ff; margin-top:1px;"></i>
-                <span>Normalde "oda kilitleme" iznine sahip olmayan rollere, <b style="color:#fff;">sadece bu oda için</b> kilitleme/açma istisnası tanımlayabilirsin.</span>
+        <div class="u-padding-12px14px">
+            <div class="u-display-flex_gap-8px_align-items-flex-start_font-size-10p5">
+                <i class="fa-solid fa-circle-info u-color-h74b9ff_mt1"></i>
+                <span>Normalde "oda kilitleme" iznine sahip olmayan rollere, <b class="u-color-hfff">sadece bu oda için</b> kilitleme/açma istisnası tanımlayabilirsin.</span>
             </div>
-            <div id="gm-perm-override-rows" style="display:flex; flex-direction:column; gap:6px; max-height:260px; overflow-y:auto;"></div>
+            <div id="gm-perm-override-rows" class="u-display-flex_flex-direction-column_gap-6px_max-height-260p"></div>
         </div>
     `;
     document.body.appendChild(popover);
@@ -374,8 +388,8 @@ function openChannelPermOverridePopoverSupabase(anchorEl, groupId, subId, roomNa
 
         if (!candidateRoles.length) {
             rowsEl.innerHTML = `
-                <div style="text-align:center; padding:22px 10px;">
-                    <i class="fa-solid fa-circle-check" style="font-size:22px; color:rgba(46,213,115,0.5); display:block; margin-bottom:8px;"></i>
+                <div class="u-text-align-center_padding-22px10px">
+                    <i class="fa-solid fa-circle-check u-font-size-22px_color-rgba462131150p5_display-block_margin-" ></i>
                     <div class="si-muted-xs">Tüm roller zaten kilitleme iznine sahip.<br>İstisna tanımlanacak rol yok.</div>
                 </div>`;
             return;
@@ -385,13 +399,13 @@ function openChannelPermOverridePopoverSupabase(anchorEl, groupId, subId, roomNa
             const ov = overrides[r.id] || {};
             const checked = !!ov.lockRooms;
             return `
-                <div class="gm-override-row" style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:9px 10px; border-radius:9px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.04);">
-                    <div style="display:flex; align-items:center; gap:8px; min-width:0;">
-                        <div style="width:26px; height:26px; border-radius:50%; background:#${window._escapeHtml(r.color)}; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#fff; flex-shrink:0;">${window._escapeHtml((r.name || '?').charAt(0)).toUpperCase()}</div>
+                <div class="gm-override-row u-display-flex_align-items-center_justify-content-space-betw-20" >
+                    <div class="u-display-flex_align-items-center_gap-8px_min-width-0">
+                        <div data-dyn-bg="#${window._escapeHtml(r.color)}" class="u-width-26px_height-26px_border-radius-50pct_display-flex_al">${window._escapeHtml((r.name || '?').charAt(0)).toUpperCase()}</div>
                         <div class="si-min0">
-                            <div style="font-size:12px; color:#fff; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${window._escapeHtml(r.name)}</div>
-                            <div style="font-size:10px; color:var(--text-muted); display:flex; align-items:center; gap:4px; margin-top:1px;">
-                                <i class="fa-solid fa-lock" style="font-size:9px; color:${checked ? '#feca57' : 'var(--text-muted)'};"></i>
+                            <div class="u-font-weight-600_color-hfff_font-size-12px_overflow-hidden_">${window._escapeHtml(r.name)}</div>
+                            <div class="u-fs10_color-text-muted_flex_ai-center_gap4_mt1">
+                                <i class="fa-solid fa-lock u-font-size-9px" data-dyn-color="${checked ? '#feca57' : 'var(--text-muted)'}"></i>
                                 ${checked ? 'Kilitleme izni verildi' : 'Kilitleme izni yok'}
                             </div>
                         </div>
@@ -403,6 +417,7 @@ function openChannelPermOverridePopoverSupabase(anchorEl, groupId, subId, roomNa
                 </div>
             `;
         }).join('');
+        _applyDynStyles(rowsEl);
 
         rowsEl.querySelectorAll('.gm-override-cb').forEach(cb => {
             cb.addEventListener('change', async () => {
@@ -415,7 +430,9 @@ function openChannelPermOverridePopoverSupabase(anchorEl, groupId, subId, roomNa
                 const row = cb.closest('.gm-override-row');
                 const label = row?.querySelector('div[style*="margin-top:1px"]');
                 if (label) {
-                    label.innerHTML = `<i class="fa-solid fa-lock" style="font-size:9px; color:${cb.checked ? '#feca57' : 'var(--text-muted)'};"></i> ${cb.checked ? 'Kilitleme izni verildi' : 'Kilitleme izni yok'}`;
+                    label.innerHTML = `<i class="fa-solid fa-lock u-font-size-9px" ></i> ${cb.checked ? 'Kilitleme izni verildi' : 'Kilitleme izni yok'}`;
+                    const lockIcon = label.querySelector('i.fa-lock');
+                    if (lockIcon) lockIcon.style.color = cb.checked ? '#feca57' : 'var(--text-muted)';
                 }
                 logGroupAuditSupabase(groupId, 'settings_change', `# ${roomName} odasında "${roleObj ? roleObj.name : roleId}" rolüne kilitleme izni ${cb.checked ? 'verildi' : 'kaldırıldı'}`);
             });
@@ -429,7 +446,6 @@ function openChannelPermOverridePopoverSupabase(anchorEl, groupId, subId, roomNa
     };
     setTimeout(() => document.addEventListener('click', closeOnOutsideClick), 0);
 }
-window.openChannelPermOverridePopoverSupabase = openChannelPermOverridePopoverSupabase;
 
 // `changeMemberRole`in Supabase karşılığı
 function changeMemberRoleSupabase(groupId, memberUserId, newRole, roleLabel, oldRole, memberDisplayName) {
@@ -444,7 +460,6 @@ function changeMemberRoleSupabase(groupId, memberUserId, newRole, roleLabel, old
             logGroupAuditSupabase(groupId, 'role_change', `${memberDisplayName ? '"' + memberDisplayName + '"' : 'Bir üyenin'} rolü "${roleLabel || newRole}" olarak değiştirildi`);
         });
 }
-window.changeMemberRoleSupabase = changeMemberRoleSupabase;
 
 // `kickGroupMember`in Supabase karşılığı
 async function kickGroupMemberSupabase(groupId, memberUserId, memberDisplayName) {
@@ -466,7 +481,6 @@ async function kickGroupMemberSupabase(groupId, memberUserId, memberDisplayName)
     if (!data || !data.length) { window.dcShowToast('Üye atılamadı: Bu işlem için yetkiniz yok.'); return; }
     logGroupAuditSupabase(groupId, 'member_kick', `${memberDisplayName ? '"' + memberDisplayName + '"' : 'Bir üye'} gruptan atıldı`);
 }
-window.kickGroupMemberSupabase = kickGroupMemberSupabase;
 
 // `openRolePickerPopover`in Supabase karşılığı
 function openRolePickerPopoverSupabase(anchorEl, groupId, memberUserId, currentRole, customRoles, myPriority, memberDisplayName, moderatorOverride) {
@@ -474,12 +488,20 @@ function openRolePickerPopoverSupabase(anchorEl, groupId, memberUserId, currentR
 
     const popover = document.createElement('div');
     popover.className = 'gm-role-picker-popover glass-panel';
-    popover.style.cssText = `
-        position:absolute; z-index:10200; min-width:215px; padding:8px;
-        border-radius:12px; background:rgba(25,25,35,0.97); border:1px solid rgba(255,255,255,0.08);
-        box-shadow:0 14px 34px rgba(0,0,0,0.45); display:flex; flex-direction:column; gap:2px;
-        opacity:0; transform:translateY(-6px) scale(0.97); transition:opacity 0.14s ease, transform 0.14s ease;
-    `;
+    popover.style.position = 'absolute';
+    popover.style.zIndex = '10200';
+    popover.style.minWidth = '215px';
+    popover.style.padding = '8px';
+    popover.style.borderRadius = '12px';
+    popover.style.background = 'rgba(25,25,35,0.97)';
+    popover.style.border = '1px solid rgba(255,255,255,0.08)';
+    popover.style.boxShadow = '0 14px 34px rgba(0,0,0,0.45)';
+    popover.style.display = 'flex';
+    popover.style.flexDirection = 'column';
+    popover.style.gap = '2px';
+    popover.style.opacity = '0';
+    popover.style.transform = 'translateY(-6px) scale(0.97)';
+    popover.style.transition = 'opacity 0.14s ease, transform 0.14s ease';
 
     const builtinRoles = [
         { id: 'member',    ...BUILTIN_ROLE_PERMS.member },
@@ -502,26 +524,27 @@ function openRolePickerPopoverSupabase(anchorEl, groupId, memberUserId, currentR
     const renderOpt = (r) => {
         const isLocked = !iAmAdmin && (typeof myPriority === 'number') && r.priority >= myPriority;
         return `
-        <div class="gm-role-picker-opt" data-role-id="${r.id}" ${isLocked ? 'data-locked="1"' : ''}
-             style="display:flex; align-items:center; gap:9px; padding:8px 10px; border-radius:8px; font-size:12px; color:#fff;
-                    cursor:${isLocked ? 'not-allowed' : 'pointer'}; opacity:${isLocked ? '0.4' : '1'};
-                    transition:background 0.12s ease; ${r.id === currentRole ? 'background:rgba(255,255,255,0.05);' : ''}">
-            <span style="width:9px; height:9px; border-radius:50%; background:#${r.color}; display:inline-block; flex-shrink:0; box-shadow:0 0 6px #${r.color}88;"></span>
-            <span style="flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:500;">${r.name}</span>
-            ${isLocked ? '<i class="fa-solid fa-lock" style="font-size:10px; color:rgba(255,255,255,0.35);" title="Bu rolü vermek için yeterli yetkiniz yok"></i>' : _gmPermBadges(r)}
-            ${r.id === currentRole ? '<i class="fa-solid fa-check" style="font-size:11px; color:#2ed573;"></i>' : ''}
+        <div class="gm-role-picker-opt u-display-flex_align-items-center_gap-9px_padding-8px10px_bo" data-role-id="${r.id}" ${isLocked ? 'data-locked="1"' : ''}
+ 
+ data-dyn-cursor="${isLocked ? 'not-allowed' : 'pointer'}" data-dyn-opacity="${isLocked ? '0.4' : '1'}"
+ ${r.id === currentRole ? 'data-dyn-bg="rgba(255,255,255,0.05)"' : ''}>
+            <span data-dyn-bg="#${r.color}" data-dyn-shadow="0 0 6px #${r.color}88" class="u-width-9px_height-9px_border-radius-50pct_display-inline-bl"></span>
+            <span class="u-flex-1_min-width-0_overflow-hidden_text-overflow-ellipsis_">${window._escapeHtml(r.name)}</span>
+            ${isLocked ? '<i class="fa-solid fa-lock u-font-size-10px_color-rgba2552552550p35" title="Bu rolü vermek için yeterli yetkiniz yok"></i>' : _gmPermBadges(r)}
+            ${r.id === currentRole ? '<i class="fa-solid fa-check u-font-size-11px_color-h2ed573" ></i>' : ''}
         </div>
     `;
     };
 
-    const sectionLabel = (txt) => `<div style="font-size:10px; text-transform:uppercase; letter-spacing:0.6px; color:rgba(255,255,255,0.35); padding:8px 10px 4px;">${txt}</div>`;
+    const sectionLabel = (txt) => `<div class="u-font-size-10px_text-transform-uppercase_letter-spacing-0p6">${txt}</div>`;
 
     let html = sectionLabel('Yerleşik Roller') + builtinRoles.map(renderOpt).join('');
     if (customRoleList.length) {
-        html += `<div style="height:1px; background:rgba(255,255,255,0.06); margin:4px 4px;"></div>`;
+        html += `<div class="u-height-1px_background-rgba2552552550p06_margin-4px4px"></div>`;
         html += sectionLabel('Özel Roller') + customRoleList.map(renderOpt).join('');
     }
     popover.innerHTML = html;
+    _applyDynStyles(popover);
 
     document.body.appendChild(popover);
     const anchorRect = anchorEl.getBoundingClientRect();
@@ -548,7 +571,7 @@ function openRolePickerPopoverSupabase(anchorEl, groupId, memberUserId, currentR
             setTimeout(() => popover.remove(), 140);
             const confirmed = await window.showFocusaiConfirm({
                 title: 'Rol Değiştiriliyor',
-                desc: `<b>${memberDisplayName ? (window._escapeHtml(memberDisplayName)) : 'Bu kullanıcıya'}</b> <b>"${roleName}"</b> rolü verilecek.<br>Bu işlemi onaylıyor musunuz?`,
+                desc: `<b>${memberDisplayName ? (window._escapeHtml(memberDisplayName)) : 'Bu kullanıcıya'}</b> <b>"${window._escapeHtml(roleName)}"</b> rolü verilecek.<br>Bu işlemi onaylıyor musunuz?`,
                 type: 'info',
                 icon: 'fa-user-shield',
                 confirmText: 'Evet, Ver',
@@ -569,7 +592,6 @@ function openRolePickerPopoverSupabase(anchorEl, groupId, memberUserId, currentR
     };
     setTimeout(() => document.addEventListener('click', closeOnOutsideClick), 0);
 }
-window.openRolePickerPopoverSupabase = openRolePickerPopoverSupabase;
 
 // ─── M2b-4 BÖLÜM 2b: ROLLER & İZİNLER + İSTEKLER + TEHLİKELİ BÖLGE (Supabase) ─────
 
@@ -590,48 +612,48 @@ async function loadGroupCustomRolesSupabase(groupId, isAdmin) {
         memberCounts[r] = (memberCounts[r] || 0) + 1;
     });
     const moderatorOverride = (groupRow && groupRow.builtin_role_overrides && groupRow.builtin_role_overrides.moderator) || {};
-    window._gmModeratorOverride = moderatorOverride;
     const moderatorPerms = { ...BUILTIN_ROLE_PERMS.moderator, ...moderatorOverride };
 
     const moderatorRowHtml = `
-        <div class="glass-panel" style="padding:7px 10px; border-radius:8px; display:flex; align-items:center; justify-content:space-between; gap:8px; border-left:3px solid #${BUILTIN_ROLE_PERMS.moderator.color};">
-            <div style="display:flex; align-items:center; gap:8px; min-width:0; flex:1;">
-                <i class="fa-solid fa-lock" style="font-size:10px; color:rgba(255,255,255,0.25); flex-shrink:0;" title="Yerleşik rol — sırası sabittir"></i>
-                <span style="font-size:12.5px; font-weight:600; color:#${BUILTIN_ROLE_PERMS.moderator.color}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${BUILTIN_ROLE_PERMS.moderator.name}</span>
-                <span class="si-badge" style="flex-shrink:0;">${memberCounts['moderator'] || 0} üye</span>
+        <div class="glass-panel u-padding-7px10px_border-radius-8px_display-flex_align-items" data-dyn-bdc="#${BUILTIN_ROLE_PERMS.moderator.color}">
+            <div class="u-display-flex_align-items-center_gap-8px_min-width-0_flex-1">
+                <i class="fa-solid fa-lock u-font-size-10px_color-rgba2552552550p25_flex-shrink-0" title="Yerleşik rol — sırası sabittir"></i>
+                <span data-dyn-color="#${BUILTIN_ROLE_PERMS.moderator.color}" class="u-font-size-12p5px_font-weight-600_white-space-nowrap_overfl">${BUILTIN_ROLE_PERMS.moderator.name}</span>
+                <span class="si-badge u-flex-shrink-0" >${memberCounts['moderator'] || 0} üye</span>
                 ${_gmPermBadges(moderatorPerms)}
             </div>
             <div class="si-row-g2">
-                ${isAdmin ? `<button class="gm-edit-role-btn" data-role-id="moderator" title="İzinleri Düzenle"><i class="fa-solid fa-pen"></i></button>` : ''}
+                ${isAdmin ? `<button class="gm-edit-role-btn" data-role-id="moderator" title="İzinleri Düzenle" aria-label="İzinleri Düzenle"><i class="fa-solid fa-pen"></i></button>` : ''}
             </div>
         </div>
     `;
 
     const customRolesHtml = !roles.length
-        ? `<div style="text-align:center; color:var(--text-muted); padding:10px; font-size:12px;">Henüz özel rol oluşturulmadı.</div>`
+        ? `<div class="u-padding-10px_font-size-12px_color-var-text-muted_text-alig">Henüz özel rol oluşturulmadı.</div>`
         : roles.map((r, idx) => {
         const color = r.color || '6c5ce7';
         const count = memberCounts[r.id] || 0;
         return `
-            <div class="glass-panel" style="padding:7px 10px; border-radius:8px; display:flex; align-items:center; justify-content:space-between; gap:8px; border-left:3px solid #${color};">
-                <div style="display:flex; flex-direction:column; gap:0; flex-shrink:0;">
-                    <button class="gm-role-row-up" data-role-id="${r.id}" data-dir="up" ${idx === 0 ? 'disabled' : ''} title="Yukarı taşı (daha yetkili)"><i class="fa-solid fa-chevron-up"></i></button>
-                    <button class="gm-role-row-down" data-role-id="${r.id}" data-dir="down" ${idx === roles.length - 1 ? 'disabled' : ''} title="Aşağı taşı (daha az yetkili)"><i class="fa-solid fa-chevron-down"></i></button>
+            <div class="glass-panel u-padding-7px10px_border-radius-8px_display-flex_align-items" data-dyn-bdc="#${color}">
+                <div class="u-display-flex_flex-direction-column_gap-0_flex-shrink-0">
+                    <button class="gm-role-row-up" data-role-id="${r.id}" data-dir="up" ${idx === 0 ? 'disabled' : ''} title="Yukarı taşı (daha yetkili)" aria-label="Yukarı taşı (daha yetkili)"><i class="fa-solid fa-chevron-up"></i></button>
+                    <button class="gm-role-row-down" data-role-id="${r.id}" data-dir="down" ${idx === roles.length - 1 ? 'disabled' : ''} title="Aşağı taşı (daha az yetkili)" aria-label="Aşağı taşı (daha az yetkili)"><i class="fa-solid fa-chevron-down"></i></button>
                 </div>
-                <div style="display:flex; align-items:center; gap:8px; min-width:0; flex:1;">
-                    <span style="font-size:12.5px; font-weight:600; color:#${color}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${r.name}</span>
-                    <span class="si-badge" style="flex-shrink:0;">${count} üye</span>
+                <div class="u-display-flex_align-items-center_gap-8px_min-width-0_flex-1">
+                    <span data-dyn-color="#${color}" class="u-font-size-12p5px_font-weight-600_white-space-nowrap_overfl">${window._escapeHtml(r.name)}</span>
+                    <span class="si-badge u-flex-shrink-0" >${count} üye</span>
                     ${_gmPermBadges({ manageRooms: r.manage_rooms, kickMembers: r.kick_members, lockRooms: r.lock_rooms, assignRoles: r.assign_roles })}
                 </div>
                 <div class="si-row-g2">
-                    <button class="gm-edit-role-btn" data-role-id="${r.id}" title="Rolü Düzenle"><i class="fa-solid fa-pen"></i></button>
-                    <button class="icon-btn gm-delete-role-btn" data-role-id="${r.id}" title="Rolü Sil" class="si-red"><i class="fa-solid fa-trash-can"></i></button>
+                    <button class="gm-edit-role-btn" data-role-id="${r.id}" title="Rolü Düzenle" aria-label="Rolü Düzenle"><i class="fa-solid fa-pen"></i></button>
+                    <button class="icon-btn gm-delete-role-btn" data-role-id="${r.id}" title="Rolü Sil" class="si-red" aria-label="Rolü Sil"><i class="fa-solid fa-trash-can"></i></button>
                 </div>
             </div>
         `;
     }).join('');
 
     listEl.innerHTML = moderatorRowHtml + customRolesHtml;
+    _applyDynStyles(listEl);
 
     const limitNoteEl = document.getElementById('gm-role-limit-note');
     if (limitNoteEl) limitNoteEl.textContent = `${roles.length}/${MAX_CUSTOM_ROLES}`;
@@ -702,7 +724,6 @@ async function loadGroupCustomRolesSupabase(groupId, isAdmin) {
         });
     });
 }
-window.loadGroupCustomRolesSupabase = loadGroupCustomRolesSupabase;
 
 // `createCustomRole`in Supabase karşılığı (oluşturma + düzenleme, dahil Moderatör izin override'ı)
 async function createOrUpdateCustomRoleSupabase(groupId) {
@@ -766,7 +787,6 @@ async function createOrUpdateCustomRoleSupabase(groupId) {
     resetRoleForm();
     loadGroupCustomRolesSupabase(groupId, true);
 }
-window.createOrUpdateCustomRoleSupabase = createOrUpdateCustomRoleSupabase;
 
 // `deleteCustomRole`in Supabase karşılığı
 async function deleteCustomRoleSupabase(groupId, roleId, roleName) {
@@ -777,7 +797,6 @@ async function deleteCustomRoleSupabase(groupId, roleId, roleName) {
     await window.FocusSupabase.from('group_members').update({ role: null }).eq('group_id', groupId).eq('role', roleId);
     logGroupAuditSupabase(groupId, 'role_delete', `"${roleName || roleId}" adlı rol silindi`);
 }
-window.deleteCustomRoleSupabase = deleteCustomRoleSupabase;
 
 // `loadPendingMembers`in Supabase karşılığı ("İstekler" sekmesi)
 async function loadPendingMembersSupabase(groupId) {
@@ -802,7 +821,7 @@ async function loadPendingMembersSupabase(groupId) {
         if (!rows || !rows.length) {
             listEl.innerHTML = `
                 <div class="si-empty">
-                    <i class="fa-solid fa-circle-check" style="font-size:20px; opacity:0.25; display:block; margin-bottom:8px;"></i>
+                    <i class="fa-solid fa-circle-check u-font-size-20px_opacity-0p25_display-block_margin-bottom-8p" ></i>
                     Bekleyen katılım isteği yok.
                 </div>`;
             return;
@@ -813,7 +832,7 @@ async function loadPendingMembersSupabase(groupId) {
             const username = profile.username || row.user_id;
             const displayName = profile.display_name || username;
             return `
-                <div class="glass-panel" data-user-id="${row.user_id}" style="padding:10px 12px; border-radius:10px; display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                <div class="glass-panel u-padding-10px12px_border-radius-10px_display-flex_align-ite" data-user-id="${row.user_id}" >
                     <div class="si-row-g10-min0">
                         ${window.avatarImgHtml({ customAvatar: profile.custom_avatar, avatarInitials: profile.avatar_initials || null, avatarColor: profile.avatar_color, displayName }, 32, '', '')}
                         <div class="si-col">
@@ -821,9 +840,9 @@ async function loadPendingMembersSupabase(groupId) {
                             <span class="si-muted-xs">@${window._escapeHtml(username)}</span>
                         </div>
                     </div>
-                    <div style="display:flex; gap:6px; flex-shrink:0;">
-                        <button class="gm-approve-btn" data-user-id="${row.user_id}" title="Onayla" style="background:rgba(46,213,115,0.15); border:1px solid rgba(46,213,115,0.3); color:#2ed573; border-radius:8px; padding:7px 11px; cursor:pointer; font-size:12px;"><i class="fa-solid fa-check"></i></button>
-                        <button class="gm-reject-btn" data-user-id="${row.user_id}" title="Reddet" style="background:rgba(255,71,87,0.15); border:1px solid rgba(255,71,87,0.3); color:#ff4757; border-radius:8px; padding:7px 11px; cursor:pointer; font-size:12px;"><i class="fa-solid fa-xmark"></i></button>
+                    <div class="u-display-flex_gap-6px_flex-shrink-0">
+                        <button class="gm-approve-btn u-background-rgba462131150p15_border-1pxsolidrgba462131150p3" data-user-id="${row.user_id}" title="Onayla"  aria-label="Onayla"><i class="fa-solid fa-check"></i></button>
+                        <button class="gm-reject-btn u-background-rgba25571870p15_border-1pxsolidrgba25571870p3_c" data-user-id="${row.user_id}" title="Reddet"  aria-label="Reddet"><i class="fa-solid fa-xmark"></i></button>
                     </div>
                 </div>
             `;
@@ -854,7 +873,6 @@ async function loadPendingMembersSupabase(groupId) {
         .on('postgres_changes', { event: '*', schema: 'public', table: 'group_pending_members', filter: `group_id=eq.${groupId}` }, render)
         .subscribe();
 }
-window.loadPendingMembersSupabase = loadPendingMembersSupabase;
 
 // `approvePendingMember`in Supabase karşılığı
 async function approvePendingMemberSupabase(groupId, userId, displayName) {
@@ -864,7 +882,6 @@ async function approvePendingMemberSupabase(groupId, userId, displayName) {
     await window.FocusSupabase.from('group_pending_members').delete().eq('group_id', groupId).eq('user_id', userId);
     logGroupAuditSupabase(groupId, 'member_approve', `${displayName ? '"' + displayName + '"' : 'Bir kullanıcının'} katılım isteği onaylandı`);
 }
-window.approvePendingMemberSupabase = approvePendingMemberSupabase;
 
 // `rejectPendingMember`in Supabase karşılığı
 async function rejectPendingMemberSupabase(groupId, userId, displayName) {
@@ -873,7 +890,6 @@ async function rejectPendingMemberSupabase(groupId, userId, displayName) {
     if (error) { window.dcShowToast('Reddedilirken hata: ' + error.message); return; }
     logGroupAuditSupabase(groupId, 'member_reject', `${displayName ? '"' + displayName + '"' : 'Bir kullanıcının'} katılım isteği reddedildi`);
 }
-window.rejectPendingMemberSupabase = rejectPendingMemberSupabase;
 
 // `toggleRequireApproval`in Supabase karşılığı
 function toggleRequireApprovalSupabase(groupId, enabled) {
@@ -883,7 +899,6 @@ function toggleRequireApprovalSupabase(groupId, enabled) {
         logGroupAuditSupabase(groupId, 'settings_change', `Katılım onayı ${enabled ? 'açıldı' : 'kapatıldı'}`);
     });
 }
-window.toggleRequireApprovalSupabase = toggleRequireApprovalSupabase;
 
 // "Tehlikeli Bölge" — grubu kapat ve sil (Supabase: FK cascade ile bağlı tüm tablolar otomatik temizlenir)
 async function closeGroupSupabase(groupCode, groupId, groupName) {
@@ -916,11 +931,123 @@ async function closeGroupSupabase(groupCode, groupId, groupName) {
     if (typeof window.__dcCloseChatIfGroup === 'function') window.__dcCloseChatIfGroup(groupCode);
     if (typeof window.resetActiveGroupPanel === 'function') window.resetActiveGroupPanel();
 }
-window.closeGroupSupabase = closeGroupSupabase;
 
 // M2b-4 Bölüm 1: Supabase grupları için sadeleştirilmiş "Grup Yönetimi" modalı
 // (Üyeler salt-okunur + Geçmiş sekmesi; Roller/İstekler/Tehlikeli Bölge Bölüm 2'ye kadar gizli)
-async function openGroupManagementModalSupabase(groupCode, groupId, groupData) {
+// openGroupManagementModalSupabase'den ayrılan: Üyeler sekmesi listesini render eder.
+// groupId/groupData/membersListEl parametre olarak geçirilir (dış closure'a bağımlılık yok),
+// bu yüzden hem ilk render'da hem realtime callback'lerde aynı isimle çağrılabilir.
+// Faz S devamı, dev fonksiyon refactoru.
+async function _gmRenderMembersList(membersListEl, groupId, groupData) {
+        if (!membersListEl || !window.FocusSupabase) return;
+        const { data: memberRows, error } = await window.FocusSupabase
+            .from('group_members')
+            .select('user_id, role, profiles(username, display_name, avatar_color, custom_avatar, avatar_initials)')
+            .eq('group_id', groupId);
+        if (error || !memberRows) return;
+
+        const customRolesMap = await loadGroupCustomRolesMapSupabase(groupId);
+        const moderatorOverride = (groupData.builtinRoleOverrides && groupData.builtinRoleOverrides.moderator) || null;
+        const createdByUsername = groupData.createdBy;
+
+        const myRow = memberRows.find(m => m.user_id === getCurrentUser().id);
+        let myRole = myRow ? myRow.role : null;
+        if (!myRole) myRole = (createdByUsername === getCurrentUser().username) ? 'admin' : 'member';
+        let myPerms;
+        if (BUILTIN_ROLE_PERMS[myRole]) {
+            myPerms = { ...BUILTIN_ROLE_PERMS[myRole] };
+            if (myRole === 'moderator' && moderatorOverride) Object.assign(myPerms, moderatorOverride);
+        } else {
+            myPerms = customRolesMap[myRole] ? { ...customRolesMap[myRole] } : { ...BUILTIN_ROLE_PERMS.member };
+        }
+        const isAdmin = myRole === 'admin';
+        const myPriority = getRolePriority(myRole, customRolesMap);
+
+        if (!memberRows.length) {
+            membersListEl.innerHTML = `<div class="u-text-align-center_color-var-text-muted_padding-10px">Üye bulunamadı.</div>`;
+            return;
+        }
+
+        membersListEl.innerHTML = memberRows.map(m => {
+            const profile = m.profiles || {};
+            const username = profile.username || m.user_id;
+            const displayName = profile.display_name || username;
+            const memberRole = m.role || ((createdByUsername === username) ? 'admin' : 'member');
+            const roleColor = BUILTIN_ROLE_PERMS[memberRole] ? BUILTIN_ROLE_PERMS[memberRole].color : (customRolesMap[memberRole] ? (customRolesMap[memberRole].color || '6c5ce7') : '636e72');
+            const roleLabel = BUILTIN_ROLE_PERMS[memberRole] ? BUILTIN_ROLE_PERMS[memberRole].name : (customRolesMap[memberRole] ? customRolesMap[memberRole].name : memberRole);
+            const targetPriority = getRolePriority(memberRole, customRolesMap);
+            const canAssignRole = (isAdmin || myPerms.assignRoles) && m.user_id !== getCurrentUser().id && (isAdmin || targetPriority < myPriority);
+            const canKick = myPerms.kickMembers && m.user_id !== getCurrentUser().id && targetPriority < myPriority;
+
+            // roleLabel özel rollerde admin'in yazdığı serbest metin olabilir (bkz.
+            // createOrUpdateCustomRoleSupabase) — escape şart. roleColor de aynı
+            // sebeple (RLS içeriği kısıtlamıyor, bkz. avatarImgHtml'deki emsal).
+            const safeRoleColor = window._escapeHtml(roleColor);
+            const chipHtml = `
+                <span class="gm-role-chip ${canAssignRole ? 'gm-role-chip-clickable' : ''} u-display-inline-flex_align-items-center_gap-6px_font-size-1" data-user-id="${m.user_id}" data-role="${window._escapeHtml(memberRole)}"
+ 
+ data-dyn-bg="#${safeRoleColor}26" data-dyn-color="#${safeRoleColor}" data-dyn-bordercolor="#${safeRoleColor}55"
+ ${canAssignRole ? 'data-dyn-cursor="pointer"' : ''}>
+                    <span data-dyn-bg="#${safeRoleColor}" class="u-width-7px_height-7px_border-radius-50pct_display-inline-bl"></span>
+                    ${window._escapeHtml(roleLabel)}
+                    ${canAssignRole ? '<i class="fa-solid fa-chevron-down u-font-size-9px_opacity-0p7" ></i>' : ''}
+                </span>
+            `;
+
+            const kickHtml = canKick ? `
+                <button class="gm-kick-member-btn u-display-inline-flex_align-items-center_gap-6px_margin-left" data-user-id="${m.user_id}" title="Gruptan At"
+ >
+                    <i class="fa-solid fa-user-xmark si-shrink0"></i>
+                    <span class="u-white-space-nowrap_opacity-0_transition-opacity0p15sease">Gruptan At</span>
+                </button>
+            ` : '';
+
+            return `
+                <div class="mgmt-member-row u-display-flex_align-items-center_justify-content-space-betw-21" data-user-id="${m.user_id}" >
+                    <div class="mgmt-member-info si-row-g10-min0">
+                        ${window.avatarImgHtml({ customAvatar: profile.custom_avatar, avatarInitials: profile.avatar_initials || null, avatarColor: profile.avatar_color, displayName }, 34, '', 'class="mgmt-member-avatar"')}
+                        <div class="mgmt-member-details si-col">
+                            <span class="mgmt-member-name si-title-bold">${window._escapeHtml(displayName)}</span>
+                            <span class="mgmt-member-username si-muted-xs">@${window._escapeHtml(username)}</span>
+                        </div>
+                    </div>
+                    <div class="u-display-flex_align-items-center_flex-shrink-0">${chipHtml}${kickHtml}</div>
+                </div>
+            `;
+        }).join('');
+        _applyDynStyles(membersListEl);
+
+        membersListEl.querySelectorAll('.gm-role-chip-clickable').forEach(chip => {
+            chip.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const userId = chip.dataset.userId;
+                const memberDisplayName = chip.closest('.mgmt-member-row')?.querySelector('.mgmt-member-name')?.textContent || '';
+                openRolePickerPopoverSupabase(chip, groupId, userId, chip.dataset.role, customRolesMap, myPriority, memberDisplayName, moderatorOverride);
+            });
+        });
+
+        membersListEl.querySelectorAll('.gm-kick-member-btn').forEach(btn => {
+            const kickLabel = btn.querySelector('span');
+            btn.addEventListener('mouseenter', () => {
+                btn.style.maxWidth = '110px';
+                btn.style.background = 'rgba(255,71,87,0.18)';
+                if (kickLabel) kickLabel.style.opacity = '1';
+            });
+            btn.addEventListener('mouseleave', () => {
+                btn.style.maxWidth = '30px';
+                btn.style.background = 'rgba(255,71,87,0.08)';
+                if (kickLabel) kickLabel.style.opacity = '0';
+            });
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const userId = btn.dataset.userId;
+                const memberDisplayName = btn.closest('.mgmt-member-row')?.querySelector('.mgmt-member-name')?.textContent || '';
+                kickGroupMemberSupabase(groupId, userId, memberDisplayName);
+            });
+        });
+}
+
+export async function openGroupManagementModalSupabase(groupCode, groupId, groupData) {
     const modalEl = document.getElementById('group-management-modal');
     if (!modalEl) return;
     modalEl.classList.remove('hidden');
@@ -946,10 +1073,10 @@ async function openGroupManagementModalSupabase(groupCode, groupId, groupData) {
         });
     }
 
-    const myPerms = await new Promise(resolve => getMemberPermissionsSupabase(groupId, window.currentUser.id, resolve));
+    const myPerms = await new Promise(resolve => getMemberPermissionsSupabase(groupId, getCurrentUser().id, resolve));
     const isAdmin = myPerms.role === 'admin';
     const canSeeRequests = !!myPerms.kickMembers;
-    const isOwner = groupData.createdBy === window.currentUser.username;
+    const isOwner = groupData.createdBy === getCurrentUser().username;
 
     // Sınıf/ders ve iş yeri/ekip gruplarında davetli-girişli olduğu için "İstekler" (katılım
     // onayı) sekmesine hiç gerek yok — davet zaten institution_invites üzerinden yönetiliyor.
@@ -970,7 +1097,7 @@ async function openGroupManagementModalSupabase(groupCode, groupId, groupData) {
     // Rol oluşturma formu sadece adminlere görünür
     document.getElementById('gm-create-role-section')?.classList.toggle('hidden', !isAdmin);
     document.getElementById('gm-roles-admin-notice')?.classList.toggle('hidden', isAdmin);
-    if (typeof window.resetRoleForm === 'function') window.resetRoleForm();
+    resetRoleForm();
 
     // Katılım onayı ayarı sadece adminlere görünür/düzenlenebilir (kurumsal gruplarda anlamsız)
     document.getElementById('gm-approval-toggle-wrap')?.classList.toggle('hidden', !isAdmin || isInstitutionalGroup);
@@ -1003,7 +1130,7 @@ async function openGroupManagementModalSupabase(groupCode, groupId, groupData) {
             createOrUpdateCustomRoleSupabase(modalEl.dataset.activeGroupId);
         });
         document.getElementById('gm-role-form-cancel-btn')?.addEventListener('click', () => {
-            if (typeof window.resetRoleForm === 'function') window.resetRoleForm();
+            resetRoleForm();
         });
 
         document.getElementById('gm-member-search-input')?.addEventListener('input', (e) => {
@@ -1026,116 +1153,7 @@ async function openGroupManagementModalSupabase(groupCode, groupId, groupData) {
 
     // Üyeler sekmesi: rol chip'i (atanabiliyorsa tıklanabilir) + üye atma butonu
     const membersListEl = document.getElementById('group-mgmt-members-list');
-    async function renderMembersListSupabase() {
-        if (!membersListEl || !window.FocusSupabase) return;
-        const { data: memberRows, error } = await window.FocusSupabase
-            .from('group_members')
-            .select('user_id, role, profiles(username, display_name, avatar_color, custom_avatar, avatar_initials)')
-            .eq('group_id', groupId);
-        if (error || !memberRows) return;
-
-        const customRolesMap = await loadGroupCustomRolesMapSupabase(groupId);
-        const moderatorOverride = (groupData.builtinRoleOverrides && groupData.builtinRoleOverrides.moderator) || null;
-        const createdByUsername = groupData.createdBy;
-
-        const myRow = memberRows.find(m => m.user_id === window.currentUser.id);
-        let myRole = myRow ? myRow.role : null;
-        if (!myRole) myRole = (createdByUsername === window.currentUser.username) ? 'admin' : 'member';
-        let myPerms;
-        if (BUILTIN_ROLE_PERMS[myRole]) {
-            myPerms = { ...BUILTIN_ROLE_PERMS[myRole] };
-            if (myRole === 'moderator' && moderatorOverride) Object.assign(myPerms, moderatorOverride);
-        } else {
-            myPerms = customRolesMap[myRole] ? { ...customRolesMap[myRole] } : { ...BUILTIN_ROLE_PERMS.member };
-        }
-        const isAdmin = myRole === 'admin';
-        const myPriority = getRolePriority(myRole, customRolesMap);
-
-        if (!memberRows.length) {
-            membersListEl.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:10px;">Üye bulunamadı.</div>`;
-            return;
-        }
-
-        membersListEl.innerHTML = memberRows.map(m => {
-            const profile = m.profiles || {};
-            const username = profile.username || m.user_id;
-            const displayName = profile.display_name || username;
-            const memberRole = m.role || ((createdByUsername === username) ? 'admin' : 'member');
-            const roleColor = BUILTIN_ROLE_PERMS[memberRole] ? BUILTIN_ROLE_PERMS[memberRole].color : (customRolesMap[memberRole] ? (customRolesMap[memberRole].color || '6c5ce7') : '636e72');
-            const roleLabel = BUILTIN_ROLE_PERMS[memberRole] ? BUILTIN_ROLE_PERMS[memberRole].name : (customRolesMap[memberRole] ? customRolesMap[memberRole].name : memberRole);
-            const targetPriority = getRolePriority(memberRole, customRolesMap);
-            const canAssignRole = (isAdmin || myPerms.assignRoles) && m.user_id !== window.currentUser.id && (isAdmin || targetPriority < myPriority);
-            const canKick = myPerms.kickMembers && m.user_id !== window.currentUser.id && targetPriority < myPriority;
-
-            // roleLabel özel rollerde admin'in yazdığı serbest metin olabilir (bkz.
-            // createOrUpdateCustomRoleSupabase) — escape şart. roleColor de aynı
-            // sebeple (RLS içeriği kısıtlamıyor, bkz. avatarImgHtml'deki emsal).
-            const safeRoleColor = window._escapeHtml(roleColor);
-            const chipHtml = `
-                <span class="gm-role-chip ${canAssignRole ? 'gm-role-chip-clickable' : ''}" data-user-id="${m.user_id}" data-role="${window._escapeHtml(memberRole)}"
-                      style="display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:600; padding:5px 10px; border-radius:20px;
-                             background:#${safeRoleColor}26; color:#${safeRoleColor}; border:1px solid #${safeRoleColor}55; ${canAssignRole ? 'cursor:pointer;' : ''}">
-                    <span style="width:7px; height:7px; border-radius:50%; background:#${safeRoleColor}; display:inline-block;"></span>
-                    ${window._escapeHtml(roleLabel)}
-                    ${canAssignRole ? '<i class="fa-solid fa-chevron-down" style="font-size:9px; opacity:0.7;"></i>' : ''}
-                </span>
-            `;
-
-            const kickHtml = canKick ? `
-                <button class="gm-kick-member-btn" data-user-id="${m.user_id}" title="Gruptan At"
-                        style="display:inline-flex; align-items:center; gap:6px; margin-left:8px; padding:6px 9px;
-                               border-radius:8px; border:1px solid rgba(255,71,87,0.25); background:rgba(255,71,87,0.08);
-                               color:#ff4757; font-size:11px; font-weight:600; cursor:pointer; overflow:hidden;
-                               max-width:30px; transition:max-width 0.22s ease, background 0.15s ease, padding 0.22s ease;">
-                    <i class="fa-solid fa-user-xmark si-shrink0"></i>
-                    <span style="white-space:nowrap; opacity:0; transition:opacity 0.15s ease;">Gruptan At</span>
-                </button>
-            ` : '';
-
-            return `
-                <div class="mgmt-member-row" data-user-id="${m.user_id}" style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:9px 10px; border-radius:10px;">
-                    <div class="mgmt-member-info si-row-g10-min0">
-                        ${window.avatarImgHtml({ customAvatar: profile.custom_avatar, avatarInitials: profile.avatar_initials || null, avatarColor: profile.avatar_color, displayName }, 34, '', 'class="mgmt-member-avatar"')}
-                        <div class="mgmt-member-details si-col">
-                            <span class="mgmt-member-name si-title-bold">${window._escapeHtml(displayName)}</span>
-                            <span class="mgmt-member-username si-muted-xs">@${window._escapeHtml(username)}</span>
-                        </div>
-                    </div>
-                    <div style="display:flex; align-items:center; flex-shrink:0;">${chipHtml}${kickHtml}</div>
-                </div>
-            `;
-        }).join('');
-
-        membersListEl.querySelectorAll('.gm-role-chip-clickable').forEach(chip => {
-            chip.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const userId = chip.dataset.userId;
-                const memberDisplayName = chip.closest('.mgmt-member-row')?.querySelector('.mgmt-member-name')?.textContent || '';
-                openRolePickerPopoverSupabase(chip, groupId, userId, chip.dataset.role, customRolesMap, myPriority, memberDisplayName, moderatorOverride);
-            });
-        });
-
-        membersListEl.querySelectorAll('.gm-kick-member-btn').forEach(btn => {
-            const kickLabel = btn.querySelector('span');
-            btn.addEventListener('mouseenter', () => {
-                btn.style.maxWidth = '110px';
-                btn.style.background = 'rgba(255,71,87,0.18)';
-                if (kickLabel) kickLabel.style.opacity = '1';
-            });
-            btn.addEventListener('mouseleave', () => {
-                btn.style.maxWidth = '30px';
-                btn.style.background = 'rgba(255,71,87,0.08)';
-                if (kickLabel) kickLabel.style.opacity = '0';
-            });
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const userId = btn.dataset.userId;
-                const memberDisplayName = btn.closest('.mgmt-member-row')?.querySelector('.mgmt-member-name')?.textContent || '';
-                kickGroupMemberSupabase(groupId, userId, memberDisplayName);
-            });
-        });
-    }
-    renderMembersListSupabase();
+    _gmRenderMembersList(membersListEl, groupId, groupData);
 
     document.getElementById('gm-member-empty-state')?.classList.add('hidden');
 
@@ -1150,26 +1168,26 @@ async function openGroupManagementModalSupabase(groupCode, groupId, groupData) {
     if (auditListEl) loadGroupAuditLogSupabase(groupId, auditListEl);
 
     // Üye/rol değişikliklerinde "Üyeler" sekmesini canlı güncelle
-    if (window._gmMembersSupabaseChannel) {
-        try { window.FocusSupabase.removeChannel(window._gmMembersSupabaseChannel); } catch (_) { console.warn('[FocusAI] sessiz hata:', _); }
-        window._gmMembersSupabaseChannel = null;
+    if (getGmMembersSupabaseChannel()) {
+        try { window.FocusSupabase.removeChannel(getGmMembersSupabaseChannel()); } catch (_) { console.warn('[FocusAI] sessiz hata:', _); }
+        setGmMembersSupabaseChannel(null);
     }
-    window._gmMembersSupabaseChannel = window.FocusSupabase
+    setGmMembersSupabaseChannel(window.FocusSupabase
         .channel(`group-mgmt-members-${groupId}`)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'group_members', filter: `group_id=eq.${groupId}` }, renderMembersListSupabase)
-        .subscribe();
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'group_members', filter: `group_id=eq.${groupId}` }, () => _gmRenderMembersList(membersListEl, groupId, groupData))
+        .subscribe());
 
-    if (window._gmCustomRolesSupabaseChannel) {
-        try { window.FocusSupabase.removeChannel(window._gmCustomRolesSupabaseChannel); } catch (_) { console.warn('[FocusAI] sessiz hata:', _); }
-        window._gmCustomRolesSupabaseChannel = null;
+    if (getGmCustomRolesSupabaseChannel()) {
+        try { window.FocusSupabase.removeChannel(getGmCustomRolesSupabaseChannel()); } catch (_) { console.warn('[FocusAI] sessiz hata:', _); }
+        setGmCustomRolesSupabaseChannel(null);
     }
-    window._gmCustomRolesSupabaseChannel = window.FocusSupabase
+    setGmCustomRolesSupabaseChannel(window.FocusSupabase
         .channel(`group-mgmt-custom-roles-${groupId}`)
         .on('postgres_changes', { event: '*', schema: 'public', table: 'group_custom_roles', filter: `group_id=eq.${groupId}` }, () => {
-            renderMembersListSupabase();
+            _gmRenderMembersList(membersListEl, groupId, groupData);
             loadGroupCustomRolesSupabase(groupId, isAdmin);
         })
-        .subscribe();
+        .subscribe());
 
     const closeBtn = document.getElementById('close-group-mgmt-modal');
     if (closeBtn && !closeBtn.dataset.cleanupBoundSupabase) {
@@ -1192,7 +1210,6 @@ async function openGroupManagementModalSupabase(groupCode, groupId, groupData) {
         closeGroupBtn.onclick = () => closeGroupSupabase(groupCode, groupId, groupData.name);
     }
 }
-window.openGroupManagementModalSupabase = openGroupManagementModalSupabase;
 
 function _gmPermBadges(perms) {
     if (!perms) return '';
@@ -1200,9 +1217,9 @@ function _gmPermBadges(perms) {
     if (perms.manageRooms) items.push('<i class="fa-solid fa-hashtag" title="Oda kurma izni" class="si-blue"></i>');
     if (perms.kickMembers) items.push('<i class="fa-solid fa-user-xmark" title="Üye ekleme / üye atma izni" class="si-red"></i>');
     if (perms.lockRooms)   items.push('<i class="fa-solid fa-lock" title="Oda kilitleme izni" class="si-yellow"></i>');
-    if (perms.assignRoles) items.push('<i class="fa-solid fa-user-tag" title="Rol atama izni" style="color:#6c5ce7;"></i>');
-    if (!items.length) return '<span style="font-size:10px; color:rgba(255,255,255,0.3);">izin yok</span>';
-    return `<span style="display:inline-flex; gap:6px; font-size:11px;">${items.join('')}</span>`;
+    if (perms.assignRoles) items.push('<i class="fa-solid fa-user-tag u-color-h6c5ce7" title="Rol atama izni" ></i>');
+    if (!items.length) return '<span class="u-font-size-10px_color-rgba2552552550p3">izin yok</span>';
+    return `<span class="u-display-inline-flex_gap-6px_font-size-11px">${items.join('')}</span>`;
 }
 
 function _ensurePermOverrideStyles() {

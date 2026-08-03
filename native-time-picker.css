@@ -1,0 +1,36 @@
+/* style.css'ten çıkarıldı (Faz C, 2026-07-22). Premium Native Time Picker Özelleştirmesi — bare input[type="time"] (koyu tema, hover/focus efektleri, saat ikonu renklendirme). */
+
+/* ==========================================================================
+   PREMIUM NATIVE TIME PICKER CUSTOMIZATION
+   ========================================================================== */
+   input[type="time"] {
+    background: rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid rgba(212, 144, 14, 0.3) !important;
+    color: #fff !important;
+    border-radius: 10px !important;
+    padding: 8px 12px !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 14px !important;
+    color-scheme: dark !important; /* Tarayıcıya zorla karanlık mod uygulatır */
+    transition: all 0.3s ease !important;
+    outline: none !important;
+    cursor: pointer !important;
+}
+
+input[type="time"]:focus {
+    border-color: #D4900E !important;
+    box-shadow: 0 0 15px rgba(212, 144, 14, 0.4) !important;
+    background: rgba(212, 144, 14, 0.1) !important;
+}
+
+/* Saat içindeki küçük saat/ok ikonunun rengini beyaza çevirip yumuşatıyoruz */
+input[type="time"]::-webkit-calendar-picker-indicator {
+    filter: invert(1) opacity(0.6) sepia(1) hue-rotate(200deg) saturate(3) !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+}
+
+input[type="time"]::-webkit-calendar-picker-indicator:hover {
+    filter: invert(1) opacity(1) sepia(1) hue-rotate(200deg) saturate(5) !important;
+    transform: scale(1.1);
+}

@@ -32,7 +32,9 @@
 // sorgulanıyor/tanımlanıyor (basit document.getElementById/sabit değer —
 // çapraz dosya bağımlılığından daha basit).
 
-import { getGoalsRef, setGoalsRef, getHabitsRef, getTasksRef, showPremiumModal, populateParentHabitSelects, openGoalDetails, saveTasks, saveHabits } from './script.js';
+import { getGoalsRef, setGoalsRef, getHabitsRef, getTasksRef, openGoalDetails, saveTasks, saveHabits } from './script.js';
+import { showPremiumModal } from './script-premium-modal.js';
+import { populateParentHabitSelects } from './script-populate-parent-selects.js';
 import { generateId } from './storage-manager.js';
 import { toInputDate, formatDateToString } from './script-date-time-utils.js';
 
@@ -211,18 +213,18 @@ window.deleteGoal = function(id) {
 
 function generateAIAnalysis(goal, progress, totalTasks, completedTasks) {
     if (totalTasks === 0) {
-        return `<i class="fa-solid fa-wand-magic-sparkles" style="color: #feca57;"></i> <strong>FocusAI Analizi:</strong> "${escapeHtml(goal.title)}" hedefine ulaşmak için henüz aksiyon planı yapmadın. Hemen yeni bir görev oluştur ve bu hedefe bağla. Unutma, planlanmamış bir hedef sadece bir dilektir!`;
+        return `<i class="fa-solid fa-wand-magic-sparkles u-color-hfeca57-2" ></i> <strong>FocusAI Analizi:</strong> "${escapeHtml(goal.title)}" hedefine ulaşmak için henüz aksiyon planı yapmadın. Hemen yeni bir görev oluştur ve bu hedefe bağla. Unutma, planlanmamış bir hedef sadece bir dilektir!`;
     }
     if (progress === 0) {
-        return `<i class="fa-solid fa-wand-magic-sparkles" style="color: #feca57;"></i> <strong>FocusAI Analizi:</strong> Adımlarını belirlemişsin ama henüz ilk harekete geçmemişsin. Başlamak bitirmenin yarısıdır. Nedenin: "${goal.desc ? escapeHtml(goal.desc) : 'Kendin için daha iyi bir gelecek.'}" Bunu hatırla ve bugün başla!`;
+        return `<i class="fa-solid fa-wand-magic-sparkles u-color-hfeca57-2" ></i> <strong>FocusAI Analizi:</strong> Adımlarını belirlemişsin ama henüz ilk harekete geçmemişsin. Başlamak bitirmenin yarısıdır. Nedenin: "${goal.desc ? escapeHtml(goal.desc) : 'Kendin için daha iyi bir gelecek.'}" Bunu hatırla ve bugün başla!`;
     }
     if (progress < 50) {
-        return `<i class="fa-solid fa-wand-magic-sparkles" style="color: #2ed573;"></i> <strong>FocusAI Analizi:</strong> İlerleme kaydediyorsun! Toplam ${totalTasks} adımın ${completedTasks} tanesini tamamladın. Sadece ivmeni kaybetme, damlaya damlaya göl olur.`;
+        return `<i class="fa-solid fa-wand-magic-sparkles u-color-h2ed573-2" ></i> <strong>FocusAI Analizi:</strong> İlerleme kaydediyorsun! Toplam ${totalTasks} adımın ${completedTasks} tanesini tamamladın. Sadece ivmeni kaybetme, damlaya damlaya göl olur.`;
     }
     if (progress < 100) {
-        return `<i class="fa-solid fa-wand-magic-sparkles" style="color: #ff9f43;"></i> <strong>FocusAI Analizi:</strong> İnanılmaz gidiyorsun! %${progress} oranında tamamladın. "${escapeHtml(goal.title)}" vizyonun artık bir hayal değil, gerçeğe dönüşmek üzere. Odaklan ve bitir!`;
+        return `<i class="fa-solid fa-wand-magic-sparkles u-color-hff9f43-2" ></i> <strong>FocusAI Analizi:</strong> İnanılmaz gidiyorsun! %${progress} oranında tamamladın. "${escapeHtml(goal.title)}" vizyonun artık bir hayal değil, gerçeğe dönüşmek üzere. Odaklan ve bitir!`;
     }
-    return `<i class="fa-solid fa-trophy" style="color: #feca57;"></i> <strong>FocusAI Analizi:</strong> TEBRİKLER! Bu vizyonu %100 tamamladın. Kendine verdiğin sözü tuttun. Şimdi bu başarıyı kutla ve kendine daha büyük zirveler belirle!`;
+    return `<i class="fa-solid fa-trophy u-color-hfeca57-2" ></i> <strong>FocusAI Analizi:</strong> TEBRİKLER! Bu vizyonu %100 tamamladın. Kendine verdiğin sözü tuttun. Şimdi bu başarıyı kutla ve kendine daha büyük zirveler belirle!`;
 }
 window.generateAIAnalysis = generateAIAnalysis;
 
@@ -246,196 +248,98 @@ if (goalSortSelect) {
     });
 }
 
-export function renderGoals() {
-    if(!goalsContainer) return;
-    goalsContainer.innerHTML = '';
+// renderGoals'ın "Zaferler/Süresi Dolanlar" arşiv kartını üretir — goal zaten
+// _progress/_totalSteps gibi işlenmiş alanlarla geliyor (bkz. processedGoals).
+function buildArchivedGoalCardEl(goal) {
+    const isWon = goal.status === 'completed';
+    const startDate = new Date(goal.createdAt || Date.now());
+    const endDate = new Date(goal.completedAt || Date.now());
+    const diffMs = endDate - startDate;
+    const diffDaysTotal = Math.max(0, Math.round(diffMs / (1000 * 60 * 60 * 24)));
+    const durationText = diffDaysTotal === 0 ? 'Aynı gün' : diffDaysTotal === 1 ? '1 gün' : `${diffDaysTotal} gün`;
+    const emoji = isWon ? '🏆' : '⏰';
+    const cardBorder = isWon ? 'rgba(254,202,87,0.35)' : 'rgba(255,71,87,0.25)';
+    const cardBg = isWon ? 'linear-gradient(135deg, rgba(254,202,87,0.07), rgba(0,0,0,0.25))' : 'linear-gradient(135deg, rgba(255,71,87,0.06), rgba(0,0,0,0.25))';
+    const accentColor = isWon ? '#feca57' : '#ff4757';
+    const accentBg = isWon ? 'rgba(254,202,87,0.12)' : 'rgba(255,71,87,0.12)';
+    const statusLabel = isWon ? 'Başarıldı!' : 'Süre Doldu';
+    const statusIcon = isWon ? 'fa-trophy' : 'fa-hourglass-end';
+    const linkedTaskCount = getTasksRef().filter(t => t.parentGoal === goal.id).length;
+    const completedTaskCount = getTasksRef().filter(t => t.parentGoal === goal.id && t.completed).length;
+    const categoryLabel = goal.category ? goal.category.charAt(0).toUpperCase() + goal.category.slice(1).replace(/-/g, ' ') : '';
 
-    // Başarılarım veya Süresi Dolanlar sekmesindeyken özet banner göster
-    if (currentGoalFilter === 'completed' || currentGoalFilter === 'expired') {
-        const wonGoals = getGoalsRef().filter(g => g.status === 'completed');
-        const expiredGoals = getGoalsRef().filter(g => g.status === 'expired');
-        if (wonGoals.length > 0 || expiredGoals.length > 0) {
-            const banner = document.createElement('div');
-            banner.style.cssText = 'display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap;';
-            banner.innerHTML = `
-                <div style="flex:1; min-width:120px; background: rgba(254,202,87,0.1); border: 1px solid rgba(254,202,87,0.25); border-radius:12px; padding:14px 18px; display:flex; align-items:center; gap:10px;">
-                    <span style="font-size:24px;">🏆</span>
-                    <div><div style="font-size:22px; font-weight:800; color:#feca57; line-height:1;">${wonGoals.length}</div><div style="font-size:11px; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:.5px;">Başarı</div></div>
+    const div = document.createElement('div');
+    div.className = 'glass-element';
+    div.dataset.id = goal.id;
+    div.style.border = `1px solid ${cardBorder}`;
+    div.style.background = cardBg;
+    div.style.borderRadius = '16px';
+    div.style.padding = '22px 24px';
+    div.style.position = 'relative';
+    div.style.overflow = 'hidden';
+    div.style.cursor = 'default';
+    div.innerHTML = `
+        <div class="u-position-absolute_top-0_right-0_font-size-90px_opacity-0p0">${emoji}</div>
+        <div class="u-display-flex_align-items-flex-start_gap-16px_position-rela">
+            <div class="agc-emoji u-font-size-36px_line-height-1_flex-shrink-0" >${emoji}</div>
+            <div class="u-flex-1_min-width-0-2">
+                <div class="u-display-flex_align-items-center_gap-8px_flex-wrap-wrap_mar">
+                    <span class="agc-status-badge u-padding-3px10px_border-radius-20px_font-size-11px_font-wei" >
+                        <i class="fa-solid ${statusIcon} u-margin-right-4px" ></i>${statusLabel}
+                    </span>
+                    ${categoryLabel ? `<span class="u-background-rgba108922310p12_color-ha29bfe_padding-3px10px_">${categoryLabel}</span>` : ''}
                 </div>
-                <div style="flex:1; min-width:120px; background: rgba(255,71,87,0.08); border: 1px solid rgba(255,71,87,0.2); border-radius:12px; padding:14px 18px; display:flex; align-items:center; gap:10px;">
-                    <span style="font-size:24px;">⏰</span>
-                    <div><div style="font-size:22px; font-weight:800; color:#ff4757; line-height:1;">${expiredGoals.length}</div><div style="font-size:11px; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:.5px;">Süre Doldu</div></div>
-                </div>
-                <div style="flex:1; min-width:120px; background: rgba(108,92,231,0.08); border: 1px solid rgba(108,92,231,0.2); border-radius:12px; padding:14px 18px; display:flex; align-items:center; gap:10px;">
-                    <span style="font-size:24px;">📊</span>
-                    <div><div style="font-size:22px; font-weight:800; color:#a29bfe; line-height:1;">${wonGoals.length + expiredGoals.length > 0 ? Math.round((wonGoals.length / (wonGoals.length + expiredGoals.length)) * 100) : 0}%</div><div style="font-size:11px; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:.5px;">Başarı Oranı</div></div>
-                </div>
-            `;
-            goalsContainer.appendChild(banner);
-        }
-    }
-
-    // Sekme butonlarına sayı badge'i ekle (early return'dan ÖNCE yapılmalı)
-    const wonCount = getGoalsRef().filter(g => g.status === 'completed').length;
-    const expiredCount = getGoalsRef().filter(g => g.status === 'expired').length;
-    const activeCount = getGoalsRef().filter(g => g.status !== 'completed' && g.status !== 'expired').length;
-    const victoryTabBtn = document.querySelector('.goal-tab-btn[data-goal-filter="completed"]');
-    const expiredTabBtn = document.querySelector('.goal-tab-btn[data-goal-filter="expired"]');
-    const activeTabBtn = document.querySelector('.goal-tab-btn[data-goal-filter="active"]');
-    if (victoryTabBtn) victoryTabBtn.innerHTML = `<i class="fa-solid fa-trophy" style="color:#feca57;"></i> Başarılarım${wonCount > 0 ? ` <span style="background:rgba(254,202,87,0.2);color:#feca57;padding:1px 7px;border-radius:10px;font-size:11px;font-weight:700;margin-left:4px;">${wonCount}</span>` : ''}`;
-    if (expiredTabBtn) expiredTabBtn.innerHTML = `⏳ Süresi Dolanlar${expiredCount > 0 ? ` <span style="background:rgba(255,71,87,0.2);color:#ff4757;padding:1px 7px;border-radius:10px;font-size:11px;font-weight:700;margin-left:4px;">${expiredCount}</span>` : ''}`;
-    if (activeTabBtn) activeTabBtn.innerHTML = `<i class="fa-solid fa-mountain-sun"></i> Aktif Hedefler${activeCount > 0 ? ` <span style="background:rgba(108,92,231,0.2);color:#a29bfe;padding:1px 7px;border-radius:10px;font-size:11px;font-weight:700;margin-left:4px;">${activeCount}</span>` : ''}`;
-
-    // "+ Yeni Hedef" butonuna aktif/limit sayısını göster; limite ulaşınca soluklaştır
-    if (btnOpenGoalModal) {
-        const atLimit = activeCount >= MAX_ACTIVE_GOALS;
-        btnOpenGoalModal.innerHTML = `<i class="fa-solid fa-plus"></i> Yeni Hedef <span style="opacity:.75; font-weight:500; font-size:12px;">(${activeCount}/${MAX_ACTIVE_GOALS})</span>`;
-        btnOpenGoalModal.style.opacity = atLimit ? '0.55' : '';
-        btnOpenGoalModal.title = atLimit ? `Aynı anda en fazla ${MAX_ACTIVE_GOALS} aktif ana hedef belirleyebilirsin.` : '';
-    }
-
-    if(getGoalsRef().length === 0) {
-        goalsContainer.innerHTML = `
-        <div class="glass-element" style="text-align: center; padding: 50px 20px; border: 1px dashed rgba(108, 92, 231, 0.3); background: rgba(0,0,0,0.2);">
-            <i class="fa-solid fa-mountain" style="font-size: 48px; color: rgba(108, 92, 231, 0.5); margin-bottom: 15px;"></i>
-            <h3 style="color: #fff; margin-bottom: 10px;">Henüz Bir Hedefin Yok</h3>
-            <p style="color: var(--text-muted); font-size: 14px; font-style: italic; margin-bottom: 20px; line-height: 1.6;">"Büyük yolculuklar tek bir adımla başlar..." <br><span style="font-size:12px; opacity:0.7; color: var(--primary-color); font-weight: 600;"><i class="fa-solid fa-wand-magic-sparkles"></i> FocusAI</span></p>
-            <button data-action="open-goal-modal" class="primary-btn" style="margin: 0 auto; justify-content: center;"><i class="fa-solid fa-plus"></i> İlk Hedefini Belirle</button>
-        </div>`;
-        return;
-    };
-
-    let displayedCount = 0;
-    const sortType = goalSortSelect ? goalSortSelect.value : 'newest';
-
-    // Hedefleri render etmeden önce ilerleme yüzdelerini hesaplayıp sıralamak için geçici bir dizi oluşturuyoruz
-    let processedGoals = getGoalsRef().map(goal => {
-        let linkedTasks = getTasksRef().filter(t => t.parentGoal === goal.id);
-        let linkedHabits = getHabitsRef().filter(h => h.parentGoals && h.parentGoals.includes(goal.id));
-        
-        let totalSteps = linkedTasks.length;
-        let completedSteps = linkedTasks.filter(t => t.completed).length;
-
-        linkedHabits.forEach(h => {
-            totalSteps += (h.targetDays || 21);
-            completedSteps += Object.keys(h.history).length;
-        });
-
-        // Milestone katkısı
-        if (goal.milestones && goal.milestones.length > 0) {
-            totalSteps += goal.milestones.length;
-            completedSteps += goal.milestones.filter(m => m.completed).length;
-        }
-
-        let progress = totalSteps === 0 ? 0 : Math.round((completedSteps / totalSteps) * 100);
-        if (progress > 100) progress = 100;
-
-        const milestoneTotal = goal.milestones ? goal.milestones.length : 0;
-        const milestoneDone  = goal.milestones ? goal.milestones.filter(m => m.completed).length : 0;
-
-        // Hesaplanan verileri (progress, adımlar) geçici objeye kaydediyoruz
-        return {
-            ...goal,
-            _progress: progress,
-            _totalSteps: totalSteps,
-            _completedSteps: completedSteps,
-            _linkedTasks: linkedTasks,
-            _linkedHabits: linkedHabits,
-            _milestoneTotal: milestoneTotal,
-            _milestoneDone: milestoneDone,
-        };
-    });
-
-    // --- SIRALAMA (SORT) İŞLEMİ ---
-    processedGoals.sort((a, b) => {
-        if (sortType === 'deadline') {
-            return new Date(a.deadline) - new Date(b.deadline); // Yakın tarih önce
-        } else if (sortType === 'progress-high') {
-            return b._progress - a._progress; // Yüksek yüzde önce
-        } else if (sortType === 'progress-low') {
-            return a._progress - b._progress; // Düşük yüzde önce
-        } else {
-            return (b.createdAt || 0) - (a.createdAt || 0); // En yeni eklenen önce
-        }
-    });
-
-    processedGoals.forEach(goal => {
-        // Filtre (Aktif/Başarılarım/Süresi Dolanlar) kontrolü - İlerleme %100 olsa bile durum completed veya expired olmadan arşiv sekmesine gitmez
-        const isArchived = goal.status === 'completed' || goal.status === 'expired';
-        if (currentGoalFilter === 'active' && isArchived) return;
-        if (currentGoalFilter === 'completed' && goal.status !== 'completed') return;
-        if (currentGoalFilter === 'expired' && goal.status !== 'expired') return;
-
-        displayedCount++;
-
-        // --- ZAFERLERİ ÖZEL KART RENDER ---
-        if (isArchived) {
-            const isWon = goal.status === 'completed';
-            const startDate = new Date(goal.createdAt || Date.now());
-            const endDate = new Date(goal.completedAt || Date.now());
-            const diffMs = endDate - startDate;
-            const diffDaysTotal = Math.max(0, Math.round(diffMs / (1000 * 60 * 60 * 24)));
-            const durationText = diffDaysTotal === 0 ? 'Aynı gün' : diffDaysTotal === 1 ? '1 gün' : `${diffDaysTotal} gün`;
-            const emoji = isWon ? '🏆' : '⏰';
-            const cardBorder = isWon ? 'rgba(254,202,87,0.35)' : 'rgba(255,71,87,0.25)';
-            const cardBg = isWon ? 'linear-gradient(135deg, rgba(254,202,87,0.07), rgba(0,0,0,0.25))' : 'linear-gradient(135deg, rgba(255,71,87,0.06), rgba(0,0,0,0.25))';
-            const accentColor = isWon ? '#feca57' : '#ff4757';
-            const accentBg = isWon ? 'rgba(254,202,87,0.12)' : 'rgba(255,71,87,0.12)';
-            const statusLabel = isWon ? 'Başarıldı!' : 'Süre Doldu';
-            const statusIcon = isWon ? 'fa-trophy' : 'fa-hourglass-end';
-            const linkedTaskCount = getTasksRef().filter(t => t.parentGoal === goal.id).length;
-            const completedTaskCount = getTasksRef().filter(t => t.parentGoal === goal.id && t.completed).length;
-            const categoryLabel = goal.category ? goal.category.charAt(0).toUpperCase() + goal.category.slice(1).replace(/-/g, ' ') : '';
-
-            const div = document.createElement('div');
-            div.className = 'glass-element';
-            div.dataset.id = goal.id;
-            div.style.cssText = `border: 1px solid ${cardBorder}; background: ${cardBg}; border-radius: 16px; padding: 22px 24px; position: relative; overflow: hidden; cursor: default;`;
-            div.innerHTML = `
-                <div style="position: absolute; top: 0; right: 0; font-size: 90px; opacity: 0.06; line-height: 1; padding: 10px 14px; user-select: none;">${emoji}</div>
-                <div style="display: flex; align-items: flex-start; gap: 16px; position: relative; z-index: 1;">
-                    <div style="font-size: 36px; line-height: 1; filter: drop-shadow(0 2px 8px ${accentColor}66); flex-shrink: 0;">${emoji}</div>
-                    <div style="flex: 1; min-width: 0;">
-                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px;">
-                            <span style="background: ${accentBg}; color: ${accentColor}; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; border: 1px solid ${accentColor}44;">
-                                <i class="fa-solid ${statusIcon}" style="margin-right:4px;"></i>${statusLabel}
-                            </span>
-                            ${categoryLabel ? `<span style="background: rgba(108,92,231,0.12); color: #a29bfe; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; border: 1px solid rgba(108,92,231,0.25);">${categoryLabel}</span>` : ''}
-                        </div>
-                        <div style="font-size: 17px; font-weight: 700; color: #fff; margin-bottom: 4px; line-height: 1.3;">${escapeHtml(goal.title)}</div>
-                        ${goal.desc ? `<div style="font-size: 12px; color: var(--text-muted); font-style: italic; margin-bottom: 10px;">"${escapeHtml(goal.desc)}"</div>` : ''}
-                        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px;">
-                            <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); background: rgba(255,255,255,0.04); padding: 5px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.07);">
-                                <i class="fa-regular fa-calendar" style="color:${accentColor};"></i>
-                                ${endDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); background: rgba(255,255,255,0.04); padding: 5px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.07);">
-                                <i class="fa-regular fa-clock" style="color:${accentColor};"></i>
-                                ${durationText} sürdü
-                            </div>
-                            ${linkedTaskCount > 0 ? `<div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); background: rgba(255,255,255,0.04); padding: 5px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.07);">
-                                <i class="fa-solid fa-list-check" style="color:${accentColor};"></i>
-                                ${completedTaskCount}/${linkedTaskCount} görev
-                            </div>` : ''}
-                            <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: ${accentColor}; background: ${accentBg}; padding: 5px 12px; border-radius: 8px; border: 1px solid ${accentColor}33;">
-                                <i class="fa-solid fa-chart-simple"></i> %${goal._progress}
-                            </div>
-                        </div>
+                <div class="u-font-size-17px_font-weight-700_color-hfff_margin-bottom-4p">${escapeHtml(goal.title)}</div>
+                ${goal.desc ? `<div class="u-font-size-12px_color-var-text-muted_font-style-italic_marg">"${escapeHtml(goal.desc)}"</div>` : ''}
+                <div class="u-display-flex_flex-wrap-wrap_gap-10px_margin-top-12px">
+                    <div class="u-display-flex_align-items-center_gap-6px_font-size-12px_col-2">
+                        <i class="fa-regular fa-calendar agc-accent-icon"></i>
+                        ${endDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
                     </div>
-                    <div style="display:flex; flex-direction:column; gap:8px; flex-shrink:0;">
-                        ${!isWon ? `<button class="control-btn" data-action="extend-goal-deadline" data-id="${goal.id}" title="Süreyi Uzat" style="white-space:nowrap; font-size:12px; font-weight:700; padding:7px 12px; border-radius:8px; background:rgba(255,159,67,0.12); border:1px solid rgba(255,159,67,0.35); color:#ff9f43; display:flex; align-items:center; gap:6px;">
-                            <i class="fa-solid fa-calendar-plus"></i> Süreyi Uzat
-                        </button>` : ''}
-                        <button class="icon-btn delete-icon-btn goal-archive-del-btn" data-action="delete-goal" data-id="${goal.id}" title="Sil" style="opacity:0.4; transition:0.3s; align-self:flex-end; width:30px; height:30px; border-radius:8px; background:rgba(255,255,255,0.05); display:flex; justify-content:center; align-items:center;">
-                            <i class="fa-solid fa-trash" style="font-size:12px;"></i>
-                        </button>
+                    <div class="u-display-flex_align-items-center_gap-6px_font-size-12px_col-2">
+                        <i class="fa-regular fa-clock agc-accent-icon"></i>
+                        ${durationText} sürdü
+                    </div>
+                    ${linkedTaskCount > 0 ? `<div class="u-display-flex_align-items-center_gap-6px_font-size-12px_col-2">
+                        <i class="fa-solid fa-list-check agc-accent-icon"></i>
+                        ${completedTaskCount}/${linkedTaskCount} görev
+                    </div>` : ''}
+                    <div class="agc-progress-badge u-display-flex_align-items-center_gap-6px_font-size-12px_fon" >
+                        <i class="fa-solid fa-chart-simple"></i> %${goal._progress}
                     </div>
                 </div>
-            `;
-            goalsContainer.appendChild(div);
-            return;
-        }
+            </div>
+            <div class="u-display-flex_flex-direction-column_gap-8px_flex-shrink-0">
+                ${!isWon ? `<button class="control-btn u-white-space-nowrap_font-size-12px_font-weight-700_padding-" data-action="extend-goal-deadline" data-id="${goal.id}" title="Süreyi Uzat" >
+                    <i class="fa-solid fa-calendar-plus"></i> Süreyi Uzat
+                </button>` : ''}
+                <button class="icon-btn delete-icon-btn goal-archive-del-btn u-opacity-0p4_transition-0p3s_align-self-flex-end_width-30px" data-action="delete-goal" data-id="${goal.id}" title="Sil"  aria-label="Sil">
+                    <i class="fa-solid fa-trash u-font-size-12px" ></i>
+                </button>
+            </div>
+        </div>
+    `;
+    div.querySelectorAll('.agc-accent-icon').forEach(el => { el.style.color = accentColor; });
+    const _agcEmoji = div.querySelector('.agc-emoji');
+    if (_agcEmoji) _agcEmoji.style.filter = `drop-shadow(0 2px 8px ${accentColor}66)`;
+    const _agcStatusBadge = div.querySelector('.agc-status-badge');
+    if (_agcStatusBadge) {
+        _agcStatusBadge.style.background = accentBg;
+        _agcStatusBadge.style.color = accentColor;
+        _agcStatusBadge.style.border = `1px solid ${accentColor}44`;
+    }
+    const _agcProgressBadge = div.querySelector('.agc-progress-badge');
+    if (_agcProgressBadge) {
+        _agcProgressBadge.style.color = accentColor;
+        _agcProgressBadge.style.background = accentBg;
+        _agcProgressBadge.style.border = `1px solid ${accentColor}33`;
+    }
+    return div;
+}
 
+// renderGoals'ın aktif hedef kartını üretir — goal işlenmiş alanlarla
+// (_progress/_linkedTasks vb.) geliyor.
+function buildActiveGoalCardEl(goal) {
         let aiText = generateAIAnalysis(goal, goal._progress, goal._totalSteps, goal._completedSteps);
 
         const [y, m, d] = goal.deadline.split('-');
@@ -511,7 +415,7 @@ export function renderGoals() {
            const badgeIcon = goal.status === 'completed' ? 'fa-calendar-check' : 'fa-calendar-times';
            const badgeText = goal.status === 'completed' ? 'Tamamlanma' : 'Süre Dolumu';
 
-           dateInfoHTML = `<div style="margin-top: 10px; display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: ${badgeColor}; background: ${badgeBg}; padding: 5px 12px; border-radius: 8px; border: 1px solid ${badgeBorder};"><i class="fa-regular ${badgeIcon}"></i> Başlangıç: ${startD.toLocaleDateString('tr-TR')} &nbsp;|&nbsp; ${badgeText}: ${endD.toLocaleDateString('tr-TR')}</div>`;
+           dateInfoHTML = `<div class="gc-date-info-badge u-margin-top-10px_display-inline-flex_align-items-center_gap" data-badge-color="${badgeColor}" data-badge-bg="${badgeBg}" data-badge-border="${badgeBorder}"><i class="fa-regular ${badgeIcon}"></i> Başlangıç: ${startD.toLocaleDateString('tr-TR')} &nbsp;|&nbsp; ${badgeText}: ${endD.toLocaleDateString('tr-TR')}</div>`;
        }
 
        // Başlangıç ve bitiş tarihlerini oluştur
@@ -530,7 +434,7 @@ export function renderGoals() {
            </div>
            <div class="gc-right">
                <span class="gc-badge ${urgencyClass}">${urgencyText}</span>
-               <button class="gc-del-btn" data-action="delete-goal" data-id="${goal.id}" title="Sil"><i class="fa-solid fa-trash"></i></button>
+               <button class="gc-del-btn" data-action="delete-goal" data-id="${goal.id}" title="Sil" aria-label="Sil"><i class="fa-solid fa-trash"></i></button>
            </div>
        </div>
 
@@ -544,7 +448,7 @@ export function renderGoals() {
 
        <div class="gc-progress-area">
            <div class="gc-progress-track">
-               <div class="gc-progress-fill" style="width:${goal._progress}%; background:${progressColor};"></div>
+               <div class="gc-progress-fill"></div>
            </div>
            <div class="gc-progress-meta">
                <span>${goal._completedSteps}/${goal._totalSteps} adım</span>
@@ -557,53 +461,204 @@ export function renderGoals() {
            <button class="gc-detail-btn" data-action="open-goal-details" data-id="${goal.id}">Detaylar <i class="fa-solid fa-arrow-right"></i></button>
        </div>
        `;
-        goalsContainer.appendChild(div);
+    const _gcFill = div.querySelector('.gc-progress-fill');
+    if (_gcFill) { _gcFill.style.width = goal._progress + '%'; _gcFill.style.background = progressColor; }
+    return div;
+}
+
+// "Başarılarım/Süresi Dolanlar" sekmesinde hiç arşivlenmiş hedef yokken gösterilen
+// boş durum — en yakın tamamlanmaya yaklaşan aktif hedefi de vurgular. Parametre
+// gerekmiyor, getGoalsRef()/getTasksRef() üzerinden kendi verisini okuyor.
+function buildEmptyArchiveStateHtml() {
+    const activeGoals = getGoalsRef().filter(g => g.status !== 'completed' && g.status !== 'expired');
+    let nearestGoalHTML = '';
+    if (activeGoals.length > 0) {
+        const bestGoal = activeGoals.reduce((prev, curr) => {
+            const prevLinked = getTasksRef().filter(t => t.parentGoal === prev.id);
+            const currLinked = getTasksRef().filter(t => t.parentGoal === curr.id);
+            const prevPct = prevLinked.length === 0 ? 0 : Math.round((prevLinked.filter(t => t.completed).length / prevLinked.length) * 100);
+            const currPct = currLinked.length === 0 ? 0 : Math.round((currLinked.filter(t => t.completed).length / currLinked.length) * 100);
+            return currPct > prevPct ? curr : prev;
+        });
+        const linkedTasks = getTasksRef().filter(t => t.parentGoal === bestGoal.id);
+        const pct = linkedTasks.length === 0 ? 0 : Math.round((linkedTasks.filter(t => t.completed).length / linkedTasks.length) * 100);
+        nearestGoalHTML = `
+        <div class="u-margin-top-24px_padding-16px20px_background-rgba108922310p">
+            <div class="u-font-size-11px_font-weight-700_letter-spacing-1px_color-ha">En Yakın Başarı Adayı</div>
+            <div class="u-font-size-15px_font-weight-600_color-hfff_margin-bottom-10">${escapeHtml(bestGoal.title)}</div>
+            <div class="u-background-rgba2552552550p07_border-radius-8px_height-8px_">
+                <div class="gc-empty-nearest-fill u-height-100pct_background-linear-gradient90degh6c5ce7ha29bf" data-pct="${pct}"></div>
+            </div>
+            <div class="u-color-var-text-muted_font-size-12px">%${pct} tamamlandı — devam et!</div>
+        </div>`;
+    }
+    return `
+    <div class="glass-element u-text-align-center_padding-50px28px40px_border-1pxdashedrgb" >
+        <div class="u-font-size-64px_margin-bottom-12px_line-height-1_filter-dro">🏆</div>
+        <h3 class="u-color-hfff_font-size-20px_font-weight-700_margin-bottom-8p">Henüz Bir Başarın Yok</h3>
+        <p class="u-color-var-text-muted_font-size-14px_max-width-340px_margin">
+            Tamamladığın hedefler burada arşivlenir. Bir hedefi %100 bitirdiğinde otomatik olarak buraya taşınır.
+        </p>
+        ${nearestGoalHTML}
+       <button data-action="click-active-goal-tab" class="primary-btn u-margin-24pxauto0_justify-content-center_background-rgba254" >
+            <i class="fa-solid fa-mountain-sun"></i> Aktif Hedeflerime Git
+        </button>
+    </div>`;
+}
+
+// Hedefleri render etmeden önce ilerleme yüzdelerini hesaplayıp sıralanmış bir
+// dizi döner — saf veri işleme, DOM'a dokunmaz. Faz S devamı, dev fonksiyon
+// refactoru: renderGoals'tan çıkarıldı.
+function _prepareSortedGoals(sortType) {
+let processedGoals = getGoalsRef().map(goal => {
+    let linkedTasks = getTasksRef().filter(t => t.parentGoal === goal.id);
+    let linkedHabits = getHabitsRef().filter(h => h.parentGoals && h.parentGoals.includes(goal.id));
+    
+    let totalSteps = linkedTasks.length;
+    let completedSteps = linkedTasks.filter(t => t.completed).length;
+
+    linkedHabits.forEach(h => {
+        totalSteps += (h.targetDays || 21);
+        completedSteps += Object.keys(h.history).length;
+    });
+
+    // Milestone katkısı
+    if (goal.milestones && goal.milestones.length > 0) {
+        totalSteps += goal.milestones.length;
+        completedSteps += goal.milestones.filter(m => m.completed).length;
+    }
+
+    let progress = totalSteps === 0 ? 0 : Math.round((completedSteps / totalSteps) * 100);
+    if (progress > 100) progress = 100;
+
+    const milestoneTotal = goal.milestones ? goal.milestones.length : 0;
+    const milestoneDone  = goal.milestones ? goal.milestones.filter(m => m.completed).length : 0;
+
+    // Hesaplanan verileri (progress, adımlar) geçici objeye kaydediyoruz
+    return {
+        ...goal,
+        _progress: progress,
+        _totalSteps: totalSteps,
+        _completedSteps: completedSteps,
+        _linkedTasks: linkedTasks,
+        _linkedHabits: linkedHabits,
+        _milestoneTotal: milestoneTotal,
+        _milestoneDone: milestoneDone,
+    };
+});
+
+// --- SIRALAMA (SORT) İŞLEMİ ---
+processedGoals.sort((a, b) => {
+    if (sortType === 'deadline') {
+        return new Date(a.deadline) - new Date(b.deadline); // Yakın tarih önce
+    } else if (sortType === 'progress-high') {
+        return b._progress - a._progress; // Yüksek yüzde önce
+    } else if (sortType === 'progress-low') {
+        return a._progress - b._progress; // Düşük yüzde önce
+    } else {
+        return (b.createdAt || 0) - (a.createdAt || 0); // En yeni eklenen önce
+    }
+});
+
+    return processedGoals;
+}
+
+export function renderGoals() {
+    if(!goalsContainer) return;
+    goalsContainer.innerHTML = '';
+
+    // Başarılarım veya Süresi Dolanlar sekmesindeyken özet banner göster
+    if (currentGoalFilter === 'completed' || currentGoalFilter === 'expired') {
+        const wonGoals = getGoalsRef().filter(g => g.status === 'completed');
+        const expiredGoals = getGoalsRef().filter(g => g.status === 'expired');
+        if (wonGoals.length > 0 || expiredGoals.length > 0) {
+            const banner = document.createElement('div');
+            banner.style.display = 'flex';
+            banner.style.gap = '12px';
+            banner.style.marginBottom = '16px';
+            banner.style.flexWrap = 'wrap';
+            banner.innerHTML = `
+                <div class="u-flex-1_min-width-120px_background-rgba254202870p1_border-1">
+                    <span class="u-font-size-24px">🏆</span>
+                    <div><div class="u-font-size-22px_font-weight-800_color-hfeca57_line-height-1">${wonGoals.length}</div><div class="u-font-size-11px_color-var-text-muted_font-weight-600_text-t">Başarı</div></div>
+                </div>
+                <div class="u-flex-1_min-width-120px_background-rgba25571870p08_border-1">
+                    <span class="u-font-size-24px">⏰</span>
+                    <div><div class="u-font-size-22px_font-weight-800_color-hff4757_line-height-1">${expiredGoals.length}</div><div class="u-font-size-11px_color-var-text-muted_font-weight-600_text-t">Süre Doldu</div></div>
+                </div>
+                <div class="u-flex-1_min-width-120px_background-rgba108922310p08_border-">
+                    <span class="u-font-size-24px">📊</span>
+                    <div><div class="u-font-size-22px_font-weight-800_color-ha29bfe_line-height-1">${wonGoals.length + expiredGoals.length > 0 ? Math.round((wonGoals.length / (wonGoals.length + expiredGoals.length)) * 100) : 0}%</div><div class="u-font-size-11px_color-var-text-muted_font-weight-600_text-t">Başarı Oranı</div></div>
+                </div>
+            `;
+            goalsContainer.appendChild(banner);
+        }
+    }
+
+    // Sekme butonlarına sayı badge'i ekle (early return'dan ÖNCE yapılmalı)
+    const wonCount = getGoalsRef().filter(g => g.status === 'completed').length;
+    const expiredCount = getGoalsRef().filter(g => g.status === 'expired').length;
+    const activeCount = getGoalsRef().filter(g => g.status !== 'completed' && g.status !== 'expired').length;
+    const victoryTabBtn = document.querySelector('.goal-tab-btn[data-goal-filter="completed"]');
+    const expiredTabBtn = document.querySelector('.goal-tab-btn[data-goal-filter="expired"]');
+    const activeTabBtn = document.querySelector('.goal-tab-btn[data-goal-filter="active"]');
+    if (victoryTabBtn) victoryTabBtn.innerHTML = `<i class="fa-solid fa-trophy u-color-hfeca57" ></i> Başarılarım${wonCount > 0 ? ` <span class="u-background-rgba254202870p2_color-hfeca57_padding-1px7px_bo">${wonCount}</span>` : ''}`;
+    if (expiredTabBtn) expiredTabBtn.innerHTML = `⏳ Süresi Dolanlar${expiredCount > 0 ? ` <span class="u-background-rgba25571870p2_color-hff4757_padding-1px7px_bor">${expiredCount}</span>` : ''}`;
+    if (activeTabBtn) activeTabBtn.innerHTML = `<i class="fa-solid fa-mountain-sun"></i> Aktif Hedefler${activeCount > 0 ? ` <span class="u-background-rgba108922310p2_color-ha29bfe_padding-1px7px_bo">${activeCount}</span>` : ''}`;
+
+    // "+ Yeni Hedef" butonuna aktif/limit sayısını göster; limite ulaşınca soluklaştır
+    if (btnOpenGoalModal) {
+        const atLimit = activeCount >= MAX_ACTIVE_GOALS;
+        btnOpenGoalModal.innerHTML = `<i class="fa-solid fa-plus"></i> Yeni Hedef <span class="u-opacity-p75_font-weight-500_font-size-12px">(${activeCount}/${MAX_ACTIVE_GOALS})</span>`;
+        btnOpenGoalModal.style.opacity = atLimit ? '0.55' : '';
+        btnOpenGoalModal.title = atLimit ? `Aynı anda en fazla ${MAX_ACTIVE_GOALS} aktif ana hedef belirleyebilirsin.` : '';
+    }
+
+    if(getGoalsRef().length === 0) {
+        goalsContainer.innerHTML = `
+        <div class="glass-element u-text-align-center_padding-50px20px_border-1pxdashedrgba108" >
+            <i class="fa-solid fa-mountain u-font-size-48px_color-rgba108922310p5_margin-bottom-15px" ></i>
+            <h3 class="u-color-hfff_margin-bottom-10px-2">Henüz Bir Hedefin Yok</h3>
+            <p class="u-color-var-text-muted_font-size-14px_font-style-italic_marg">"Büyük yolculuklar tek bir adımla başlar..." <br><span class="u-font-size-12px_opacity-0p7_color-var-primary-color_font-we"><i class="fa-solid fa-wand-magic-sparkles"></i> FocusAI</span></p>
+            <button data-action="open-goal-modal" class="primary-btn u-margin-0auto_justify-content-center" ><i class="fa-solid fa-plus"></i> İlk Hedefini Belirle</button>
+        </div>`;
+        return;
+    };
+
+    let displayedCount = 0;
+    const sortType = goalSortSelect ? goalSortSelect.value : 'newest';
+    const processedGoals = _prepareSortedGoals(sortType);
+
+    processedGoals.forEach(goal => {
+        // Filtre (Aktif/Başarılarım/Süresi Dolanlar) kontrolü - İlerleme %100 olsa bile durum completed veya expired olmadan arşiv sekmesine gitmez
+        const isArchived = goal.status === 'completed' || goal.status === 'expired';
+        if (currentGoalFilter === 'active' && isArchived) return;
+        if (currentGoalFilter === 'completed' && goal.status !== 'completed') return;
+        if (currentGoalFilter === 'expired' && goal.status !== 'expired') return;
+
+        displayedCount++;
+
+        // --- ZAFERLERİ ÖZEL KART RENDER ---
+        if (isArchived) {
+            goalsContainer.appendChild(buildArchivedGoalCardEl(goal));
+            return;
+        }
+
+        goalsContainer.appendChild(buildActiveGoalCardEl(goal));
     });
 
     if (displayedCount === 0) {
         if (currentGoalFilter === 'active') {
             goalsContainer.innerHTML = `
-            <div style="text-align:center; padding:48px 20px; border: 1px dashed rgba(255,255,255,0.08); border-radius:12px;">
-                <i class="fa-solid fa-mountain" style="font-size:36px; color:rgba(255,255,255,0.15); margin-bottom:14px; display:block;"></i>
-                <p style="color:var(--text-muted); font-size:14px; margin-bottom:18px;">Henüz aktif hedefin yok.<br>Yeni bir hedef belirleyerek başla.</p>
-                <button data-action="open-goal-modal" class="primary-btn" style="margin:0 auto; justify-content:center;"><i class="fa-solid fa-plus"></i> Hedef Belirle</button>
+            <div class="u-text-align-center_padding-48px20px_border-1pxdashedrgba255">
+                <i class="fa-solid fa-mountain u-font-size-36px_color-rgba2552552550p15_margin-bottom-14px_" ></i>
+                <p class="u-color-var-text-muted_font-size-14px_margin-bottom-18px">Henüz aktif hedefin yok.<br>Yeni bir hedef belirleyerek başla.</p>
+                <button data-action="open-goal-modal" class="primary-btn u-margin-0auto_justify-content-center-2" ><i class="fa-solid fa-plus"></i> Hedef Belirle</button>
             </div>`;
         } else {
-            // --- ZAFERLERİ YOK EMPTY STATE ---
-            const activeGoals = getGoalsRef().filter(g => g.status !== 'completed' && g.status !== 'expired');
-            let nearestGoalHTML = '';
-            if (activeGoals.length > 0) {
-                const bestGoal = activeGoals.reduce((prev, curr) => {
-                    const prevLinked = getTasksRef().filter(t => t.parentGoal === prev.id);
-                    const currLinked = getTasksRef().filter(t => t.parentGoal === curr.id);
-                    const prevPct = prevLinked.length === 0 ? 0 : Math.round((prevLinked.filter(t => t.completed).length / prevLinked.length) * 100);
-                    const currPct = currLinked.length === 0 ? 0 : Math.round((currLinked.filter(t => t.completed).length / currLinked.length) * 100);
-                    return currPct > prevPct ? curr : prev;
-                });
-                const linkedTasks = getTasksRef().filter(t => t.parentGoal === bestGoal.id);
-                const pct = linkedTasks.length === 0 ? 0 : Math.round((linkedTasks.filter(t => t.completed).length / linkedTasks.length) * 100);
-                nearestGoalHTML = `
-                <div style="margin-top: 24px; padding: 16px 20px; background: rgba(108,92,231,0.1); border: 1px solid rgba(108,92,231,0.25); border-radius: 14px; text-align: left;">
-                    <div style="font-size: 11px; font-weight: 700; letter-spacing: 1px; color: #a29bfe; margin-bottom: 8px; text-transform: uppercase;">En Yakın Başarı Adayı</div>
-                    <div style="font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 10px;">${escapeHtml(bestGoal.title)}</div>
-                    <div style="background: rgba(255,255,255,0.07); border-radius: 8px; height: 8px; overflow: hidden; margin-bottom: 6px;">
-                        <div style="height: 100%; width: ${pct}%; background: linear-gradient(90deg, #6c5ce7, #a29bfe); border-radius: 8px; transition: width 0.5s;"></div>
-                    </div>
-                    <div style="font-size: 12px; color: var(--text-muted);">%${pct} tamamlandı — devam et!</div>
-                </div>`;
-            }
-            goalsContainer.innerHTML = `
-            <div class="glass-element" style="text-align: center; padding: 50px 28px 40px; border: 1px dashed rgba(254,202,87,0.3); background: linear-gradient(135deg, rgba(0,0,0,0.25), rgba(254,202,87,0.03));">
-                <div style="font-size: 64px; margin-bottom: 12px; line-height: 1; filter: drop-shadow(0 4px 16px rgba(254,202,87,0.4));">🏆</div>
-                <h3 style="color: #fff; font-size: 20px; font-weight: 700; margin-bottom: 8px;">Henüz Bir Başarın Yok</h3>
-                <p style="color: var(--text-muted); font-size: 14px; max-width: 340px; margin: 0 auto; line-height: 1.6;">
-                    Tamamladığın hedefler burada arşivlenir. Bir hedefi %100 bitirdiğinde otomatik olarak buraya taşınır.
-                </p>
-                ${nearestGoalHTML}
-               <button data-action="click-active-goal-tab" class="primary-btn" style="margin: 24px auto 0; justify-content: center; background: rgba(254,202,87,0.15); border-color: rgba(254,202,87,0.4); color: #feca57;">
-                    <i class="fa-solid fa-mountain-sun"></i> Aktif Hedeflerime Git
-                </button>
-            </div>`;
+            goalsContainer.innerHTML = buildEmptyArchiveStateHtml();
+            const _nearestFill = goalsContainer.querySelector('.gc-empty-nearest-fill');
+            if (_nearestFill) _nearestFill.style.width = _nearestFill.dataset.pct + '%';
         }
     }
 }

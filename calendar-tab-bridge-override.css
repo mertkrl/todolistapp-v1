@@ -1,0 +1,270 @@
+/* style.css'ten çıkarıldı (Faz C, 2026-07-22). FAZ 4 — Takvim Sekmesi Bridge CSS. #takvim toolbar/tam ekran/zihin çöplüğü çekmecesi override katmanı. Git HEAD: orijinalde satır 18361 — premium-validation-minddump-drawer.css'TEN (9750) SONRA gelmeliydi. */
+
+/* ============================================================
+   FAZ 4 — TAKVİM SEKMESİ BRIDGE CSS
+   ============================================================ */
+
+/* ── Takvim Toolbar ── */
+#takvim .premium-cal-toolbar {
+    background: var(--s1) !important;
+    border: 1px solid var(--b1) !important;
+    border-radius: 12px !important;
+    padding: 10px 14px !important;
+    margin-bottom: 14px !important;
+    backdrop-filter: none !important;
+}
+#takvim .cal-unified-title {
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    color: var(--t1) !important;
+    font-family: 'Inter', sans-serif !important;
+}
+/* Görünüm değiştirme (Aylık / Haftalık / Günlük) */
+#takvim .cal-view-switcher {
+    background: var(--s2) !important;
+    border: 1px solid var(--b1) !important;
+    border-radius: 10px !important;
+    padding: 4px !important;
+    gap: 2px !important;
+}
+#takvim .cal-view-btn {
+    background: transparent !important;
+    color: var(--t3) !important;
+    border-radius: 7px !important;
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 500 !important;
+    transition: all 0.15s !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+#takvim .cal-view-btn:hover {
+    background: var(--s3) !important;
+    color: var(--t1) !important;
+}
+#takvim .cal-view-btn.active {
+    background: var(--a) !important;
+    color: #000 !important;
+    font-weight: 700 !important;
+    box-shadow: none !important;
+}
+/* Nav okları */
+#takvim .cal-nav-btn,
+#takvim #prev-month-btn,
+#takvim #next-month-btn {
+    background: var(--s2) !important;
+    border: 1px solid var(--b1) !important;
+    border-radius: 7px !important;
+    color: var(--t2) !important;
+    width: 30px !important;
+    height: 30px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 13px !important;
+    transition: all 0.15s !important;
+    padding: 0 !important;
+}
+#takvim .cal-nav-btn:hover,
+#takvim #prev-month-btn:hover,
+#takvim #next-month-btn:hover {
+    background: var(--s3) !important;
+    color: var(--t1) !important;
+    border-color: var(--b2) !important;
+}
+/* Bugün pill */
+#takvim .cal-today-pill {
+    background: var(--a10) !important;
+    border: 1px solid rgba(212,144,14,0.3) !important;
+    color: var(--a) !important;
+    border-radius: 8px !important;
+    padding: 5px 14px !important;
+    font-size: 12px !important;
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 600 !important;
+    box-shadow: none !important;
+}
+#takvim .cal-today-pill:hover {
+    background: rgba(212,144,14,0.25) !important;
+}
+/* Fullscreen butonu */
+#takvim .cal-fs-btn {
+    background: transparent !important;
+    color: var(--t3) !important;
+    border: 1px solid transparent !important;
+}
+#takvim .cal-fs-btn:hover {
+    background: var(--s3) !important;
+    color: var(--t1) !important;
+    border-color: var(--b1) !important;
+}
+#takvim .cal-fs-btn.fs-active {
+    color: var(--a) !important;
+    background: var(--a10) !important;
+}
+
+/* ── Takvim Sol Panel (ay görünümü) ── */
+#takvim .calendar-left {
+    background: var(--s1) !important;
+    border: 1px solid var(--b1) !important;
+    border-radius: 12px !important;
+}
+#takvim .calendar-header h2,
+#takvim #month-year-display {
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    color: var(--t1) !important;
+    font-family: 'Inter', sans-serif !important;
+}
+#takvim .calendar-weekdays {
+    color: var(--t3) !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.5px !important;
+    margin-bottom: 10px !important;
+}
+/* Gün hücreleri */
+#takvim .cal-day {
+    background: transparent !important;
+    border: 1px solid transparent !important;
+    border-radius: 8px !important;
+    font-size: 13px !important;
+    font-family: 'Inter', sans-serif !important;
+    color: var(--t2) !important;
+    transition: background 0.15s, color 0.15s !important;
+}
+#takvim .cal-day:hover:not(.empty) {
+    background: var(--s2) !important;
+    color: var(--t1) !important;
+}
+#takvim .cal-day.today {
+    border-color: var(--a) !important;
+    color: var(--a) !important;
+    font-weight: 700 !important;
+}
+#takvim .cal-day.selected {
+    background: var(--a) !important;
+    color: #000 !important;
+    font-weight: 700 !important;
+    box-shadow: none !important;
+}
+#takvim .cal-day.other-month {
+    opacity: 0.3 !important;
+}
+#takvim .cal-day.has-event::after {
+    background-color: var(--a) !important;
+    width: 4px !important;
+    height: 4px !important;
+}
+#takvim .cal-day.selected.has-event::after {
+    background-color: #000 !important;
+}
+
+/* ── Takvim Sağ Panel ── */
+
+
+#takvim #selected-date-title {
+    color: var(--t1) !important;
+    font-size: 14px !important;
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 700 !important;
+}
+#takvim #selected-date-events-count {
+    font-size: 11px !important;
+    color: var(--t3) !important;
+    background: var(--s2) !important;
+    border: 1px solid var(--b1) !important;
+    border-radius: 6px !important;
+    padding: 3px 8px !important;
+}
+
+/* ── Etkinlik Listesi ── */
+
+
+
+
+
+
+/* ── Smart Hint Kutusu ── */
+
+
+
+
+
+/* ── Haftalık Görünüm ── */
+#takvim .weekly-cal-wrapper {
+    background: var(--s1) !important;
+    border: 1px solid var(--b1) !important;
+    border-radius: 12px !important;
+}
+
+#takvim .weekly-corner {
+    background: var(--s1) !important;
+    border-bottom: 1px solid var(--b1) !important;
+    border-right: 1px solid var(--b1) !important;
+}
+#takvim .weekly-day-header {
+    background: var(--s1) !important;
+    border-bottom: 1px solid var(--b1) !important;
+    color: var(--t2) !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 12px !important;
+}
+
+
+
+/* ── Günlük Görünüm ── */
+#takvim .daily-cal-header {
+    background: var(--s1) !important;
+    border: 1px solid var(--b1) !important;
+    border-radius: 12px !important;
+    padding: 14px 16px !important;
+    margin-bottom: 12px !important;
+}
+#takvim #daily-view-date-title {
+    color: var(--t1) !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 15px !important;
+    font-weight: 700 !important;
+}
+#takvim .daily-cal-wrapper {
+    background: var(--s1) !important;
+    border: 1px solid var(--b1) !important;
+    border-radius: 12px !important;
+}
+#takvim #daily-event-count {
+    font-size: 11px !important;
+    color: var(--t3) !important;
+    background: var(--s2) !important;
+    border: 1px solid var(--b1) !important;
+    border-radius: 6px !important;
+    padding: 3px 8px !important;
+}
+
+/* ── Takvim Fullscreen override ── */
+#takvim.cal-is-fullscreen .premium-cal-toolbar {
+    border-radius: 0 !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-top: none !important;
+    margin-bottom: 0 !important;
+}
+
+/* ── Takvim: Zihin Çöplüğü Drawer ── */
+#cal-mind-dump-drawer {
+    background: var(--s2) !important;
+    border: 1px solid var(--b1) !important;
+    backdrop-filter: none !important;
+    border-radius: 12px !important;
+    z-index: 500 !important;
+}
+#cal-mind-dump-toggle {
+    background: var(--a) !important;
+    color: #000 !important;
+    border: none !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    font-family: 'Inter', sans-serif !important;
+    box-shadow: none !important;
+}

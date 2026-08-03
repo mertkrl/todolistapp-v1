@@ -1,0 +1,72 @@
+/* style.css'ten çıkarıldı (Faz C, 2026-07-22). Premium Input Validasyon Titreme Efekti (.premium-input-error, @keyframes premiumInputShake) + Takvim Zihin Çöplüğü Çekmecesi Kart Listesi (#cal-mind-dump-drawer, #cal-mind-dump-list). Aradaki [PREMIUM LIBRARY] başlıklı ölü yorum bloğu (kod zaten library-bookshelf*.css'e taşınmıştı) temizlendi. */
+
+.premium-input-error {
+    border-color: #ff4757 !important;
+    background: rgba(255, 71, 87, 0.05) !important;
+    box-shadow: 0 0 15px rgba(255, 71, 87, 0.35), 
+                inset 0 0 10px rgba(255, 71, 87, 0.1) !important;
+    animation: premiumInputShake 0.45s cubic-bezier(.36,.07,.19,.97) both;
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+}
+
+/* Akıcı ve doğrusal premium titreme (shake) efekti */
+@keyframes premiumInputShake {
+    10%, 90% { transform: translate3d(-2px, 0, 0); }
+    20%, 80% { transform: translate3d(4px, 0, 0); }
+    30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+    40%, 64% { transform: translate3d(6px, 0, 0); }
+}
+
+/* Premium Fikir Planlama Paneli Düzenlemeleri */
+#cal-mind-dump-drawer {
+    background: rgba(15, 12, 41, 0.92) !important; /* Derin gece mavisi tonu ile kesin okunurluk */
+    backdrop-filter: blur(20px) !important; /* Arkayı yumuşakça bulandırır */
+    -webkit-backdrop-filter: blur(20px) !important;
+    border: 1px solid rgba(212, 144, 14, 0.4) !important; /* FocusAI moru belirgin sınır */
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7) !important; /* Paneli öne çıkaran derin gölge */
+}
+
+/* Zihin çöplüğü havuzundaki liste elemanları (Kartlar) */
+#cal-mind-dump-list li {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 10px !important;
+    padding: 10px 14px !important;
+    color: #ffffff !important; /* Metinler artık tamamen beyaz ve net */
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    cursor: grab !important;
+    transition: all 0.2s ease-in-out !important;
+}
+
+/* Kartların üzerine gelindiğinde (Hover durumu) */
+#cal-mind-dump-list li:hover {
+    background: rgba(212, 144, 14, 0.15) !important;
+    border-color: rgba(212,144,14,0.6) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 5px 15px rgba(212, 144, 14, 0.2) !important;
+}
+
+/* Özel kaydırma çubuğu (Scrollbar) düzenlemesi */
+#cal-mind-dump-list::-webkit-scrollbar {
+    width: 6px !important;
+}
+
+#cal-mind-dump-list::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1) !important;
+    border-radius: 10px !important;
+}
+
+#cal-mind-dump-list::-webkit-scrollbar-thumb {
+    background: rgba(212, 144, 14, 0.4) !important;
+    border-radius: 10px !important;
+}
+
+#cal-mind-dump-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(212,144,14,0.6) !important;
+}

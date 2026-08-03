@@ -4,7 +4,7 @@
 // bağımlılığı, sadece DOM + kendi verisi (DC_EMOJI_GROUPS) kullanıyor.
 // DC_EMOJI_GROUPS window'a açık çünkü social.js içindeki mesaj tepki
 // (reaction) picker'ı (openDcMsgReactionPicker) aynı emoji setini kullanıyor.
-const DC_EMOJI_GROUPS = {
+export const DC_EMOJI_GROUPS = {
     'Sık Kullanılan': ['😀','😂','🤣','😊','😍','😘','😜','🤔','😎','🙄','😢','😭','😡','👍','👎','👏','🙏','💪','🔥','❤️','💜','💯','🎉','✅'],
     'Yüzler':         ['😀','😃','😄','😁','😆','😅','😂','🙂','😉','😊','😇','😍','😘','😋','😜','🤪','🤨','🧐','😎','😏','😒','😞','😔','😢','😭','😤','😠','😡','🥳','😴','🤯','🤗','🤭','🤫','🤐','😷','🤒','🥺'],
     'Jestler':        ['👍','👎','👏','🙏','👋','🤝','💪','✌️','🤞','👌','🤟','🫶','👊','🙌','🤙'],
@@ -12,7 +12,7 @@ const DC_EMOJI_GROUPS = {
 };
 window.DC_EMOJI_GROUPS = DC_EMOJI_GROUPS;
 
-function initDcEmojiPicker() {
+export function initDcEmojiPicker() {
     const btn = document.getElementById('dc-emoji-picker-btn');
     const popover = document.getElementById('dc-emoji-picker-popover');
     if (!btn || !popover) return;
@@ -45,11 +45,11 @@ function initDcEmojiPicker() {
     btn.dataset.bound = '1';
     btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        popover.style.display = (popover.style.display === 'none' || !popover.style.display) ? 'block' : 'none';
+        popover.classList.toggle('is-hidden', !popover.classList.contains('is-hidden'));
     });
     document.addEventListener('click', (e) => {
-        if (popover.style.display === 'block' && !popover.contains(e.target) && e.target !== btn) {
-            popover.style.display = 'none';
+        if (!popover.classList.contains('is-hidden') && !popover.contains(e.target) && e.target !== btn) {
+            popover.classList.add('is-hidden');
         }
     });
 }

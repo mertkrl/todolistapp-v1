@@ -1,0 +1,65 @@
+/* Planlama — Ders Planı Atama Modalı (.pg-assign-) — style.css'ten çıkarıldı */
+
+/* ── "Ders Planını Ata" modal — premium tema ────────────── */
+.pg-assign-modal-content { max-width: 460px; }
+.pg-assign-select { border-radius: 10px; }
+.pg-assign-all-row {
+    display: flex; align-items: center; gap: 10px; cursor: pointer;
+    padding: 10px 12px; border-radius: 10px; margin-bottom: 10px;
+    background: rgba(212,144,14,.06); border: 1px solid rgba(212,144,14,.16);
+    transition: all .15s;
+}
+.pg-assign-all-row:hover { background: rgba(212,144,14,.1); }
+.pg-assign-all-row input[type="checkbox"] { position: absolute; opacity: 0; width: 0; height: 0; }
+.pg-assign-checkbox {
+    width: 18px; height: 18px; border-radius: 6px; flex-shrink: 0;
+    border: 1.5px solid rgba(255,255,255,.18); background: rgba(255,255,255,.03);
+    display: flex; align-items: center; justify-content: center; transition: all .15s;
+}
+.pg-assign-checkbox::after {
+    content: ''; width: 5px; height: 9px; border: solid #1a1206; border-width: 0 2px 2px 0;
+    transform: rotate(45deg) scale(0); transition: transform .12s;
+}
+input:checked + .pg-assign-checkbox {
+    background: var(--a,#D4900E); border-color: var(--a,#D4900E);
+}
+input:checked + .pg-assign-checkbox::after { transform: rotate(45deg) scale(1); }
+.pg-assign-all-label { font-size: 13px; font-weight: 600; color: #ddd; }
+.pg-assign-students {
+    max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;
+    margin-bottom: 4px; padding-right: 2px;
+}
+.pg-assign-student-row {
+    display: flex; align-items: center; gap: 10px; cursor: pointer;
+    padding: 8px 10px; border-radius: 9px; transition: all .15s;
+    border: 1px solid transparent;
+}
+.pg-assign-student-row:hover { background: rgba(255,255,255,.03); border-color: rgba(255,255,255,.06); }
+.pg-assign-student-name { font-size: 13px; color: #ccc; }
+
+/* ── Ders Planı — minimalist öğrenci seçici (arama + chip) ────────────── */
+.pg-lp-student-picker { border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 6px; background: rgba(255,255,255,.02); }
+.pg-lp-student-search { position: relative; margin-bottom: 5px; }
+.pg-lp-student-search i { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); font-size: 11px; color: #777; }
+.pg-lp-student-search input { padding: 7px 10px 7px 28px; font-size: 12px; height: auto; }
+.pg-lp-student-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 5px; }
+.pg-lp-student-chips:empty { display: none; }
+.pg-lp-student-chip {
+    display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600;
+    padding: 3px 7px; border-radius: 999px; background: rgba(212,144,14,.14); color: #D4900E;
+    border: 1px solid rgba(212,144,14,.3); cursor: pointer; transition: background .15s;
+}
+.pg-lp-student-chip:hover { background: rgba(212,144,14,.22); }
+.pg-lp-student-chip i { font-size: 9px; }
+.pg-assign-students-compact { max-height: 92px; gap: 2px; }
+.pg-assign-students-compact .pg-assign-student-row { padding: 5px 8px; }
+.pg-assign-students-compact .pg-assign-checkbox { width: 15px; height: 15px; }
+.pg-assign-students-compact .pg-assign-student-name { font-size: 12px; }
+.pg-assign-confirm-btn {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 8px 18px; border-radius: 8px; font-size: 12.5px; font-weight: 600;
+    border: 1px solid rgba(212,144,14,.35); color: var(--a,#D4900E);
+    background: rgba(212,144,14,.1); cursor: pointer; transition: all .15s; margin-left: auto;
+}
+.pg-assign-confirm-btn:hover:not(:disabled) { background: rgba(212,144,14,.18); border-color: rgba(212,144,14,.5); }
+.pg-assign-confirm-btn:disabled { opacity: .4; cursor: not-allowed; }

@@ -45,8 +45,24 @@ NEW_CACHE="focusai-$HASH"
 
 CURRENT=$(grep -oE "const CACHE = '[^']+'" "$SW_FILE" | sed "s/const CACHE = '//; s/'//")
 
+# public/sw.js — Vite'ın "public/" klasörü build sırasında dist/'e olduğu
+# gibi kopyalanıyor, gerçek üretim çıktısında kullanılan sw.js BUDUR (bkz.
+# scripts/update-sw-file-list.py'deki not). Kök sw.js değişmemiş olsa bile
+# public/sw.js geride kalmış olabilir (ör. FILES listesi az önce
+# update-sw-file-list.py ile güncellendi ama versiyon script'i daha
+# çalışmadıysa) — bu yüzden bu bloğu ERKEN ÇIKIŞTAN ÖNCE çalıştırıyoruz.
+PUBLIC_SW="public/sw.js"
+if [ -f "$PUBLIC_SW" ]; then
+    PUBLIC_CURRENT=$(grep -oE "const CACHE = '[^']+'" "$PUBLIC_SW" | sed "s/const CACHE = '//; s/'//")
+    if [ "$PUBLIC_CURRENT" != "$NEW_CACHE" ]; then
+        sed -i.bak "s/const CACHE = '[^']*'/const CACHE = '$NEW_CACHE'/" "$PUBLIC_SW"
+        rm -f "$PUBLIC_SW.bak"
+        echo "✓ public/sw.js cache versiyonu güncellendi: $PUBLIC_CURRENT → $NEW_CACHE"
+    fi
+fi
+
 if [ "$CURRENT" = "$NEW_CACHE" ]; then
-    echo "✓ Değişiklik yok — cache versiyonu zaten güncel: $CURRENT"
+    echo "✓ Değişiklik yok — sw.js cache versiyonu zaten güncel: $CURRENT"
     exit 0
 fi
 

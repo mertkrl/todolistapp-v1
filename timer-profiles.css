@@ -1,0 +1,137 @@
+/* ============================================================
+   Zamanlayıcı Profilleri (Odaklanma/Derin Çalışma/Mola modlarının
+   yerini alan, kullanıcı tanımlı profil kartları)
+   ============================================================ */
+.timer-profile-bar {
+    display: flex;
+    align-items: stretch;
+    gap: 10px;
+    margin-bottom: 18px;
+    max-width: 100%;
+}
+
+.timer-profile-cards {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 2px;
+    scrollbar-width: thin;
+}
+.timer-profile-cards::-webkit-scrollbar { height: 5px; }
+.timer-profile-cards::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 10px; }
+
+.timer-profile-card {
+    position: relative;
+    flex-shrink: 0;
+    min-width: 148px;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+.timer-profile-card:hover {
+    border-color: rgba(255,255,255,0.18);
+    background: rgba(255,255,255,0.04);
+}
+.timer-profile-card.active {
+    background: rgba(212,144,14,0.16);
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 15px rgba(212,144,14,0.25);
+}
+
+.tpc-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 6px;
+    padding-right: 38px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tpc-meta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.tpc-meta span {
+    font-size: 10.5px;
+    color: var(--text-muted);
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+}
+.timer-profile-card.active .tpc-meta span { color: rgba(255,255,255,0.85); }
+
+.tpc-actions {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+.timer-profile-card:hover .tpc-actions,
+.timer-profile-card:focus-within .tpc-actions { opacity: 1; }
+
+.tpc-edit-btn, .tpc-del-btn {
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    cursor: pointer;
+    background: rgba(255,255,255,0.08);
+    color: var(--text-muted);
+}
+.tpc-edit-btn:hover { color: #fff; background: rgba(255,255,255,0.16); }
+.tpc-del-btn:hover { color: #ff7675; background: rgba(255,71,87,0.16); }
+
+.timer-profile-add-btn {
+    flex-shrink: 0;
+    width: 44px;
+    border: 1px dashed rgba(255,255,255,0.18);
+    border-radius: 14px;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 15px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.timer-profile-add-btn:hover {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+    background: rgba(212,144,14,0.08);
+}
+.timer-profile-add-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.timer-active-profile-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    align-self: center;
+    margin-bottom: 18px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    background: rgba(0,0,0,0.25);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: var(--text-muted);
+    font-size: 12.5px;
+    font-weight: 600;
+}
+.timer-active-profile-pill i { color: var(--primary-color); }
+.timer-active-profile-pill.hidden { display: none; }
+.timer-profile-bar.hidden { display: none; }
+.timer-modes-legacy-hidden,
+#zamanlayici .timer-modes-legacy-hidden,
+#zamanlayici .timer-modes.timer-modes-legacy-hidden { display: none !important; }

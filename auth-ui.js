@@ -43,9 +43,9 @@
 
     function _avatarColorSwatches() {
         return AVATAR_COLORS.map((a, i) =>
-            `<button type="button" class="avatar-swatch" data-color="${a.color}" title="${a.label}"
-                style="width:32px;height:32px;border-radius:50%;background:${a.color};border:3px solid transparent;cursor:pointer;transition:border-color .2s,transform .2s;flex-shrink:0;"
-                ${i === 0 ? 'data-selected="true" style="width:32px;height:32px;border-radius:50%;background:' + a.color + ';border:3px solid #fff;cursor:pointer;transition:border-color .2s,transform .2s;flex-shrink:0;"' : ''}></button>`
+            `<button type="button" class="avatar-swatch u-width-32px_height-32px_border-radius-50pct_cursor-pointer_" data-color="${a.color}" title="${a.label}"
+ 
+ ${i === 0 ? 'data-selected="true"' : ''}></button>`
         ).join('');
     }
 
@@ -56,53 +56,53 @@
         wrapper.innerHTML = `
             <!-- Auth Modal -->
             <div id="focusai-auth-modal" class="modal-overlay hidden">
-                <div class="modal-content glass-panel" style="max-width:420px;">
+                <div class="modal-content glass-panel u-max-width-420px" >
                     <div class="modal-icon-wrapper info"><i class="fa-solid fa-cloud"></i></div>
                     <div class="modal-header">
                         <h2>Hesap / Senkronizasyon</h2>
-                        <button class="icon-btn" id="focusai-auth-close"><i class="fa-solid fa-xmark"></i></button>
+                        <button class="icon-btn" id="focusai-auth-close" aria-label="Kapat"><i class="fa-solid fa-xmark"></i></button>
                     </div>
                     <div class="modal-body">
 
                         <!-- Oturum açık değil -->
                         <div id="focusai-auth-signed-out">
-                            <div style="display:flex; gap:8px; margin-bottom:16px; border-bottom:1px solid var(--border-color, rgba(255,255,255,0.1));">
-                                <button type="button" id="focusai-auth-tab-login" class="focusai-auth-tab" data-selected="true"
-                                    style="flex:1; background:none; border:none; padding:10px 0; font-size:14px; font-weight:600; cursor:pointer; color:var(--text-color); border-bottom:2px solid var(--primary-color);">Giriş Yap</button>
-                                <button type="button" id="focusai-auth-tab-signup" class="focusai-auth-tab"
-                                    style="flex:1; background:none; border:none; padding:10px 0; font-size:14px; font-weight:600; cursor:pointer; color:var(--text-muted); border-bottom:2px solid transparent;">Kayıt Ol</button>
+                            <div class="u-display-flex_gap-8px_margin-bottom-16px_border-bottom-1pxs">
+                                <button type="button" id="focusai-auth-tab-login" class="focusai-auth-tab u-flex-1_background-none_border-none_padding-10px0_font-size" data-selected="true"
+ >Giriş Yap</button>
+                                <button type="button" id="focusai-auth-tab-signup" class="focusai-auth-tab u-flex-1_background-none_border-none_padding-10px0_font-size-2"
+ >Kayıt Ol</button>
                             </div>
 
                             <div id="focusai-section-form">
-                                <input type="email" id="focusai-auth-email" class="premium-input" placeholder="ornek@eposta.com" autocomplete="email" style="margin-bottom:10px;">
+                                <input type="email" id="focusai-auth-email" class="premium-input u-margin-bottom-10px" placeholder="ornek@eposta.com" autocomplete="email" >
                                 <input type="password" id="focusai-auth-password" class="premium-input" placeholder="Şifre" autocomplete="current-password">
-                                <input type="password" id="focusai-auth-password-confirm" class="premium-input hidden" placeholder="Şifreyi tekrar gir" autocomplete="new-password" style="margin-top:10px;">
-                                <p style="margin-top:8px; text-align:right;">
-                                    <a href="#" id="focusai-auth-forgot-link" style="font-size:12px; color:var(--text-muted);">Şifremi unuttum</a>
+                                <input type="password" id="focusai-auth-password-confirm" class="premium-input hidden u-margin-top-10px" placeholder="Şifreyi tekrar gir" autocomplete="new-password" >
+                                <p class="u-margin-top-8px_text-align-right">
+                                    <a href="#" id="focusai-auth-forgot-link" class="u-font-size-12px_color-var-text-muted">Şifremi unuttum</a>
                                 </p>
-                                <p id="focusai-auth-status" style="margin-top:6px; font-size:13px; color:var(--text-muted);"></p>
+                                <p id="focusai-auth-status" class="u-margin-top-6px_font-size-13px_color-var-text-muted"></p>
                             </div>
 
                             <!-- Şifre sıfırlama -->
                             <div id="focusai-section-reset" class="hidden">
-                                <p style="margin-bottom:12px; font-size:13px; color:var(--text-muted);">E-postana bir sıfırlama bağlantısı gönderelim.</p>
+                                <p class="u-margin-bottom-12px_font-size-13px_color-var-text-muted">E-postana bir sıfırlama bağlantısı gönderelim.</p>
                                 <input type="email" id="focusai-reset-email" class="premium-input" placeholder="ornek@eposta.com" autocomplete="email">
-                                <p id="focusai-reset-status" style="margin-top:10px; font-size:13px; color:var(--text-muted);"></p>
-                                <button type="button" id="focusai-reset-send-btn" class="primary-btn" style="width:100%; margin-top:10px;"><i class="fa-solid fa-paper-plane"></i> Bağlantı Gönder</button>
-                                <button type="button" id="focusai-reset-back-btn" class="control-btn secondary" style="width:100%; margin-top:8px;">Geri Dön</button>
+                                <p id="focusai-reset-status" class="u-margin-top-10px_font-size-13px_color-var-text-muted"></p>
+                                <button type="button" id="focusai-reset-send-btn" class="primary-btn u-width-100pct_margin-top-10px" ><i class="fa-solid fa-paper-plane"></i> Bağlantı Gönder</button>
+                                <button type="button" id="focusai-reset-back-btn" class="control-btn secondary u-width-100pct_margin-top-8px" >Geri Dön</button>
                             </div>
                         </div>
 
                         <!-- Oturum açık -->
                         <div id="focusai-auth-signed-in" class="hidden">
-                            <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;">
-                                <div id="focusai-user-avatar" style="width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;flex-shrink:0;background:#6c63ff;color:#fff;">?</div>
+                            <div class="u-display-flex_align-items-center_gap-14px_margin-bottom-10p">
+                                <div id="focusai-user-avatar" class="u-width-44px_height-44px_border-radius-50pct_display-flex_al">?</div>
                                 <div>
-                                    <div id="focusai-user-displayname" style="font-weight:600;font-size:15px;"></div>
-                                    <div id="focusai-auth-email-label" style="font-size:12px;color:var(--text-muted);"></div>
+                                    <div id="focusai-user-displayname" class="u-font-weight-600_font-size-15px"></div>
+                                    <div id="focusai-auth-email-label" class="u-font-size-12px_color-var-text-muted"></div>
                                 </div>
                             </div>
-                            <p style="font-size:13px; color:var(--text-muted);">Verilerin bu hesapla otomatik olarak senkronize ediliyor.</p>
+                            <p class="u-font-size-13px_color-var-text-muted">Verilerin bu hesapla otomatik olarak senkronize ediliyor.</p>
                         </div>
 
                     </div>
@@ -115,36 +115,36 @@
 
             <!-- Profil Kurulum Modalı (ilk giriş) -->
             <div id="focusai-profile-modal" class="modal-overlay hidden">
-                <div class="modal-content glass-panel" style="max-width:440px;">
+                <div class="modal-content glass-panel u-max-width-440px" >
                     <div class="modal-icon-wrapper success"><i class="fa-solid fa-user-pen"></i></div>
                     <div class="modal-header"><h2>Hesabını Kur</h2></div>
                     <div class="modal-body">
-                        <p style="margin-bottom:16px;">Merhaba! Profilini oluşturalım. Bu bilgiler arkadaşlarına görünür.</p>
+                        <p class="u-margin-bottom-16px">Merhaba! Profilini oluşturalım. Bu bilgiler arkadaşlarına görünür.</p>
 
                         <!-- Avatar önizleme -->
-                        <div style="display:flex;flex-direction:column;align-items:center;gap:12px;margin-bottom:20px;">
+                        <div class="u-display-flex_flex-direction-column_align-items-center_gap-">
                             <div id="focusai-profile-avatar-preview"
-                                style="width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:700;background:#6c63ff;color:#fff;transition:background .3s;user-select:none;">
+ class="u-width-72px_height-72px_border-radius-50pct_display-flex_al">
                                 ?
                             </div>
-                            <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
+                            <div class="u-display-flex_gap-8px_flex-wrap-wrap_justify-content-center">
                                 ${_avatarColorSwatches()}
                             </div>
                         </div>
 
-                        <div style="display:flex;flex-direction:column;gap:10px;">
+                        <div class="u-display-flex_flex-direction-column_gap-10px-2">
                             <div>
-                                <label style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:4px;">Kullanıcı Adı <span style="color:#ff4757;">*</span></label>
-                                <input type="text" id="focusai-profile-username" class="premium-input" placeholder="ornekkullanici" maxlength="30"
-                                    style="text-transform:lowercase;" autocomplete="username">
-                                <p id="focusai-username-hint" style="font-size:11px;color:var(--text-muted);margin-top:4px;">Harf, rakam ve alt çizgi kullanabilirsin.</p>
+                                <label class="u-font-size-12px_color-var-text-muted_display-block_margin-b-2">Kullanıcı Adı <span class="u-color-hff4757">*</span></label>
+                                <input type="text" id="focusai-profile-username" class="premium-input u-text-transform-lowercase" placeholder="ornekkullanici" maxlength="30"
+ autocomplete="username">
+                                <p id="focusai-username-hint" class="u-font-size-11px_color-var-text-muted_margin-top-4px-2">Harf, rakam ve alt çizgi kullanabilirsin.</p>
                             </div>
                             <div>
-                                <label style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:4px;">Görünen İsim <span style="color:#ff4757;">*</span></label>
+                                <label class="u-font-size-12px_color-var-text-muted_display-block_margin-b-2">Görünen İsim <span class="u-color-hff4757">*</span></label>
                                 <input type="text" id="focusai-profile-displayname" class="premium-input" placeholder="Adın Soyadın" maxlength="40" autocomplete="name">
                             </div>
                         </div>
-                        <p id="focusai-profile-status" style="margin-top:12px; font-size:13px; color:var(--text-muted);"></p>
+                        <p id="focusai-profile-status" class="u-margin-top-12px_font-size-13px_color-var-text-muted"></p>
                     </div>
                     <div class="modal-footer">
                         <button id="focusai-profile-skip-btn" class="control-btn secondary">Daha Sonra</button>
@@ -155,12 +155,12 @@
 
             <!-- Veri Aktarım Modalı -->
             <div id="focusai-import-modal" class="modal-overlay hidden">
-                <div class="modal-content glass-panel" style="max-width:420px;">
+                <div class="modal-content glass-panel u-max-width-420px" >
                     <div class="modal-icon-wrapper success"><i class="fa-solid fa-cloud-arrow-up"></i></div>
                     <div class="modal-header"><h2>Verilerini Buluta Aktar</h2></div>
                     <div class="modal-body">
                         <p>Bu cihazda kayıtlı verilerin bir kopyasını hesabına aktaracağız:</p>
-                        <ul id="focusai-import-summary" style="color:var(--text-muted); font-size:14px; line-height:1.9; list-style:none; padding:0; margin:0;"></ul>
+                        <ul id="focusai-import-summary" class="u-color-var-text-muted_font-size-14px_line-height-1p9_list-s"></ul>
                     </div>
                     <div class="modal-footer">
                         <button id="focusai-import-skip-btn" class="control-btn secondary">Daha Sonra</button>
@@ -171,13 +171,13 @@
 
             <!-- Yeni Şifre Belirleme Modalı (sıfırlama bağlantısından dönüş) -->
             <div id="focusai-recovery-modal" class="modal-overlay hidden">
-                <div class="modal-content glass-panel" style="max-width:400px;">
+                <div class="modal-content glass-panel u-max-width-400px" >
                     <div class="modal-icon-wrapper info"><i class="fa-solid fa-key"></i></div>
                     <div class="modal-header"><h2>Yeni Şifre Belirle</h2></div>
                     <div class="modal-body">
                         <input type="password" id="focusai-recovery-password" class="premium-input" placeholder="Yeni şifre (en az 6 karakter)" autocomplete="new-password">
-                        <input type="password" id="focusai-recovery-password-confirm" class="premium-input" placeholder="Yeni şifreyi tekrar gir" autocomplete="new-password" style="margin-top:10px;">
-                        <p id="focusai-recovery-status" style="margin-top:10px; font-size:13px; color:var(--text-muted);"></p>
+                        <input type="password" id="focusai-recovery-password-confirm" class="premium-input u-margin-top-10px" placeholder="Yeni şifreyi tekrar gir" autocomplete="new-password" >
+                        <p id="focusai-recovery-status" class="u-margin-top-10px_font-size-13px_color-var-text-muted"></p>
                     </div>
                     <div class="modal-footer">
                         <button id="focusai-recovery-save-btn" class="primary-btn"><i class="fa-solid fa-check"></i> Şifreyi Kaydet</button>
@@ -242,8 +242,14 @@
             const password = document.getElementById('focusai-auth-password').value || '';
             const status = document.getElementById('focusai-auth-status');
             if (!_validateEmail(email, status)) return;
-            if (!password || password.length < 6) {
-                status.textContent = 'Şifre en az 6 karakter olmalı.';
+            if (_authMode === 'signup') {
+                if (!_isStrongPassword(password)) {
+                    status.textContent = 'Şifre en az 8 karakter olmalı ve en az bir rakam içermeli.';
+                    status.style.color = '#ff4757';
+                    return;
+                }
+            } else if (!password) {
+                status.textContent = 'Şifreni gir.';
                 status.style.color = '#ff4757';
                 return;
             }
@@ -326,6 +332,14 @@
         });
     }
 
+    // Yeni şifre belirleme akışları (kayıt/sıfırlama) için — mevcut
+    // kullanıcıların girişini etkilemez, sadece yeni şifre oluştururken
+    // uygulanır (mevcut hesaplar 6 karakterle oluşturulmuş olabilir, login
+    // akışında bu kontrolü uygulamak onları hesaplarından kilitlerdi).
+    function _isStrongPassword(password) {
+        return typeof password === 'string' && password.length >= 8 && /\d/.test(password);
+    }
+
     function _validateEmail(email, statusEl) {
         if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
             statusEl.textContent = 'Lütfen geçerli bir e-posta adresi gir.';
@@ -342,8 +356,8 @@
             const confirm = document.getElementById('focusai-recovery-password-confirm').value || '';
             const status = document.getElementById('focusai-recovery-status');
 
-            if (!password || password.length < 6) {
-                status.textContent = 'Şifre en az 6 karakter olmalı.';
+            if (!_isStrongPassword(password)) {
+                status.textContent = 'Şifre en az 8 karakter olmalı ve en az bir rakam içermeli.';
                 status.style.color = '#ff4757';
                 return;
             }
@@ -382,6 +396,8 @@
 
         // Renk seçimi
         profileModal.querySelectorAll('.avatar-swatch').forEach(btn => {
+            btn.style.background = btn.dataset.color;
+            btn.style.border = btn.hasAttribute('data-selected') ? '3px solid #fff' : '3px solid transparent';
             btn.addEventListener('click', () => {
                 profileModal.querySelectorAll('.avatar-swatch').forEach(b => {
                     b.style.border = '3px solid transparent';
@@ -537,7 +553,7 @@
     }
 
     function _summaryRow(icon, label, count) {
-        return `<li style="display:flex; align-items:center; gap:10px;"><i class="fa-solid ${icon}" style="width:18px; text-align:center; color:var(--primary-color);"></i> ${count} ${label}</li>`;
+        return `<li class="u-display-flex_align-items-center_gap-10px"><i class="fa-solid ${icon} u-width-18px_text-align-center_color-var-primary-color" ></i> ${count} ${label}</li>`;
     }
 
     function _openImportWizard() {
@@ -638,3 +654,5 @@
         _init();
     }
 })();
+
+export function openAuthModal() { window.FocusAuthUI.open(); }

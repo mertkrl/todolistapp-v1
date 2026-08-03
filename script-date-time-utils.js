@@ -36,7 +36,7 @@ export function toInputDate(ddmmyyyy) {
 window.toInputDate = toInputDate;
 
 // <input type="date"> değerini (yyyy-mm-dd) app formatına (dd-mm-yyyy) çevir
-function fromInputDate(yyyymmdd) {
+export function fromInputDate(yyyymmdd) {
     if (!yyyymmdd) return '';
     const parts = yyyymmdd.split('-');
     if (parts.length !== 3) return yyyymmdd;

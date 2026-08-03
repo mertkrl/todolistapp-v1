@@ -99,7 +99,7 @@ import { FocusStorage } from './storage-manager.js';
      if (isPast) {
          if (editBtn) editBtn.style.display = "none";
          if (deleteBtn) deleteBtn.style.display = "none";
-         document.getElementById("book-detail-heading").innerHTML = `${longDate} <span style="font-size:11px; background:rgba(255,255,255,0.1); padding:3px 8px; border-radius:10px; color:var(--text-muted); margin-left:10px;"><i class="fa-solid fa-lock"></i> Arşiv</span>`;
+         document.getElementById("book-detail-heading").innerHTML = `${longDate} <span class="u-font-size-11px_background-rgba2552552550p1_padding-3px8px_"><i class="fa-solid fa-lock"></i> Arşiv</span>`;
      } else {
          // Bugünün kitabıysa işlemler açık kalabilir
          if (editBtn) editBtn.style.display = "inline-block";
@@ -298,8 +298,13 @@ import { FocusStorage } from './storage-manager.js';
              const fc    = muted[Math.floor(rnd(s) * muted.length)];
              const fb    = document.createElement('div');
              fb.className  = 'zk-book';
-             fb.style.cssText = `--spine:${fc}; --w:${fw}px; --h:${fh}px; --lift:0px; cursor:default; pointer-events:none;`;
-             fb.innerHTML  = `<div class="zk-book-top-edge"></div><div class="zk-book-band" style="top:22%"></div><div class="zk-book-band" style="top:72%"></div><div class="zk-book-filler-mark"></div>`;
+             fb.style.setProperty('--spine', fc);
+             fb.style.setProperty('--w', fw + 'px');
+             fb.style.setProperty('--h', fh + 'px');
+             fb.style.setProperty('--lift', '0px');
+             fb.style.cursor = 'default';
+             fb.style.pointerEvents = 'none';
+             fb.innerHTML  = `<div class="zk-book-top-edge"></div><div class="zk-book-band u-top-22pct" ></div><div class="zk-book-band u-top-72pct" ></div><div class="zk-book-filler-mark"></div>`;
              els.push(fb);
              placed += fw + 1;
          }
@@ -342,11 +347,15 @@ import { FocusStorage } from './storage-manager.js';
          if (row === 0) {
              const titleBook = document.createElement('div');
              titleBook.className = 'zk-book';
-             titleBook.style.cssText = '--spine:#3a2014; --w:42px; --h:220px; --lift:0px; cursor:default;';
+             titleBook.style.setProperty('--spine', '#3a2014');
+             titleBook.style.setProperty('--w', '42px');
+             titleBook.style.setProperty('--h', '220px');
+             titleBook.style.setProperty('--lift', '0px');
+             titleBook.style.cursor = 'default';
              titleBook.innerHTML = `
                  <div class="zk-book-top-edge"></div>
-                 <div class="zk-book-band" style="top:20%"></div>
-                 <div class="zk-book-band" style="top:74%"></div>
+                 <div class="zk-book-band u-top-20pct" ></div>
+                 <div class="zk-book-band u-top-74pct" ></div>
                  <div class="zk-book-title-text"><span>${trMonthsFull[selectedMonth].toUpperCase()} ${selectedYear}</span></div>
              `;
              titleBook.style.cursor = 'pointer';
@@ -373,17 +382,22 @@ import { FocusStorage } from './storage-manager.js';
              const ribbonColor = bk.isToday ? '#e09a44' : (bk.isFuture ? '#8c7c62' : '');
              const showRibbon  = bk.isToday || bk.isFuture;
 
-             bookEl.style.cssText = `--spine:${bk.color}; --w:${bk.bookW}px; --h:${bk.bookH}px; --lift:${liftPx};${ribbonColor ? ' --ribbon:'+ribbonColor+';' : ''}`;
+             bookEl.style.setProperty('--spine', bk.color);
+             bookEl.style.setProperty('--w', bk.bookW + 'px');
+             bookEl.style.setProperty('--h', bk.bookH + 'px');
+             bookEl.style.setProperty('--lift', liftPx);
+             if (ribbonColor) bookEl.style.setProperty('--ribbon', ribbonColor);
              bookEl.innerHTML = `
                  <div class="zk-book-top-edge"></div>
-                 <div class="zk-book-band" style="top:21%"></div>
-                 <div class="zk-book-band" style="top:75%"></div>
+                 <div class="zk-book-band u-top-21pct" ></div>
+                 <div class="zk-book-band u-top-75pct" ></div>
                  ${showRibbon ? '<div class="zk-book-ribbon"></div>' : ''}
                  <div class="zk-book-label">
-                     <div class="zk-book-num" style="font-size:${bk.numSize}px">${bk.d}</div>
+                     <div class="zk-book-num">${bk.d}</div>
                      <div class="zk-book-abbr">${bk.abbr}</div>
                  </div>
              `;
+             bookEl.querySelector('.zk-book-num').style.fontSize = bk.numSize + 'px';
 
              if (!bk.isFuture) {
                  bookEl.addEventListener('click', () => openZKModal(bk, selectedYear));
@@ -731,7 +745,7 @@ import { FocusStorage } from './storage-manager.js';
 
      // Kapak rengi ve içeriği
      modal.style.setProperty('--bcover', bk.color);
-     cover && (cover.style.cssText = ''); // animasyonu sıfırla
+     cover && cover.removeAttribute('style'); // animasyonu sıfırla
 
      document.getElementById('zkm-dayname').textContent    = bk.dayNameFull;
      document.getElementById('zkm-datelabel').textContent  = bk.dateLabel;

@@ -1,3 +1,18 @@
+import { _resolveProfileById, _normalizeSupabaseGroupMessage } from './social-dc-profile-resolve.js';
+import {
+    renderNotificationsPanel, openNotificationsPanel,
+    __getPendingDmRequestsSupabaseRef, __getDmRequestsInitialLoadDoneSupabaseRef, __setDmRequestsInitialLoadDoneSupabaseRef
+} from './social-friends-notifications.js';
+import {
+    isChatPinned, toggleChatPinned, isChatMuted, toggleChatMuted,
+    loadDismissedRecentConvos, removeRecentConvo
+} from './social-chat-list-actions.js';
+import { getCurrentUser } from './state/current-user-store.js';
+import { getActiveChatTarget, setActiveChatTarget } from './state/active-chat-target-store.js';
+import { ensureHushedNotifQueue } from './state/hushed-notif-queue-store.js';
+import { setLastAvatarClick } from './state/last-avatar-click-store.js';
+import { getDcState } from './state/dc-state-store.js';
+import { getDcEnteredRoomKey } from './state/dc-entered-room-key-store.js';
 // social-dm-notifications.js
 // social.js'ten çıkarıldı (Faz E, 2026-07-23): DM/grup sohbet mesajı geldiğinde
 // toast/ses tetikleyici mantığı + "TEK KAYNAK" okunmamış mesaj rozet motoru
@@ -8,25 +23,22 @@
 // burada bırakıldı ve window.* ile köprülendi.
 //
 // Dış bağımlılıklar (social.js'in geri kalanından, window.* üzerinden):
-// window.currentUser, window.avatarImgHtml, window.timeAgo, window._escapeHtml,
+// getCurrentUser(), window.avatarImgHtml, window.timeAgo, window._escapeHtml,
 // window._resolveProfileById, window.dcChatEnabled, window.playNotificationSound,
 // window.maybeShowDesktopNotification, window.showChatNotificationToast,
 // window.openDcDmRoom, window.openDcChatRoom, window.showGuildPanel.
 // Paylaşılan state: window._dcGetBlockedByOthers/_dcSetBlockedByOthers
 // (getter+setter, social-friends-notifications.js ile çift yönlü).
-(function () {
-'use strict';
-
-    // ──────────────────────────────────────────────────────
+// ──────────────────────────────────────────────────────
     // SOHBET MESAJI BİLDİRİMLERİ (Grup + Özel Mesaj)
     // ──────────────────────────────────────────────────────
     let _chatNotifRefs = [];
 
     // Şu an açık olan sohbeti takip eder — açık sohbete gelen mesaj için bildirim/ses tekrarlanmaz
-    window._activeChatTarget = null;
+    setActiveChatTarget(null);
 
     function isChatContextActive(ctx) {
-        const active = window._activeChatTarget;
+        const active = getActiveChatTarget();
         if (!active) return false;
         if (ctx.type === 'dm') {
             return active.type === 'dm' && active.username === ctx.username;
@@ -40,33 +52,33 @@
     }
 
     async function handleIncomingChatMessage(m, ctx) {
-        if (!m || !window.currentUser) return;
+        if (!m || !getCurrentUser()) return;
 
         // Çalışma odası şu anda girilmiş durumdaysa, gönderen kim olursa olsun
         // (kendi mesajımız dahil) "Son Mesajlaşmalar"daki önizlemeyi güncelle
         if (ctx.isWorkRoom && ctx.chatPath) {
             const roomKey = `${ctx.code}|${ctx.channelId}|${ctx.roomId}`;
-            if (window._dcEnteredRoomKey === roomKey) {
+            if (getDcEnteredRoomKey() === roomKey) {
                 updateWorkRoomRecentConvo(m, ctx);
             }
         }
 
-        if (m.username === window.currentUser.username) return; // kendi mesajımız
+        if (m.username === getCurrentUser().username) return; // kendi mesajımız
         // Engellenen kullanıcılardan gelen DM'ler için bildirim/ses gösterme
         if (ctx.type === 'dm' && typeof window.isBlockedEitherWay === 'function' && window.isBlockedEitherWay(ctx.username)) return;
         if (ctx.type === 'group' && typeof window.isBlockedEitherWay === 'function' && window.isBlockedEitherWay(m.username)) return;
-        const isMentioned = ctx.type === 'group' && Array.isArray(m.mentions) && m.mentions.includes(window.currentUser.username);
+        const isMentioned = ctx.type === 'group' && Array.isArray(m.mentions) && m.mentions.includes(getCurrentUser().username);
         if (!isMentioned) {
             // Çalışma odalarındaki mesajlar — kullanıcı o odaya girmemişse bildirim gösterme
             if (ctx.isWorkRoom) {
                 const roomKey = `${ctx.code}|${ctx.channelId}|${ctx.roomId}`;
-                if (window._dcEnteredRoomKey !== roomKey) return;
+                if (getDcEnteredRoomKey() !== roomKey) return;
             }
             if (localStorage.getItem('focusai_chat_notif_sound') === 'false') return;
             // Sessize alınmış DM'ler için bildirim/ses gösterme
-            if (ctx.type === 'dm' && typeof window.isChatMuted === 'function' && window.isChatMuted(ctx.username)) return;
+            if (ctx.type === 'dm' && typeof window.isChatMuted === 'function' && isChatMuted(ctx.username)) return;
             // Sessize alınmış grup kanalları için bildirim/ses gösterme
-            if (ctx.type === 'group' && ctx.chatPath && typeof window.isChatMuted === 'function' && window.isChatMuted(ctx.chatPath)) return;
+            if (ctx.type === 'group' && ctx.chatPath && typeof window.isChatMuted === 'function' && isChatMuted(ctx.chatPath)) return;
 
             // Bu sohbet zaten açıksa VE sekme/pencere görünürdeyse, kullanıcı mesajı
             // canlı görüyor — ses/bildirim/toast gösterme. Fakat sohbet açık olsa da
@@ -114,24 +126,23 @@
         window.maybeShowDesktopNotification(title, body);
     }
 
-    function setupChatMessageNotifications() {
+    export function setupChatMessageNotifications() {
         // Supabase mesaj bildirimleri setupRecentConversationsSupabase içinde yönetiliyor
     }
-    window.setupChatMessageNotifications = setupChatMessageNotifications;
 
     // ──────────────────────────────────────────────────────
     // SON MESAJLAŞMALAR + OKUNMAMIŞ MESAJ ROZETLERİ
     // ──────────────────────────────────────────────────────
     let _recentConvos    = {}; // username -> { username, displayName, avatarColor, customAvatar, text, fromMe, lastTimestamp }
-    window._dcGetRecentConvo = (key) => _recentConvos[key];
+    export const _dcGetRecentConvo = (key) => _recentConvos[key];
     let _recentConvoRefs = [];
     // Çevrimiçi listesinde avatara art arda tıklanırsa (çift tık) sohbeti aç
     // (social-online-friends.js ile paylaşılıyor, bu yüzden window üzerinde)
-    window._lastAvatarClick = { username: null, time: 0 };
+    setLastAvatarClick({ username: null, time: 0 });
     let _friendInfoCache = {};
 
     function loadDmLastRead() {
-        try { return JSON.parse(localStorage.getItem('focusai_dm_last_read') || '{}'); }
+        try { return JSON.parse(localStorage.getItem('focusai_dm_last_read') || '{}', window._safeJsonReviver); }
         catch { return {}; }
     }
     function saveDmLastRead(map) {
@@ -143,7 +154,7 @@
     // floorTs: en az bu zaman damgasına kadar okundu say — cihaz saati sunucudan
     // geride kalsa bile son mesaj "okunmamış" olarak geri gelmesin diye
     // sohbetteki son mesajın zamanı da hesaba katılır.
-    function markDmRead(username, floorTs) {
+    export function markDmRead(username, floorTs) {
         const convoTs = (_recentConvos[username] && _recentConvos[username].lastTimestamp) || 0;
         // Date.now() burada MAX'a dahil edilmiyordu diye eskiden dahil edilmişti, ama cihaz
         // saati sunucudan (biraz) ileride olduğunda, hemen ardından gelen gerçek bir mesajın
@@ -157,24 +168,22 @@
         updateRecentConvoUnread(username);
         updateContactUnreadDot(username);
         updateOnlineFriendUnreadDot(username);
-        if (window.FocusSupabase && window.currentUser?.id) {
+        if (window.FocusSupabase && getCurrentUser()?.id) {
             const conv = _recentConvos[username];
             if (conv && conv.conversationId) registerDmUnreadTracking(username, conv.conversationId);
-        } else if (db && window.currentUser) {
+        } else if (db && getCurrentUser()) {
         }
     }
-    window.markDmRead = markDmRead;
 
     // Bir kullanıcıyla olan son "okundu" zaman damgasını döndürür (sohbet açılırken
     // "Yeni mesajlar" ayıracının nereye konacağını belirlemek için kullanılır)
-    function getDmLastRead(username) {
+    export function getDmLastRead(username) {
         return _dmLastRead[username] || 0;
     }
-    window.getDmLastRead = getDmLastRead;
 
     // Grup/kanal sohbetleri için "son okuma" zamanı (okunmamış ayıracı için, yerel)
     function loadGroupLastRead() {
-        try { return JSON.parse(localStorage.getItem('focusai_group_last_read') || '{}'); }
+        try { return JSON.parse(localStorage.getItem('focusai_group_last_read') || '{}', window._safeJsonReviver); }
         catch { return {}; }
     }
     function saveGroupLastRead(map) {
@@ -184,7 +193,7 @@
     function getGroupLastRead(chatPath) {
         return _groupLastRead[chatPath] || 0;
     }
-    function markGroupRead(chatPath) {
+    export function markGroupRead(chatPath) {
         _groupLastRead[chatPath] = Date.now();
         saveGroupLastRead(_groupLastRead);
         // "Son Mesajlaşmalar" listesindeki bu kanalın okunmamış rozetini de güncelle
@@ -192,7 +201,7 @@
             _recentConvos[chatPath].unread = false;
             _recentConvos[chatPath].unreadCount = 0;
             if (typeof renderRecentConversations === 'function') renderRecentConversations();
-            if (typeof renderFloatingChatBadge === 'function') renderFloatingChatBadge();
+            if (typeof window.renderFloatingChatBadge === 'function') window.renderFloatingChatBadge();
         }
     }
     // Farklı (kardeş) IIFE kapsamındaki Supabase grup sohbeti kodu için global erişim
@@ -201,15 +210,13 @@
     // loadJsonList/saveJsonList burada kalıyor (Engelle özelliği gibi başka
     // yerlerde de kullanılıyor) — social-chat-list-actions.js gibi ayrılan
     // modüllerin erişebilmesi için köprülendi.
-    function loadJsonList(key) {
-        try { return JSON.parse(localStorage.getItem(key) || '[]'); }
+    export function loadJsonList(key) {
+        try { return JSON.parse(localStorage.getItem(key) || '[]', window._safeJsonReviver); }
         catch { return []; }
     }
-    window.loadJsonList = loadJsonList;
-    function saveJsonList(key, list) {
+    export function saveJsonList(key, list) {
         localStorage.setItem(key, JSON.stringify(list));
     }
-    window.saveJsonList = saveJsonList;
 
     // ─── SABİTLE / SESSİZE AL / SON MESAJLAŞMALARDAN KALDIR —
     // social-chat-list-actions.js dosyasına taşındı (Faz 2, 2026-07-19).
@@ -225,11 +232,11 @@
     // _startBlocksListenerSupabase() dinleyicisi tarafından canlı tutulur (2026-07-23:
     // o dosyada bare referans olarak bırakılmıştı, setter köprüsü eklendi).
     let _blockedByOthers = new Set();
-    window._dcGetBlockedByOthers = () => _blockedByOthers;
-    window._dcSetBlockedByOthers = (v) => { _blockedByOthers = v; };
+    export const _dcGetBlockedByOthers = () => _blockedByOthers;
+    export const _dcSetBlockedByOthers = (v) => { _blockedByOthers = v; };
 
 
-    function hasUnreadDm(username) {
+    export function hasUnreadDm(username) {
         const c = _recentConvos[username];
         if (!c || !c.lastTimestamp || c.fromMe) return false;
         return c.lastTimestamp > (_dmLastRead[username] || 0);
@@ -257,7 +264,6 @@
             pill.remove();
         }
     }
-    window.updateContactUnreadDot = updateContactUnreadDot;
 
     function updateOnlineFriendUnreadDot(username) {
         const listEl = document.getElementById('online-friends-list');
@@ -275,7 +281,6 @@
             dot.remove();
         }
     }
-    window.updateOnlineFriendUnreadDot = updateOnlineFriendUnreadDot;
 
     function getFriendInfo(username) {
         if (_friendInfoCache[username]) return Promise.resolve(_friendInfoCache[username]);
@@ -307,7 +312,7 @@
     // Tüm DM'lerin okunmamış mesaj sayısını TEK sorguda hesaplar.
     async function refreshAllDmUnreadCounts() {
         const entries = Object.entries(_dmConvoIdByUsername);
-        if (!entries.length || !window.FocusSupabase || !window.currentUser?.id) return;
+        if (!entries.length || !window.FocusSupabase || !getCurrentUser()?.id) return;
         const idToUsername = {};
         let earliestThreshold = Infinity;
         entries.forEach(([username, conversationId]) => {
@@ -321,7 +326,7 @@
             .select('scope_id, created_at')
             .eq('scope_type', 'dm')
             .in('scope_id', conversationIds)
-            .neq('sender_id', window.currentUser.id)
+            .neq('sender_id', getCurrentUser().id)
             .gt('created_at', new Date(earliestThreshold === Infinity ? 0 : earliestThreshold).toISOString());
         if (error) { console.error('[DM] okunmamış sayısı hesaplanamadı (toplu sorgu)', error); return; }
         const counts = {};
@@ -334,7 +339,7 @@
             }
         });
         entries.forEach(([username]) => { _unreadCounts[username] = counts[username] || 0; });
-        renderFloatingChatBadge();
+        window.renderFloatingChatBadge();
         // "Son Mesajlaşmalar" rozetindeki sayı bu toplu sorgudan (_unreadCounts) besleniyor,
         // ama önceden burada yeniden çizim tetiklenmiyordu — mesaj geldiğinde önce (henüz eski
         // sayıyla) tek seferlik bir render zaten oluyordu (_refreshDmConvoEntry), bu debounce'lu
@@ -346,7 +351,6 @@
             if (typeof updateOnlineFriendUnreadDot === 'function') updateOnlineFriendUnreadDot(username);
         });
     }
-    window.refreshAllDmUnreadCounts = refreshAllDmUnreadCounts;
 
     // Sekmeler arası geçişte veya tarayıcı sekmesi arka plandan öne gelince
     // çağrılır — arka planda kaçırılmış olabilecek bir realtime olayını telafi
@@ -355,14 +359,14 @@
     // ama tarayıcı sekme arka plandayken WebSocket olaylarını erteleyebiliyor —
     // bu yüzden geri dönüşte tazeleme "hard reset" ihtiyacını ortadan kaldırır.
     let _dmResyncInFlight = false;
-    async function resyncRecentConversationsAndUnread() {
-        if (_dmResyncInFlight || !window.FocusSupabase || !window.currentUser?.id) return;
+    export async function resyncRecentConversationsAndUnread() {
+        if (_dmResyncInFlight || !window.FocusSupabase || !getCurrentUser()?.id) return;
         _dmResyncInFlight = true;
         try {
             const { data: conversations, error } = await window.FocusSupabase
                 .from('conversations')
                 .select('*')
-                .or(`user_a.eq.${window.currentUser.id},user_b.eq.${window.currentUser.id}`);
+                .or(`user_a.eq.${getCurrentUser().id},user_b.eq.${getCurrentUser().id}`);
             if (!error) {
                 await Promise.all((conversations || []).map(c => _refreshDmConvoEntry(c)));
             }
@@ -396,12 +400,11 @@
         _ensureUnreadAggregateChannel();
         _scheduleUnreadAggregateRefresh();
     }
-    window.registerDmUnreadTracking = registerDmUnreadTracking;
 
     // Tüm sohbetlerdeki toplam okunmamış mesaj sayısını yüzen sohbet
     // butonunun rozetinde gösterir (9'dan sonrası "9+" olarak yazılır)
     // TEK KAYNAK: DM + grup okunmamış mesaj toplamları. Tüm rozetler buradan beslenir.
-    function dcUnreadTotals() {
+    export function dcUnreadTotals() {
         const dmTotal = Object.values(_unreadCounts).reduce((a, b) => a + b, 0);
         const groupTotal = Object.values(_recentConvos)
             .filter(c => (c.type === 'group' || c.type === 'workroom') && c.unread)
@@ -410,7 +413,7 @@
     }
     window.dcUnreadTotals = dcUnreadTotals;
 
-    function renderFloatingChatBadge() {
+    function _renderFloatingChatBadgeImpl() {
         const badge = document.getElementById('floating-chat-unread-badge');
         if (!badge) return;
         // Sayı sadece DM'ler için; grup hareketliliği sessiz nokta olarak görünür.
@@ -428,14 +431,13 @@
             badge.style.display = 'none';
         }
     }
-    window.renderFloatingChatBadge = renderFloatingChatBadge;
+    window.renderFloatingChatBadge = _renderFloatingChatBadgeImpl;
 
     // Tüm arkadaşların DM'lerindeki son mesajı dinler — "Son Mesajlaşmalar" listesini ve
     // okunmamış mesaj rozetlerini besler
-    function setupRecentConversations() {
+    export function setupRecentConversations() {
         setupRecentConversationsSupabase();
     }
-    window.setupRecentConversations = setupRecentConversations;
 
     // ─── M2b-1 #6: "SON MESAJLAŞMALAR" + DM İSTEKLERİ (SUPABASE) ──────────
     // Firebase direct_messages/dm_requests yerine conversations+messages
@@ -453,19 +455,19 @@
         _recentConvoSupaChannels = [];
     }
 
-    // Tek bir konuşma satırından _recentConvos / window.__getPendingDmRequestsSupabaseRef()
+    // Tek bir konuşma satırından _recentConvos / __getPendingDmRequestsSupabaseRef()
     // girişini günceller (son mesajı çekip önizleme metnini hesaplar).
     async function _refreshDmConvoEntry(conversation) {
-        const otherId = conversation.user_a === window.currentUser.id ? conversation.user_b : conversation.user_a;
-        const otherProfile = await window._resolveProfileById(otherId);
+        const otherId = conversation.user_a === getCurrentUser().id ? conversation.user_b : conversation.user_a;
+        const otherProfile = await _resolveProfileById(otherId);
         if (!otherProfile || !otherProfile.username) return;
         const otherUsername = otherProfile.username;
 
         if (typeof window.isBlockedEitherWay === 'function' && window.isBlockedEitherWay(otherUsername)) {
             delete _recentConvos[otherUsername];
-            delete window.__getPendingDmRequestsSupabaseRef()[otherUsername];
+            delete __getPendingDmRequestsSupabaseRef()[otherUsername];
             renderRecentConversations();
-            window.renderNotificationsPanel();
+            renderNotificationsPanel();
             return;
         }
 
@@ -480,9 +482,9 @@
 
         if (!lastMsg) {
             delete _recentConvos[otherUsername];
-            delete window.__getPendingDmRequestsSupabaseRef()[otherUsername];
+            delete __getPendingDmRequestsSupabaseRef()[otherUsername];
             renderRecentConversations();
-            window.renderNotificationsPanel();
+            renderNotificationsPanel();
             return;
         }
 
@@ -511,23 +513,23 @@
             avatarColor: otherProfile.avatar_color,
             customAvatar: otherProfile.custom_avatar, avatarInitials: otherProfile.avatar_initials || null,
             text: previewText,
-            fromMe: lastMsg.sender_id === window.currentUser.id,
+            fromMe: lastMsg.sender_id === getCurrentUser().id,
             lastTimestamp,
             conversationId: conversation.id
         };
 
         // Bu DM şu an açıksa gelen mesaj zaten görülüyor demektir — listede
         // "okunmamış" rozeti göstermeden okundu olarak işaretle
-        if (window._activeChatTarget?.type === 'dm' && window._activeChatTarget.username === otherUsername
-            && lastMsg.sender_id !== window.currentUser.id && typeof markDmRead === 'function') {
+        if (getActiveChatTarget()?.type === 'dm' && getActiveChatTarget().username === otherUsername
+            && lastMsg.sender_id !== getCurrentUser().id && typeof markDmRead === 'function') {
             markDmRead(otherUsername, lastTimestamp);
         }
 
         // Bana gönderilmiş ve henüz kabul edilmemiş mesaj istekleri
         // bildirimler panelinde gösterilsin
-        if (conversation.status === 'pending' && conversation.requested_by !== window.currentUser.id) {
-            const isNew = !window.__getPendingDmRequestsSupabaseRef()[otherUsername];
-            window.__getPendingDmRequestsSupabaseRef()[otherUsername] = {
+        if (conversation.status === 'pending' && conversation.requested_by !== getCurrentUser().id) {
+            const isNew = !__getPendingDmRequestsSupabaseRef()[otherUsername];
+            __getPendingDmRequestsSupabaseRef()[otherUsername] = {
                 fromName: otherProfile.display_name || otherUsername,
                 fromColor: otherProfile.avatar_color,
                 fromCustomAvatar: otherProfile.custom_avatar,
@@ -535,7 +537,7 @@
                 timestamp: lastTimestamp,
                 conversationId: conversation.id
             };
-            if (isNew && window.__getDmRequestsInitialLoadDoneSupabaseRef()) {
+            if (isNew && __getDmRequestsInitialLoadDoneSupabaseRef()) {
                 window.playNotificationSound('alert');
                 window.maybeShowDesktopNotification('Yeni Mesaj İsteği', `${otherProfile.display_name || otherUsername} sana mesaj gönderdi.`);
                 showGenericNotifToast({
@@ -543,15 +545,15 @@
                     accent: '#74b9ff',
                     title: 'Yeni Mesaj İsteği',
                     body: `<b>${window._escapeHtml(otherProfile.display_name || otherUsername)}</b> sana mesaj gönderdi.`,
-                    onClick: window.openNotificationsPanel
+                    onClick: openNotificationsPanel
                 });
             }
         } else {
-            delete window.__getPendingDmRequestsSupabaseRef()[otherUsername];
+            delete __getPendingDmRequestsSupabaseRef()[otherUsername];
         }
 
         renderRecentConversations();
-        window.renderNotificationsPanel();
+        renderNotificationsPanel();
         updateContactUnreadDot(otherUsername);
         updateOnlineFriendUnreadDot(otherUsername);
     }
@@ -569,25 +571,25 @@
         }
         _dmConvoIdByUsername = {};
         _unreadCounts = {};
-        renderFloatingChatBadge();
+        window.renderFloatingChatBadge();
         teardownRecentConvoSupabase();
 
         const { data: conversations, error } = await window.FocusSupabase
             .from('conversations')
             .select('*')
-            .or(`user_a.eq.${window.currentUser.id},user_b.eq.${window.currentUser.id}`);
+            .or(`user_a.eq.${getCurrentUser().id},user_b.eq.${getCurrentUser().id}`);
         if (error) { console.error('[Son Mesajlaşmalar] conversations okunamadı', error); return; }
 
         await Promise.all((conversations || []).map(_refreshDmConvoEntry));
-        window.__setDmRequestsInitialLoadDoneSupabaseRef(true);
+        __setDmRequestsInitialLoadDoneSupabaseRef(true);
 
-        if (!(conversations || []).length) { renderRecentConversations(); window.renderNotificationsPanel(); }
+        if (!(conversations || []).length) { renderRecentConversations(); renderNotificationsPanel(); }
 
         const refreshAll = () => {
             window.FocusSupabase
                 .from('conversations')
                 .select('*')
-                .or(`user_a.eq.${window.currentUser.id},user_b.eq.${window.currentUser.id}`)
+                .or(`user_a.eq.${getCurrentUser().id},user_b.eq.${getCurrentUser().id}`)
                 .then(({ data }) => (data || []).forEach(c => _refreshDmConvoEntry(c)));
         };
 
@@ -596,7 +598,7 @@
         // ve removeChannel() asenkron tamamlanmadan aynı isimli kanal yeniden
         // oluşturulunca "cannot add postgres_changes callbacks after subscribe()" hatası oluyordu.
         _recentConvoChannelSeq = (_recentConvoChannelSeq || 0) + 1;
-        const channelSuffix = `${window.currentUser.id}-${_recentConvoChannelSeq}`;
+        const channelSuffix = `${getCurrentUser().id}-${_recentConvoChannelSeq}`;
         const msgChannel = window.FocusSupabase
             .channel(`recent-dm-messages-${channelSuffix}`)
             .on('postgres_changes', { event: '*', schema: 'public', table: 'messages', filter: 'scope_type=eq.dm' }, refreshAll)
@@ -607,7 +609,6 @@
             .subscribe();
         _recentConvoSupaChannels = [msgChannel, convoChannel];
     }
-    window.setupRecentConversationsSupabase = setupRecentConversationsSupabase;
 
     // ─── M2d: ÜYE OLUNAN SUPABASE GRUPLARININ "#genel" KANALI DA
     // "SON MESAJLAŞMALAR"A VE OKUNMAMIŞ ROZETİNE DÜŞSÜN ──────────
@@ -619,14 +620,14 @@
         _groupConvoSupaChannels = [];
     }
 
-    async function setupGroupRecentConversationsSupabase() {
-        if (!window.FocusSupabase || !window.currentUser?.id) return;
+    export async function setupGroupRecentConversationsSupabase() {
+        if (!window.FocusSupabase || !getCurrentUser()?.id) return;
         teardownGroupRecentConversationsSupabase();
 
         const { data: memberRows, error } = await window.FocusSupabase
             .from('group_members')
             .select('group_id, groups(id, code, name)')
-            .eq('user_id', window.currentUser.id);
+            .eq('user_id', getCurrentUser().id);
         if (error) { console.error('[Grup Son Mesajlaşmalar] group_members okunamadı', error); return; }
 
         const myGroups = (memberRows || []).map(r => r.groups).filter(Boolean);
@@ -650,9 +651,9 @@
                 .order('created_at', { ascending: false })
                 .limit(20);
             const lastRow = rows && rows[0];
-            if (!lastRow) { delete _recentConvos[chatPath]; renderRecentConversations(); renderFloatingChatBadge(); return; }
-            const m = await window._normalizeSupabaseGroupMessage(lastRow);
-            const fromMe = lastRow.sender_id === window.currentUser.id;
+            if (!lastRow) { delete _recentConvos[chatPath]; renderRecentConversations(); window.renderFloatingChatBadge(); return; }
+            const m = await _normalizeSupabaseGroupMessage(lastRow);
+            const fromMe = lastRow.sender_id === getCurrentUser().id;
             _recentConvos[chatPath] = {
                 type: 'group',
                 key: chatPath,
@@ -671,7 +672,7 @@
                 unreadCount: (() => {
                     const lastRead = getGroupLastRead(chatPath);
                     return (rows || []).filter(r =>
-                        r.sender_id !== window.currentUser.id &&
+                        r.sender_id !== getCurrentUser().id &&
                         new Date(r.created_at).getTime() > lastRead
                     ).length;
                 })(),
@@ -679,7 +680,7 @@
                 _supaScope: scope
             };
             renderRecentConversations();
-            renderFloatingChatBadge();
+            window.renderFloatingChatBadge();
         };
 
         // groupId -> group, ve scope_id -> {group, scope, displayName, roomName} eşlemeleri.
@@ -726,10 +727,10 @@
 
         await Promise.all(scopeEntries.map(e => refreshScopeEntry(e.group, e.scope, e.displayName, e.roomName)));
 
-        if (!scopeEntries.length) { renderRecentConversations(); renderFloatingChatBadge(); }
+        if (!scopeEntries.length) { renderRecentConversations(); window.renderFloatingChatBadge(); }
 
         _groupConvoSupaSeq = (_groupConvoSupaSeq || 0) + 1;
-        const seq = `${window.currentUser.id}-${_groupConvoSupaSeq}`;
+        const seq = `${getCurrentUser().id}-${_groupConvoSupaSeq}`;
         if (myGroups.length) {
             const channels = [];
             const groupMsgChannel = window.FocusSupabase
@@ -794,15 +795,13 @@
         if (_myGroupJoinedAtCache[groupCode] !== undefined) return Promise.resolve(_myGroupJoinedAtCache[groupCode]);
         return Promise.resolve(0);
     }
-    window.getMyGroupJoinedAt = getMyGroupJoinedAt;
     // Bir gruba (yeniden) katılınca önbelleği temizle — bir sonraki sorguda taze joinedAt alınsın
     function invalidateMyGroupJoinedAt(groupCode) {
         delete _myGroupJoinedAtCache[groupCode];
     }
-    window.invalidateMyGroupJoinedAt = invalidateMyGroupJoinedAt;
 
     function renderGroupConvoEntry(chatPath, meta, lastMsg) {
-            const fromMe = lastMsg.username === window.currentUser.username;
+            const fromMe = lastMsg.username === getCurrentUser().username;
             _recentConvos[chatPath] = {
                 type: 'group',
                 key: chatPath,
@@ -821,7 +820,7 @@
                 unreadCount: (!fromMe && (lastMsg.timestamp || 0) > getGroupLastRead(chatPath)) ? 1 : 0
             };
             renderRecentConversations();
-            renderFloatingChatBadge();
+            window.renderFloatingChatBadge();
     }
 
     // "Son Mesajlaşmalar"daki bir grup kanalına tıklayınca o gruba/kanala geçer
@@ -846,7 +845,6 @@
             document.getElementById('sidebar-chat-message-input')?.focus();
         }, 150);
     }
-    window.goToGroupChat = goToGroupChat;
 
     // ─── ÇALIŞMA ODASINA ÇİFT TIKLAYIP GİRİLDİKTEN SONRA, ODADAN AYRILANA KADAR
     //     O ODADAKİ YENİ MESAJLAR "SON MESAJLAŞMALAR"A VE ROZETE DÜŞSÜN ───
@@ -855,7 +853,7 @@
     let _workRoomConvoKey = null; // şu an dinlenen odanın chatPath'i
     let _workRoomConvoRefreshTimer = null;
 
-    function teardownWorkRoomConvoListener() {
+    export function teardownWorkRoomConvoListener() {
         if (_workRoomConvoRefreshTimer) {
             clearInterval(_workRoomConvoRefreshTimer);
             _workRoomConvoRefreshTimer = null;
@@ -868,25 +866,23 @@
         if (_workRoomConvoKey && _recentConvos[_workRoomConvoKey] && _recentConvos[_workRoomConvoKey].type === 'workroom') {
             delete _recentConvos[_workRoomConvoKey];
             renderRecentConversations();
-            renderFloatingChatBadge();
+            window.renderFloatingChatBadge();
         }
         _workRoomConvoKey = null;
     }
-    window.teardownWorkRoomConvoListener = teardownWorkRoomConvoListener;
 
     // Firebase kaldırıldı — Supabase yolu kendi work-room dinleyicisini kurar
     function _refreshWorkRoomConvoListener() {}
 
     // Firebase kaldırıldı — Supabase yolu kendi work-room dinleyicisini kurar; bu stub no-op
     function attachWorkRoomConvoListener(groupCode, channelId, subId, channelName, roomName) {}
-    window.attachWorkRoomConvoListener = attachWorkRoomConvoListener;
 
     // Çalışma odasındayken (girilmiş durumdayken) gelen/gönderilen her mesaj için
     // "Son Mesajlaşmalar" önizlemesini günceller — handleIncomingChatMessage'tan çağrılır
     function updateWorkRoomRecentConvo(m, ctx) {
         if (!m || !ctx || !ctx.chatPath) return;
-        const fromMe = m.username === window.currentUser.username;
-        const st = window._dcState || {};
+        const fromMe = m.username === getCurrentUser().username;
+        const st = getDcState() || {};
         const isViewingNow = st.groupCode === ctx.code && st.chanId === ctx.channelId && st.roomId === ctx.roomId;
         _recentConvos[ctx.chatPath] = {
             type: 'workroom',
@@ -908,23 +904,23 @@
                 : 0
         };
         renderRecentConversations();
-        renderFloatingChatBadge();
+        window.renderFloatingChatBadge();
     }
 
     // "Son Mesajlaşmalar" bölümünü en güncel mesajına göre sıralayıp çizer
-    function renderRecentConversations() {
+    export function renderRecentConversations() {
         const container = document.getElementById('sidebar-recent-conversations');
         const header    = document.getElementById('dc-recent-convos-header');
         if (!container) return;
 
-        const dismissedMap = window.loadDismissedRecentConvos();
+        const dismissedMap = loadDismissedRecentConvos();
         const entries = Object.values(_recentConvos)
             .filter(c => c.lastTimestamp)
             .filter(c => c.type === 'group' || c.type === 'workroom' || !(typeof window.isBlockedEitherWay === 'function' && window.isBlockedEitherWay(c.username)))
             .filter(c => !(dismissedMap[c.key] && c.lastTimestamp <= dismissedMap[c.key]))
             .sort((a, b) => {
-                const pinnedA = window.isChatPinned(a.key) ? 1 : 0;
-                const pinnedB = window.isChatPinned(b.key) ? 1 : 0;
+                const pinnedA = isChatPinned(a.key) ? 1 : 0;
+                const pinnedB = isChatPinned(b.key) ? 1 : 0;
                 if (pinnedA !== pinnedB) return pinnedB - pinnedA;
                 return b.lastTimestamp - a.lastTimestamp;
             })
@@ -950,8 +946,8 @@
                     ? `<span class="dc-unread-pill has-count">${unreadCount > 9 ? '9+' : unreadCount}</span>`
                     : '<span class="dc-unread-pill"></span>')
                 : '';
-            const pinned = window.isChatPinned(c.key);
-            const muted  = window.isChatMuted(c.key);
+            const pinned = isChatPinned(c.key);
+            const muted  = isChatMuted(c.key);
             const previewPrefix = c.fromMe ? 'Sen: ' : (isGroup ? `${esc(c.fromName || '')}: ` : '');
             const avatarHtml = isGroup
                 ? `<div class="dc-recent-convo-avatar dc-recent-convo-avatar--group"><i class="fa-solid ${c.type === 'workroom' ? 'fa-door-open' : 'fa-hashtag'}"></i></div>`
@@ -995,8 +991,8 @@
         document.querySelectorAll('.dc-convo-context-menu').forEach(el => el.remove());
 
         const isGroup = type === 'group';
-        const pinned = !isGroup && window.isChatPinned(username);
-        const muted  = !isGroup && window.isChatMuted(username);
+        const pinned = !isGroup && isChatPinned(username);
+        const muted  = !isGroup && isChatMuted(username);
 
         const menu = document.createElement('div');
         menu.className = 'dc-convo-context-menu';
@@ -1012,15 +1008,15 @@
         document.body.appendChild(menu);
 
         menu.querySelector('[data-action="pin"]')?.addEventListener('click', () => {
-            window.toggleChatPinned(username);
+            toggleChatPinned(username);
             menu.remove();
         });
         menu.querySelector('[data-action="mute"]')?.addEventListener('click', () => {
-            window.toggleChatMuted(username);
+            toggleChatMuted(username);
             menu.remove();
         });
         menu.querySelector('[data-action="remove"]')?.addEventListener('click', () => {
-            window.removeRecentConvo(key);
+            removeRecentConvo(key);
             menu.remove();
         });
 
@@ -1055,7 +1051,6 @@
             dot.remove();
         }
     }
-    window.updateRecentConvoUnread = updateRecentConvoUnread;
 
     // Sağ üst köşede kısa süreliğine beliren, otomatik kaybolan bildirim çubuğu
     // showSocialToast kaldırıldı (teknik borç temizliği): tek çağıranı olan
@@ -1078,13 +1073,16 @@
         toast.className = 'social-toast';
         toast.style.borderLeft = `3px solid ${accent}`;
         toast.innerHTML = `
-            <span class="st-emoji" style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:${accent}22;">
-                <i class="fa-solid ${icon}" style="color:${accent};font-size:15px;"></i>
+            <span class="st-emoji u-display-inline-flex_align-items-center_justify-content-cen" >
+                <i class="fa-solid ${icon} u-font-size-15px" ></i>
             </span>
             <div class="st-text">
                 <div><b>${window._escapeHtml(title)}</b></div>
-                <div class="st-sub">Yeni rolün: <span style="color:${accent};font-weight:600;">${window._escapeHtml(roleLabel || '')}</span></div>
+                <div class="st-sub">Yeni rolün: <span class="st-role-label u-font-weight-600" >${window._escapeHtml(roleLabel || '')}</span></div>
             </div>`;
+        toast.querySelector('.st-emoji').style.background = `${accent}22`;
+        toast.querySelector('.st-emoji i').style.color = accent;
+        toast.querySelector('.st-role-label').style.color = accent;
         stack.appendChild(toast);
         requestAnimationFrame(() => toast.classList.add('is-visible'));
 
@@ -1101,13 +1099,13 @@
     // gibi şimdiye kadar sessizce sadece bildirim panelinde biriken bildirimler için
     // sağ üstte kısa süreli, tıklanabilir bir uyarı gösterir. Sohbet mesajı toast'ından
     // (avatar + balon görünümü) farklı olarak ikon rozeti + renkli kenarlık kullanır.
-    function showGenericNotifToast({ icon, accent, title, body, onClick }) {
+    export function showGenericNotifToast({ icon, accent, title, body, onClick }) {
         // Odak kalkanı: kullanıcı odaktayken sosyal toast'lar ekrana çıkmaz,
         // kuyruğa alınır ve seans bitince tek özetle gösterilir (dcSetHushMode).
         if (window._focusHushActive) {
-            window._hushedNotifQueue = window._hushedNotifQueue || [];
-            window._hushedNotifQueue.push(title || '');
-            if (window._hushedNotifQueue.length > 50) window._hushedNotifQueue.shift();
+            const queue = ensureHushedNotifQueue();
+            queue.push(title || '');
+            if (queue.length > 50) queue.shift();
             return;
         }
         let stack = document.getElementById('social-toast-stack');
@@ -1124,13 +1122,15 @@
         toast.style.borderLeft = `3px solid ${color}`;
         if (onClick) toast.style.cursor = 'pointer';
         toast.innerHTML = `
-            <span class="st-emoji" style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:${color}22;flex-shrink:0;">
-                <i class="fa-solid ${icon || 'fa-bell'}" style="color:${color};font-size:15px;"></i>
+            <span class="st-emoji u-display-inline-flex_align-items-center_justify-content-cen-2" >
+                <i class="fa-solid ${icon || 'fa-bell'} u-font-size-15px" ></i>
             </span>
             <div class="st-text">
                 <div><b>${window._escapeHtml(title)}</b></div>
                 ${body ? `<div class="st-sub">${body}</div>` : ''}
             </div>`;
+        toast.querySelector('.st-emoji').style.background = `${color}22`;
+        toast.querySelector('.st-emoji i').style.color = color;
         stack.appendChild(toast);
         requestAnimationFrame(() => toast.classList.add('is-visible'));
 
@@ -1148,8 +1148,9 @@
     }
     window.showGenericNotifToast = showGenericNotifToast; // social-gamification.js gibi ayrı script scope'larından erişim için
 
-})();
-
 // Diğer social-*.js modüllerinin import edebilmesi için ince sarmalayıcı export'lar.
-export const showGenericNotifToast = window.showGenericNotifToast;
-export const hasUnreadDm = window.hasUnreadDm;
+// renderFloatingChatBadge, social-floating-chat-badge.js tarafından monkey-patch
+// edildiği için (window.renderFloatingChatBadge = function(){...}), bilinçli
+// olarak window köprüsü + shim export ile bırakıldı — gerçek fonksiyona
+// doğrudan export eklenirse tüketiciler patch'lenmiş sürümü değil orijinali alır.
+export const renderFloatingChatBadge = window.renderFloatingChatBadge;

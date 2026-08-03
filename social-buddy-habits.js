@@ -1,9 +1,13 @@
+import { _resolveProfileByUsername } from './social-dc-profile-resolve.js';
+import { getFriends } from './social-friends-notifications.js';
+
+import { getCurrentUser } from './state/current-user-store.js';
 // ============================================================
 // FOCUSAI SOCIAL-BUDDY-HABITS.JS
 // social.js'ten çıkarılmış "Ortak Alışkanlık Zincirleri" (buddy habits)
 // sistemi: davet gönderme/kabul/red, gerçek zamanlı davet/yanıt dinleme,
 // ortak oturum tamamlama, kart render'ı.
-// window.currentUser, window.getFriends, window.FocusSupabase,
+// getCurrentUser(), getFriends, window.FocusSupabase,
 // window.showPremiumModal, window.playNotificationSound,
 // window.maybeShowDesktopNotification, window.showGenericNotifToast,
 // window._escapeHtml, window.avatarImgHtml, window.openBuddyFocusSettingsModal
@@ -32,9 +36,9 @@ window.buddyPairId = buddyPairId;
 // Arkadaş listesini "habit-buddy" seçim kutusuna doldurur (gerçek görünen adlarla).
 function populateHabitBuddySelect() {
     const select = document.getElementById('habit-buddy');
-    if (!select || !window.currentUser) return;
+    if (!select || !getCurrentUser()) return;
 
-    const friends = window.getFriends();
+    const friends = getFriends();
     Array.from(select.options).forEach(opt => { if (opt.value !== 'none') opt.remove(); });
     if (!friends.length) return;
 
@@ -47,7 +51,7 @@ function populateHabitBuddySelect() {
         }
     };
 
-    if (window.FocusSupabase && window.currentUser.id) {
+    if (window.FocusSupabase && getCurrentUser().id) {
         friends.forEach(async username => {
             const profile = await window._resolveProfileByUsername?.(username);
             addOption(username, profile?.display_name || profile?.username || username);
@@ -58,7 +62,7 @@ window.populateHabitBuddySelect = populateHabitBuddySelect;
 
 // Yeni bir ortak alışkanlık daveti gönderir. Alışkanlık, partner kabul edene kadar oluşturulmaz.
 window.sendBuddyHabitInvite = async function(targetUsername, draft) {
-    const currentUser = window.currentUser;
+    const currentUser = getCurrentUser();
     if (!currentUser) {
         if (typeof window.showPremiumModal === 'function') {
             window.showPremiumModal({ title: 'Bağlantı Yok', message: 'Ortak alışkanlık daveti göndermek için çevrimiçi profilini kurman gerekiyor.', type: 'error' });
@@ -96,7 +100,7 @@ window.sendBuddyHabitInvite = async function(targetUsername, draft) {
 };
 
 function _showBuddyHabitInviteModal(inv) {
-    const currentUser = window.currentUser;
+    const currentUser = getCurrentUser();
     const modal = document.getElementById('buddy-habit-invite-modal');
     const fromEl = document.getElementById('buddy-habit-invite-from');
     const nameEl = document.getElementById('buddy-habit-invite-name');
@@ -167,7 +171,7 @@ function _showBuddyHabitInviteModal(inv) {
 
 // Partner'a alışkanlık silindi bildirimi gönder
 async function _sendBuddyHabitDeletedNotification(habitId, buddyUsername, habitName) {
-    const currentUser = window.currentUser;
+    const currentUser = getCurrentUser();
     if (!window.FocusSupabase || !currentUser?.id || !buddyUsername) {
         console.warn('[BuddyHabit] ön koşul hatası:', { supabase: !!window.FocusSupabase, userId: currentUser?.id, buddy: buddyUsername });
         return;
@@ -204,19 +208,19 @@ function _handleBuddyHabitDeletedNotification(info) {
     const overlay = document.createElement('div');
     overlay.id = 'gf-buddy-habit-deleted-overlay';
     overlay.className = 'modal-overlay';
-    overlay.style.cssText = 'z-index:100060;';
+    overlay.style.zIndex = '100060';
     overlay.innerHTML = `
-        <div class="modal-content glass-panel" style="max-width:370px; text-align:center; padding:28px 24px;">
-            <div style="font-size:32px; margin-bottom:12px;">🍃</div>
-            <h3 style="margin:0 0 8px; font-size:16px; color:#fff;">${window._escapeHtml(fromName)} ayrıldı</h3>
-            <p style="color:var(--text-muted); font-size:13px; margin:0 0 22px;">
-                <b style="color:#fff;">"${window._escapeHtml(habitName)}"</b> alışkanlığını ortak olarak sildi.<br>Bu alışkanlığa tek başına devam etmek ister misin?
+        <div class="modal-content glass-panel u-max-width-370px_text-align-center_padding-28px24px" >
+            <div class="u-font-size-32px_margin-bottom-12px">🍃</div>
+            <h3 class="u-margin-008px_font-size-16px_color-hfff">${window._escapeHtml(fromName)} ayrıldı</h3>
+            <p class="u-color-var-text-muted_font-size-13px_margin-0022px">
+                <b class="u-color-hfff">"${window._escapeHtml(habitName)}"</b> alışkanlığını ortak olarak sildi.<br>Bu alışkanlığa tek başına devam etmek ister misin?
             </p>
-            <div style="display:flex; flex-direction:column; gap:10px;">
-                <button id="gf-bh-solo-btn" class="control-btn primary" style="width:100%; padding:12px;">
+            <div class="u-display-flex_flex-direction-column_gap-10px-2">
+                <button id="gf-bh-solo-btn" class="control-btn primary u-width-100pct_padding-12px" >
                     <i class="fa-solid fa-person-running"></i> Evet, Solo Devam Et
                 </button>
-                <button id="gf-bh-delete-btn" class="control-btn" style="width:100%; padding:12px; background:rgba(255,71,87,0.1); color:#ff6b81;">
+                <button id="gf-bh-delete-btn" class="control-btn u-width-100pct_padding-12px_background-rgba25571870p1_color-" >
                     <i class="fa-solid fa-trash"></i> Hayır, Alışkanlığı Sil
                 </button>
             </div>
@@ -280,7 +284,7 @@ function _nextBuddyHabitInvite() {
 // ─────────────────────────────────────────────────────────────────────────
 
 function listenForBuddyHabitInvites() {
-    const currentUser = window.currentUser;
+    const currentUser = getCurrentUser();
     if (!currentUser) return;
 
     if (window.FocusSupabase && currentUser.id) {
@@ -346,7 +350,7 @@ let _buddyResponseSupaChannel = null;
 
 // Daveti gönderen taraf, partnerin yanıtını burada dinler.
 function listenForBuddyHabitResponses() {
-    const currentUser = window.currentUser;
+    const currentUser = getCurrentUser();
     if (!currentUser) return;
 
     if (window.FocusSupabase && currentUser.id) {
@@ -397,7 +401,7 @@ window.listenForBuddyHabitResponses = listenForBuddyHabitResponses;
 
 // Ortak odaklanma seansı bitince ikisinin de bugünkü hedefini işaretler.
 function completeBuddyHabitSession(linkedHabit) {
-    const currentUser = window.currentUser;
+    const currentUser = getCurrentUser();
     if (!currentUser || !linkedHabit || !linkedHabit.id) return;
     const todayKey = buddyDayKey();
 
@@ -417,12 +421,12 @@ window.completeBuddyHabitSession = completeBuddyHabitSession;
 
 // Bireysel sekmesindeki "Ortak Alışkanlık Zincirleri" kartlarını gerçek zamanlı partner durumu ile çizer.
 window.renderBuddyHabitsSocial = function(habits) {
-    const currentUser = window.currentUser;
+    const currentUser = getCurrentUser();
     if (!window.FocusSupabase) return;
     const container = document.getElementById('buddy-habits-list');
     if (!container) return;
 
-    const friends = window.getFriends();
+    const friends = getFriends();
     const buddyHabits = (habits || []).filter(h => h.buddy && h.buddy !== 'none' && h.pairId && friends.includes(h.buddy));
     const hasFriends = friends.length > 0;
 
@@ -442,8 +446,8 @@ window.renderBuddyHabitsSocial = function(habits) {
 
     if (!buddyHabits.length) {
         container.innerHTML = `
-            <div style="width:100%; text-align: center; padding: 16px 10px;">
-                <p style="color: var(--text-muted); font-size: 13px; margin: 0;">
+            <div class="u-width-100pct_text-align-center_padding-16px10px">
+                <p class="u-color-var-text-muted_font-size-13px_margin-0">
                     ${hasFriends
                         ? 'Henüz ortak bir alışkanlık oluşturmadın. "Alışkanlıklar" sekmesinden yeni bir hedef belirle, partnerini seç ve davet gönder!'
                         : 'Ortak alışkanlık zinciri için önce bir arkadaş eklemen gerekiyor.'}
@@ -470,7 +474,7 @@ window.renderBuddyHabitsSocial = function(habits) {
             : `<i class="fa-solid fa-hourglass-half"></i> Sen: ${isUserDoneToday ? '✅' : '⏳'} · ${window._escapeHtml(buddyDisplayName)}: ${isBuddyDoneToday ? '✅' : '⏳'}`;
         card.innerHTML = `
             <div class="buddy-header">
-                <span class="buddy-title"><i class="fa-solid ${habit.icon || 'fa-star'}" style="color: var(--primary-color);"></i> ${window._escapeHtml(habit.name)}</span>
+                <span class="buddy-title"><i class="fa-solid ${habit.icon || 'fa-star'} u-color-var-primary-color-2" ></i> ${window._escapeHtml(habit.name)}</span>
                 <div class="buddy-users"><div class="buddy-avatar-group">${window.avatarImgHtml(currentUser, 28)}${buddyAvatar}</div></div>
             </div>
             <div class="buddy-progress-wrapper">
@@ -478,16 +482,18 @@ window.renderBuddyHabitsSocial = function(habits) {
                     <span>Ortak İlerleme: <strong>${completedDays}/${targetDays} Gün</strong></span>
                     <span class="buddy-status-badge ${statusClass}">${statusText}</span>
                 </div>
-                <div class="buddy-progress-bar"><div class="buddy-progress-fill ${bothDone ? 'success' : ''}" style="width:${progressPercentage}%;"></div></div>
+                <div class="buddy-progress-bar"><div class="buddy-progress-fill ${bothDone ? 'success' : ''}"></div></div>
             </div>
-            <div style="margin-top:12px; display:flex; align-items:center; justify-content:flex-end; gap:8px; flex-wrap:wrap;">
+            <div class="u-margin-top-12px_display-flex_align-items-center_justify-co">
                 ${!bothDone ? (buddyOnline
-                    ? `<span class="buddy-online-badge"><i class="fa-solid fa-circle" style="font-size:7px;"></i> ${buddyDisplayName} çevrimiçi</span>`
-                    : `<span class="buddy-offline-warning"><i class="fa-solid fa-circle" style="font-size:7px;"></i> ${buddyDisplayName} çevrimiçi değil</span>`) : ''}
-                <button class="control-btn primary buddy-focus-btn" data-habit-id="${habit.id}" style="font-size:12px; padding:8px 14px;" ${(bothDone || !buddyOnline) ? 'disabled' : ''}>
+                    ? `<span class="buddy-online-badge"><i class="fa-solid fa-circle u-font-size-7px" ></i> ${window._escapeHtml(buddyDisplayName)} çevrimiçi</span>`
+                    : `<span class="buddy-offline-warning"><i class="fa-solid fa-circle u-font-size-7px" ></i> ${window._escapeHtml(buddyDisplayName)} çevrimiçi değil</span>`) : ''}
+                <button class="control-btn primary buddy-focus-btn u-font-size-12px_padding-8px14px" data-habit-id="${habit.id}" ${(bothDone || !buddyOnline) ? 'disabled' : ''}>
                     <i class="fa-solid fa-bolt"></i> ${bothDone ? 'Bugün Tamamlandı' : 'Birlikte Odaklan'}
                 </button>
             </div>`;
+        const progressFillEl = card.querySelector('.buddy-progress-fill');
+        if (progressFillEl) progressFillEl.style.width = progressPercentage + '%';
         const focusBtn = card.querySelector('.buddy-focus-btn');
         if (focusBtn && !bothDone) {
             focusBtn.addEventListener('click', () => window.openBuddyFocusSettingsModal(habit.buddy, buddyDisplayName, buddyAvatarColor || '6c5ce7', { id: habit.id, name: habit.name, pairId: habit.pairId }));

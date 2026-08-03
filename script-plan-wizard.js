@@ -135,7 +135,7 @@ import { formatDateToString, timeToMins, addOneHour } from './script-date-time-u
  
              let tab = document.createElement('div');
              tab.className = `wizard-day-tab ${i === 0 ? 'active' : ''}`;
-             tab.innerHTML = `<strong>${dayName}</strong><span style="font-size:10px; opacity:0.8;">${shortDate}</span>`;
+             tab.innerHTML = `<strong>${dayName}</strong><span class="u-font-size-10px_opacity-0p8">${shortDate}</span>`;
              tab.dataset.index = i;
  
              tab.onclick = () => { switchWizTab(i); };
@@ -346,7 +346,7 @@ import { formatDateToString, timeToMins, addOneHour } from './script-date-time-u
              if (t.parentGoal) {
                  const pg = getGoalsRef().find(g => String(g.id) === String(t.parentGoal));
                  if (pg) {
-                     badgeHTML = `<span class="task-category-tag" style="background: rgba(108, 92, 231, 0.1); color: var(--primary-color); border: 1px solid rgba(108, 92, 231, 0.2); display:inline-flex; font-size:10px; padding:2px 6px; margin-top:4px;"><i class="fa-solid fa-bullseye"></i> ${escapeHtml(pg.title)}</span>`;
+                     badgeHTML = `<span class="task-category-tag u-background-rgba108922310p1_color-var-primary-color_border--2" ><i class="fa-solid fa-bullseye"></i> ${escapeHtml(pg.title)}</span>`;
                  }
              }
  
@@ -387,9 +387,9 @@ import { formatDateToString, timeToMins, addOneHour } from './script-date-time-u
              container.innerHTML += `
                  <label class="priority-select-item" id="priority-label-${t.id}">
                      <input type="checkbox" class="priority-checkbox" value="${t.id}">
-                     <div style="display:flex; flex-direction:column;">
-                         <span style="color:#fff; font-weight:500; font-size:14px;">${escapeHtml(t.name)}</span>
-                         <span style="color:var(--text-muted); font-size:12px;">${shortDate} | ${t.start} - ${t.end}</span>
+                     <div class="u-display-flex_flex-direction-column">
+                         <span class="u-color-hfff_font-weight-500_font-size-14px">${escapeHtml(t.name)}</span>
+                         <span class="u-font-size-12px_color-var-text-muted">${shortDate} | ${t.start} - ${t.end}</span>
                      </div>
                  </label>
              `;
