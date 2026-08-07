@@ -11,6 +11,7 @@
 
 import { GSC_DAYS_TR, gscGetWeekDates, gscDateKey, gscIsToday, gscAddMinutes, gscMinutesBetween } from './social-group-session-calendar-date-utils.js';
 import { GROUP_THEME_COLORS, _hexToRgb, _applyGroupTheme, _openGroupThemePicker } from './social-group-session-calendar-theme.js';
+import { getMemberPermissionsSupabase } from './social-roles.js';
 
     // ══════════════════════════════════════════════════════════
     //  GRUP ODAK SEANSİ TAKVİMİ
@@ -501,8 +502,8 @@ import { GROUP_THEME_COLORS, _hexToRgb, _applyGroupTheme, _openGroupThemePicker 
             <div class="grp-feed-item" data-feed-idx="${i}">
                 <div class="grp-feed-dot"></div>
                 <div class="si-flex1">
-                    <div class="u-font-size-12px_color-rgba2552552550p8_line-height-1p4">${ev.text}</div>
-                    ${ev.sub ? `<div class="u-font-size-10px_color-var-text-muted_margin-top-1px">${ev.sub}</div>` : ''}
+                    <div class="u-font-size-12px_color-rgba2552552550p8_line-height-1p4">${_escapeHtml(ev.text)}</div>
+                    ${ev.sub ? `<div class="u-font-size-10px_color-var-text-muted_margin-top-1px">${_escapeHtml(ev.sub)}</div>` : ''}
                 </div>
                 <div class="u-font-size-10px_color-var-text-muted_flex-shrink-0_white-sp">${fmtTs(ev.ts)}</div>
             </div>`).join('');

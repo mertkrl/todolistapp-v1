@@ -10,6 +10,11 @@ import {
 } from './auth-ui-utils.js';
 
 (() => {
+    // Aynı SIGNED_IN olayının sekme odak/görünürlük değişiminde tekrar
+    // fırlatılması durumunda giriş sonrası akışın (toast, pullAll, profil/
+    // aktarım kontrolü) tekrar tetiklenmesini önlemek için kullanıcı bazlı guard.
+    let _signedInHandledForUserId = null;
+
     function _injectModals() {
         if (document.getElementById('focusai-auth-modal')) return;
 
@@ -430,7 +435,13 @@ import {
     // ─── Veri aktarım modalı ───────────────────────────────────────────────
     function _bindImportModal() {
         const importModal = document.getElementById('focusai-import-modal');
-        document.getElementById('focusai-import-skip-btn').addEventListener('click', () => importModal.classList.add('hidden'));
+        document.getElementById('focusai-import-skip-btn').addEventListener('click', () => {
+            importModal.classList.add('hidden');
+            // "Daha Sonra" bir sonraki kontrolde modalın hemen tekrar açılmasını
+            // engellemek için 24 saatlik bir bekleme damgası bırakır — SIGNED_IN
+            // olayı sekme odak/görünürlük değişiminde de tekrar tetiklenebiliyor.
+            try { localStorage.setItem('focusai_import_wizard_skipped_at', String(Date.now())); } catch (e) {}
+        });
         document.getElementById('focusai-import-confirm-btn').addEventListener('click', async () => {
             const btn = document.getElementById('focusai-import-confirm-btn');
             btn.disabled = true;
@@ -554,8 +565,14 @@ import {
                 return true;
             }
             // Kurulu ama veri aktarımı yapılmamışsa aktarım sihirbazını göster
+            // ("Daha Sonra" ile geçildiyse 24 saat boyunca tekrar açılmasın)
             if (data && !data.imported_at) {
-                _openImportWizard();
+                let skippedAt = 0;
+                try { skippedAt = parseInt(localStorage.getItem('focusai_import_wizard_skipped_at') || '0', 10); } catch (e) {}
+                const SKIP_COOLDOWN_MS = 24 * 60 * 60 * 1000;
+                if (!skippedAt || (Date.now() - skippedAt) > SKIP_COOLDOWN_MS) {
+                    _openImportWizard();
+                }
             }
             return false;
         } catch (e) {
@@ -579,6 +596,11 @@ import {
             _renderAuthModalState(newSession);
             _updateSyncButton();
 
+            if (event === 'SIGNED_OUT') {
+                _signedInHandledForUserId = null;
+                return;
+            }
+
             if (event === 'PASSWORD_RECOVERY') {
                 _injectModals();
                 document.getElementById('focusai-auth-modal').classList.add('hidden');
@@ -589,6 +611,16 @@ import {
             if (event === 'SIGNED_IN' && newSession && newSession.user) {
                 const authModal = document.getElementById('focusai-auth-modal');
                 if (authModal) authModal.classList.add('hidden');
+
+                // Supabase-js, sekme odak/görünürlük değişiminde session'ı
+                // yeniden doğrularken de 'SIGNED_IN' olayını tekrar fırlatabilir.
+                // Aynı kullanıcı için zaten işlendiyse tekrar toast/pull/profil
+                // kontrolü tetiklemeyelim — aksi halde bu kontrol (ve varsa
+                // açtığı import sihirbazı) kullanıcı başka bir iş yaparken
+                // sürekli yeniden açılıyordu.
+                if (_signedInHandledForUserId === newSession.user.id) return;
+                _signedInHandledForUserId = newSession.user.id;
+
                 _toast('Giriş yapıldı!', 'success');
 
                 await window.FocusSync.pullAll();

@@ -30,7 +30,7 @@ export function _evBuildHighlightHtml(highlightList) {
                  </div>
                  <div class="u-flex-1_min-width-0">
                      <div class="u-font-size-10px_font-weight-700_letter-spacing-1p5px_color-">✦ Günün Odak Hedefi</div>
-                     <div class="cal-highlight-text u-font-size-15px_font-weight-700_line-height-1p4_word-break-" data-completed="${isCompleted ? '1' : '0'}">${hl.data.text}</div>
+                     <div class="cal-highlight-text u-font-size-15px_font-weight-700_line-height-1p4_word-break-" data-completed="${isCompleted ? '1' : '0'}">${window.escapeHtml(hl.data.text)}</div>
                      <div class="u-margin-top-8px_display-flex_gap-6px_flex-wrap-wrap_align-i">
                          <span class="u-font-size-10px_background-rgba2552552550p05_color-var-text"><i class="fa-regular fa-calendar u-margin-right-4px" ></i>${shortDate}</span>
                          ${parentBadgeHTML}
@@ -119,7 +119,7 @@ export function _evBuildEventsHtml(dayEvents, check) {
                              ${msDone ? '<i class="fa-solid fa-check"></i>' : ''}
                          </div>
                          <div class="tc-content">
-                             <div class="tc-title${msDone ? ' tc-done' : ''}" data-ms-done="${msDone ? '1' : '0'}">${ev.text}</div>
+                             <div class="tc-title${msDone ? ' tc-done' : ''}" data-ms-done="${msDone ? '1' : '0'}">${window.escapeHtml(ev.text)}</div>
                              <div class="tc-meta">
                                  <span class="tc-badge" data-ms-color-badge="${mColor}"><i class="fa-solid fa-flag-checkered"></i> Dönüm Noktası</span>
                                  <span class="tc-badge u-cursor-pointer_opacity-p6" data-action="switch-tab-planlama">Planlamaya Git →</span>
@@ -163,7 +163,7 @@ export function _evBuildEventsHtml(dayEvents, check) {
                          ${isCompleted ? '<i class="fa-solid fa-check"></i>' : ''}
                      </div>
                      <div class="tc-content">
-                         <div class="tc-title${isCompleted ? ' tc-done' : ''}">${ev.text}</div>
+                         <div class="tc-title${isCompleted ? ' tc-done' : ''}">${window.escapeHtml(ev.text)}</div>
                          <div class="tc-meta">
                              <span class="tc-badge tc-prio-${evPriority}"><i class="fa-solid fa-circle-dot"></i> ${priorityLabel}</span>
                              <span class="tc-badge tc-badge-date"><i class="fa-regular fa-calendar"></i> ${shortDate}</span>

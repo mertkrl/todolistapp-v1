@@ -93,7 +93,11 @@ document.addEventListener('DOMContentLoaded', () => {
      // --- Premium Tarih ve Saat Seçici (Flatpickr) Bitiş ---
  
      // ── Mobil Sidebar ──
-     const appSidebar  = document.getElementById('app-sidebar');
+     // NOT: #app-sidebar Faz 2'de dock+topbar mimarisine geçilirken DOM'da
+     // gizli bırakıldı (bkz. css/faz2-layout-overrides.css), gerçek
+     // navigasyon artık #app-dock. Hamburger menüsü bu yüzden #app-dock'u
+     // açıp/kapatmalı, eski #app-sidebar'ı değil.
+     const appDock  = document.getElementById('app-dock');
      const sidebarOverlay = document.getElementById('sidebar-overlay');
  
      // Hamburger butonu yoksa dinamik oluştur
@@ -117,27 +121,27 @@ document.addEventListener('DOMContentLoaded', () => {
          toggleHamburger(mediaQ);
  
          btn.addEventListener('click', () => {
-             appSidebar.classList.toggle('open');
+             appDock?.classList.toggle('open');
              sidebarOverlay.classList.toggle('open');
          });
      }
  
      if (sidebarOverlay) {
-         sidebarOverlay.addEventListener('click', () => {
-             appSidebar.classList.remove('open');
-             sidebarOverlay.classList.remove('open');
-         });
-     }
+        sidebarOverlay.addEventListener('click', () => {
+            appDock?.classList.remove('open');
+            sidebarOverlay.classList.remove('open');
+        });
+    }
  
      // Nav linkine tıklanınca mobilde sidebar kapansın
-     document.querySelectorAll('.nav-links li').forEach(li => {
-         li.addEventListener('click', () => {
-             if (window.innerWidth <= 768) {
-                 appSidebar.classList.remove('open');
-                 sidebarOverlay.classList.remove('open');
-             }
-         });
-     });
+     document.querySelectorAll('#app-dock .di').forEach(di => {
+        di.addEventListener('click', () => {
+            if (window.innerWidth <= 768) {
+                appDock?.classList.remove('open');
+                sidebarOverlay.classList.remove('open');
+            }
+        });
+    });
      
     // getProgressColor/formatDateToString/toInputDate/fromInputDate →
     // script-date-time-utils.js dosyasına taşındı (Faz 2, 2026-07-19).
@@ -481,7 +485,7 @@ document.addEventListener('DOMContentLoaded', () => {
      // addTask -> script-add-task.js dosyasına taşındı (Faz H2, 2026-07-31).
 
      addTaskBtn.addEventListener('click', addTask);
-     taskInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') addTask(); });
+     taskInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') addTask(); });
 
      const tdToggleAdd = document.getElementById('td-toggle-add');
      const tdAddForm = document.getElementById('td-add-form');

@@ -141,14 +141,14 @@ import { premiumMoveTask } from './script-calendar-week-day-view-move-task.js';
                              draggable="true"
                              data-drag-id="${ev.id}" data-drag-date="${ds}" data-chip-idx="${_chipIdx}"
                             data-action="weekly-chip-noop"
-                             title="${ev.text}${chipTime?' · '+chipTime:''}${cc.isGoal?' 🎯 '+cc.label:''}"
+                             title="${window.escapeHtml(ev.text)}${chipTime?' · '+chipTime:''}${cc.isGoal?' 🎯 '+cc.label:''}"
                              >
                              ${done
                                  ? `<span class="wec-done-badge"><i class="fa-solid fa-check"></i></span>`
                                  : `<span class="wec-cat-dot" title="${cc.label} · ${ev.priority || 'medium'}"></span>`}
                              ${cc.isGoal && !done ? `<span class="wec-goal-badge" title="${cc.label}"><i class="fa-solid fa-mountain-sun"></i></span>` : ''}
                              ${isTall && chipTime ? `<span class="wec-time${done?' wec-time-done':''}">${done?'':' <i class="fa-regular fa-clock"></i>'} ${chipTime}</span>` : ''}
-                             <span class="wec-title">${!isTall && chipTime ? chipTime + ' · ' : ''}${ev.text}</span>
+                             <span class="wec-title">${!isTall && chipTime ? chipTime + ' · ' : ''}${window.escapeHtml(ev.text)}</span>
                              ${showActions ? `<div class="wec-actions">
                                 <button class="wec-btn${done?' wec-done':''}" data-action="weekly-chip-toggle" data-id="${ev.id}">
                                      <i class="fa-solid fa-${done?'rotate-left':'check'}"></i> ${done?'Geri Al':'Tamam'}
@@ -625,7 +625,7 @@ import { premiumMoveTask } from './script-calendar-week-day-view-move-task.js';
                      draggable="true"
                      data-drag-id="${ev.id}" data-drag-date="${dateStr}" data-block-idx="${_blockIdx}"
                      data-action="daily-block-noop"
-                     title="${ev.text}${cc.isGoal?' · 🎯 '+cc.label:''}">
+                     title="${window.escapeHtml(ev.text)}${cc.isGoal?' · 🎯 '+cc.label:''}">
                      ${done
                          ? `<span class="deb-done-badge"><i class="fa-solid fa-check-double"></i></span>`
                          : `<span class="deb-prio-dot" title="${cc.label}"></span>`}
@@ -635,7 +635,7 @@ import { premiumMoveTask } from './script-calendar-week-day-view-move-task.js';
                               <div class="deb-check${done?' done':''}" data-action="daily-toggle-task" data-id="${ev.id}">
                                  ${done?'<i class="fa-solid fa-check"></i>':''}
                              </div>
-                             <div class="deb-title">${ev.text}</div>
+                             <div class="deb-title">${window.escapeHtml(ev.text)}</div>
                          </div>
                          ${hPx > 44 ? `<div class="deb-time${done?' deb-time-done':''}"><i class="fa-regular fa-clock"></i> ${tStart}${tEnd?' → '+tEnd:''}</div>` : ''}
                      </div>

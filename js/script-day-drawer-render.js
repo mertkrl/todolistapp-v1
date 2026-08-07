@@ -57,7 +57,7 @@ function _cddHighlightHtml(highlight) {
     return `<div class="cdd-section-label">✦ Günün Hedefi</div>
         <div class="cdd-highlight ${highlight.completed ? 'completed' : ''}">
             <i class="fa-solid fa-star"></i>
-            <span class="u-flex-1_overflow-hidden_text-overflow-ellipsis_white-space--2">${highlight.text}</span>
+            <span class="u-flex-1_overflow-hidden_text-overflow-ellipsis_white-space--2">${escapeHtml(highlight.text)}</span>
             ${highlight.completed ? '<i class="fa-solid fa-check u-color-h2ed573_font-size-11px_flex-shrink-0" ></i>' : ''}
         </div>`;
 }
@@ -108,7 +108,7 @@ function _cddTasksSectionHtml(dayEvents, isPast, dateStr) {
                     ${done ? '<i class="fa-solid fa-check"></i>' : ''}
                 </div>
                 <div class="cdd-ev-body">
-                    <div class="cdd-ev-title">${ev.text}</div>
+                    <div class="cdd-ev-title">${escapeHtml(ev.text)}</div>
                     <div class="cdd-ev-time">${ev.timeStart || '--'} – ${ev.timeEnd || '--'}</div>
                 </div>
             </div>

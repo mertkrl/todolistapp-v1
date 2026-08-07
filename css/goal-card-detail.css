@@ -585,6 +585,20 @@
         margin-left: 0 !important;
         width: 100% !important;
     }
+
+    /* Gerçek navigasyon artık #app-sidebar değil #app-dock (Faz 2,
+       dock+topbar mimarisi) — hamburger menüsü bu elemanı açıp kapatır. */
+    #app-dock.dock {
+        position: fixed;
+        left: -84px;
+        top: 0;
+        height: 100%;
+        z-index: 1000;
+        transition: left 0.3s ease;
+    }
+    #app-dock.dock.open {
+        left: 0;
+    }
 }
 
 /* ============ SPOTLIGHT ARAMA ============ */
