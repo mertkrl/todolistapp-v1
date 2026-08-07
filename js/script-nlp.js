@@ -20,6 +20,10 @@ export function parseSmartText(text) {
 
     if (timeMatch) {
         parsedTime = `${timeMatch[1].padStart(2, '0')}:${timeMatch[2]}`;
+        // "saat 14:00" gibi HH:MM'den hemen önce gelen "saat" kelimesini de
+        // birlikte temizle — aksi halde başlıkta "saat Toplantı" gibi bir
+        // artık kelime kalıyordu (timeRegex sadece "14:00"ü kapsıyor).
+        cleanText = cleanText.replace(new RegExp('saat\\s+' + timeMatch[0].replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'), '').trim();
         cleanText = cleanText.replace(timeMatch[0], '').trim();
     } else if (altTimeMatch) {
         parsedTime = `${altTimeMatch[1].padStart(2, '0')}:00`;

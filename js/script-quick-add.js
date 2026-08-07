@@ -129,7 +129,24 @@ document.addEventListener('keydown', (e) => {
 if (quickAddInput) {
     quickAddInput.addEventListener('input', (e) => {
         const smartData = parseSmartText(e.target.value);
-        if(smartData.parsedDate) quickDateInput.value = smartData.parsedDate;
+        if(smartData.parsedDate) {
+            // quickDateInput flatpickr(altInput:true) ile yönetiliyor — düz
+            // .value ataması sadece gizli orijinal input'u değiştirir, kullanıcının
+            // gördüğü altInput metin kutusunu güncellemez (bkz. openQuickAdd'deki
+            // aynı uyarı). "Yarın" gibi kelimeler bu yüzden Tarih alanında hiç
+            // görünmüyordu, oysa görev doğru tarihle kaydediliyordu.
+            if (quickDateInput._flatpickr) {
+                // parsedDate formatDateToString'den "gg-aa-yyyy" formatında gelir,
+                // flatpickr'ın kendi dateFormat'ı ise "Y-m-d" — string olarak
+                // setDate'e verilirse flatpickr yanlış ayrıştırıp (örn. "01-01-2026"
+                // gibi) alakasız bir tarihe düşüyordu. Bunun yerine format
+                // belirsizliğine kapalı bir Date nesnesi geçiyoruz.
+                const [pd, pm, py] = smartData.parsedDate.split('-').map(Number);
+                quickDateInput._flatpickr.setDate(new Date(py, pm - 1, pd), true);
+            } else {
+                quickDateInput.value = smartData.parsedDate;
+            }
+        }
         if(smartData.parsedTime) {
             quickStartInput.value = smartData.parsedTime;
             quickEndInput.value = addOneHour(smartData.parsedTime);
@@ -137,7 +154,7 @@ if (quickAddInput) {
     });
 
     // Enter tuşu ile kaydetme
-    quickAddInput.addEventListener('keypress', (e) => {
+    quickAddInput.addEventListener('keydown', (e) => {
         if(e.key === 'Enter' && saveQuickAddBtn) saveQuickAddBtn.click();
     });
 }
@@ -151,7 +168,18 @@ if (saveQuickAddBtn) {
         const smartData = parseSmartText(rawText);
         const text = smartData.cleanText || "İsimsiz Görev";
 
-        const date = quickDateInput.value || formatDateToString(new Date());
+        // quickDateInput flatpickr(dateFormat:"Y-m-d") tarafından yönetiliyor,
+        // bu yüzden .value her zaman ISO "yyyy-aa-gg" formatında gelir — ama
+        // task.date alanı uygulamanın geri kalanında "gg-aa-yyyy" bekliyor
+        // (bkz. formatDateToString). Önceden bu sadece sayfa yeniden
+        // yüklendiğinde script.js'teki göç adımıyla (satır ~166) sessizce
+        // düzeliyordu; o ana kadar görev takvimde hiçbir güne düşmüyordu.
+        // Burada anında doğru formata çeviriyoruz.
+        let date = quickDateInput.value || formatDateToString(new Date());
+        if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+            const [y, m, d] = date.split('-');
+            date = `${d}-${m}-${y}`;
+        }
         const start = quickStartInput.value;
         const end = quickEndInput.value;
         const priority = quickPriority.value;
