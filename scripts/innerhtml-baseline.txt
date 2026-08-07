@@ -1,22 +1,725 @@
-auth-ui.js:131  ${_avatarColorSwatches()}
-collab.js:451  ${aIdx}
-collab.js:561  ${W}
-collab.js:561  ${SVG_H}
-collab.js:561  ${W}
-collab.js:561  ${SVG_H}
-collab.js:561  ${svgBars}
-collab.js:575  ${msId}
-collab.js:580  ${msId}
-collab.js:581  ${msId}
-collab.js:582  ${myApproval?'<i class="ti ti-thumb-up-filled"></i> Onayladın':'<i class="ti ti-thumb-up"></i> Onayla'}
-collab.js:587  ${msId}
-collab.js:606  ${msId}
-collab.js:608  ${msId}
-collab.js:652  ${cIdx}
-collab.js:656  ${timeAgo(c.created_at)}
-collab.js:794  ${isOwner ? ` <!-- 3.3 Onay eşiği ayarı --> <div class="pg-collab-threshold-row"> <label class="pg-...}
-collab.js:824  ${isOwner ? `<button id="pg-disable-collab-btn" class="pg-collab-danger-btn u-margin-top-10px" ><i ...}
-collab.js:1032  ${window.PlanningCollab.getComments(msId).length}
+.claude/worktrees/agent-ab77bdfe36f026070/auth-ui.js:131  ${_avatarColorSwatches()}
+.claude/worktrees/agent-ab77bdfe36f026070/collab.js:451  ${aIdx}
+.claude/worktrees/agent-ab77bdfe36f026070/collab.js:561  ${W}
+.claude/worktrees/agent-ab77bdfe36f026070/collab.js:561  ${SVG_H}
+.claude/worktrees/agent-ab77bdfe36f026070/collab.js:561  ${W}
+.claude/worktrees/agent-ab77bdfe36f026070/collab.js:561  ${SVG_H}
+.claude/worktrees/agent-ab77bdfe36f026070/collab.js:561  ${svgBars}
+.claude/worktrees/agent-ab77bdfe36f026070/collab.js:575  ${msId}
+.claude/worktrees/agent-ab77bdfe36f026070/collab.js:580  ${msId}
+.claude/worktrees/agent-ab77bdfe36f026070/collab.js:581  ${msId}
+.claude/worktrees/agent-ab77bdfe36f026070/collab.js:582  ${myApproval?'<i class="ti ti-thumb-up-filled"></i> Onayladın':'<i class="ti ti-thumb-up"></i> Onayla'}
+.claude/worktrees/agent-ab77bdfe36f026070/collab.js:587  ${msId}
+.claude/worktrees/agent-ab77bdfe36f026070/collab.js:606  ${msId}
+.claude/worktrees/agent-ab77bdfe36f026070/collab.js:608  ${msId}
+.claude/worktrees/agent-ab77bdfe36f026070/collab.js:652  ${cIdx}
+.claude/worktrees/agent-ab77bdfe36f026070/collab.js:656  ${timeAgo(c.created_at)}
+.claude/worktrees/agent-ab77bdfe36f026070/collab.js:794  ${isOwner ? ` <!-- 3.3 Onay eşiği ayarı --> <div class="pg-collab-threshold-row"> <label class="pg-...}
+.claude/worktrees/agent-ab77bdfe36f026070/collab.js:824  ${isOwner ? `<button id="pg-disable-collab-btn" class="pg-collab-danger-btn u-margin-top-10px" ><i ...}
+.claude/worktrees/agent-ab77bdfe36f026070/collab.js:1032  ${window.PlanningCollab.getComments(msId).length}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-collab-wait.js:147  ${isOnline ? '<span class="pg-cw-online-dot"></span>' : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-collab-wait.js:262  ${initials}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-collab-wait.js:263  ${status === 'accepted' ? '<span class="pg-cw-online-dot"></span>' : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-collab-wait.js:269  ${status === 'accepted' ? '<span class="pg-cw-member-joined">✓ Katıldı</span>' : '<span class="pg-c...}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-day-panel-markup.js:159  ${isToday ? 'Bugün' : dateLbl}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-day-panel-markup.js:161  ${isToday ? dateLbl : dayName}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-day-panel-markup.js:165  ${capacityHtml}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-day-panel-markup.js:169  ${typingHtml}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-day-panel-markup.js:170  ${tasksHtml}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-day-panel-markup.js:173  ${ownTasksHtml}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-day-panel-markup.js:175  ${msSubsHtml}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-day-panel-markup.js:177  ${blocksAdd ? '' : `<div class="pg-pv-day-add-task pg-pv-day-add-task-lp" id="pg-pv-day-add-task"> ...}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-ghost-toast.js:46  ${actionIcons[entry.action]||'·'}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-goal-collab-bridge.js:239  ${done}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-goal-collab-bridge.js:248  ${goal.id}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-goal-collab-bridge.js:248  ${ms.id}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-goal-collab-bridge.js:248  ${!ms.done}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-goal-collab-bridge.js:255  ${fmtShort(ms.due_date)}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-goal-collab-bridge.js:273  ${items.length-5}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-goal-detail-render.js:32  ${cat.icon}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-goal-detail-render.js:32  ${cat.label}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-goal-detail-render.js:35  ${progressRing(pct,cat.color)}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-goal-detail-render.js:39  ${st.label}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-goal-detail-render.js:40  ${g.deadline?`<span class="pg-dp-meta-item"><i class="ti ti-calendar-due"></i> ${fmtDate(g.deadline...}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-goal-detail-render.js:41  ${ms.length>0?`<span class="pg-dp-meta-item"><i class="ti ti-flag-3"></i> ${ms.filter(m=>m.done).le...}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-lesson-plan-assign.js:47  ${today}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-lesson-plan-assign.js:93  ${g.id}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-lesson-plan-assign.js:219  ${rows.map(r => _lpaStatusRowHTML(r, false)).join('')}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-lesson-plan-assign.js:347  ${_lpaCreateBtnHtml}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-lesson-plan-assign.js:349  ${buckets[activeTab].length ? buckets[activeTab].map(r => _lpaStatusRowHTML(r, true, true, { showEd...}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-lesson-plan-assign.js:435  ${_lpaCreateBtnHtml}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-lesson-plan-invites.js:83  ${invites.map(inv => _lpaInviteCardHTML(inv)).join('')}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-lesson-plan-invites.js:84  ${rest.length ? `<div class="pg-pv-assign-status-list">${rest.map(r => window._lpaStatusRowHTML(r, ...}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-lesson-plan-modal.js:109  ${gName}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-lesson-plan-modal.js:119  ${g.id}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-lesson-plan-modal.js:123  ${isTemplates ? `<button class="pg-lp-existing-use" data-id="${g.id}" title="Bu şablondan Uygulama ...}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-lesson-plan-modal.js:124  ${g.id}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-lesson-plan-modal.js:125  ${g.id}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-lesson-plan-modal.js:201  ${g.id}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-lesson-plan-modal.js:385  ${s.id}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-list-render.js:31  ${m.id}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-list-render.js:33  ${m.id}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-list-render.js:33  ${goalId}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-list-render.js:38  ${dlLabel?`<span class="pg-ms-date-label"><i class="ti ti-calendar"></i> ${dlLabel}</span>`:''}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-list-render.js:39  ${subs.length?`<span class="pg-ms-subtask-counter"><i class="ti ti-checklist"></i> ${subsDone}/${su...}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-list-render.js:41  ${subsHTML}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-list-render.js:43  ${m.id}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-list-render.js:45  ${extras}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-list-render.js:48  ${m.id}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-list-render.js:48  ${goalId}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-list-render.js:49  ${m.id}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-list-render.js:49  ${goalId}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:385  ${cat.id === currentCat ? ' selected' : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:386  ${cat.id}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:387  ${cat.icon}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:388  ${cat.label}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:419  ${p.val === current ? ' selected' : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:420  ${p.val}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:421  ${p.emoji}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:421  ${p.label}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:453  ${o.months}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:453  ${o.label}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:566  ${i + 1}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:567  ${m.icon}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:569  ${i}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:571  ${i + 1}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:613  ${m.id}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:614  ${i + 1}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:615  ${m.icon}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:618  ${i > 0 ? `<button class="pg-icon-btn pg-wz-ms-up" data-wid="${m.id}" title="Yukarı" type="button">...}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:619  ${i < ms.length - 1 ? `<button class="pg-icon-btn pg-wz-ms-dn" data-wid="${m.id}" title="Aşağı" typ...}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:620  ${m.id}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:739  ${new Date(_wzCalYear, _wzCalMonth).toLocaleDateString('tr-TR',{month:'long',year:'numeric'})}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:739  ${new Date(m2yr, m2mo).toLocaleDateString('tr-TR',{month:'long',year:'numeric'})}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:743  ${_wzRenderBookingMonth(_wzCalYear, _wzCalMonth, ranges)}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:744  ${_wzRenderBookingMonth(m2yr, m2mo, ranges)}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:1016  ${i + 1}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:1019  ${m.icon}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:1022  ${m.id}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:1022  ${m.due_date || ''}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:1086  ${monthLabel}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:1090  ${dayHdrs.map(d => `<div class="pg-wz-cal-day-hdr">${d}</div>`).join('')}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:1091  ${cells}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:1138  ${deadline.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric' })}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:1167  ${conflicts[0]}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:1167  ${conflicts.length > 1 ? ' (+' + (conflicts.length - 1) + ' daha)' : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:1219  ${msWithDates > 0 ? `<div class="pg-wz-gran-hint"><i class="ti ti-sparkles"></i> ${msWithDates} dön...}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:1294  ${modeMap[wizardState.planMode] || ''}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:1315  ${idx === 0 ? ' open' : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:1315  ${idx}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:1316  ${idx}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:1317  ${idx+1}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:1318  ${ms.icon}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:1321  ${ms.due_date ? fmtShort(ms.due_date) : '—'}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:1324  ${subs.length > 0 ? `<span class="pg-wz-acc-count">${subs.length} görev</span>` : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:1325  ${det.criteria ? `<span class="pg-wz-acc-crit-badge">✓</span>` : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:1330  ${idx}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:1388  ${totalDays > 0 ? `<div class="pg-wz-s4-workload"> <span><i class="ti ti-checklist" aria-hidden="tr...}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:1399  ${_wzRenderCapacityBar(subs, cat)}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:1410  ${msEnd ? `max="${ms.due_date}"` : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:1411  ${msStart ? `min="${msStart.toISOString().split('T')[0]}"` : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:1422  ${_wzRenderAccTaskItems(subs, cat)}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:1591  ${det.subtasks?.length > 0 ? `<span class="pg-wz-acc-count">${det.subtasks.length} görev</span>` : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:1592  ${det.criteria ? `<span class="pg-wz-acc-crit-badge">✓</span>` : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:1612  ${modeLabel}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:1616  ${idx+1}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:1617  ${ms.icon}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:1620  ${ms.due_date ? `<span class="pg-wz-s4-ms-due"><i class="ti ti-calendar"></i> ${fmtDate(ms.due_date...}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:1681  ${subtasks.length > 0 ? `<span class="pg-wz-s4-task-count">${subtasks.length}</span>` : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:1774  ${i===idx?' active':''}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:1942  ${s.id}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:1980  ${cat.icon}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:1982  ${goal.deadline ? `<div class="pg-wz-summary-row"> <span class="pg-wz-summary-label">Son Tarih</spa...}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:1997  ${workDays.length ? `<div class="pg-wz-summary-row"> <span class="pg-wz-summary-label">Çalışma Günl...}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:2001  ${goal.hours_per_week ? `<div class="pg-wz-summary-row"> <span class="pg-wz-summary-label">Haftalık...}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-milestone-wizard.js:2005  ${totalSubs ? `<div class="pg-wz-summary-row"> <span class="pg-wz-summary-label">Toplam Alt Görev</...}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-misc-widgets.js:183  ${avgPct}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-misc-widgets.js:301  ${active}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-misc-widgets.js:302  ${done}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-misc-widgets.js:303  ${avgPct}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-misc-widgets.js:304  ${doneMs}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-misc-widgets.js:304  ${totalMs}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-plan-header.js:51  ${cat.icon}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-plan-header.js:51  ${cat.label}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-plan-header.js:52  ${g.deadline ? `<span>·</span><span><i class="ti ti-calendar-due"></i> ${fmtDate(g.deadline)}</span...}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-plan-header.js:96  ${window.__getPvReadOnlyShowOwnTasks() ? ' active' : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-plan-header.js:97  ${window.__getPvReadOnlyShowOwnTasks() ? 'Mevcut Görevlerimi Gizle' : 'Mevcut Görevlerimi Gör'}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-plan-header.js:116  ${!isTpl ? `<button class="pg-pv-save-template-btn" id="pg-pv-save-template-btn" title="Bu planın a...}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-plan-header.js:119  ${!isTpl ? `<button class="pg-pv-assign-class-btn" id="pg-pv-assign-class-btn"> <i class="ti ti-sen...}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-plan-summary-render.js:45  ${cat.icon}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-plan-summary-render.js:57  ${totalDur ? `<div class="pvwiz-summary-stat-card"> <div class="pvwiz-summary-stat-val">${totalDur}...}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-plan-summary-render.js:62  ${msRows}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-plan-view-dom-fx.js:18  ${done}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-plan-view-dom-fx.js:18  ${pct}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-pv-main-cal.js:32  ${monthLbl}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-pv-main-cal.js:36  ${_pvCalSwitchInline(g)}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-pv-main-cal.js:38  ${_pvBusyToggleBtn(g)}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-pv-main-cal.js:42  ${dayNames.map(d => `<div class="pg-pv-main-cal-hdr">${d}</div>`).join('')}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-pv-main-cal.js:43  ${cells}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-quick-create.js:80  ${c.id === _qcState.category ? ' selected' : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-quick-create.js:81  ${c.id}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-quick-create.js:82  ${c.icon}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-quick-create.js:82  ${c.label}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-quick-create.js:105  ${o.months}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-quick-create.js:105  ${o.label}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-wizard.js:51  ${cat.icon}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-wizard.js:120  ${idx + 1}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-wizard.js:121  ${idx + 1}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-wizard.js:128  ${idx === 0 ? 'disabled' : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-wizard.js:132  ${Array(count).fill(0).map((_,i) => `<div class="pvwiz-name-dot${i < idx ? ' done' : i === idx ? ' ...}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-wizard.js:137  ${idx < count - 1 ? 'İleri <i class="ti ti-arrow-right"></i>' : 'Tarihler <i class="ti ti-calendar"...}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-wizard.js:266  ${minDate ? `<span class="pvwiz-min-hint">(${fmtDate(minDate)} ve sonrası)</span>` : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-wizard.js:318  ${avatar}
+.claude/worktrees/agent-ab77bdfe36f026070/planning-wizard.js:325  ${avatar}
+.claude/worktrees/agent-ab77bdfe36f026070/script-ambient-sounds.js:99  ${icon}
+.claude/worktrees/agent-ab77bdfe36f026070/script-ambient-sounds.js:184  ${type}
+.claude/worktrees/agent-ab77bdfe36f026070/script-ambient-sounds.js:185  ${label.icon}
+.claude/worktrees/agent-ab77bdfe36f026070/script-ambient-sounds.js:185  ${label.title}
+.claude/worktrees/agent-ab77bdfe36f026070/script-ambient-sounds.js:187  ${type}
+.claude/worktrees/agent-ab77bdfe36f026070/script-ambient-sounds.js:187  ${vol / 100}
+.claude/worktrees/agent-ab77bdfe36f026070/script-ambient-sounds.js:188  ${vol}
+.claude/worktrees/agent-ab77bdfe36f026070/script-ambient-sounds.js:454  ${icon}
+.claude/worktrees/agent-ab77bdfe36f026070/script-calendar-hover-popup.js:69  ${dayName}
+.claude/worktrees/agent-ab77bdfe36f026070/script-calendar-hover-popup.js:69  ${rows}
+.claude/worktrees/agent-ab77bdfe36f026070/script-calendar-week-day-view.js:443  ${timeStr}
+.claude/worktrees/agent-ab77bdfe36f026070/script-command-palette.js:244  ${icon}
+.claude/worktrees/agent-ab77bdfe36f026070/script-command-palette.js:247  ${title}
+.claude/worktrees/agent-ab77bdfe36f026070/script-command-palette.js:250  ${badge ? `<span class="cmd-item-badge">${badge}</span>` : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/script-coworking-groups.js:177  ${group.members}
+.claude/worktrees/agent-ab77bdfe36f026070/script-coworking-groups.js:181  ${Math.round((group.weeklyGoalCurrent / group.weeklyGoalMax) * 100)}
+.claude/worktrees/agent-ab77bdfe36f026070/script-coworking-groups.js:224  ${encodeURIComponent(member.name)}
+.claude/worktrees/agent-ab77bdfe36f026070/script-coworking-groups.js:224  ${member.color.replace('#','')}
+.claude/worktrees/agent-ab77bdfe36f026070/script-coworking-groups.js:227  ${member.status}
+.claude/worktrees/agent-ab77bdfe36f026070/script-coworking-groups.js:257  ${rankIcon}
+.claude/worktrees/agent-ab77bdfe36f026070/script-coworking-groups.js:258  ${encodeURIComponent(user.name)}
+.claude/worktrees/agent-ab77bdfe36f026070/script-coworking-groups.js:261  ${user.score}
+.claude/worktrees/agent-ab77bdfe36f026070/script-day-drawer-core.js:139  ${emptyMsg}
+.claude/worktrees/agent-ab77bdfe36f026070/script-day-summary-card.js:99  ${statusIcon}
+.claude/worktrees/agent-ab77bdfe36f026070/script-day-summary-card.js:100  ${statusLabel}
+.claude/worktrees/agent-ab77bdfe36f026070/script-day-summary-card.js:106  ${pills.length ? `<div class="cdd-sum-pills">${pills.join('')}</div>` : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-habits-milestones.js:42  ${h.icon || 'fa-leaf'}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-habits-milestones.js:48  ${h.id}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-habits-milestones.js:48  ${todayStr}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-habits-milestones.js:48  ${goalId}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-habits-milestones.js:56  ${hCompleted}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-habits-milestones.js:56  ${hTarget}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-habits-milestones.js:57  ${hProgress}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-habits-milestones.js:135  ${m.completed ? 'Tamamlandı' : `Adım ${index + 1}`}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-habits-milestones.js:136  ${m.completed ? '<i class="fa-solid fa-check u-font-size-10px_color-hfff" ></i>' : `<span class="ms...}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-habits-milestones.js:144  ${m.completed ? '<i class="fa-solid fa-circle-check u-font-size-10px" ></i> Tamamlandı' : `<i class...}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-habits-milestones.js:148  ${dateBadge}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-habits-milestones.js:149  ${taskBadge}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-habits-milestones.js:153  ${goal.id}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-habits-milestones.js:153  ${m.id}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-habits-milestones.js:154  ${goal.id}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-habits-milestones.js:154  ${m.id}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-sections.js:126  ${_todayStrAP}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-sections.js:126  ${goalId}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-sections.js:127  ${t.completed ? '<i class="fa-solid fa-check u-font-size-11px_color-white" ></i>' : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-sections.js:133  ${t.date}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-sections.js:141  ${pClass}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-sections.js:142  ${t.id}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-sections.js:142  ${goalId}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-sections.js:143  ${t.completed ? '<i class="fa-solid fa-check u-font-size-11px_color-white" ></i>' : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-sections.js:148  ${t.timeStart || '09:00'}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-sections.js:149  ${pLabel}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-sections.js:150  ${t.date ? `<span class="u-font-size-10px_background-rgba2552552550p05_padding-2px8px"><i class="fa...}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-sections.js:153  ${t.id}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-sections.js:153  ${t.date}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-sections.js:153  ${goalId}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-sections.js:188  ${groupKey}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-sections.js:192  ${msDateRange}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-sections.js:193  ${msCompleted}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-sections.js:193  ${msTotal}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-sections.js:202  ${groupKey}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-sections.js:259  ${h.icon || 'fa-leaf'}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-sections.js:265  ${h.id}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-sections.js:265  ${todayStr}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-sections.js:265  ${goalId}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-sections.js:273  ${hCompleted}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-sections.js:273  ${hTarget}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-sections.js:274  ${hProgress}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-sections.js:352  ${m.completed ? 'Tamamlandı' : `Adım ${index + 1}`}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-sections.js:353  ${m.completed ? '<i class="fa-solid fa-check u-font-size-10px_color-hfff" ></i>' : `<span class="ms...}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-sections.js:361  ${m.completed ? '<i class="fa-solid fa-circle-check u-font-size-10px" ></i> Tamamlandı' : `<i class...}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-sections.js:365  ${dateBadge}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-sections.js:366  ${taskBadge}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-sections.js:370  ${goal.id}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-sections.js:370  ${m.id}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-sections.js:371  ${goal.id}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-details-sections.js:371  ${m.id}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-modal.js:282  ${emoji}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-modal.js:284  ${emoji}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-modal.js:288  ${statusIcon}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-modal.js:288  ${statusLabel}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-modal.js:290  ${categoryLabel ? `<span class="u-background-rgba108922310p12_color-ha29bfe_padding-3px10px_">${cat...}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-modal.js:297  ${endDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-modal.js:301  ${durationText}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-modal.js:303  ${linkedTaskCount > 0 ? `<div class="u-display-flex_align-items-center_gap-6px_font-size-12px_col-2...}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-modal.js:308  ${goal._progress}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-modal.js:313  ${!isWon ? `<button class="control-btn u-white-space-nowrap_font-size-12px_font-weight-700_padding-...}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-modal.js:316  ${goal.id}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-modal.js:431  ${gcStartDisplay}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-modal.js:431  ${gcEndDisplay}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-modal.js:436  ${urgencyClass}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-modal.js:436  ${urgencyText}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-modal.js:437  ${goal.id}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-modal.js:454  ${goal._completedSteps}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-modal.js:454  ${goal._totalSteps}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-modal.js:455  ${goal._progress}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-modal.js:460  ${goal.status !== 'completed' ? `<button class="gc-complete-btn" data-action="quick-complete-goal" ...}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-modal.js:461  ${goal.id}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-modal.js:591  ${wonGoals.length + expiredGoals.length > 0 ? Math.round((wonGoals.length / (wonGoals.length + expi...}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-modal.js:605  ${wonCount > 0 ? ` <span class="u-background-rgba254202870p2_color-hfeca57_padding-1px7px_bo">${won...}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-modal.js:606  ${expiredCount > 0 ? ` <span class="u-background-rgba25571870p2_color-hff4757_padding-1px7px_bor">$...}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-modal.js:607  ${activeCount > 0 ? ` <span class="u-background-rgba108922310p2_color-ha29bfe_padding-1px7px_bo">${...}
+.claude/worktrees/agent-ab77bdfe36f026070/script-goal-modal.js:612  ${MAX_ACTIVE_GOALS}
+.claude/worktrees/agent-ab77bdfe36f026070/script-habit-render-mutate.js:94  ${currentHabitFilter === 'all' ? 'active' : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/script-habit-render-mutate.js:96  ${currentHabitFilter === cat.id ? 'active' : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/script-habit-render-mutate.js:96  ${cat.id}
+.claude/worktrees/agent-ab77bdfe36f026070/script-habit-render-mutate.js:117  ${MAX_ACTIVE_HABITS}
+.claude/worktrees/agent-ab77bdfe36f026070/script-habit-render-mutate.js:165  ${buddyBadge}
+.claude/worktrees/agent-ab77bdfe36f026070/script-habit-render-mutate.js:166  ${linkedGoalBadges}
+.claude/worktrees/agent-ab77bdfe36f026070/script-habit-render-mutate.js:170  ${targetDays}
+.claude/worktrees/agent-ab77bdfe36f026070/script-habit-render-mutate.js:171  ${dateRangeText}
+.claude/worktrees/agent-ab77bdfe36f026070/script-habit-render-mutate.js:175  ${progressPercentage}
+.claude/worktrees/agent-ab77bdfe36f026070/script-habit-render-mutate.js:175  ${completedDays}
+.claude/worktrees/agent-ab77bdfe36f026070/script-habit-render-mutate.js:175  ${targetDays}
+.claude/worktrees/agent-ab77bdfe36f026070/script-habit-render-mutate.js:177  ${trackerHTML}
+.claude/worktrees/agent-ab77bdfe36f026070/script-habit-render-mutate.js:180  ${habit.history[todayStr] ? 'done' : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/script-habit-render-mutate.js:180  ${todayStr}
+.claude/worktrees/agent-ab77bdfe36f026070/script-habit-render-mutate.js:181  ${habit.history[todayStr] ? 'fa-check' : 'fa-bolt'}
+.claude/worktrees/agent-ab77bdfe36f026070/script-habit-render-mutate.js:181  ${habit.history[todayStr] ? 'Tamamlandı' : 'Bugünü Tamamla'}
+.claude/worktrees/agent-ab77bdfe36f026070/script-habit-render-mutate.js:184  ${habit.id}
+.claude/worktrees/agent-ab77bdfe36f026070/script-habit-render-mutate.js:247  ${clickAttr}
+.claude/worktrees/agent-ab77bdfe36f026070/script-habit-render-mutate.js:248  ${clickAttr}
+.claude/worktrees/agent-ab77bdfe36f026070/script-habit-render-mutate.js:251  ${habit.category || 'kisisel'}
+.claude/worktrees/agent-ab77bdfe36f026070/script-habit-render-mutate.js:251  ${catDisplay}
+.claude/worktrees/agent-ab77bdfe36f026070/script-habit-render-mutate.js:253  ${buddyBadge}
+.claude/worktrees/agent-ab77bdfe36f026070/script-habit-render-mutate.js:254  ${goalBadgesHTML}
+.claude/worktrees/agent-ab77bdfe36f026070/script-habit-render-mutate.js:255  ${autoBadge}
+.claude/worktrees/agent-ab77bdfe36f026070/script-journal-library.js:102  ${longDate}
+.claude/worktrees/agent-ab77bdfe36f026070/script-journal-library.js:359  ${trMonthsFull[selectedMonth].toUpperCase()}
+.claude/worktrees/agent-ab77bdfe36f026070/script-journal-library.js:359  ${selectedYear}
+.claude/worktrees/agent-ab77bdfe36f026070/script-journal-library.js:394  ${showRibbon ? '<div class="zk-book-ribbon"></div>' : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/script-journal-library.js:396  ${bk.d}
+.claude/worktrees/agent-ab77bdfe36f026070/script-journal-library.js:397  ${bk.abbr}
+.claude/worktrees/agent-ab77bdfe36f026070/script-journal-library.js:494  ${day}
+.claude/worktrees/agent-ab77bdfe36f026070/script-journal-library.js:494  ${isFilled ? '<span class="cal-dot"></span>' : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/script-milestone-goal-actions.js:67  ${currentDate}
+.claude/worktrees/agent-ab77bdfe36f026070/script-milestone-goal-actions.js:67  ${goal.createdAt ? `min="${new Date(goal.createdAt).toISOString().split('T')[0]}"` : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/script-milestone-goal-actions.js:67  ${goal.deadline ? `max="${goal.deadline.split('-')[0].length===4 ? goal.deadline : goal.deadline.sp...}
+.claude/worktrees/agent-ab77bdfe36f026070/script-milestone-goal-actions.js:438  ${items}
+.claude/worktrees/agent-ab77bdfe36f026070/script-mind-dump.js:122  ${key}
+.claude/worktrees/agent-ab77bdfe36f026070/script-mind-dump.js:161  ${ageStr}
+.claude/worktrees/agent-ab77bdfe36f026070/script-mind-dump.js:162  ${isOld ? `<span class="dump-age-warn">${ageWarnLabel}</span>` : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/script-mind-dump.js:166  ${dump.id}
+.claude/worktrees/agent-ab77bdfe36f026070/script-mind-dump.js:167  ${dump.id}
+.claude/worktrees/agent-ab77bdfe36f026070/script-mind-dump.js:168  ${dump.id}
+.claude/worktrees/agent-ab77bdfe36f026070/script-mind-dump.js:271  ${dumpActiveTag === 'all' ? ' active' : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/script-mind-dump.js:273  ${dumpActiveTag === tag ? ' active' : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/script-mind-dump.js:273  ${tag}
+.claude/worktrees/agent-ab77bdfe36f026070/script-plan-wizard.js:138  ${dayName}
+.claude/worktrees/agent-ab77bdfe36f026070/script-plan-wizard.js:138  ${shortDate}
+.claude/worktrees/agent-ab77bdfe36f026070/script-plan-wizard.js:357  ${t.start}
+.claude/worktrees/agent-ab77bdfe36f026070/script-plan-wizard.js:357  ${t.end}
+.claude/worktrees/agent-ab77bdfe36f026070/script-plan-wizard.js:358  ${badgeHTML}
+.claude/worktrees/agent-ab77bdfe36f026070/script-plan-wizard.js:360  ${t.id}
+.claude/worktrees/agent-ab77bdfe36f026070/script-plan-wizard.js:388  ${t.id}
+.claude/worktrees/agent-ab77bdfe36f026070/script-plan-wizard.js:389  ${t.id}
+.claude/worktrees/agent-ab77bdfe36f026070/script-plan-wizard.js:392  ${shortDate}
+.claude/worktrees/agent-ab77bdfe36f026070/script-plan-wizard.js:392  ${t.start}
+.claude/worktrees/agent-ab77bdfe36f026070/script-plan-wizard.js:392  ${t.end}
+.claude/worktrees/agent-ab77bdfe36f026070/script-spotlight-search.js:96  ${res.icon}
+.claude/worktrees/agent-ab77bdfe36f026070/script-spotlight-search.js:98  ${shortDate}
+.claude/worktrees/agent-ab77bdfe36f026070/script-spotlight-search.js:99  ${res.time || 'Tüm Gün'}
+.claude/worktrees/agent-ab77bdfe36f026070/script-spotlight-search.js:100  ${res.type}
+.claude/worktrees/agent-ab77bdfe36f026070/script-statistics.js:101  ${parseInt(d)}
+.claude/worktrees/agent-ab77bdfe36f026070/script-statistics.js:101  ${activeFullMonths[parseInt(m)-1]}
+.claude/worktrees/agent-ab77bdfe36f026070/script-statistics.js:101  ${y}
+.claude/worktrees/agent-ab77bdfe36f026070/script-statistics.js:309  ${W}
+.claude/worktrees/agent-ab77bdfe36f026070/script-statistics.js:309  ${H}
+.claude/worktrees/agent-ab77bdfe36f026070/script-statistics.js:320  ${gridAndYLabels}
+.claude/worktrees/agent-ab77bdfe36f026070/script-statistics.js:321  ${areaFor(linePath2, points2)}
+.claude/worktrees/agent-ab77bdfe36f026070/script-statistics.js:322  ${areaFor(linePath, points)}
+.claude/worktrees/agent-ab77bdfe36f026070/script-statistics.js:323  ${linePath2}
+.claude/worktrees/agent-ab77bdfe36f026070/script-statistics.js:324  ${linePath}
+.claude/worktrees/agent-ab77bdfe36f026070/script-statistics.js:325  ${dotsFor(points2, 'trend-line-dot trend-series-focus-dot')}
+.claude/worktrees/agent-ab77bdfe36f026070/script-statistics.js:326  ${dotsFor(points, 'trend-line-dot trend-series-tasks-dot')}
+.claude/worktrees/agent-ab77bdfe36f026070/script-statistics.js:327  ${xLabels}
+.claude/worktrees/agent-ab77bdfe36f026070/script-statistics.js:328  ${padT}
+.claude/worktrees/agent-ab77bdfe36f026070/script-statistics.js:328  ${padT + innerH}
+.claude/worktrees/agent-ab77bdfe36f026070/script-statistics.js:331  ${padL}
+.claude/worktrees/agent-ab77bdfe36f026070/script-statistics.js:331  ${innerW}
+.claude/worktrees/agent-ab77bdfe36f026070/script-statistics.js:331  ${H}
+.claude/worktrees/agent-ab77bdfe36f026070/script-statistics.js:356  ${p.value}
+.claude/worktrees/agent-ab77bdfe36f026070/script-statistics.js:357  ${p.value2}
+.claude/worktrees/agent-ab77bdfe36f026070/script-statistics.js:692  ${c}
+.claude/worktrees/agent-ab77bdfe36f026070/script-statistics.js:692  ${t}
+.claude/worktrees/agent-ab77bdfe36f026070/script-task-render-mutate.js:241  ${todayStr}
+.claude/worktrees/agent-ab77bdfe36f026070/script-task-render-mutate.js:243  ${todayStr}
+.claude/worktrees/agent-ab77bdfe36f026070/script-task-render-mutate.js:246  ${parentBadgeHTML}
+.claude/worktrees/agent-ab77bdfe36f026070/script-task-render-mutate.js:497  ${tStart}
+.claude/worktrees/agent-ab77bdfe36f026070/script-task-render-mutate.js:498  ${tEnd}
+.claude/worktrees/agent-ab77bdfe36f026070/script-task-render-mutate.js:507  ${task.id}
+.claude/worktrees/agent-ab77bdfe36f026070/script-task-render-mutate.js:509  ${task.id}
+.claude/worktrees/agent-ab77bdfe36f026070/script-task-render-mutate.js:511  ${isHabitTask ? `<span class="task-category-tag tag-habit"><i class="fa-solid fa-leaf u-margin-righ...}
+.claude/worktrees/agent-ab77bdfe36f026070/script-task-render-mutate.js:515  ${task.priority === 'high' ? 'Yüksek' : task.priority === 'low' ? 'Düşük' : 'Orta'}
+.claude/worktrees/agent-ab77bdfe36f026070/script-task-render-mutate.js:517  ${tStart}
+.claude/worktrees/agent-ab77bdfe36f026070/script-task-render-mutate.js:517  ${tEnd}
+.claude/worktrees/agent-ab77bdfe36f026070/script-task-render-mutate.js:518  ${task.recurring ? `<span class="task-time-badge u-color-ha29bfe_border-color-rgba1621552540p3_marg...}
+.claude/worktrees/agent-ab77bdfe36f026070/script-task-render-mutate.js:520  ${breadcrumbHTML}
+.claude/worktrees/agent-ab77bdfe36f026070/script-task-render-mutate.js:523  ${task.id}
+.claude/worktrees/agent-ab77bdfe36f026070/script-task-render-mutate.js:524  ${goalOptionsHTML}
+.claude/worktrees/agent-ab77bdfe36f026070/script-task-render-mutate.js:527  ${!task.completed ? `<button class="edit-btn" data-action="edit-task" data-id="${task.id}" title="G...}
+.claude/worktrees/agent-ab77bdfe36f026070/script-task-render-mutate.js:528  ${!task.completed ? `<button class="focus-btn" data-action="focus-task" data-id="${task.id}" title=...}
+.claude/worktrees/agent-ab77bdfe36f026070/script-task-render-mutate.js:529  ${task.id}
+.claude/worktrees/agent-ab77bdfe36f026070/script-task-render-mutate.js:529  ${task.date}
+.claude/worktrees/agent-ab77bdfe36f026070/script-timer.js:239  ${timeStr}
+.claude/worktrees/agent-ab77bdfe36f026070/script-timer.js:857  ${curLoop}
+.claude/worktrees/agent-ab77bdfe36f026070/script-timer.js:857  ${timerSettings.targetCycles}
+.claude/worktrees/agent-ab77bdfe36f026070/script-timer.js:912  ${p.focus}
+.claude/worktrees/agent-ab77bdfe36f026070/script-timer.js:913  ${p.shortBreak}
+.claude/worktrees/agent-ab77bdfe36f026070/script-timer.js:914  ${p.longBreak}
+.claude/worktrees/agent-ab77bdfe36f026070/script-today-stats.js:45  ${completedTasks}
+.claude/worktrees/agent-ab77bdfe36f026070/script-today-stats.js:45  ${totalTasks}
+.claude/worktrees/agent-ab77bdfe36f026070/script-today-stats.js:116  ${icon}
+.claude/worktrees/agent-ab77bdfe36f026070/script-today-stats.js:121  ${tagText}
+.claude/worktrees/agent-ab77bdfe36f026070/social-buddy-habits.js:451  ${hasFriends ? 'Henüz ortak bir alışkanlık oluşturmadın. "Alışkanlıklar" sekmesinden yeni bir hedef...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-buddy-habits.js:477  ${habit.icon || 'fa-star'}
+.claude/worktrees/agent-ab77bdfe36f026070/social-buddy-habits.js:478  ${window.avatarImgHtml(currentUser, 28)}
+.claude/worktrees/agent-ab77bdfe36f026070/social-buddy-habits.js:478  ${buddyAvatar}
+.claude/worktrees/agent-ab77bdfe36f026070/social-buddy-habits.js:482  ${completedDays}
+.claude/worktrees/agent-ab77bdfe36f026070/social-buddy-habits.js:482  ${targetDays}
+.claude/worktrees/agent-ab77bdfe36f026070/social-buddy-habits.js:483  ${statusClass}
+.claude/worktrees/agent-ab77bdfe36f026070/social-buddy-habits.js:483  ${statusText}
+.claude/worktrees/agent-ab77bdfe36f026070/social-buddy-habits.js:491  ${habit.id}
+.claude/worktrees/agent-ab77bdfe36f026070/social-buddy-habits.js:491  ${(bothDone || !buddyOnline) ? 'disabled' : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/social-chat-extras.js:88  ${icon}
+.claude/worktrees/agent-ab77bdfe36f026070/social-chat-extras.js:91  ${sizeMB ? `<div class="u-font-size-10px_color-rgba2552552550p4">${sizeMB}</div>` : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/social-chat-extras.js:234  ${highlight}
+.claude/worktrees/agent-ab77bdfe36f026070/social-chat-extras.js:235  ${date}
+.claude/worktrees/agent-ab77bdfe36f026070/social-chat-extras.js:597  ${fmtDate(entry.date)}
+.claude/worktrees/agent-ab77bdfe36f026070/social-chat-extras.js:746  ${i}
+.claude/worktrees/agent-ab77bdfe36f026070/social-chat-extras.js:750  ${m.xp}
+.claude/worktrees/agent-ab77bdfe36f026070/social-cw-control-request.js:104  ${labels[reqType] || 'yönetmek'}
+.claude/worktrees/agent-ab77bdfe36f026070/social-daily-race.js:29  ${i}
+.claude/worktrees/agent-ab77bdfe36f026070/social-daily-race.js:30  ${i + 1}
+.claude/worktrees/agent-ab77bdfe36f026070/social-daily-race.js:31  ${avatarImgHtml({ displayName: r.display_name, username: r.username, avatarColor: r.avatar_color, c...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-daily-race.js:34  ${r.is_me ? '<span class="lb-me-tag"> (Sen)</span>' : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/social-daily-race.js:35  ${medal}
+.claude/worktrees/agent-ab77bdfe36f026070/social-daily-race.js:35  ${xp}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dc-chat-theme.js:264  ${Object.entries(DC_CHAT_THEMES).map(([key, t]) => ` <button class="dc-theme-swatch" data-theme="${...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dc-chat-theme.js:268  ${customColor}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dc-chat-theme.js:275  ${Object.entries(DC_CHAT_WALLPAPERS).map(([key, w]) => ` <button class="dc-wallpaper-swatch ${wallp...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dc-chat-theme.js:283  ${Object.entries(DC_CHAT_BUBBLE_SHAPES).map(([key, s]) => ` <button class="dc-theme-pill" data-shap...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dc-chat-theme.js:292  ${Object.entries(DC_CHAT_FONT_SIZES).map(([key, s]) => ` <button class="dc-theme-pill" data-fontsiz...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dc-chat-theme.js:300  ${Object.entries(DC_CHAT_FONT_FAMILIES).map(([key, f]) => ` <button class="dc-theme-pill" data-font...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dc-confirm-toasts.js:71  ${icon}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dc-confirm-toasts.js:123  ${allowEveryone ? `<button class="dc-confirm-btn dc-confirm-ok danger u-width-100pct" data-action="...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dc-contacts.js:85  ${window.avatarImgHtml(uData, 30, 'flex-shrink:0;')}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dc-contacts.js:87  ${typeof window.hasUnreadDm === 'function' && hasUnreadDm(username) ? '<span class="dc-unread-dot">...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dc-contacts.js:214  ${stLabel}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dc-contacts.js:226  ${xp.toLocaleString('tr-TR')}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dc-contacts.js:230  ${focusStr}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dc-contacts.js:234  ${focusStreak}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dc-contacts.js:239  ${groupJoinedAt ? `<div class="mp-info-row"><i class="fa-solid fa-door-open"></i><span>Gruba katıld...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dc-contacts.js:240  ${joinedAt ? `<div class="mp-info-row"><i class="fa-solid fa-calendar-plus"></i><span>Platforma kat...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dc-contacts.js:241  ${completedGoals}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dc-contacts.js:244  ${cgId}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dc-contacts.js:245  ${!isMe ? `<div class="mp-actions u-margin-top-8px" > <button class="mp-action-btn mp-dm-btn" title...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dc-mentions.js:84  ${i === 0 ? ' is-active' : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dc-message-cards.js:83  ${c}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dc-message-cards.js:125  ${emoji}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dc-message-cards.js:126  ${window.avatarImgHtml({ displayName: m.displayName, avatarColor: m.avatarColor, customAvatar: m.cu...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dc-message-cards.js:151  ${m.type === 'system_join' ? '<i class="fa-solid fa-arrow-right-to-bracket u-color-h2ed573_margin-r...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dc-message-cards.js:175  ${icon}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dc-message-render.js:44  ${canPin ? ` <button class="dc-msg-action-btn${isPinned ? ' is-selected' : ''}" data-action="pin" t...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dc-message-render.js:47  ${isMe ? ` <button class="dc-msg-action-btn" data-action="edit" title="Düzenle" aria-label="Düzenle...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dc-message-render.js:51  ${canModerate ? ` <button class="dc-msg-action-btn dc-msg-action-danger" data-action="mod-delete" t...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dc-message-render.js:277  ${roleBadgeHtml}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dc-message-render.js:278  ${timeStr}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dc-online-status.js:64  ${label}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dc-scroll-skeleton.js:10  ${rows.map(r => ` <div class="dc-msg-skeleton-row${r.side === 'right' ? ' right' : ''}"> <div class...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dc-session-strip.js:58  ${whenTxt}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dc-session-strip.js:58  ${next.duration || 60}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dc-session-strip.js:61  ${iAmIn ? '<i class="fa-solid fa-check"></i> Varsın' : '<i class="fa-solid fa-hand"></i> Varım'}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dm-notifications.js:946  ${unreadCount > 9 ? '9+' : unreadCount}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dm-notifications.js:953  ${c.type === 'workroom' ? 'fa-door-open' : 'fa-hashtag'}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dm-notifications.js:954  ${window.avatarImgHtml(c, 36)}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dm-notifications.js:957  ${avatarHtml}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dm-notifications.js:960  ${pinned ? '<i class="fa-solid fa-thumbtack dc-recent-convo-pin-icon"></i>' : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dm-notifications.js:962  ${muted ? '<i class="fa-solid fa-bell-slash dc-recent-convo-mute-icon"></i>' : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dm-notifications.js:967  ${window.timeAgo(c.lastTimestamp)}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dm-notifications.js:968  ${pillHtml}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dm-notifications.js:1002  ${isGroup ? '' : ` <button data-action="pin"><i class="fa-solid fa-thumbtack"></i> ${pinned ? 'Sabi...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dm-notifications.js:1077  ${icon}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dm-notifications.js:1126  ${icon || 'fa-bell'}
+.claude/worktrees/agent-ab77bdfe36f026070/social-dm-notifications.js:1130  ${body ? `<div class="st-sub">${body}</div>` : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/social-friend-search.js:50  ${avatarImgHtml(user, 44)}
+.claude/worktrees/agent-ab77bdfe36f026070/social-friend-search.js:53  ${user.xp || 0}
+.claude/worktrees/agent-ab77bdfe36f026070/social-friend-search.js:53  ${user.online ? '<span class="si-green">Çevrimiçi</span>' : 'Çevrimdışı'}
+.claude/worktrees/agent-ab77bdfe36f026070/social-friends-notifications.js:1563  ${_notifFilter === 'all' ? 'Henüz bir bildirimin yok.' : 'Bu kategoride bildirim yok.'}
+.claude/worktrees/agent-ab77bdfe36f026070/social-friends-notifications.js:1682  ${avatarImgHtml({ displayName, avatarColor, username }, 40)}
+.claude/worktrees/agent-ab77bdfe36f026070/social-friends-notifications.js:1686  ${warningBlock}
+.claude/worktrees/agent-ab77bdfe36f026070/social-friends-notifications.js:1687  ${hasSharedData ? '' : 'data-dyn-mt="24px"'}
+.claude/worktrees/agent-ab77bdfe36f026070/social-friends-notifications.js:2018  ${name}
+.claude/worktrees/agent-ab77bdfe36f026070/social-friends-notifications.js:2018  ${best._delta}
+.claude/worktrees/agent-ab77bdfe36f026070/social-friends-notifications.js:2073  ${gap}
+.claude/worktrees/agent-ab77bdfe36f026070/social-friends-notifications.js:2076  ${L.color}
+.claude/worktrees/agent-ab77bdfe36f026070/social-friends-notifications.js:2076  ${L.color}
+.claude/worktrees/agent-ab77bdfe36f026070/social-friends-notifications.js:2076  ${L.color}
+.claude/worktrees/agent-ab77bdfe36f026070/social-friends-notifications.js:2076  ${L.name}
+.claude/worktrees/agent-ab77bdfe36f026070/social-friends-notifications.js:2076  ${L.icon}
+.claude/worktrees/agent-ab77bdfe36f026070/social-friends-notifications.js:2076  ${L.name}
+.claude/worktrees/agent-ab77bdfe36f026070/social-friends-notifications.js:2083  ${zoneClass}
+.claude/worktrees/agent-ab77bdfe36f026070/social-friends-notifications.js:2083  ${Math.min(i, 15) * 35}
+.claude/worktrees/agent-ab77bdfe36f026070/social-friends-notifications.js:2084  ${i + 1}
+.claude/worktrees/agent-ab77bdfe36f026070/social-friends-notifications.js:2085  ${avatarImgHtml(u, 32, 'flex-shrink:0;')}
+.claude/worktrees/agent-ab77bdfe36f026070/social-friends-notifications.js:2088  ${rankDeltaChip}
+.claude/worktrees/agent-ab77bdfe36f026070/social-friends-notifications.js:2089  ${u.isMe ? '<span class="lb-me-tag"> (Sen)</span>' : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/social-friends-notifications.js:2090  ${leagueBadge}
+.claude/worktrees/agent-ab77bdfe36f026070/social-friends-notifications.js:2091  ${gapChip}
+.claude/worktrees/agent-ab77bdfe36f026070/social-friends-notifications.js:2092  ${u.xp || 0}
+.claude/worktrees/agent-ab77bdfe36f026070/social-friends-notifications.js:2092  ${wxp}
+.claude/worktrees/agent-ab77bdfe36f026070/social-friends-notifications.js:2094  ${pct}
+.claude/worktrees/agent-ab77bdfe36f026070/social-gamification.js:326  ${s.total_xp || 0}
+.claude/worktrees/agent-ab77bdfe36f026070/social-gamification.js:330  ${L.icon}
+.claude/worktrees/agent-ab77bdfe36f026070/social-gamification.js:330  ${L.name}
+.claude/worktrees/agent-ab77bdfe36f026070/social-gamification.js:334  ${s.weeks || 0}
+.claude/worktrees/agent-ab77bdfe36f026070/social-gamification.js:409  ${i + 1}
+.claude/worktrees/agent-ab77bdfe36f026070/social-gamification.js:410  ${window.avatarImgHtml(u, 32, 'flex-shrink:0;')}
+.claude/worktrees/agent-ab77bdfe36f026070/social-gamification.js:413  ${u.isMe ? '<span class="lb-me-tag"> (Sen)</span>' : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/social-gamification.js:414  ${flames}
+.claude/worktrees/agent-ab77bdfe36f026070/social-gamification.js:414  ${s}
+.claude/worktrees/agent-ab77bdfe36f026070/social-gamification.js:452  ${canStart ? `<div class="u-display-flex_gap-6px"> <button class="control-btn secondary btn-md" dat...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-gamification.js:494  ${finished ? 'Bitti' : `${daysLeft} gün kaldı`}
+.claude/worktrees/agent-ab77bdfe36f026070/social-gamification.js:497  ${rowsHtml}
+.claude/worktrees/agent-ab77bdfe36f026070/social-gamification.js:498  ${joinBtn}
+.claude/worktrees/agent-ab77bdfe36f026070/social-gamification.js:499  ${finished && canStart ? `<button class="control-btn secondary btn-md u-margin-top-8px" data-gt-sta...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-details.js:194  ${formatFocusMinutes(me.focusMin)}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-details.js:207  ${rankLabel}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-details.js:209  ${myIdx + 1}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-details.js:210  ${subText}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-details.js:212  ${formatFocusMinutes(me.focusMin)}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-details.js:256  ${idx < 3 ? ' top-rank' : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-details.js:257  ${rankLabel}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-details.js:258  ${avatarImgHtml({ ...m.uData, displayName }, 34)}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-details.js:262  ${m.uData.online ? '<span class="glb-online-dot" title="Çevrimiçi"></span>' : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-details.js:267  ${formatFocusMinutes(m.focusMin)}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-details.js:348  ${avatarImgHtml({ ...uData, displayName: uData.displayName || memberUsername }, 30)}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-details.js:418  ${summaryHtml}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-discover.js:314  ${groupData.weeklyGoal || 0}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-discover.js:317  ${categoryTag ? ` <div class="glass-panel si-flex1-pad"> <div class="si-header-title">${categoryTag...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-discover.js:400  ${categoryTag ? `<span class="discover-category-tag">${categoryTag}</span>` : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-discover.js:401  ${isNew ? `<span class="discover-new-badge">Yeni</span>` : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-discover.js:402  ${groupData.requireApproval ? `<span class="u-font-size-11px_padding-2px8px_border-radius-6px_backg...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-discover.js:403  ${activeNow > 0 ? `<span class="u-font-size-11px_padding-2px8px_border-radius-6px_background"><i cl...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-discover.js:411  ${window.GROUP_LIMITS.MAX_MEMBERS_PER_GROUP}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-discover.js:415  ${groupData.weeklyGoal || 0}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-discover.js:424  ${memberCount > 0 ? ` <div class="u-display-flex_align-items-center_margin-bottom-6px_padding-"> ${...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-discover.js:428  ${createdAgoText ? `<div class="u-font-size-11px_color-var-text-muted_margin-bottom-18px"><i class=...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-discover.js:430  ${footerBtnHtml}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-discover.js:486  ${groupAvatarHtml(groupCode, groupData.name, 40)}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-discover.js:490  ${categoryTag}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-discover.js:491  ${newBadge}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-discover.js:494  ${window.GROUP_LIMITS.MAX_MEMBERS_PER_GROUP}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-discover.js:494  ${groupData.weeklyGoal}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-discover.js:494  ${activeNowHtml}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-discover.js:498  ${groupCode}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-discover.js:501  ${isFull ? `<button class="primary-btn u-padding-5px12px_font-size-11px_background-rgba2552552550p0...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-discover.js:719  ${(discoverFilterHasSlot || discoverFilterActiveOnly) ? "Filtrelere uyan grup bulunamadı." : "Katıl...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:327  ${subTxt}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:328  ${listHtml}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:330  ${isAuthorized ? '<button id="gsc-waiting-start-btn" class="control-btn primary-btn"><i class="fa-s...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:505  ${GROUP_THEME_COLORS.map(c => ` <button class="grp-theme-swatch${c.hex === current ? ' active' : ''...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:610  ${i}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:613  ${ev.text}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:614  ${ev.sub ? `<div class="u-font-size-10px_color-var-text-muted_margin-top-1px">${ev.sub}</div>` : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:616  ${fmtTs(ev.ts)}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:656  ${d}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:656  ${months[parseInt(m)-1]}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:656  ${y}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:658  ${s.time}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:658  ${gscAddMinutes(s.time, durationMin)}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:666  ${shownCount-5}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:673  ${dateLabel}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:675  ${timeRange}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:677  ${durationMin}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:678  ${!isTeacherView ? `<span class="u-color-h74b9ff_margin-left-6px"><i class="fa-solid fa-circle-chec...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:682  ${shownCount > 0 ? `<div class="u-display-flex_align-items-center_gap-4px">${avatarsHtml}${overflow...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:683  ${isTeacherView ? `<span class="u-font-size-11px_color-rgba2552552550p5">${checkedIn.length}/${atte...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:853  ${GSC_DAYS_TR[i]}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:854  ${day.getDate()}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:855  ${dotsHtml}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:855  ${dotsOverflow}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:908  ${dayLabel}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:908  ${daySessions.length > 0 ? ` · ${daySessions.length} seans` : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:909  ${gscCanManageSessions ? `<button id="gsc-day-detail-add" class="control-btn secondary u-padding-4p...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:911  ${daySessions.length > 0 ? `<div class="gsc-day-detail-list">${rowsHtml}</div>` : `<div class="gsc-...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:963  ${today}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:963  ${gscDateKey(new Date())}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:968  ${startTime}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:972  ${endTime}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:980  ${isEdit ? (es.recurrenceGroupId ? `<p class="u-font-size-11px_color-var-text-muted_margin-0"><i cl...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:1038  ${msg}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:1186  ${dateLabel}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:1187  ${s.time ? `${s.time}–${gscAddMinutes(s.time, s.duration || 60)}` : '--:--'}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:1188  ${s.recurrenceGroupId ? '<span class="gsc-detail-badge"><i class="fa-solid fa-repeat"></i> Her haft...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:1189  ${focusingNowCount > 0 ? `<span class="gsc-detail-badge live"><span class="gsc-live-dot"></span> ${...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:1190  ${isPast ? '<span class="gsc-detail-badge green"><i class="fa-solid fa-check"></i> Tamamlandı</span...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:1196  ${recapHtml}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:1203  ${attendees.length === 0 ? '<span class="u-font-size-12px_color-var-text-muted">Henüz kimse katılma...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:1206  ${canStartNow ? `<button id="gsc-start-now-btn" class="primary-btn u-width-100pct_padding-11px" ><i...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:1207  ${!isPast && !canManage ? `<button id="gsc-rsvp-btn" class="gsc-rsvp-btn ${isMine ? 'leave' : 'join...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:1212  ${canManage && !isPast ? `<button id="gsc-dm-edit" class="control-btn secondary u-width-100pct_padd...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:1213  ${canManage ? `<button id="gsc-dm-delete" class="gsc-delete-btn"><i class="fa-solid fa-trash-can"><...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-group-session-calendar.js:1214  ${canManage && s.recurrenceGroupId ? `<button id="gsc-dm-delete-series" class="gsc-delete-btn u-mar...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-home-summary.js:124  ${greet}
+.claude/worktrees/agent-ab77bdfe36f026070/social-home-summary.js:126  ${suggestion.sub}
+.claude/worktrees/agent-ab77bdfe36f026070/social-home-summary.js:127  ${suggestion.cta ? `<button id="dhs-greeting-cta" class="dhs-greeting-cta" type="button">${suggesti...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-home-summary.js:134  ${rankInfo ? `<div class="dhs-rank-badge dhs-rank-badge--big"><i class="fa-solid fa-trophy"></i> ${...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-home-summary.js:178  ${myLeague.icon}
+.claude/worktrees/agent-ab77bdfe36f026070/social-home-summary.js:178  ${myWeekly}
+.claude/worktrees/agent-ab77bdfe36f026070/social-home-summary.js:179  ${myLeague.name}
+.claude/worktrees/agent-ab77bdfe36f026070/social-home-summary.js:180  ${leaguePct}
+.claude/worktrees/agent-ab77bdfe36f026070/social-home-summary.js:181  ${isFinite(promoteAt) ? `Yükselmek için <b>${Math.max(0, promoteAt - myWeekly)} XP</b> kaldı · <b>$...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-home-summary.js:184  ${seasonLine}
+.claude/worktrees/agent-ab77bdfe36f026070/social-home-summary.js:309  ${window.formatFocusMinutes(g.weekly_goal)}
+.claude/worktrees/agent-ab77bdfe36f026070/social-home-summary.js:310  ${g.name}
+.claude/worktrees/agent-ab77bdfe36f026070/social-home-summary.js:318  ${done ? '✓ Tamamlandı' : `%${pct}`}
+.claude/worktrees/agent-ab77bdfe36f026070/social-home-summary.js:318  ${window.formatFocusMinutes(total)}
+.claude/worktrees/agent-ab77bdfe36f026070/social-home-summary.js:318  ${window.formatFocusMinutes(g.weekly_goal)}
+.claude/worktrees/agent-ab77bdfe36f026070/social-home-summary.js:318  ${window.formatFocusMinutes(mine)}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-class-modals.js:186  ${c.id}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-class-modals.js:214  ${t.id}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-class-modals.js:266  ${countByTemplate[t.id] || 0}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-class-modals.js:268  ${t.id}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-class-modals.js:269  ${t.id}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-class-modals.js:270  ${t.id}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-class-modals.js:283  ${c.id}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-class-modals.js:348  ${dayName}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-class-modals.js:407  ${badge}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-class-modals.js:450  ${dayName}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-class-modals.js:715  ${newSectionId ? `<option value="__unassigned__">— Sınıfsız yap —</option>` : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-class-modals.js:785  ${info.program.id}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-class-modals.js:786  ${info.program.id}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-class-modals.js:794  ${info.draftProgram.id}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-class-modals.js:795  ${info.draftProgram.id}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-classroom-insights.js:251  ${onboardingHtml}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-classroom-insights.js:251  ${weekTodoHtml}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-classroom-insights.js:251  ${kpiHtml}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-classroom-insights.js:430  ${nextMineHtml}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-classroom-insights.js:430  ${myStreakHtml}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-classroom-insights.js:430  ${myActiveStatusHtml}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-classroom-insights.js:430  ${myCompletionHtml}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-classroom-insights.js:430  ${privacyHtml}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-classroom-insights.js:454  ${checked ? `<i class="fa-solid fa-eye-slash"></i> Şu an <b>gizli</b>: haftalık odak süren ve aktif...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-classroom-insights.js:520  ${statTilesHtml}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-classroom-insights.js:521  ${isClassAdmin ? `<div id="grp-intro-insights" class="cp-skeleton u-margin-bottom-14px" ><div class...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-classroom-insights.js:522  ${isClassAdmin ? `<div id="grp-intro-shortcuts-wrap"></div>` : ` <button type="button" class="contr...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-classroom-wire.js:637  ${s.userId}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-my-groups.js:352  ${window.groupAvatarHtml(groupCode, groupData.name, 30)}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-my-groups.js:354  ${ownerBadge}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-my-groups.js:357  ${groupCode}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-my-groups.js:357  ${activeNowMiniHtml}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-my-groups.js:513  ${window.avatarImgHtml(uData, 28)}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-panel.js:288  ${hasStudentPerfTab ? `<button class="cp-subtab-btn${isActive('performansim')}" data-cpsub="perform...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-panel.js:289  ${hasPerfTab ? `<button class="cp-subtab-btn${isActive('performans')}" data-cpsub="performans"><i c...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-panel.js:290  ${isActive('odevler')}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-panel.js:290  ${asgLabel}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-panel.js:291  ${isActive('program')}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-panel.js:292  ${isClassAdmin ? `<button class="cp-subtab-btn${isActive('roster')}" data-cpsub="roster"><i class="...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-panel.js:293  ${isActive('rapor')}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-panel.js:295  ${hasStudentPerfTab ? `<div class="cp-subtab-panel${isActive('performansim')}" data-cpsubpanel="per...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-panel.js:296  ${hasPerfTab ? `<div class="cp-subtab-panel${isActive('performans')}" data-cpsubpanel="performans">...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-panel.js:297  ${isActive('odevler')}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-panel.js:297  ${asgHtml}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-panel.js:298  ${isActive('program')}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-panel.js:298  ${scheduleHtml}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-panel.js:299  ${isClassAdmin ? `<div class="cp-subtab-panel${isActive('roster')}" data-cpsubpanel="roster">${rost...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-panel.js:300  ${isActive('rapor')}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-panel.js:300  ${reportHtml}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-panel.js:412  ${ids.map(tileHtml).join('')}
+.claude/worktrees/agent-ab77bdfe36f026070/social-institution-panel.js:436  ${Object.keys(w.defs).map(galleryRowHtml).join('')}
+.claude/worktrees/agent-ab77bdfe36f026070/social-message-pins.js:277  ${keys.length > 1 ? `Sabitlenmiş mesaj (${_dcPinnedIndex + 1}/${keys.length})` : 'Sabitlenmiş mesaj'}
+.claude/worktrees/agent-ab77bdfe36f026070/social-message-pins.js:280  ${keys.length > 1 ? `<button class="dc-pinned-nav-btn" data-action="next-pin" title="Sonraki sabitl...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-message-pins.js:281  ${canUnpin ? `<button class="dc-pinned-unpin-btn" data-action="unpin" title="Sabitlemeyi kaldır" ar...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-misc-isolated-utils.js:55  ${rounds}
+.claude/worktrees/agent-ab77bdfe36f026070/social-misc-isolated-utils.js:55  ${dur}
+.claude/worktrees/agent-ab77bdfe36f026070/social-misc-isolated-utils.js:55  ${rounds}
+.claude/worktrees/agent-ab77bdfe36f026070/social-misc-isolated-utils.js:55  ${brk}
+.claude/worktrees/agent-ab77bdfe36f026070/social-misc-isolated-utils.js:55  ${h > 0 ? h + 'sa ' : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/social-misc-isolated-utils.js:55  ${m}
+.claude/worktrees/agent-ab77bdfe36f026070/social-notif-sounds.js:142  ${avatarHtml || '<span class="st-emoji">💬</span>'}
+.claude/worktrees/agent-ab77bdfe36f026070/social-online-friends.js:92  ${window.avatarImgHtml(f, 34)}
+.claude/worktrees/agent-ab77bdfe36f026070/social-online-friends.js:94  ${hasUnreadDm(f.username) ? '<span class="dc-unread-dot"></span>' : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/social-online-friends.js:102  ${!f.online ? ' cw-invite-btn--offline' : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/social-online-friends.js:102  ${!f.online ? 'disabled title="Bu kullanıcı şu an çevrimdışı"' : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/social-polls.js:44  ${num}
+.claude/worktrees/agent-ab77bdfe36f026070/social-polls.js:150  ${totalVotes}
+.claude/worktrees/agent-ab77bdfe36f026070/social-roles.js:226  ${meta.color}
+.claude/worktrees/agent-ab77bdfe36f026070/social-roles.js:226  ${meta.color}
+.claude/worktrees/agent-ab77bdfe36f026070/social-roles.js:227  ${meta.icon}
+.claude/worktrees/agent-ab77bdfe36f026070/social-roles.js:231  ${timeStr}
+.claude/worktrees/agent-ab77bdfe36f026070/social-roles.js:414  ${r.id}
+.claude/worktrees/agent-ab77bdfe36f026070/social-roles.js:835  ${row.user_id}
+.claude/worktrees/agent-ab77bdfe36f026070/social-roles.js:837  ${window.avatarImgHtml({ customAvatar: profile.custom_avatar, avatarInitials: profile.avatar_initia...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-roles.js:844  ${row.user_id}
+.claude/worktrees/agent-ab77bdfe36f026070/social-roles.js:845  ${row.user_id}
+.claude/worktrees/agent-ab77bdfe36f026070/social-roles.js:987  ${m.user_id}
+.claude/worktrees/agent-ab77bdfe36f026070/social-roles.js:990  ${canAssignRole ? 'data-dyn-cursor="pointer"' : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/social-roles.js:993  ${canAssignRole ? '<i class="fa-solid fa-chevron-down u-font-size-9px_opacity-0p7" ></i>' : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/social-roles.js:998  ${m.user_id}
+.claude/worktrees/agent-ab77bdfe36f026070/social-roles.js:1006  ${m.user_id}
+.claude/worktrees/agent-ab77bdfe36f026070/social-roles.js:1008  ${window.avatarImgHtml({ customAvatar: profile.custom_avatar, avatarInitials: profile.avatar_initia...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-roles.js:1014  ${chipHtml}
+.claude/worktrees/agent-ab77bdfe36f026070/social-roles.js:1014  ${kickHtml}
+.claude/worktrees/agent-ab77bdfe36f026070/social-room-presence.js:109  ${window.avatarImgHtml({ ...mData, displayName: mData.displayName || mUsername }, 26, 'flex-shrink:...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-room-presence.js:115  ${mRole}
+.claude/worktrees/agent-ab77bdfe36f026070/social-room-presence.js:117  ${actDetailS}
+.claude/worktrees/agent-ab77bdfe36f026070/social-room-presence.js:203  ${window.avatarImgHtml({ avatarColor: presence.avatarColor, customAvatar: presence.customAvatar, di...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-room-presence.js:206  ${isMe ? ' <span class="presence-you-tag">ben</span>' : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/social-server-tree.js:420  ${it.cls}
+.claude/worktrees/agent-ab77bdfe36f026070/social-server-tree.js:421  ${it.icon}
+.claude/worktrees/agent-ab77bdfe36f026070/social-server-tree.js:422  ${it.label}
+.claude/worktrees/agent-ab77bdfe36f026070/social-server-tree.js:616  ${isAnnouncement ? '<span class="dc-subchan-announce-badge u-flex-shrink-0_font-size-9px_background...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-server-tree.js:617  ${isLocked && !isAnnouncement ? '<span class="dc-subchan-locked-badge" title="Bu odaya girmek için ...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-settings-modal.js:49  ${savedTheme === 'dark' ? 'active' : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/social-settings-modal.js:52  ${savedTheme === 'light' ? 'active' : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/social-settings-modal.js:83  ${savedPrivacy === 'everyone' ? 'selected' : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/social-settings-modal.js:84  ${savedPrivacy === 'friends' ? 'selected' : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/social-settings-modal.js:85  ${savedPrivacy === 'nobody' ? 'selected' : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/social-settings-modal.js:102  ${savedLang === 'tr' ? 'selected' : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/social-settings-modal.js:103  ${savedLang === 'en' ? 'selected' : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/social-sidebar-profile.js:109  ${unread ? '<span class="dc-unread-pill"></span>' : ''}
+.claude/worktrees/agent-ab77bdfe36f026070/social-sidebar-profile.js:110  ${isOnline ? '<button class="sb-contact-focus-btn" title="Birlikte Odaklan" aria-label="Birlikte Od...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-toast.js:41  ${type}
+.claude/worktrees/agent-ab77bdfe36f026070/social-toast.js:42  ${icon || icons[type] || icons.info}
+.claude/worktrees/agent-ab77bdfe36f026070/social-toast.js:45  ${desc}
+.claude/worktrees/agent-ab77bdfe36f026070/social-toast.js:47  ${cancelText ? `<button class="focusai-confirm-btn cancel" id="_fc_cancel">${cancelText}</button>` ...}
+.claude/worktrees/agent-ab77bdfe36f026070/social-toast.js:48  ${confirmClass}
+.claude/worktrees/agent-ab77bdfe36f026070/social-toast.js:48  ${confirmText}
+.claude/worktrees/agent-ab77bdfe36f026070/storage-manager.js:159  ${pct}
+auth-ui.js:92  ${_avatarColorSwatches()}
+collab.js:396  ${aIdx}
+collab.js:506  ${W}
+collab.js:506  ${SVG_H}
+collab.js:506  ${W}
+collab.js:506  ${SVG_H}
+collab.js:506  ${svgBars}
+collab.js:520  ${msId}
+collab.js:525  ${msId}
+collab.js:526  ${msId}
+collab.js:527  ${myApproval?'<i class="ti ti-thumb-up-filled"></i> Onayladın':'<i class="ti ti-thumb-up"></i> Onayla'}
+collab.js:532  ${msId}
+collab.js:551  ${msId}
+collab.js:553  ${msId}
+collab.js:597  ${cIdx}
+collab.js:601  ${timeAgo(c.created_at)}
+collab.js:739  ${isOwner ? ` <!-- 3.3 Onay eşiği ayarı --> <div class="pg-collab-threshold-row"> <label class="pg-...}
+collab.js:769  ${isOwner ? `<button id="pg-disable-collab-btn" class="pg-collab-danger-btn u-margin-top-10px" ><i ...}
+collab.js:977  ${window.PlanningCollab.getComments(msId).length}
 planning-collab-wait.js:147  ${isOnline ? '<span class="pg-cw-online-dot"></span>' : ''}
 planning-collab-wait.js:262  ${initials}
 planning-collab-wait.js:263  ${status === 'accepted' ? '<span class="pg-cw-online-dot"></span>' : ''}
@@ -42,12 +745,12 @@ planning-goal-detail-render.js:35  ${progressRing(pct,cat.color)}
 planning-goal-detail-render.js:39  ${st.label}
 planning-goal-detail-render.js:40  ${g.deadline?`<span class="pg-dp-meta-item"><i class="ti ti-calendar-due"></i> ${fmtDate(g.deadline...}
 planning-goal-detail-render.js:41  ${ms.length>0?`<span class="pg-dp-meta-item"><i class="ti ti-flag-3"></i> ${ms.filter(m=>m.done).le...}
-planning-lesson-plan-assign.js:47  ${today}
-planning-lesson-plan-assign.js:93  ${g.id}
-planning-lesson-plan-assign.js:219  ${rows.map(r => _lpaStatusRowHTML(r, false)).join('')}
-planning-lesson-plan-assign.js:347  ${_lpaCreateBtnHtml}
-planning-lesson-plan-assign.js:349  ${buckets[activeTab].length ? buckets[activeTab].map(r => _lpaStatusRowHTML(r, true, true, { showEd...}
-planning-lesson-plan-assign.js:435  ${_lpaCreateBtnHtml}
+planning-lesson-plan-assign.js:48  ${today}
+planning-lesson-plan-assign.js:94  ${g.id}
+planning-lesson-plan-assign.js:213  ${rows.map(r => _lpaStatusRowHTML(r, false)).join('')}
+planning-lesson-plan-assign.js:312  ${_lpaCreateBtnHtml}
+planning-lesson-plan-assign.js:314  ${buckets[activeTab].length ? buckets[activeTab].map(r => _lpaStatusRowHTML(r, true, true, { showEd...}
+planning-lesson-plan-assign.js:400  ${_lpaCreateBtnHtml}
 planning-lesson-plan-invites.js:83  ${invites.map(inv => _lpaInviteCardHTML(inv)).join('')}
 planning-lesson-plan-invites.js:84  ${rest.length ? `<div class="pg-pv-assign-status-list">${rest.map(r => window._lpaStatusRowHTML(r, ...}
 planning-lesson-plan-modal.js:109  ${gName}
@@ -69,76 +772,76 @@ planning-milestone-list-render.js:48  ${m.id}
 planning-milestone-list-render.js:48  ${goalId}
 planning-milestone-list-render.js:49  ${m.id}
 planning-milestone-list-render.js:49  ${goalId}
-planning-milestone-wizard.js:385  ${cat.id === currentCat ? ' selected' : ''}
-planning-milestone-wizard.js:386  ${cat.id}
-planning-milestone-wizard.js:387  ${cat.icon}
-planning-milestone-wizard.js:388  ${cat.label}
-planning-milestone-wizard.js:419  ${p.val === current ? ' selected' : ''}
-planning-milestone-wizard.js:420  ${p.val}
-planning-milestone-wizard.js:421  ${p.emoji}
-planning-milestone-wizard.js:421  ${p.label}
-planning-milestone-wizard.js:453  ${o.months}
-planning-milestone-wizard.js:453  ${o.label}
-planning-milestone-wizard.js:566  ${i + 1}
-planning-milestone-wizard.js:567  ${m.icon}
-planning-milestone-wizard.js:569  ${i}
-planning-milestone-wizard.js:571  ${i + 1}
-planning-milestone-wizard.js:613  ${m.id}
-planning-milestone-wizard.js:614  ${i + 1}
-planning-milestone-wizard.js:615  ${m.icon}
-planning-milestone-wizard.js:618  ${i > 0 ? `<button class="pg-icon-btn pg-wz-ms-up" data-wid="${m.id}" title="Yukarı" type="button">...}
-planning-milestone-wizard.js:619  ${i < ms.length - 1 ? `<button class="pg-icon-btn pg-wz-ms-dn" data-wid="${m.id}" title="Aşağı" typ...}
-planning-milestone-wizard.js:620  ${m.id}
-planning-milestone-wizard.js:739  ${new Date(_wzCalYear, _wzCalMonth).toLocaleDateString('tr-TR',{month:'long',year:'numeric'})}
-planning-milestone-wizard.js:739  ${new Date(m2yr, m2mo).toLocaleDateString('tr-TR',{month:'long',year:'numeric'})}
-planning-milestone-wizard.js:743  ${_wzRenderBookingMonth(_wzCalYear, _wzCalMonth, ranges)}
-planning-milestone-wizard.js:744  ${_wzRenderBookingMonth(m2yr, m2mo, ranges)}
-planning-milestone-wizard.js:1016  ${i + 1}
-planning-milestone-wizard.js:1019  ${m.icon}
-planning-milestone-wizard.js:1022  ${m.id}
-planning-milestone-wizard.js:1022  ${m.due_date || ''}
-planning-milestone-wizard.js:1086  ${monthLabel}
-planning-milestone-wizard.js:1090  ${dayHdrs.map(d => `<div class="pg-wz-cal-day-hdr">${d}</div>`).join('')}
-planning-milestone-wizard.js:1091  ${cells}
-planning-milestone-wizard.js:1138  ${deadline.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric' })}
-planning-milestone-wizard.js:1167  ${conflicts[0]}
-planning-milestone-wizard.js:1167  ${conflicts.length > 1 ? ' (+' + (conflicts.length - 1) + ' daha)' : ''}
-planning-milestone-wizard.js:1219  ${msWithDates > 0 ? `<div class="pg-wz-gran-hint"><i class="ti ti-sparkles"></i> ${msWithDates} dön...}
-planning-milestone-wizard.js:1294  ${modeMap[wizardState.planMode] || ''}
-planning-milestone-wizard.js:1315  ${idx === 0 ? ' open' : ''}
-planning-milestone-wizard.js:1315  ${idx}
-planning-milestone-wizard.js:1316  ${idx}
-planning-milestone-wizard.js:1317  ${idx+1}
-planning-milestone-wizard.js:1318  ${ms.icon}
-planning-milestone-wizard.js:1321  ${ms.due_date ? fmtShort(ms.due_date) : '—'}
-planning-milestone-wizard.js:1324  ${subs.length > 0 ? `<span class="pg-wz-acc-count">${subs.length} görev</span>` : ''}
-planning-milestone-wizard.js:1325  ${det.criteria ? `<span class="pg-wz-acc-crit-badge">✓</span>` : ''}
-planning-milestone-wizard.js:1330  ${idx}
-planning-milestone-wizard.js:1388  ${totalDays > 0 ? `<div class="pg-wz-s4-workload"> <span><i class="ti ti-checklist" aria-hidden="tr...}
-planning-milestone-wizard.js:1399  ${_wzRenderCapacityBar(subs, cat)}
-planning-milestone-wizard.js:1410  ${msEnd ? `max="${ms.due_date}"` : ''}
-planning-milestone-wizard.js:1411  ${msStart ? `min="${msStart.toISOString().split('T')[0]}"` : ''}
-planning-milestone-wizard.js:1422  ${_wzRenderAccTaskItems(subs, cat)}
-planning-milestone-wizard.js:1591  ${det.subtasks?.length > 0 ? `<span class="pg-wz-acc-count">${det.subtasks.length} görev</span>` : ''}
-planning-milestone-wizard.js:1592  ${det.criteria ? `<span class="pg-wz-acc-crit-badge">✓</span>` : ''}
-planning-milestone-wizard.js:1612  ${modeLabel}
-planning-milestone-wizard.js:1616  ${idx+1}
-planning-milestone-wizard.js:1617  ${ms.icon}
-planning-milestone-wizard.js:1620  ${ms.due_date ? `<span class="pg-wz-s4-ms-due"><i class="ti ti-calendar"></i> ${fmtDate(ms.due_date...}
-planning-milestone-wizard.js:1681  ${subtasks.length > 0 ? `<span class="pg-wz-s4-task-count">${subtasks.length}</span>` : ''}
-planning-milestone-wizard.js:1774  ${i===idx?' active':''}
-planning-milestone-wizard.js:1942  ${s.id}
-planning-milestone-wizard.js:1980  ${cat.icon}
-planning-milestone-wizard.js:1982  ${goal.deadline ? `<div class="pg-wz-summary-row"> <span class="pg-wz-summary-label">Son Tarih</spa...}
-planning-milestone-wizard.js:1997  ${workDays.length ? `<div class="pg-wz-summary-row"> <span class="pg-wz-summary-label">Çalışma Günl...}
-planning-milestone-wizard.js:2001  ${goal.hours_per_week ? `<div class="pg-wz-summary-row"> <span class="pg-wz-summary-label">Haftalık...}
-planning-milestone-wizard.js:2005  ${totalSubs ? `<div class="pg-wz-summary-row"> <span class="pg-wz-summary-label">Toplam Alt Görev</...}
-planning-misc-widgets.js:183  ${avgPct}
-planning-misc-widgets.js:301  ${active}
-planning-misc-widgets.js:302  ${done}
-planning-misc-widgets.js:303  ${avgPct}
-planning-misc-widgets.js:304  ${doneMs}
-planning-misc-widgets.js:304  ${totalMs}
+planning-milestone-wizard-step1-form.js:31  ${cat.id === currentCat ? ' selected' : ''}
+planning-milestone-wizard-step1-form.js:32  ${cat.id}
+planning-milestone-wizard-step1-form.js:33  ${cat.icon}
+planning-milestone-wizard-step1-form.js:34  ${cat.label}
+planning-milestone-wizard-step1-form.js:65  ${p.val === current ? ' selected' : ''}
+planning-milestone-wizard-step1-form.js:66  ${p.val}
+planning-milestone-wizard-step1-form.js:67  ${p.emoji}
+planning-milestone-wizard-step1-form.js:67  ${p.label}
+planning-milestone-wizard-step1-form.js:99  ${o.months}
+planning-milestone-wizard-step1-form.js:99  ${o.label}
+planning-milestone-wizard-step2-count.js:75  ${i + 1}
+planning-milestone-wizard-step2-count.js:76  ${m.icon}
+planning-milestone-wizard-step2-count.js:78  ${i}
+planning-milestone-wizard-step2-count.js:80  ${i + 1}
+planning-milestone-wizard-step2-count.js:125  ${m.id}
+planning-milestone-wizard-step2-count.js:126  ${i + 1}
+planning-milestone-wizard-step2-count.js:127  ${m.icon}
+planning-milestone-wizard-step2-count.js:130  ${i > 0 ? `<button class="pg-icon-btn pg-wz-ms-up" data-wid="${m.id}" title="Yukarı" type="button">...}
+planning-milestone-wizard-step2-count.js:131  ${i < ms.length - 1 ? `<button class="pg-icon-btn pg-wz-ms-dn" data-wid="${m.id}" title="Aşağı" typ...}
+planning-milestone-wizard-step2-count.js:132  ${m.id}
+planning-milestone-wizard-step3-render.js:185  ${deadline.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric' })}
+planning-milestone-wizard-step3-render.js:214  ${conflicts[0]}
+planning-milestone-wizard-step3-render.js:214  ${conflicts.length > 1 ? ' (+' + (conflicts.length - 1) + ' daha)' : ''}
+planning-milestone-wizard-step5-save.js:31  ${cat.icon}
+planning-milestone-wizard-step5-save.js:33  ${goal.deadline ? `<div class="pg-wz-summary-row"> <span class="pg-wz-summary-label">Son Tarih</spa...}
+planning-milestone-wizard-step5-save.js:48  ${workDays.length ? `<div class="pg-wz-summary-row"> <span class="pg-wz-summary-label">Çalışma Günl...}
+planning-milestone-wizard-step5-save.js:52  ${goal.hours_per_week ? `<div class="pg-wz-summary-row"> <span class="pg-wz-summary-label">Haftalık...}
+planning-milestone-wizard-step5-save.js:56  ${totalSubs ? `<div class="pg-wz-summary-row"> <span class="pg-wz-summary-label">Toplam Alt Görev</...}
+planning-milestone-wizard.js:330  ${new Date(_wzCalYear, _wzCalMonth).toLocaleDateString('tr-TR',{month:'long',year:'numeric'})}
+planning-milestone-wizard.js:330  ${new Date(m2yr, m2mo).toLocaleDateString('tr-TR',{month:'long',year:'numeric'})}
+planning-milestone-wizard.js:334  ${_wzRenderBookingMonth(_wzCalYear, _wzCalMonth, ranges)}
+planning-milestone-wizard.js:335  ${_wzRenderBookingMonth(m2yr, m2mo, ranges)}
+planning-milestone-wizard.js:512  ${i + 1}
+planning-milestone-wizard.js:515  ${m.icon}
+planning-milestone-wizard.js:518  ${m.id}
+planning-milestone-wizard.js:518  ${m.due_date || ''}
+planning-milestone-wizard.js:582  ${monthLabel}
+planning-milestone-wizard.js:586  ${dayHdrs.map(d => `<div class="pg-wz-cal-day-hdr">${d}</div>`).join('')}
+planning-milestone-wizard.js:587  ${cells}
+planning-milestone-wizard.js:648  ${msWithDates > 0 ? `<div class="pg-wz-gran-hint"><i class="ti ti-sparkles"></i> ${msWithDates} dön...}
+planning-milestone-wizard.js:723  ${modeMap[wizardState.planMode] || ''}
+planning-milestone-wizard.js:744  ${idx === 0 ? ' open' : ''}
+planning-milestone-wizard.js:744  ${idx}
+planning-milestone-wizard.js:745  ${idx}
+planning-milestone-wizard.js:746  ${idx+1}
+planning-milestone-wizard.js:747  ${ms.icon}
+planning-milestone-wizard.js:750  ${ms.due_date ? fmtShort(ms.due_date) : '—'}
+planning-milestone-wizard.js:753  ${subs.length > 0 ? `<span class="pg-wz-acc-count">${subs.length} görev</span>` : ''}
+planning-milestone-wizard.js:754  ${det.criteria ? `<span class="pg-wz-acc-crit-badge">✓</span>` : ''}
+planning-milestone-wizard.js:759  ${idx}
+planning-milestone-wizard.js:817  ${totalDays > 0 ? `<div class="pg-wz-s4-workload"> <span><i class="ti ti-checklist" aria-hidden="tr...}
+planning-milestone-wizard.js:828  ${_wzRenderCapacityBar(subs, cat)}
+planning-milestone-wizard.js:839  ${msEnd ? `max="${ms.due_date}"` : ''}
+planning-milestone-wizard.js:840  ${msStart ? `min="${msStart.toISOString().split('T')[0]}"` : ''}
+planning-milestone-wizard.js:851  ${_wzRenderAccTaskItems(subs, cat)}
+planning-milestone-wizard.js:940  ${det.subtasks?.length > 0 ? `<span class="pg-wz-acc-count">${det.subtasks.length} görev</span>` : ''}
+planning-milestone-wizard.js:941  ${det.criteria ? `<span class="pg-wz-acc-crit-badge">✓</span>` : ''}
+planning-milestone-wizard.js:961  ${modeLabel}
+planning-milestone-wizard.js:965  ${idx+1}
+planning-milestone-wizard.js:966  ${ms.icon}
+planning-milestone-wizard.js:969  ${ms.due_date ? `<span class="pg-wz-s4-ms-due"><i class="ti ti-calendar"></i> ${fmtDate(ms.due_date...}
+planning-milestone-wizard.js:1030  ${subtasks.length > 0 ? `<span class="pg-wz-s4-task-count">${subtasks.length}</span>` : ''}
+planning-milestone-wizard.js:1123  ${i===idx?' active':''}
+planning-milestone-wizard.js:1291  ${s.id}
+planning-misc-widgets.js:118  ${avgPct}
+planning-misc-widgets.js:280  ${active}
+planning-misc-widgets.js:281  ${done}
+planning-misc-widgets.js:282  ${avgPct}
+planning-misc-widgets.js:283  ${doneMs}
+planning-misc-widgets.js:283  ${totalMs}
 planning-plan-header.js:51  ${cat.icon}
 planning-plan-header.js:51  ${cat.label}
 planning-plan-header.js:52  ${g.deadline ? `<span>·</span><span><i class="ti ti-calendar-due"></i> ${fmtDate(g.deadline)}</span...}
@@ -162,15 +865,15 @@ planning-quick-create.js:82  ${c.icon}
 planning-quick-create.js:82  ${c.label}
 planning-quick-create.js:105  ${o.months}
 planning-quick-create.js:105  ${o.label}
-planning-wizard.js:51  ${cat.icon}
-planning-wizard.js:120  ${idx + 1}
+planning-wizard.js:52  ${cat.icon}
 planning-wizard.js:121  ${idx + 1}
-planning-wizard.js:128  ${idx === 0 ? 'disabled' : ''}
-planning-wizard.js:132  ${Array(count).fill(0).map((_,i) => `<div class="pvwiz-name-dot${i < idx ? ' done' : i === idx ? ' ...}
-planning-wizard.js:137  ${idx < count - 1 ? 'İleri <i class="ti ti-arrow-right"></i>' : 'Tarihler <i class="ti ti-calendar"...}
-planning-wizard.js:266  ${minDate ? `<span class="pvwiz-min-hint">(${fmtDate(minDate)} ve sonrası)</span>` : ''}
-planning-wizard.js:318  ${avatar}
-planning-wizard.js:325  ${avatar}
+planning-wizard.js:122  ${idx + 1}
+planning-wizard.js:129  ${idx === 0 ? 'disabled' : ''}
+planning-wizard.js:133  ${Array(count).fill(0).map((_,i) => `<div class="pvwiz-name-dot${i < idx ? ' done' : i === idx ? ' ...}
+planning-wizard.js:138  ${idx < count - 1 ? 'İleri <i class="ti ti-arrow-right"></i>' : 'Tarihler <i class="ti ti-calendar"...}
+planning-wizard.js:267  ${minDate ? `<span class="pvwiz-min-hint">(${fmtDate(minDate)} ve sonrası)</span>` : ''}
+planning-wizard.js:319  ${avatar}
+planning-wizard.js:326  ${avatar}
 script-ambient-sounds.js:99  ${icon}
 script-ambient-sounds.js:184  ${type}
 script-ambient-sounds.js:185  ${label.icon}
@@ -181,7 +884,7 @@ script-ambient-sounds.js:188  ${vol}
 script-ambient-sounds.js:454  ${icon}
 script-calendar-hover-popup.js:69  ${dayName}
 script-calendar-hover-popup.js:69  ${rows}
-script-calendar-week-day-view.js:443  ${timeStr}
+script-calendar-week-day-view-drag-ghost.js:11  ${timeStr}
 script-command-palette.js:244  ${icon}
 script-command-palette.js:247  ${title}
 script-command-palette.js:250  ${badge ? `<span class="cmd-item-badge">${badge}</span>` : ''}
@@ -232,77 +935,75 @@ script-goal-details-sections.js:370  ${goal.id}
 script-goal-details-sections.js:370  ${m.id}
 script-goal-details-sections.js:371  ${goal.id}
 script-goal-details-sections.js:371  ${m.id}
-script-goal-modal.js:282  ${emoji}
-script-goal-modal.js:284  ${emoji}
-script-goal-modal.js:288  ${statusIcon}
-script-goal-modal.js:288  ${statusLabel}
-script-goal-modal.js:290  ${categoryLabel ? `<span class="u-background-rgba108922310p12_color-ha29bfe_padding-3px10px_">${cat...}
-script-goal-modal.js:297  ${endDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
-script-goal-modal.js:301  ${durationText}
-script-goal-modal.js:303  ${linkedTaskCount > 0 ? `<div class="u-display-flex_align-items-center_gap-6px_font-size-12px_col-2...}
-script-goal-modal.js:308  ${goal._progress}
-script-goal-modal.js:313  ${!isWon ? `<button class="control-btn u-white-space-nowrap_font-size-12px_font-weight-700_padding-...}
-script-goal-modal.js:316  ${goal.id}
-script-goal-modal.js:431  ${gcStartDisplay}
-script-goal-modal.js:431  ${gcEndDisplay}
-script-goal-modal.js:436  ${urgencyClass}
-script-goal-modal.js:436  ${urgencyText}
-script-goal-modal.js:437  ${goal.id}
-script-goal-modal.js:454  ${goal._completedSteps}
-script-goal-modal.js:454  ${goal._totalSteps}
-script-goal-modal.js:455  ${goal._progress}
-script-goal-modal.js:460  ${goal.status !== 'completed' ? `<button class="gc-complete-btn" data-action="quick-complete-goal" ...}
-script-goal-modal.js:461  ${goal.id}
-script-goal-modal.js:591  ${wonGoals.length + expiredGoals.length > 0 ? Math.round((wonGoals.length / (wonGoals.length + expi...}
-script-goal-modal.js:605  ${wonCount > 0 ? ` <span class="u-background-rgba254202870p2_color-hfeca57_padding-1px7px_bo">${won...}
-script-goal-modal.js:606  ${expiredCount > 0 ? ` <span class="u-background-rgba25571870p2_color-hff4757_padding-1px7px_bor">$...}
-script-goal-modal.js:607  ${activeCount > 0 ? ` <span class="u-background-rgba108922310p2_color-ha29bfe_padding-1px7px_bo">${...}
-script-goal-modal.js:612  ${MAX_ACTIVE_GOALS}
-script-habit-render-mutate.js:94  ${currentHabitFilter === 'all' ? 'active' : ''}
-script-habit-render-mutate.js:96  ${currentHabitFilter === cat.id ? 'active' : ''}
-script-habit-render-mutate.js:96  ${cat.id}
-script-habit-render-mutate.js:117  ${MAX_ACTIVE_HABITS}
-script-habit-render-mutate.js:165  ${buddyBadge}
-script-habit-render-mutate.js:166  ${linkedGoalBadges}
-script-habit-render-mutate.js:170  ${targetDays}
-script-habit-render-mutate.js:171  ${dateRangeText}
-script-habit-render-mutate.js:175  ${progressPercentage}
-script-habit-render-mutate.js:175  ${completedDays}
-script-habit-render-mutate.js:175  ${targetDays}
-script-habit-render-mutate.js:177  ${trackerHTML}
-script-habit-render-mutate.js:180  ${habit.history[todayStr] ? 'done' : ''}
-script-habit-render-mutate.js:180  ${todayStr}
-script-habit-render-mutate.js:181  ${habit.history[todayStr] ? 'fa-check' : 'fa-bolt'}
-script-habit-render-mutate.js:181  ${habit.history[todayStr] ? 'Tamamlandı' : 'Bugünü Tamamla'}
-script-habit-render-mutate.js:184  ${habit.id}
-script-habit-render-mutate.js:247  ${clickAttr}
-script-habit-render-mutate.js:248  ${clickAttr}
-script-habit-render-mutate.js:251  ${habit.category || 'kisisel'}
-script-habit-render-mutate.js:251  ${catDisplay}
-script-habit-render-mutate.js:253  ${buddyBadge}
-script-habit-render-mutate.js:254  ${goalBadgesHTML}
-script-habit-render-mutate.js:255  ${autoBadge}
-script-journal-library.js:102  ${longDate}
-script-journal-library.js:359  ${trMonthsFull[selectedMonth].toUpperCase()}
-script-journal-library.js:359  ${selectedYear}
-script-journal-library.js:394  ${showRibbon ? '<div class="zk-book-ribbon"></div>' : ''}
-script-journal-library.js:396  ${bk.d}
-script-journal-library.js:397  ${bk.abbr}
-script-journal-library.js:494  ${day}
-script-journal-library.js:494  ${isFilled ? '<span class="cal-dot"></span>' : ''}
+script-goal-modal-cards.js:40  ${emoji}
+script-goal-modal-cards.js:42  ${emoji}
+script-goal-modal-cards.js:46  ${statusIcon}
+script-goal-modal-cards.js:46  ${statusLabel}
+script-goal-modal-cards.js:48  ${categoryLabel ? `<span class="u-background-rgba108922310p12_color-ha29bfe_padding-3px10px_">${cat...}
+script-goal-modal-cards.js:55  ${endDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
+script-goal-modal-cards.js:59  ${durationText}
+script-goal-modal-cards.js:61  ${linkedTaskCount > 0 ? `<div class="u-display-flex_align-items-center_gap-6px_font-size-12px_col-2...}
+script-goal-modal-cards.js:66  ${goal._progress}
+script-goal-modal-cards.js:71  ${!isWon ? `<button class="control-btn u-white-space-nowrap_font-size-12px_font-weight-700_padding-...}
+script-goal-modal-cards.js:74  ${goal.id}
+script-goal-modal-cards.js:194  ${gcStartDisplay}
+script-goal-modal-cards.js:194  ${gcEndDisplay}
+script-goal-modal-cards.js:199  ${urgencyClass}
+script-goal-modal-cards.js:199  ${urgencyText}
+script-goal-modal-cards.js:200  ${goal.id}
+script-goal-modal-cards.js:217  ${goal._completedSteps}
+script-goal-modal-cards.js:217  ${goal._totalSteps}
+script-goal-modal-cards.js:218  ${goal._progress}
+script-goal-modal-cards.js:223  ${goal.status !== 'completed' ? `<button class="gc-complete-btn" data-action="quick-complete-goal" ...}
+script-goal-modal-cards.js:224  ${goal.id}
+script-goal-modal.js:318  ${wonGoals.length + expiredGoals.length > 0 ? Math.round((wonGoals.length / (wonGoals.length + expi...}
+script-goal-modal.js:332  ${wonCount > 0 ? ` <span class="u-background-rgba254202870p2_color-hfeca57_padding-1px7px_bo">${won...}
+script-goal-modal.js:333  ${expiredCount > 0 ? ` <span class="u-background-rgba25571870p2_color-hff4757_padding-1px7px_bor">$...}
+script-goal-modal.js:334  ${activeCount > 0 ? ` <span class="u-background-rgba108922310p2_color-ha29bfe_padding-1px7px_bo">${...}
+script-goal-modal.js:339  ${MAX_ACTIVE_GOALS}
+script-habit-render-mutate.js:95  ${currentHabitFilter === 'all' ? 'active' : ''}
+script-habit-render-mutate.js:97  ${currentHabitFilter === cat.id ? 'active' : ''}
+script-habit-render-mutate.js:97  ${cat.id}
+script-habit-render-mutate.js:118  ${MAX_ACTIVE_HABITS}
+script-habit-render-mutate.js:166  ${buddyBadge}
+script-habit-render-mutate.js:167  ${linkedGoalBadges}
+script-habit-render-mutate.js:171  ${targetDays}
+script-habit-render-mutate.js:172  ${dateRangeText}
+script-habit-render-mutate.js:176  ${progressPercentage}
+script-habit-render-mutate.js:176  ${completedDays}
+script-habit-render-mutate.js:176  ${targetDays}
+script-habit-render-mutate.js:178  ${trackerHTML}
+script-habit-render-mutate.js:181  ${habit.history[todayStr] ? 'done' : ''}
+script-habit-render-mutate.js:181  ${todayStr}
+script-habit-render-mutate.js:182  ${habit.history[todayStr] ? 'fa-check' : 'fa-bolt'}
+script-habit-render-mutate.js:182  ${habit.history[todayStr] ? 'Tamamlandı' : 'Bugünü Tamamla'}
+script-habit-render-mutate.js:185  ${habit.id}
+script-habit-render-mutate.js:262  ${clickAttr}
+script-habit-render-mutate.js:264  ${clickAttr}
+script-habit-render-mutate.js:266  ${catDisplay}
+script-habit-render-mutate.js:267  ${buddyBadge}
+script-habit-render-mutate.js:268  ${goalBadgesHTML}
+script-habit-render-mutate.js:269  ${autoBadge}
+script-journal-library.js:274  ${trMonthsFull[selectedMonth].toUpperCase()}
+script-journal-library.js:274  ${selectedYear}
+script-journal-library.js:309  ${showRibbon ? '<div class="zk-book-ribbon"></div>' : ''}
+script-journal-library.js:311  ${bk.d}
+script-journal-library.js:312  ${bk.abbr}
+script-journal-library.js:409  ${day}
+script-journal-library.js:409  ${isFilled ? '<span class="cal-dot"></span>' : ''}
 script-milestone-goal-actions.js:67  ${currentDate}
 script-milestone-goal-actions.js:67  ${goal.createdAt ? `min="${new Date(goal.createdAt).toISOString().split('T')[0]}"` : ''}
 script-milestone-goal-actions.js:67  ${goal.deadline ? `max="${goal.deadline.split('-')[0].length===4 ? goal.deadline : goal.deadline.sp...}
 script-milestone-goal-actions.js:438  ${items}
-script-mind-dump.js:122  ${key}
-script-mind-dump.js:161  ${ageStr}
-script-mind-dump.js:162  ${isOld ? `<span class="dump-age-warn">${ageWarnLabel}</span>` : ''}
-script-mind-dump.js:166  ${dump.id}
-script-mind-dump.js:167  ${dump.id}
-script-mind-dump.js:168  ${dump.id}
-script-mind-dump.js:271  ${dumpActiveTag === 'all' ? ' active' : ''}
-script-mind-dump.js:273  ${dumpActiveTag === tag ? ' active' : ''}
-script-mind-dump.js:273  ${tag}
+script-mind-dump.js:69  ${key}
+script-mind-dump.js:108  ${ageStr}
+script-mind-dump.js:109  ${isOld ? `<span class="dump-age-warn">${ageWarnLabel}</span>` : ''}
+script-mind-dump.js:113  ${dump.id}
+script-mind-dump.js:114  ${dump.id}
+script-mind-dump.js:115  ${dump.id}
+script-mind-dump.js:224  ${dumpActiveTag === 'all' ? ' active' : ''}
+script-mind-dump.js:226  ${dumpActiveTag === tag ? ' active' : ''}
+script-mind-dump.js:226  ${tag}
 script-plan-wizard.js:138  ${dayName}
 script-plan-wizard.js:138  ${shortDate}
 script-plan-wizard.js:357  ${t.start}
@@ -318,74 +1019,75 @@ script-spotlight-search.js:96  ${res.icon}
 script-spotlight-search.js:98  ${shortDate}
 script-spotlight-search.js:99  ${res.time || 'Tüm Gün'}
 script-spotlight-search.js:100  ${res.type}
-script-statistics.js:101  ${parseInt(d)}
-script-statistics.js:101  ${activeFullMonths[parseInt(m)-1]}
-script-statistics.js:101  ${y}
-script-statistics.js:309  ${W}
-script-statistics.js:309  ${H}
-script-statistics.js:320  ${gridAndYLabels}
-script-statistics.js:321  ${areaFor(linePath2, points2)}
-script-statistics.js:322  ${areaFor(linePath, points)}
-script-statistics.js:323  ${linePath2}
-script-statistics.js:324  ${linePath}
-script-statistics.js:325  ${dotsFor(points2, 'trend-line-dot trend-series-focus-dot')}
-script-statistics.js:326  ${dotsFor(points, 'trend-line-dot trend-series-tasks-dot')}
-script-statistics.js:327  ${xLabels}
-script-statistics.js:328  ${padT}
-script-statistics.js:328  ${padT + innerH}
-script-statistics.js:331  ${padL}
-script-statistics.js:331  ${innerW}
-script-statistics.js:331  ${H}
-script-statistics.js:356  ${p.value}
-script-statistics.js:357  ${p.value2}
-script-statistics.js:692  ${c}
-script-statistics.js:692  ${t}
-script-task-render-mutate.js:241  ${todayStr}
-script-task-render-mutate.js:243  ${todayStr}
-script-task-render-mutate.js:246  ${parentBadgeHTML}
-script-task-render-mutate.js:497  ${tStart}
-script-task-render-mutate.js:498  ${tEnd}
-script-task-render-mutate.js:507  ${task.id}
-script-task-render-mutate.js:509  ${task.id}
-script-task-render-mutate.js:511  ${isHabitTask ? `<span class="task-category-tag tag-habit"><i class="fa-solid fa-leaf u-margin-righ...}
-script-task-render-mutate.js:515  ${task.priority === 'high' ? 'Yüksek' : task.priority === 'low' ? 'Düşük' : 'Orta'}
-script-task-render-mutate.js:517  ${tStart}
-script-task-render-mutate.js:517  ${tEnd}
-script-task-render-mutate.js:518  ${task.recurring ? `<span class="task-time-badge u-color-ha29bfe_border-color-rgba1621552540p3_marg...}
-script-task-render-mutate.js:520  ${breadcrumbHTML}
-script-task-render-mutate.js:523  ${task.id}
-script-task-render-mutate.js:524  ${goalOptionsHTML}
-script-task-render-mutate.js:527  ${!task.completed ? `<button class="edit-btn" data-action="edit-task" data-id="${task.id}" title="G...}
-script-task-render-mutate.js:528  ${!task.completed ? `<button class="focus-btn" data-action="focus-task" data-id="${task.id}" title=...}
-script-task-render-mutate.js:529  ${task.id}
-script-task-render-mutate.js:529  ${task.date}
-script-timer.js:239  ${timeStr}
-script-timer.js:857  ${curLoop}
-script-timer.js:857  ${timerSettings.targetCycles}
-script-timer.js:912  ${p.focus}
-script-timer.js:913  ${p.shortBreak}
-script-timer.js:914  ${p.longBreak}
+script-statistics-heatmap.js:91  ${parseInt(d)}
+script-statistics-heatmap.js:91  ${activeFullMonths[parseInt(m)-1]}
+script-statistics-heatmap.js:91  ${y}
+script-statistics-productivity-score.js:83  ${c}
+script-statistics-productivity-score.js:83  ${t}
+script-statistics-trend-chart.js:183  ${W}
+script-statistics-trend-chart.js:183  ${H}
+script-statistics-trend-chart.js:194  ${gridAndYLabels}
+script-statistics-trend-chart.js:195  ${areaFor(linePath2, points2)}
+script-statistics-trend-chart.js:196  ${areaFor(linePath, points)}
+script-statistics-trend-chart.js:197  ${linePath2}
+script-statistics-trend-chart.js:198  ${linePath}
+script-statistics-trend-chart.js:199  ${dotsFor(points2, 'trend-line-dot trend-series-focus-dot')}
+script-statistics-trend-chart.js:200  ${dotsFor(points, 'trend-line-dot trend-series-tasks-dot')}
+script-statistics-trend-chart.js:201  ${xLabels}
+script-statistics-trend-chart.js:202  ${padT}
+script-statistics-trend-chart.js:202  ${padT + innerH}
+script-statistics-trend-chart.js:205  ${padL}
+script-statistics-trend-chart.js:205  ${innerW}
+script-statistics-trend-chart.js:205  ${H}
+script-statistics-trend-chart.js:230  ${p.value}
+script-statistics-trend-chart.js:231  ${p.value2}
+script-task-render-mutate-item-builder.js:99  ${tStart}
+script-task-render-mutate-item-builder.js:100  ${tEnd}
+script-task-render-mutate-item-builder.js:109  ${task.id}
+script-task-render-mutate-item-builder.js:111  ${task.id}
+script-task-render-mutate-item-builder.js:113  ${isHabitTask ? `<span class="task-category-tag tag-habit"><i class="fa-solid fa-leaf u-margin-righ...}
+script-task-render-mutate-item-builder.js:117  ${task.priority === 'high' ? 'Yüksek' : task.priority === 'low' ? 'Düşük' : 'Orta'}
+script-task-render-mutate-item-builder.js:119  ${tStart}
+script-task-render-mutate-item-builder.js:119  ${tEnd}
+script-task-render-mutate-item-builder.js:120  ${task.recurring ? `<span class="task-time-badge u-color-ha29bfe_border-color-rgba1621552540p3_marg...}
+script-task-render-mutate-item-builder.js:121  ${breadcrumbHTML}
+script-task-render-mutate-item-builder.js:125  ${task.id}
+script-task-render-mutate-item-builder.js:126  ${goalOptionsHTML}
+script-task-render-mutate-item-builder.js:129  ${!task.completed ? `<button class="edit-btn" data-action="edit-task" data-id="${task.id}" title="G...}
+script-task-render-mutate-item-builder.js:130  ${!task.completed ? `<button class="focus-btn" data-action="focus-task" data-id="${task.id}" title=...}
+script-task-render-mutate-item-builder.js:131  ${task.id}
+script-task-render-mutate-item-builder.js:131  ${task.date}
+script-task-render-mutate-today-rows.js:42  ${todayStr}
+script-task-render-mutate-today-rows.js:44  ${todayStr}
+script-task-render-mutate-today-rows.js:47  ${parentBadgeHTML}
+script-timer.js:209  ${timeStr}
+script-timer.js:839  ${curLoop}
+script-timer.js:839  ${timerSettings.targetCycles}
+script-timer.js:894  ${p.focus}
+script-timer.js:895  ${p.shortBreak}
+script-timer.js:896  ${p.longBreak}
 script-today-stats.js:45  ${completedTasks}
 script-today-stats.js:45  ${totalTasks}
 script-today-stats.js:116  ${icon}
 script-today-stats.js:121  ${tagText}
-social-buddy-habits.js:451  ${hasFriends ? 'Henüz ortak bir alışkanlık oluşturmadın. "Alışkanlıklar" sekmesinden yeni bir hedef...}
-social-buddy-habits.js:477  ${habit.icon || 'fa-star'}
-social-buddy-habits.js:478  ${window.avatarImgHtml(currentUser, 28)}
-social-buddy-habits.js:478  ${buddyAvatar}
-social-buddy-habits.js:482  ${completedDays}
-social-buddy-habits.js:482  ${targetDays}
-social-buddy-habits.js:483  ${statusClass}
-social-buddy-habits.js:483  ${statusText}
-social-buddy-habits.js:491  ${habit.id}
-social-buddy-habits.js:491  ${(bothDone || !buddyOnline) ? 'disabled' : ''}
-social-chat-extras.js:88  ${icon}
-social-chat-extras.js:91  ${sizeMB ? `<div class="u-font-size-10px_color-rgba2552552550p4">${sizeMB}</div>` : ''}
-social-chat-extras.js:234  ${highlight}
-social-chat-extras.js:235  ${date}
-social-chat-extras.js:597  ${fmtDate(entry.date)}
-social-chat-extras.js:746  ${i}
-social-chat-extras.js:750  ${m.xp}
+social-arena-chips.js:95  ${isTeacher ? '<button type="button" class="aam-item" data-aam="institution"><i class="fa-solid fa-...}
+social-buddy-habits.js:358  ${hasFriends ? 'Henüz ortak bir alışkanlık oluşturmadın. "Alışkanlıklar" sekmesinden yeni bir hedef...}
+social-buddy-habits.js:384  ${habit.icon || 'fa-star'}
+social-buddy-habits.js:385  ${window.avatarImgHtml(currentUser, 28)}
+social-buddy-habits.js:385  ${buddyAvatar}
+social-buddy-habits.js:389  ${completedDays}
+social-buddy-habits.js:389  ${targetDays}
+social-buddy-habits.js:390  ${statusClass}
+social-buddy-habits.js:390  ${statusText}
+social-buddy-habits.js:398  ${habit.id}
+social-buddy-habits.js:398  ${(bothDone || !buddyOnline) ? 'disabled' : ''}
+social-chat-extras-file-upload.js:69  ${icon}
+social-chat-extras-file-upload.js:72  ${sizeMB ? `<div class="u-font-size-10px_color-rgba2552552550p4">${sizeMB}</div>` : ''}
+social-chat-extras.js:118  ${highlight}
+social-chat-extras.js:119  ${date}
+social-chat-extras.js:349  ${fmtDate(entry.date)}
+social-chat-extras.js:498  ${i}
+social-chat-extras.js:502  ${m.xp}
 social-cw-control-request.js:104  ${labels[reqType] || 'yönetmek'}
 social-daily-race.js:29  ${i}
 social-daily-race.js:30  ${i + 1}
@@ -393,12 +1095,12 @@ social-daily-race.js:31  ${avatarImgHtml({ displayName: r.display_name, username
 social-daily-race.js:34  ${r.is_me ? '<span class="lb-me-tag"> (Sen)</span>' : ''}
 social-daily-race.js:35  ${medal}
 social-daily-race.js:35  ${xp}
-social-dc-chat-theme.js:264  ${Object.entries(DC_CHAT_THEMES).map(([key, t]) => ` <button class="dc-theme-swatch" data-theme="${...}
-social-dc-chat-theme.js:268  ${customColor}
-social-dc-chat-theme.js:275  ${Object.entries(DC_CHAT_WALLPAPERS).map(([key, w]) => ` <button class="dc-wallpaper-swatch ${wallp...}
-social-dc-chat-theme.js:283  ${Object.entries(DC_CHAT_BUBBLE_SHAPES).map(([key, s]) => ` <button class="dc-theme-pill" data-shap...}
-social-dc-chat-theme.js:292  ${Object.entries(DC_CHAT_FONT_SIZES).map(([key, s]) => ` <button class="dc-theme-pill" data-fontsiz...}
-social-dc-chat-theme.js:300  ${Object.entries(DC_CHAT_FONT_FAMILIES).map(([key, f]) => ` <button class="dc-theme-pill" data-font...}
+social-dc-chat-theme.js:222  ${Object.entries(DC_CHAT_THEMES).map(([key, t]) => ` <button class="dc-theme-swatch" data-theme="${...}
+social-dc-chat-theme.js:226  ${customColor}
+social-dc-chat-theme.js:233  ${Object.entries(DC_CHAT_WALLPAPERS).map(([key, w]) => ` <button class="dc-wallpaper-swatch ${wallp...}
+social-dc-chat-theme.js:241  ${Object.entries(DC_CHAT_BUBBLE_SHAPES).map(([key, s]) => ` <button class="dc-theme-pill" data-shap...}
+social-dc-chat-theme.js:250  ${Object.entries(DC_CHAT_FONT_SIZES).map(([key, s]) => ` <button class="dc-theme-pill" data-fontsiz...}
+social-dc-chat-theme.js:258  ${Object.entries(DC_CHAT_FONT_FAMILIES).map(([key, f]) => ` <button class="dc-theme-pill" data-font...}
 social-dc-confirm-toasts.js:71  ${icon}
 social-dc-confirm-toasts.js:123  ${allowEveryone ? `<button class="dc-confirm-btn dc-confirm-ok danger u-width-100pct" data-action="...}
 social-dc-contacts.js:85  ${window.avatarImgHtml(uData, 30, 'flex-shrink:0;')}
@@ -428,137 +1130,137 @@ social-dc-scroll-skeleton.js:10  ${rows.map(r => ` <div class="dc-msg-skeleton-r
 social-dc-session-strip.js:58  ${whenTxt}
 social-dc-session-strip.js:58  ${next.duration || 60}
 social-dc-session-strip.js:61  ${iAmIn ? '<i class="fa-solid fa-check"></i> Varsın' : '<i class="fa-solid fa-hand"></i> Varım'}
-social-dm-notifications.js:946  ${unreadCount > 9 ? '9+' : unreadCount}
-social-dm-notifications.js:953  ${c.type === 'workroom' ? 'fa-door-open' : 'fa-hashtag'}
-social-dm-notifications.js:954  ${window.avatarImgHtml(c, 36)}
-social-dm-notifications.js:957  ${avatarHtml}
-social-dm-notifications.js:960  ${pinned ? '<i class="fa-solid fa-thumbtack dc-recent-convo-pin-icon"></i>' : ''}
-social-dm-notifications.js:962  ${muted ? '<i class="fa-solid fa-bell-slash dc-recent-convo-mute-icon"></i>' : ''}
-social-dm-notifications.js:967  ${window.timeAgo(c.lastTimestamp)}
-social-dm-notifications.js:968  ${pillHtml}
-social-dm-notifications.js:1002  ${isGroup ? '' : ` <button data-action="pin"><i class="fa-solid fa-thumbtack"></i> ${pinned ? 'Sabi...}
-social-dm-notifications.js:1077  ${icon}
-social-dm-notifications.js:1126  ${icon || 'fa-bell'}
-social-dm-notifications.js:1130  ${body ? `<div class="st-sub">${body}</div>` : ''}
-social-friend-search.js:50  ${avatarImgHtml(user, 44)}
+social-dm-notifications-context-menu.js:16  ${isGroup ? '' : ` <button data-action="pin"><i class="fa-solid fa-thumbtack"></i> ${pinned ? 'Sabi...}
+social-dm-notifications-toasts.js:22  ${icon}
+social-dm-notifications-toasts.js:71  ${icon || 'fa-bell'}
+social-dm-notifications-toasts.js:75  ${body ? `<div class="st-sub">${body}</div>` : ''}
+social-dm-notifications.js:948  ${unreadCount > 9 ? '9+' : unreadCount}
+social-dm-notifications.js:955  ${c.type === 'workroom' ? 'fa-door-open' : 'fa-hashtag'}
+social-dm-notifications.js:956  ${window.avatarImgHtml(c, 36)}
+social-dm-notifications.js:959  ${avatarHtml}
+social-dm-notifications.js:962  ${pinned ? '<i class="fa-solid fa-thumbtack dc-recent-convo-pin-icon"></i>' : ''}
+social-dm-notifications.js:964  ${muted ? '<i class="fa-solid fa-bell-slash dc-recent-convo-mute-icon"></i>' : ''}
+social-dm-notifications.js:969  ${window.timeAgo(c.lastTimestamp)}
+social-dm-notifications.js:970  ${pillHtml}
+social-friend-search.js:50  ${avatarImgHtml(user, 40)}
 social-friend-search.js:53  ${user.xp || 0}
-social-friend-search.js:53  ${user.online ? '<span class="si-green">Çevrimiçi</span>' : 'Çevrimdışı'}
-social-friends-notifications.js:1563  ${_notifFilter === 'all' ? 'Henüz bir bildirimin yok.' : 'Bu kategoride bildirim yok.'}
-social-friends-notifications.js:1682  ${avatarImgHtml({ displayName, avatarColor, username }, 40)}
-social-friends-notifications.js:1686  ${warningBlock}
-social-friends-notifications.js:1687  ${hasSharedData ? '' : 'data-dyn-mt="24px"'}
-social-friends-notifications.js:2018  ${name}
-social-friends-notifications.js:2018  ${best._delta}
-social-friends-notifications.js:2073  ${gap}
-social-friends-notifications.js:2076  ${L.color}
-social-friends-notifications.js:2076  ${L.color}
-social-friends-notifications.js:2076  ${L.color}
-social-friends-notifications.js:2076  ${L.name}
-social-friends-notifications.js:2076  ${L.icon}
-social-friends-notifications.js:2076  ${L.name}
-social-friends-notifications.js:2083  ${zoneClass}
-social-friends-notifications.js:2083  ${Math.min(i, 15) * 35}
-social-friends-notifications.js:2084  ${i + 1}
-social-friends-notifications.js:2085  ${avatarImgHtml(u, 32, 'flex-shrink:0;')}
-social-friends-notifications.js:2088  ${rankDeltaChip}
-social-friends-notifications.js:2089  ${u.isMe ? '<span class="lb-me-tag"> (Sen)</span>' : ''}
-social-friends-notifications.js:2090  ${leagueBadge}
-social-friends-notifications.js:2091  ${gapChip}
-social-friends-notifications.js:2092  ${u.xp || 0}
-social-friends-notifications.js:2092  ${wxp}
-social-friends-notifications.js:2094  ${pct}
-social-gamification.js:326  ${s.total_xp || 0}
-social-gamification.js:330  ${L.icon}
-social-gamification.js:330  ${L.name}
-social-gamification.js:334  ${s.weeks || 0}
-social-gamification.js:409  ${i + 1}
-social-gamification.js:410  ${window.avatarImgHtml(u, 32, 'flex-shrink:0;')}
-social-gamification.js:413  ${u.isMe ? '<span class="lb-me-tag"> (Sen)</span>' : ''}
-social-gamification.js:414  ${flames}
-social-gamification.js:414  ${s}
-social-gamification.js:452  ${canStart ? `<div class="u-display-flex_gap-6px"> <button class="control-btn secondary btn-md" dat...}
-social-gamification.js:494  ${finished ? 'Bitti' : `${daysLeft} gün kaldı`}
-social-gamification.js:497  ${rowsHtml}
-social-gamification.js:498  ${joinBtn}
-social-gamification.js:499  ${finished && canStart ? `<button class="control-btn secondary btn-md u-margin-top-8px" data-gt-sta...}
-social-group-details.js:194  ${formatFocusMinutes(me.focusMin)}
-social-group-details.js:207  ${rankLabel}
-social-group-details.js:209  ${myIdx + 1}
-social-group-details.js:210  ${subText}
-social-group-details.js:212  ${formatFocusMinutes(me.focusMin)}
-social-group-details.js:256  ${idx < 3 ? ' top-rank' : ''}
-social-group-details.js:257  ${rankLabel}
-social-group-details.js:258  ${avatarImgHtml({ ...m.uData, displayName }, 34)}
-social-group-details.js:262  ${m.uData.online ? '<span class="glb-online-dot" title="Çevrimiçi"></span>' : ''}
-social-group-details.js:267  ${formatFocusMinutes(m.focusMin)}
-social-group-details.js:348  ${avatarImgHtml({ ...uData, displayName: uData.displayName || memberUsername }, 30)}
-social-group-details.js:418  ${summaryHtml}
-social-group-discover.js:314  ${groupData.weeklyGoal || 0}
-social-group-discover.js:317  ${categoryTag ? ` <div class="glass-panel si-flex1-pad"> <div class="si-header-title">${categoryTag...}
-social-group-discover.js:400  ${categoryTag ? `<span class="discover-category-tag">${categoryTag}</span>` : ''}
-social-group-discover.js:401  ${isNew ? `<span class="discover-new-badge">Yeni</span>` : ''}
-social-group-discover.js:402  ${groupData.requireApproval ? `<span class="u-font-size-11px_padding-2px8px_border-radius-6px_backg...}
-social-group-discover.js:403  ${activeNow > 0 ? `<span class="u-font-size-11px_padding-2px8px_border-radius-6px_background"><i cl...}
-social-group-discover.js:411  ${window.GROUP_LIMITS.MAX_MEMBERS_PER_GROUP}
-social-group-discover.js:415  ${groupData.weeklyGoal || 0}
-social-group-discover.js:424  ${memberCount > 0 ? ` <div class="u-display-flex_align-items-center_margin-bottom-6px_padding-"> ${...}
-social-group-discover.js:428  ${createdAgoText ? `<div class="u-font-size-11px_color-var-text-muted_margin-bottom-18px"><i class=...}
-social-group-discover.js:430  ${footerBtnHtml}
-social-group-discover.js:486  ${groupAvatarHtml(groupCode, groupData.name, 40)}
-social-group-discover.js:490  ${categoryTag}
-social-group-discover.js:491  ${newBadge}
-social-group-discover.js:494  ${window.GROUP_LIMITS.MAX_MEMBERS_PER_GROUP}
-social-group-discover.js:494  ${groupData.weeklyGoal}
-social-group-discover.js:494  ${activeNowHtml}
-social-group-discover.js:498  ${groupCode}
-social-group-discover.js:501  ${isFull ? `<button class="primary-btn u-padding-5px12px_font-size-11px_background-rgba2552552550p0...}
-social-group-discover.js:719  ${(discoverFilterHasSlot || discoverFilterActiveOnly) ? "Filtrelere uyan grup bulunamadı." : "Katıl...}
-social-group-session-calendar.js:327  ${subTxt}
-social-group-session-calendar.js:328  ${listHtml}
-social-group-session-calendar.js:330  ${isAuthorized ? '<button id="gsc-waiting-start-btn" class="control-btn primary-btn"><i class="fa-s...}
-social-group-session-calendar.js:505  ${GROUP_THEME_COLORS.map(c => ` <button class="grp-theme-swatch${c.hex === current ? ' active' : ''...}
-social-group-session-calendar.js:610  ${i}
-social-group-session-calendar.js:613  ${ev.text}
-social-group-session-calendar.js:614  ${ev.sub ? `<div class="u-font-size-10px_color-var-text-muted_margin-top-1px">${ev.sub}</div>` : ''}
-social-group-session-calendar.js:616  ${fmtTs(ev.ts)}
-social-group-session-calendar.js:656  ${d}
-social-group-session-calendar.js:656  ${months[parseInt(m)-1]}
-social-group-session-calendar.js:656  ${y}
-social-group-session-calendar.js:658  ${s.time}
-social-group-session-calendar.js:658  ${gscAddMinutes(s.time, durationMin)}
-social-group-session-calendar.js:666  ${shownCount-5}
-social-group-session-calendar.js:673  ${dateLabel}
-social-group-session-calendar.js:675  ${timeRange}
-social-group-session-calendar.js:677  ${durationMin}
-social-group-session-calendar.js:678  ${!isTeacherView ? `<span class="u-color-h74b9ff_margin-left-6px"><i class="fa-solid fa-circle-chec...}
-social-group-session-calendar.js:682  ${shownCount > 0 ? `<div class="u-display-flex_align-items-center_gap-4px">${avatarsHtml}${overflow...}
-social-group-session-calendar.js:683  ${isTeacherView ? `<span class="u-font-size-11px_color-rgba2552552550p5">${checkedIn.length}/${atte...}
-social-group-session-calendar.js:853  ${GSC_DAYS_TR[i]}
-social-group-session-calendar.js:854  ${day.getDate()}
-social-group-session-calendar.js:855  ${dotsHtml}
-social-group-session-calendar.js:855  ${dotsOverflow}
-social-group-session-calendar.js:908  ${dayLabel}
-social-group-session-calendar.js:908  ${daySessions.length > 0 ? ` · ${daySessions.length} seans` : ''}
-social-group-session-calendar.js:909  ${gscCanManageSessions ? `<button id="gsc-day-detail-add" class="control-btn secondary u-padding-4p...}
-social-group-session-calendar.js:911  ${daySessions.length > 0 ? `<div class="gsc-day-detail-list">${rowsHtml}</div>` : `<div class="gsc-...}
-social-group-session-calendar.js:963  ${today}
-social-group-session-calendar.js:963  ${gscDateKey(new Date())}
-social-group-session-calendar.js:968  ${startTime}
-social-group-session-calendar.js:972  ${endTime}
-social-group-session-calendar.js:980  ${isEdit ? (es.recurrenceGroupId ? `<p class="u-font-size-11px_color-var-text-muted_margin-0"><i cl...}
-social-group-session-calendar.js:1038  ${msg}
-social-group-session-calendar.js:1186  ${dateLabel}
-social-group-session-calendar.js:1187  ${s.time ? `${s.time}–${gscAddMinutes(s.time, s.duration || 60)}` : '--:--'}
-social-group-session-calendar.js:1188  ${s.recurrenceGroupId ? '<span class="gsc-detail-badge"><i class="fa-solid fa-repeat"></i> Her haft...}
-social-group-session-calendar.js:1189  ${focusingNowCount > 0 ? `<span class="gsc-detail-badge live"><span class="gsc-live-dot"></span> ${...}
-social-group-session-calendar.js:1190  ${isPast ? '<span class="gsc-detail-badge green"><i class="fa-solid fa-check"></i> Tamamlandı</span...}
-social-group-session-calendar.js:1196  ${recapHtml}
-social-group-session-calendar.js:1203  ${attendees.length === 0 ? '<span class="u-font-size-12px_color-var-text-muted">Henüz kimse katılma...}
-social-group-session-calendar.js:1206  ${canStartNow ? `<button id="gsc-start-now-btn" class="primary-btn u-width-100pct_padding-11px" ><i...}
-social-group-session-calendar.js:1207  ${!isPast && !canManage ? `<button id="gsc-rsvp-btn" class="gsc-rsvp-btn ${isMine ? 'leave' : 'join...}
-social-group-session-calendar.js:1212  ${canManage && !isPast ? `<button id="gsc-dm-edit" class="control-btn secondary u-width-100pct_padd...}
-social-group-session-calendar.js:1213  ${canManage ? `<button id="gsc-dm-delete" class="gsc-delete-btn"><i class="fa-solid fa-trash-can"><...}
-social-group-session-calendar.js:1214  ${canManage && s.recurrenceGroupId ? `<button id="gsc-dm-delete-series" class="gsc-delete-btn u-mar...}
+social-friend-search.js:53  ${user.online ? '<span class="af-online">Çevrimiçi</span>' : 'Çevrimdışı'}
+social-friends-notifications-leaderboard-render.js:58  ${name}
+social-friends-notifications-leaderboard-render.js:58  ${best._delta}
+social-friends-notifications-leaderboard-render.js:103  ${gap}
+social-friends-notifications-leaderboard-render.js:106  ${L.color}
+social-friends-notifications-leaderboard-render.js:106  ${L.color}
+social-friends-notifications-leaderboard-render.js:106  ${L.color}
+social-friends-notifications-leaderboard-render.js:106  ${L.name}
+social-friends-notifications-leaderboard-render.js:106  ${L.icon}
+social-friends-notifications-leaderboard-render.js:106  ${L.name}
+social-friends-notifications-leaderboard-render.js:113  ${zoneClass}
+social-friends-notifications-leaderboard-render.js:113  ${Math.min(i, 15) * 35}
+social-friends-notifications-leaderboard-render.js:114  ${i + 1}
+social-friends-notifications-leaderboard-render.js:115  ${avatarImgHtml(u, 32, 'flex-shrink:0;')}
+social-friends-notifications-leaderboard-render.js:118  ${rankDeltaChip}
+social-friends-notifications-leaderboard-render.js:119  ${u.isMe ? '<span class="lb-me-tag"> (Sen)</span>' : ''}
+social-friends-notifications-leaderboard-render.js:120  ${leagueBadge}
+social-friends-notifications-leaderboard-render.js:121  ${gapChip}
+social-friends-notifications-leaderboard-render.js:122  ${u.xp || 0}
+social-friends-notifications-leaderboard-render.js:122  ${wxp}
+social-friends-notifications-leaderboard-render.js:124  ${pct}
+social-friends-notifications.js:578  ${_notifFilter === 'all' ? 'Henüz bir bildirimin yok.' : 'Bu kategoride bildirim yok.'}
+social-friends-notifications.js:732  ${avatarImgHtml({ displayName, avatarColor, username }, 40)}
+social-friends-notifications.js:736  ${warningBlock}
+social-friends-notifications.js:737  ${hasSharedData ? '' : 'data-dyn-mt="24px"'}
+social-gamification-tournament.js:25  ${canStart ? `<div class="u-display-flex_gap-6px"> <button class="control-btn secondary btn-md" dat...}
+social-gamification-tournament.js:67  ${finished ? 'Bitti' : `${daysLeft} gün kaldı`}
+social-gamification-tournament.js:70  ${rowsHtml}
+social-gamification-tournament.js:71  ${joinBtn}
+social-gamification-tournament.js:72  ${finished && canStart ? `<button class="control-btn secondary btn-md u-margin-top-8px" data-gt-sta...}
+social-gamification.js:328  ${s.total_xp || 0}
+social-gamification.js:332  ${L.icon}
+social-gamification.js:332  ${L.name}
+social-gamification.js:336  ${s.weeks || 0}
+social-gamification.js:422  ${i + 1}
+social-gamification.js:423  ${window.avatarImgHtml(u, 32, 'flex-shrink:0;')}
+social-gamification.js:426  ${u.isMe ? '<span class="lb-me-tag"> (Sen)</span>' : ''}
+social-gamification.js:427  ${flames}
+social-gamification.js:427  ${s}
+social-group-details-leaderboard.js:146  ${formatFocusMinutes(me.focusMin)}
+social-group-details-leaderboard.js:159  ${rankLabel}
+social-group-details-leaderboard.js:161  ${myIdx + 1}
+social-group-details-leaderboard.js:162  ${subText}
+social-group-details-leaderboard.js:164  ${formatFocusMinutes(me.focusMin)}
+social-group-details-leaderboard.js:207  ${idx < 3 ? ' top-rank' : ''}
+social-group-details-leaderboard.js:208  ${rankLabel}
+social-group-details-leaderboard.js:209  ${avatarImgHtml({ ...m.uData, displayName }, 34)}
+social-group-details-leaderboard.js:213  ${m.uData.online ? '<span class="glb-online-dot" title="Çevrimiçi"></span>' : ''}
+social-group-details-leaderboard.js:218  ${formatFocusMinutes(m.focusMin)}
+social-group-details.js:107  ${avatarImgHtml({ ...uData, displayName: uData.displayName || memberUsername }, 30)}
+social-group-details.js:177  ${summaryHtml}
+social-group-discover.js:292  ${groupData.weeklyGoal || 0}
+social-group-discover.js:295  ${categoryTag ? ` <div class="glass-panel si-flex1-pad"> <div class="si-header-title">${categoryTag...}
+social-group-discover.js:378  ${categoryTag ? `<span class="discover-category-tag">${categoryTag}</span>` : ''}
+social-group-discover.js:379  ${isNew ? `<span class="discover-new-badge">Yeni</span>` : ''}
+social-group-discover.js:380  ${groupData.requireApproval ? `<span class="u-font-size-11px_padding-2px8px_border-radius-6px_backg...}
+social-group-discover.js:381  ${activeNow > 0 ? `<span class="u-font-size-11px_padding-2px8px_border-radius-6px_background"><i cl...}
+social-group-discover.js:389  ${window.GROUP_LIMITS.MAX_MEMBERS_PER_GROUP}
+social-group-discover.js:393  ${groupData.weeklyGoal || 0}
+social-group-discover.js:402  ${memberCount > 0 ? ` <div class="u-display-flex_align-items-center_margin-bottom-6px_padding-"> ${...}
+social-group-discover.js:406  ${createdAgoText ? `<div class="u-font-size-11px_color-var-text-muted_margin-bottom-18px"><i class=...}
+social-group-discover.js:408  ${footerBtnHtml}
+social-group-discover.js:464  ${groupAvatarHtml(groupCode, groupData.name, 40)}
+social-group-discover.js:468  ${categoryTag}
+social-group-discover.js:469  ${newBadge}
+social-group-discover.js:472  ${window.GROUP_LIMITS.MAX_MEMBERS_PER_GROUP}
+social-group-discover.js:472  ${groupData.weeklyGoal}
+social-group-discover.js:472  ${activeNowHtml}
+social-group-discover.js:476  ${groupCode}
+social-group-discover.js:479  ${isFull ? `<button class="primary-btn u-padding-5px12px_font-size-11px_background-rgba2552552550p0...}
+social-group-discover.js:697  ${(discoverFilterHasSlot || discoverFilterActiveOnly) ? "Filtrelere uyan grup bulunamadı." : "Katıl...}
+social-group-session-calendar-theme.js:44  ${GROUP_THEME_COLORS.map(c => ` <button class="grp-theme-swatch${c.hex === current ? ' active' : ''...}
+social-group-session-calendar.js:286  ${subTxt}
+social-group-session-calendar.js:287  ${listHtml}
+social-group-session-calendar.js:289  ${isAuthorized ? '<button id="gsc-waiting-start-btn" class="control-btn primary-btn"><i class="fa-s...}
+social-group-session-calendar.js:501  ${i}
+social-group-session-calendar.js:504  ${ev.text}
+social-group-session-calendar.js:505  ${ev.sub ? `<div class="u-font-size-10px_color-var-text-muted_margin-top-1px">${ev.sub}</div>` : ''}
+social-group-session-calendar.js:507  ${fmtTs(ev.ts)}
+social-group-session-calendar.js:547  ${d}
+social-group-session-calendar.js:547  ${months[parseInt(m)-1]}
+social-group-session-calendar.js:547  ${y}
+social-group-session-calendar.js:549  ${s.time}
+social-group-session-calendar.js:549  ${gscAddMinutes(s.time, durationMin)}
+social-group-session-calendar.js:557  ${shownCount-5}
+social-group-session-calendar.js:564  ${dateLabel}
+social-group-session-calendar.js:566  ${timeRange}
+social-group-session-calendar.js:568  ${durationMin}
+social-group-session-calendar.js:569  ${!isTeacherView ? `<span class="u-color-h74b9ff_margin-left-6px"><i class="fa-solid fa-circle-chec...}
+social-group-session-calendar.js:573  ${shownCount > 0 ? `<div class="u-display-flex_align-items-center_gap-4px">${avatarsHtml}${overflow...}
+social-group-session-calendar.js:574  ${isTeacherView ? `<span class="u-font-size-11px_color-rgba2552552550p5">${checkedIn.length}/${atte...}
+social-group-session-calendar.js:744  ${GSC_DAYS_TR[i]}
+social-group-session-calendar.js:745  ${day.getDate()}
+social-group-session-calendar.js:746  ${dotsHtml}
+social-group-session-calendar.js:746  ${dotsOverflow}
+social-group-session-calendar.js:799  ${dayLabel}
+social-group-session-calendar.js:799  ${daySessions.length > 0 ? ` · ${daySessions.length} seans` : ''}
+social-group-session-calendar.js:800  ${gscCanManageSessions ? `<button id="gsc-day-detail-add" class="control-btn secondary u-padding-4p...}
+social-group-session-calendar.js:802  ${daySessions.length > 0 ? `<div class="gsc-day-detail-list">${rowsHtml}</div>` : `<div class="gsc-...}
+social-group-session-calendar.js:854  ${today}
+social-group-session-calendar.js:854  ${gscDateKey(new Date())}
+social-group-session-calendar.js:859  ${startTime}
+social-group-session-calendar.js:863  ${endTime}
+social-group-session-calendar.js:871  ${isEdit ? (es.recurrenceGroupId ? `<p class="u-font-size-11px_color-var-text-muted_margin-0"><i cl...}
+social-group-session-calendar.js:929  ${msg}
+social-group-session-calendar.js:1077  ${dateLabel}
+social-group-session-calendar.js:1078  ${s.time ? `${s.time}–${gscAddMinutes(s.time, s.duration || 60)}` : '--:--'}
+social-group-session-calendar.js:1079  ${s.recurrenceGroupId ? '<span class="gsc-detail-badge"><i class="fa-solid fa-repeat"></i> Her haft...}
+social-group-session-calendar.js:1080  ${focusingNowCount > 0 ? `<span class="gsc-detail-badge live"><span class="gsc-live-dot"></span> ${...}
+social-group-session-calendar.js:1081  ${isPast ? '<span class="gsc-detail-badge green"><i class="fa-solid fa-check"></i> Tamamlandı</span...}
+social-group-session-calendar.js:1087  ${recapHtml}
+social-group-session-calendar.js:1094  ${attendees.length === 0 ? '<span class="u-font-size-12px_color-var-text-muted">Henüz kimse katılma...}
+social-group-session-calendar.js:1097  ${canStartNow ? `<button id="gsc-start-now-btn" class="primary-btn u-width-100pct_padding-11px" ><i...}
+social-group-session-calendar.js:1098  ${!isPast && !canManage ? `<button id="gsc-rsvp-btn" class="gsc-rsvp-btn ${isMine ? 'leave' : 'join...}
+social-group-session-calendar.js:1103  ${canManage && !isPast ? `<button id="gsc-dm-edit" class="control-btn secondary u-width-100pct_padd...}
+social-group-session-calendar.js:1104  ${canManage ? `<button id="gsc-dm-delete" class="gsc-delete-btn"><i class="fa-solid fa-trash-can"><...}
+social-group-session-calendar.js:1105  ${canManage && s.recurrenceGroupId ? `<button id="gsc-dm-delete-series" class="gsc-delete-btn u-mar...}
 social-home-summary.js:124  ${greet}
 social-home-summary.js:126  ${suggestion.sub}
 social-home-summary.js:127  ${suggestion.cta ? `<button id="dhs-greeting-cta" class="dhs-greeting-cta" type="button">${suggesti...}
@@ -575,44 +1277,44 @@ social-home-summary.js:318  ${done ? '✓ Tamamlandı' : `%${pct}`}
 social-home-summary.js:318  ${window.formatFocusMinutes(total)}
 social-home-summary.js:318  ${window.formatFocusMinutes(g.weekly_goal)}
 social-home-summary.js:318  ${window.formatFocusMinutes(mine)}
-social-institution-class-modals.js:186  ${c.id}
-social-institution-class-modals.js:214  ${t.id}
-social-institution-class-modals.js:266  ${countByTemplate[t.id] || 0}
-social-institution-class-modals.js:268  ${t.id}
+social-institution-class-modals-roster-patch.js:26  ${newSectionId ? `<option value="__unassigned__">— Sınıfsız yap —</option>` : ''}
+social-institution-class-modals.js:187  ${c.id}
+social-institution-class-modals.js:215  ${t.id}
+social-institution-class-modals.js:267  ${countByTemplate[t.id] || 0}
 social-institution-class-modals.js:269  ${t.id}
 social-institution-class-modals.js:270  ${t.id}
-social-institution-class-modals.js:283  ${c.id}
-social-institution-class-modals.js:348  ${dayName}
-social-institution-class-modals.js:407  ${badge}
-social-institution-class-modals.js:450  ${dayName}
-social-institution-class-modals.js:715  ${newSectionId ? `<option value="__unassigned__">— Sınıfsız yap —</option>` : ''}
-social-institution-class-modals.js:785  ${info.program.id}
-social-institution-class-modals.js:786  ${info.program.id}
-social-institution-class-modals.js:794  ${info.draftProgram.id}
-social-institution-class-modals.js:795  ${info.draftProgram.id}
-social-institution-classroom-insights.js:251  ${onboardingHtml}
-social-institution-classroom-insights.js:251  ${weekTodoHtml}
-social-institution-classroom-insights.js:251  ${kpiHtml}
-social-institution-classroom-insights.js:430  ${nextMineHtml}
-social-institution-classroom-insights.js:430  ${myStreakHtml}
-social-institution-classroom-insights.js:430  ${myActiveStatusHtml}
-social-institution-classroom-insights.js:430  ${myCompletionHtml}
-social-institution-classroom-insights.js:430  ${privacyHtml}
-social-institution-classroom-insights.js:454  ${checked ? `<i class="fa-solid fa-eye-slash"></i> Şu an <b>gizli</b>: haftalık odak süren ve aktif...}
-social-institution-classroom-insights.js:520  ${statTilesHtml}
-social-institution-classroom-insights.js:521  ${isClassAdmin ? `<div id="grp-intro-insights" class="cp-skeleton u-margin-bottom-14px" ><div class...}
-social-institution-classroom-insights.js:522  ${isClassAdmin ? `<div id="grp-intro-shortcuts-wrap"></div>` : ` <button type="button" class="contr...}
-social-institution-classroom-wire.js:637  ${s.userId}
-social-institution-my-groups.js:352  ${window.groupAvatarHtml(groupCode, groupData.name, 30)}
-social-institution-my-groups.js:354  ${ownerBadge}
-social-institution-my-groups.js:357  ${groupCode}
-social-institution-my-groups.js:357  ${activeNowMiniHtml}
-social-institution-my-groups.js:513  ${window.avatarImgHtml(uData, 28)}
+social-institution-class-modals.js:271  ${t.id}
+social-institution-class-modals.js:284  ${c.id}
+social-institution-class-modals.js:349  ${dayName}
+social-institution-class-modals.js:408  ${badge}
+social-institution-class-modals.js:451  ${dayName}
+social-institution-class-modals.js:716  ${info.program.id}
+social-institution-class-modals.js:717  ${info.program.id}
+social-institution-class-modals.js:725  ${info.draftProgram.id}
+social-institution-class-modals.js:726  ${info.draftProgram.id}
+social-institution-classroom-insights.js:118  ${onboardingHtml}
+social-institution-classroom-insights.js:118  ${weekTodoHtml}
+social-institution-classroom-insights.js:118  ${kpiHtml}
+social-institution-classroom-insights.js:297  ${nextMineHtml}
+social-institution-classroom-insights.js:297  ${myStreakHtml}
+social-institution-classroom-insights.js:297  ${myActiveStatusHtml}
+social-institution-classroom-insights.js:297  ${myCompletionHtml}
+social-institution-classroom-insights.js:297  ${privacyHtml}
+social-institution-classroom-insights.js:321  ${checked ? `<i class="fa-solid fa-eye-slash"></i> Şu an <b>gizli</b>: haftalık odak süren ve aktif...}
+social-institution-classroom-insights.js:387  ${statTilesHtml}
+social-institution-classroom-insights.js:388  ${isClassAdmin ? `<div id="grp-intro-insights" class="cp-skeleton u-margin-bottom-14px" ><div class...}
+social-institution-classroom-insights.js:389  ${isClassAdmin ? `<div id="grp-intro-shortcuts-wrap"></div>` : ` <button type="button" class="contr...}
+social-institution-classroom-wire-assignments.js:44  ${s.userId}
+social-institution-my-groups-invite-modal.js:103  ${window.avatarImgHtml(uData, 28)}
+social-institution-my-groups.js:144  ${window.groupAvatarHtml(groupCode, groupData.name, 30)}
+social-institution-my-groups.js:146  ${ownerBadge}
+social-institution-my-groups.js:149  ${groupCode}
+social-institution-my-groups.js:149  ${activeNowMiniHtml}
+social-institution-panel-shortcuts-widget.js:49  ${ids.map(tileHtml).join('')}
+social-institution-panel-shortcuts-widget.js:73  ${Object.keys(w.defs).map(galleryRowHtml).join('')}
 social-institution-panel.js:288  ${hasStudentPerfTab ? `<button class="cp-subtab-btn${isActive('performansim')}" data-cpsub="perform...}
 social-institution-panel.js:289  ${hasPerfTab ? `<button class="cp-subtab-btn${isActive('performans')}" data-cpsub="performans"><i c...}
 social-institution-panel.js:290  ${isActive('odevler')}
-687 potentially-unescaped interpolation(s) found.
-
 social-institution-panel.js:290  ${asgLabel}
 social-institution-panel.js:291  ${isActive('program')}
 social-institution-panel.js:292  ${isClassAdmin ? `<button class="cp-subtab-btn${isActive('roster')}" data-cpsub="roster"><i class="...}
@@ -626,8 +1328,6 @@ social-institution-panel.js:298  ${scheduleHtml}
 social-institution-panel.js:299  ${isClassAdmin ? `<div class="cp-subtab-panel${isActive('roster')}" data-cpsubpanel="roster">${rost...}
 social-institution-panel.js:300  ${isActive('rapor')}
 social-institution-panel.js:300  ${reportHtml}
-social-institution-panel.js:412  ${ids.map(tileHtml).join('')}
-social-institution-panel.js:436  ${Object.keys(w.defs).map(galleryRowHtml).join('')}
 social-message-pins.js:277  ${keys.length > 1 ? `Sabitlenmiş mesaj (${_dcPinnedIndex + 1}/${keys.length})` : 'Sabitlenmiş mesaj'}
 social-message-pins.js:280  ${keys.length > 1 ? `<button class="dc-pinned-nav-btn" data-action="next-pin" title="Sonraki sabitl...}
 social-message-pins.js:281  ${canUnpin ? `<button class="dc-pinned-unpin-btn" data-action="unpin" title="Sabitlemeyi kaldır" ar...}
@@ -644,35 +1344,37 @@ social-online-friends.js:102  ${!f.online ? ' cw-invite-btn--offline' : ''}
 social-online-friends.js:102  ${!f.online ? 'disabled title="Bu kullanıcı şu an çevrimdışı"' : ''}
 social-polls.js:44  ${num}
 social-polls.js:150  ${totalVotes}
-social-roles.js:226  ${meta.color}
-social-roles.js:226  ${meta.color}
-social-roles.js:227  ${meta.icon}
-social-roles.js:231  ${timeStr}
-social-roles.js:414  ${r.id}
-social-roles.js:835  ${row.user_id}
-social-roles.js:837  ${window.avatarImgHtml({ customAvatar: profile.custom_avatar, avatarInitials: profile.avatar_initia...}
-social-roles.js:844  ${row.user_id}
-social-roles.js:845  ${row.user_id}
+social-roles.js:207  ${meta.color}
+social-roles.js:207  ${meta.color}
+social-roles.js:208  ${meta.icon}
+social-roles.js:212  ${timeStr}
+social-roles.js:395  ${r.id}
+social-roles.js:816  ${row.user_id}
+social-roles.js:818  ${window.avatarImgHtml({ customAvatar: profile.custom_avatar, avatarInitials: profile.avatar_initia...}
+social-roles.js:825  ${row.user_id}
+social-roles.js:826  ${row.user_id}
+social-roles.js:968  ${m.user_id}
+social-roles.js:971  ${canAssignRole ? 'data-dyn-cursor="pointer"' : ''}
+social-roles.js:974  ${canAssignRole ? '<i class="fa-solid fa-chevron-down u-font-size-9px_opacity-0p7" ></i>' : ''}
+social-roles.js:979  ${m.user_id}
 social-roles.js:987  ${m.user_id}
-social-roles.js:990  ${canAssignRole ? 'data-dyn-cursor="pointer"' : ''}
-social-roles.js:993  ${canAssignRole ? '<i class="fa-solid fa-chevron-down u-font-size-9px_opacity-0p7" ></i>' : ''}
-social-roles.js:998  ${m.user_id}
-social-roles.js:1006  ${m.user_id}
-social-roles.js:1008  ${window.avatarImgHtml({ customAvatar: profile.custom_avatar, avatarInitials: profile.avatar_initia...}
-social-roles.js:1014  ${chipHtml}
-social-roles.js:1014  ${kickHtml}
-social-room-presence.js:109  ${window.avatarImgHtml({ ...mData, displayName: mData.displayName || mUsername }, 26, 'flex-shrink:...}
-social-room-presence.js:115  ${mRole}
-social-room-presence.js:117  ${actDetailS}
-social-room-presence.js:203  ${window.avatarImgHtml({ avatarColor: presence.avatarColor, customAvatar: presence.customAvatar, di...}
-social-room-presence.js:206  ${isMe ? ' <span class="presence-you-tag">ben</span>' : ''}
-social-server-tree.js:420  ${it.cls}
-social-server-tree.js:421  ${it.icon}
-social-server-tree.js:422  ${it.label}
-social-server-tree.js:616  ${isAnnouncement ? '<span class="dc-subchan-announce-badge u-flex-shrink-0_font-size-9px_background...}
-social-server-tree.js:617  ${isLocked && !isAnnouncement ? '<span class="dc-subchan-locked-badge" title="Bu odaya girmek için ...}
+social-roles.js:989  ${window.avatarImgHtml({ customAvatar: profile.custom_avatar, avatarInitials: profile.avatar_initia...}
+social-roles.js:995  ${chipHtml}
+social-roles.js:995  ${kickHtml}
+social-room-presence.js:110  ${window.avatarImgHtml({ ...mData, displayName: mData.displayName || mUsername }, 26, 'flex-shrink:...}
+social-room-presence.js:116  ${mRole}
+social-room-presence.js:118  ${actDetailS}
+social-room-presence.js:204  ${window.avatarImgHtml({ avatarColor: presence.avatarColor, customAvatar: presence.customAvatar, di...}
+social-room-presence.js:207  ${isMe ? ' <span class="presence-you-tag">ben</span>' : ''}
+social-server-tree-context-menu.js:60  ${it.cls}
+social-server-tree-context-menu.js:61  ${it.icon}
+social-server-tree-context-menu.js:62  ${it.label}
+social-server-tree.js:506  ${isAnnouncement ? '<span class="dc-subchan-announce-badge u-flex-shrink-0_font-size-9px_background...}
+social-server-tree.js:507  ${isLocked && !isAnnouncement ? '<span class="dc-subchan-locked-badge" title="Bu odaya girmek için ...}
 social-settings-modal.js:49  ${savedTheme === 'dark' ? 'active' : ''}
 social-settings-modal.js:52  ${savedTheme === 'light' ? 'active' : ''}
+1389 potentially-unescaped interpolation(s) found.
+
 social-settings-modal.js:83  ${savedPrivacy === 'everyone' ? 'selected' : ''}
 social-settings-modal.js:84  ${savedPrivacy === 'friends' ? 'selected' : ''}
 social-settings-modal.js:85  ${savedPrivacy === 'nobody' ? 'selected' : ''}

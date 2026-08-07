@@ -1,4 +1,5 @@
 import { fmtDate, getCat } from './planning-utils.js';
+import { _localToday, _pvDayAfter, _normYMD } from './planning-wizard-date-utils.js';
 // ─── MİLESTONE WİZARD (Hedef Detay Paneli içi) ─────────────────────
 // planning.js dosyasından çıkarıldı (Faz 6): Hedef Detay Panelinin
 // (PlanView) 5 adımlı sohbet-tarzı aşama sihirbazı — welcome/count/
@@ -342,26 +343,7 @@ import { fmtDate, getCat } from './planning-utils.js';
         }, delay);
     }
 
-    function _pvDayAfter(dateStr) {
-        if (!dateStr) return _localToday();
-        const d = new Date(dateStr + 'T00:00:00');
-        d.setDate(d.getDate() + 1);
-        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    }
-
     window._localToday = _localToday; // planning.js için
-    function _localToday() {
-        const d = new Date();
-        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    }
-
-    // Normalize any date to YYYY-MM-DD (handles DD-MM-YYYY from the main app)
-    function _normYMD(d) {
-        if (!d) return '';
-        const p = d.split('-');
-        if (p.length !== 3) return d;
-        return p[0].length === 2 ? `${p[2]}-${p[1]}-${p[0]}` : d;
-    }
     window._normYMD = _normYMD;
 
     // Called from calendar when wizard dates step is active

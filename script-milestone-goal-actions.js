@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
          editWrapper.style.gap = '6px';
          editWrapper.style.width = '100%';
          editWrapper.innerHTML = `
-             <input class="ms-edit-input premium-input u-font-size-13px_padding-6px10px_width-100pct_box-sizing-bor" type="text" value="${escapeHtml(currentText)}" >
+             <input class="ms-edit-input premium-input u-font-size-13px_padding-6px10px_width-100pct_box-sizing-bor" type="text" value="${window.escapeHtml(currentText)}" >
              <div class="u-display-flex_gap-6px_align-items-center">
                  <input class=\"ms-edit-date premium-input\" type=\"date\" value=\"${currentDate}\" ${goal.createdAt ? `min="${new Date(goal.createdAt).toISOString().split('T')[0]}"` : ''} ${goal.deadline ? `max="${goal.deadline.split('-')[0].length===4 ? goal.deadline : goal.deadline.split('-').reverse().join('-')}"` : ''} style=\"font-size:12px; padding:5px 8px; flex:1; color:#fff; cursor:pointer;\">
                  <button class="ms-edit-save primary-btn u-padding-5px12px_font-size-12px_background-rgba91322270p2_b" ><i class="fa-solid fa-check"></i> Kaydet</button>
@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ms.text = newText;
             // Tarihi YYYY-MM-DD olarak kaydet (saveNewMilestone ile aynı format)
             if (newDate) ms.date = newDate;
-            Store.goals.set(goals); if(window.FocusSync) window.FocusSync.pushKey('goals', goals);
+            window.Store.goals.set(goals); if(window.FocusSync) window.FocusSync.pushKey('goals', goals);
             updateGoalDetailsUI(goalId);
         };
  
@@ -142,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
          const goal = goals.find(g => String(g.id) === String(goalId));
          if(goal && goal.milestones) {
              goal.milestones = goal.milestones.filter(m => m.id !== milestoneId);
-             Store.goals.set(goals); if(window.FocusSync) window.FocusSync.pushKey('goals', goals);
+             window.Store.goals.set(goals); if(window.FocusSync) window.FocusSync.pushKey('goals', goals);
              updateGoalDetailsUI(goalId);
          }
      };
@@ -427,7 +427,7 @@ document.addEventListener('DOMContentLoaded', () => {
                      const eLabel = _fmtDisp(ms.date);
                      return `<div class="mga-occ-row u-display-flex_align-items-center_gap-8px_padding-5px0" data-occ-idx="${i}" >
                          <div class="mga-occ-dot u-width-10px_height-10px_border-radius-50pct_flex-shrink-0" ></div>
-                         <span class="u-font-size-12px_color-hfff_flex-1_min-width-0_white-space-n">${escapeHtml(ms.text)}</span>
+                         <span class="u-font-size-12px_color-hfff_flex-1_min-width-0_white-space-n">${window.escapeHtml(ms.text)}</span>
                          <span class="u-font-size-11px_color-rgba2552552550p4_white-space-nowrap">${sLabel} → ${eLabel}</span>
                          ${ms.completed ? '<span class="u-font-size-10px_color-h2ed573">✓</span>' : ''}
                      </div>`;
@@ -532,7 +532,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!goal.milestones) goal.milestones = [];
             const msId = generateId();
             goal.milestones.push({ id: msId, text: text, startDate: selectedStart, date: selectedDate, completed: false });
-            Store.goals.set(goals); if(window.FocusSync) window.FocusSync.pushKey('goals', goals);
+            window.Store.goals.set(goals); if(window.FocusSync) window.FocusSync.pushKey('goals', goals);
 
             document.getElementById('add-milestone-modal').classList.add('hidden');
             updateGoalDetailsUI(goalId);

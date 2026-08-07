@@ -678,6 +678,36 @@
 }
 #zkmm-cover-num { font-size: 52px; text-transform: uppercase; }
 
+/* Ay özeti boş durumu (#zkmm-empty) — önceden .zkm-empty-title/.zkm-empty-sub
+   için hiç kural yoktu, bu yüzden global beyaz metin rengini (--text-color)
+   miras alıp krem/parşömen sayfa zemininde okunmuyordu (beyaz-üstüne-beyaz).
+   Sayfanın kendi sepia paletiyle (bkz. .zkm-dayname/.zkmm-stat-label)
+   tutarlı, profesyonel bir kart haline getirildi (2026-08-06). */
+.zkm-empty {
+    margin-top: 26px;
+    padding-top: 18px;
+    border-top: 1px dashed rgba(122,93,52,.35);
+    text-align: center;
+}
+.zkm-empty-icon {
+    font-size: 26px;
+    margin-bottom: 8px;
+    opacity: .85;
+}
+.zkm-empty-title {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-weight: 700;
+    font-size: 17px;
+    color: #6a3f1c;
+    margin-bottom: 4px;
+}
+.zkm-empty-sub {
+    font-family: 'Caveat', cursive;
+    font-size: 19px;
+    font-style: italic;
+    color: #9a7a44;
+}
+
 /* ── Responsive ── */
 @media (max-width: 820px) {
     .zk-book-spread { width: 90vw; height: 56vw; }

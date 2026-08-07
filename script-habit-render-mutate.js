@@ -9,6 +9,7 @@
 // showPremiumModal) kullanır — script.js önce yüklenir, bu dosya sonra.
 // ============================================================
 import { _setFlatpickrDate } from './script-calendar-date-utils.js';
+import { populateParentHabitSelects } from './script-populate-parent-selects.js';
 
 (function () {
 'use strict';
@@ -233,26 +234,41 @@ function renderHabitRows(todayStr) {
         const clickAttr = hasPendingTaskForGoal ? "" : `data-action="toggle-habit-today" data-id="${habit.id}" data-date="${todayStr}"`;
         const autoBadge = hasPendingTaskForGoal ? `<span class="task-time-badge u-background-rgba255159670p1_color-hff9f43_border-1pxsolidrg" ><i class="fa-solid fa-bolt"></i> Görevle Tamamlanacak</span>` : '';
 
+        // GERÇEK GÖRSEL BUG DÜZELTMESİ (2026-08-06): bu satır önceden düz
+        // `.task-item > .task-left/.task-meta` (tl-card/tl-rail OLMADAN)
+        // render ediyordu — bu yüzden Bugün'deki asıl görev kartlarından
+        // (renderHighlightGoalRow/buildTaskListItem'ın ürettiği .tl-card
+        // yapısı) tamamen farklı, kenarlıksız/arka plansız çıplak bir satır
+        // gibi görünüyordu. Artık AYNI tl-time-col/tl-rail/tl-card-inner
+        // iskeletini kullanıyor — kullanıcı normal bir alışkanlık
+        // oluşturduğunda gördüğü asıl satır budur (renderHabitRows her
+        // renderTasks()'ta otomatik çağrılıyor, ayrı bir "göreve dönüştür"
+        // adımı gerekmiyor).
         const li = document.createElement('li');
-        li.className = `task-item ${isCompleted ? 'completed' : ''} priority-low`;
-
-        if(hasPendingTaskForGoal) {
-            li.style.opacity = "0.75";
-            li.style.background = "rgba(255, 255, 255, 0.02)";
-        }
+        li.className = `task-item habit-row ${isCompleted ? 'completed' : ''}`;
+        if (hasPendingTaskForGoal) li.classList.add('habit-row-locked');
 
         li.innerHTML = `
-            <div class="task-left">
-                <i class="fa-solid fa-leaf drag-handle u-cursor-default_opacity-0p5" title="Alışkanlık"></i>
-                <div class="task-checkbox habit-row-checkbox" ${clickAttr}></div>
-                <span class="task-text habit-row-text" ${clickAttr}>${escapeHtml(habit.name)}</span>
-                <div class="u-flex-basis-100pct_height-0"></div>
-                <div class="task-meta">
-                    <span class="task-category-tag tag-${habit.category || 'kisisel'}">${catDisplay}</span>
-                    <span class="task-time-badge habit-badge" title="Tüm Gün"><i class="fa-solid fa-repeat"></i> Tüm Gün</span>
-                    ${buddyBadge}
-                    ${goalBadgesHTML}
-                    ${autoBadge}
+            <div class="tl-time-col">
+                <i class="fa-solid fa-repeat habit-row-icon" title="Tüm Gün"></i>
+            </div>
+            <div class="tl-rail">
+                <span class="tl-rail-line"></span>
+                <span class="tl-rail-dot habit-row-dot" ></span>
+                <span class="tl-rail-line"></span>
+            </div>
+            <div class="tl-card">
+                <div class="tl-card-inner habit-row-inner" >
+                    <div class="task-checkbox habit-row-checkbox" ${clickAttr}></div>
+                    <div class="task-left">
+                        <span class="task-text habit-row-text" ${clickAttr}>${escapeHtml(habit.name)}</span>
+                        <div class="task-meta">
+                            <span class="task-category-tag tag-habit"><i class="fa-solid fa-leaf u-margin-right-4px" ></i>${catDisplay}</span>
+                            ${buddyBadge}
+                            ${goalBadgesHTML}
+                            ${autoBadge}
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
@@ -323,6 +339,9 @@ function addHabit() {
         window.closeHabitModal();
 
         window.saveHabits(); renderHabits(); window.renderTasks();
+        // Görev Ekle modalındaki "Alışkanlık" seçicisi (event-parent-habit)
+        // yeni oluşturulan alışkanlığı sayfa yenilenmeden hemen görebilsin.
+        populateParentHabitSelects();
         const renderCalendarRef = window.__getRenderCalendarRef();
         const renderEventsRef = window.__getRenderEventsRef();
         const renderStatisticsRef = window.__getRenderStatisticsRef();

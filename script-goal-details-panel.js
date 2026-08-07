@@ -39,10 +39,20 @@ export function openGoalDetails(goalId) {
            deadlineDate = new Date(goal.deadline);
        }
 
-       deadlineDate.setHours(23, 59, 59, 999);
+       // GERÇEK BUG DÜZELTMESİ (2026-08-06): deadlineDate gün sonuna
+       // (23:59:59.999) sabitlenip today saatin o anki değeriyle
+       // bırakılıyordu — bu yüzden bitiş tarihi TAM BUGÜN olsa bile
+       // (örn. saat 14:00'te bakılırsa) fark hep bir tam güne
+       // yuvarlanıyor (Math.ceil), "days===0 → Bugün son gün!" dalı asla
+       // tetiklenmiyor, hep "1 gün kaldı" gösteriyordu. İki tarihi de gün
+       // başına (00:00:00) sabitleyip Math.round kullanmak doğru gün
+       // farkını veriyor — script-goal-details-sections.js'teki dönüm
+       // noktası rozeti (satır ~317) zaten bu doğru deseni kullanıyor.
+       deadlineDate.setHours(0, 0, 0, 0);
        const today = new Date();
+       today.setHours(0, 0, 0, 0);
        const diff = deadlineDate - today;
-       const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+       const days = Math.round(diff / (1000 * 60 * 60 * 24));
 
        if (days < 0) {
            document.getElementById('detail-goal-countdown').textContent = 'Süre bitti!';

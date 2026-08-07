@@ -34,6 +34,9 @@ import { getTasksRef, getGoalsRef, getRenderSocialStatsRef, getRenderStatisticsR
 import { formatDateToString } from './script-date-time-utils.js';
 import { generateId } from './storage-manager.js';
 import { renderGoals } from './script-goal-modal.js';
+import { createAlarmSound } from './script-timer-alarm-sound.js';
+import { applyTimerModeColor as _applyTimerModeColorHelper } from './script-timer-mode-color.js';
+import { getTotalFocusMinutes, setTotalFocusMinutes } from './state/total-focus-minutes-store.js';
 
  let timerInterval;
  let totalTime = 25 * 60;
@@ -89,37 +92,8 @@ import { renderGoals } from './script-goal-modal.js';
  function _stopFocusHeartbeat() {
      if (_focusHeartbeatInterval) { clearInterval(_focusHeartbeatInterval); _focusHeartbeatInterval = null; }
  }
- let alarmInterval = null;
- const alarmSound = {
-     _playing: false,
-     play() {
-         if (this._playing) return Promise.resolve();
-         this._playing = true;
-         this._playBeep();
-         alarmInterval = setInterval(() => this._playBeep(), 900);
-         return Promise.resolve();
-     },
-     _playBeep() {
-         try {
-             const ctx = new (window.AudioContext || window.webkitAudioContext)();
-             [880, 0, 880, 0, 1100].forEach((freq, i) => {
-                 if (!freq) return;
-                 const osc = ctx.createOscillator();
-                 const g = ctx.createGain();
-                 osc.connect(g); g.connect(ctx.destination);
-                 osc.frequency.value = freq;
-                 const t = ctx.currentTime + i * 0.12;
-                 g.gain.setValueAtTime(0.3, t);
-                 g.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
-                 osc.start(t); osc.stop(t + 0.1);
-             });
-         } catch (e) { console.warn('[FocusAI] sessiz hata:', e); }
-     },
-     pause()  { this._playing = false; clearInterval(alarmInterval); },
-     get currentTime() { return 0; },
-     set currentTime(v) {}
- };
- 
+ const alarmSound = createAlarmSound();
+
  // Temsilci Dinleyici: Butonlar yenilense bile tıklamayı her zaman yakalar
  document.addEventListener('click', (e) => {
      if (e.target.closest('#premium-modal-confirm-btn') || e.target.closest('#premium-modal-cancel-btn') || e.target.closest('.modal-overlay')) {
@@ -142,11 +116,7 @@ import { renderGoals } from './script-goal-modal.js';
  // Çember rengi moda göre değişsin: odaklanma (pomodoro/derin çalışma) mor,
  // kısa mola yeşil, uzun mola turuncu — bkz. style.css .timer-mode-*.
  function applyTimerModeColor(mode) {
-     if (!timerCircle) return;
-     timerCircle.classList.remove('timer-mode-focus', 'timer-mode-short', 'timer-mode-long');
-     if (mode === 'pomodoro' || mode === 'ultradian') timerCircle.classList.add('timer-mode-focus');
-     else if (mode === 'shortBreak') timerCircle.classList.add('timer-mode-short');
-     else if (mode === 'longBreak') timerCircle.classList.add('timer-mode-long');
+     _applyTimerModeColorHelper(timerCircle, mode);
  }
  applyTimerModeColor(document.querySelector('.mode-btn.active')?.getAttribute('data-mode') || 'pomodoro');
 
@@ -338,8 +308,13 @@ import { renderGoals } from './script-goal-modal.js';
                  
                  if(modeType === 'pomodoro' || modeType === 'ultradian') {
                      const modeMins = parseInt(activeBtn.getAttribute('data-time'));
-                     totalFocusMinutes += modeMins;
-                     FocusStorage.set('focus_minutes', totalFocusMinutes);
+                     // GERÇEK BUG DÜZELTMESİ (2026-08-06): totalFocusMinutes bu dosyada
+                     // hiç tanımlanmamış çıplak bir değişkendi (bkz. creditFocusMinutes'teki
+                     // aynı not) — süre doğal olarak bittiğinde bu satır ReferenceError
+                     // fırlatıp bildirim sesi/modalı ve istatistik güncellemesini
+                     // engelliyordu. Merkezi state store'a taşındı.
+                     setTotalFocusMinutes(getTotalFocusMinutes() + modeMins);
+                     FocusStorage.set('focus_minutes', getTotalFocusMinutes());
                      if (window.FocusXP) window.FocusXP.finishFocusSession(_serverFocusSessionId, modeMins);
                      _serverFocusSessionId = null;
                      _stopFocusHeartbeat();
@@ -589,8 +564,14 @@ import { renderGoals } from './script-goal-modal.js';
  // Erken bitirme ve "Sıradaki Aşama"nın ortak kullandığı kredilendirme mantığı:
  // o ana kadar odaklanmada geçen dakikayı istatistiklere/XP'ye/hedefe işler.
  function creditFocusMinutes(minutesSpent) {
-     totalFocusMinutes += minutesSpent;
-     FocusStorage.set('focus_minutes', totalFocusMinutes);
+     // GERÇEK BUG DÜZELTMESİ (2026-08-06): bkz. yukarıdaki _timerTick'teki aynı
+     // not — bu fonksiyon "Bitir" (erken bitirme) ve "Sıradaki Aşama"nın
+     // ORTAK kullandığı kredilendirme yolu; totalFocusMinutes burada da çıplak
+     // tanımsız değişkendi, o yüzden her iki buton da tıklanınca sessizce
+     // çöküp ne modal gösteriyor ne de süreyi kaydediyordu (canlı testte
+     // doğrulandı: buton hiçbir şey yapmıyormuş gibi görünüyordu).
+     setTotalFocusMinutes(getTotalFocusMinutes() + minutesSpent);
+     FocusStorage.set('focus_minutes', getTotalFocusMinutes());
      if (window.FocusXP) window.FocusXP.finishFocusSession(_serverFocusSessionId, minutesSpent);
      _serverFocusSessionId = null;
      _stopFocusHeartbeat();
@@ -815,20 +796,21 @@ import { renderGoals } from './script-goal-modal.js';
  const MAX_TIMER_PROFILES = 5;
 
  // 1. Profilleri hafızadan çek — yoksa psikologların/araştırmaların önerdiği
- // iki hazır profille tohumla: Klasik Pomodoro (Cirillo Tekniği) ve
+ // iki hazır profille tohumla: Klasik Çalışma (Cirillo Tekniği/Pomodoro) ve
  // Ultradiyen Ritim (Kleitman'ın temel dinlenme-aktivite döngüsü araştırmasına dayanan derin çalışma bloğu).
  let timerProfiles = FocusStorage.get('timer_profiles', null);
  if (!Array.isArray(timerProfiles) || timerProfiles.length === 0) {
      timerProfiles = [
-         { id: generateId(), name: 'Klasik Pomodoro', focus: 25, shortBreak: 5, longBreak: 15, cycles: 4 },
+         { id: generateId(), name: 'Klasik Çalışma', focus: 25, shortBreak: 5, longBreak: 15, cycles: 4 },
          { id: generateId(), name: 'Derin Çalışma', focus: 90, shortBreak: 20, longBreak: 20, cycles: 2 },
      ];
      FocusStorage.set('timer_profiles', timerProfiles);
  } else {
-     // Migrasyon: eski varsayılan profil adı sadeleştirildi
+     // Migrasyon: eski varsayılan profil adları sadeleştirildi/değiştirildi
      let _renamed = false;
      timerProfiles.forEach(p => {
          if (p.name === 'Derin Çalışma (Ultradiyen Ritim)') { p.name = 'Derin Çalışma'; _renamed = true; }
+         if (p.name === 'Klasik Pomodoro') { p.name = 'Klasik Çalışma'; _renamed = true; }
      });
      if (_renamed) FocusStorage.set('timer_profiles', timerProfiles);
  }

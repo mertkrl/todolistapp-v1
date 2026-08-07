@@ -18,6 +18,24 @@ export function populateParentHabitSelects() {
         if (currentValue && habits.some(h => String(h.id) === String(currentValue))) select.value = currentValue;
     });
 
+  // 1b. "Görev Ekle" (Takvim/Gün Paneli) modalındaki opsiyonel Alışkanlık seçici —
+  // GERÇEK BUG DÜZELTMESİ (2026-08-06): script-event-modal.js zaten bu alanı
+  // okuyordu ama HTML'de hiç yoktu, hiçbir görev bir alışkanlığa bağlanamıyordu.
+  const optionalHabitSelects = [
+    document.getElementById('event-parent-habit')
+  ];
+  optionalHabitSelects.forEach(select => {
+      if (!select) return;
+      const currentValue = select.value;
+      select.innerHTML = '<option value="">🌿 Alışkanlık (Opsiyonel)</option>';
+      habits.forEach(h => {
+          const opt = document.createElement('option');
+          opt.value = h.id; opt.textContent = h.name;
+          select.appendChild(opt);
+      });
+      if (currentValue && habits.some(h => String(h.id) === String(currentValue))) select.value = currentValue;
+  });
+
 // 2. Bugün Sekmesi Ana Hedef Seçicileri (OPSİYONEL YAPILDI)
 const goalSelects = [
  document.getElementById('wiz-parent-goal'),

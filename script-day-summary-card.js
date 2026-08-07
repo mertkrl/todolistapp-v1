@@ -126,7 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
                      </li>`;
                  }).join('')}
              </ul>` : ''}
-             <div class="cdd-sum-note-area u-display-none" id="cdd-note-area" >
+             <div class="cdd-sum-note-area" id="cdd-note-area">
                  <textarea class="cdd-note-input" id="cdd-note-input" placeholder="Bu gün için not veya hatırlatıcı…" maxlength="200">${escapeHtml(note)}</textarea>
                  <div class="cdd-note-actions">
                      <span class="cdd-note-chars" id="cdd-note-chars">${note.length}/200</span>
@@ -164,6 +164,17 @@ document.addEventListener('DOMContentLoaded', () => {
          const noteInput  = document.getElementById('cdd-note-input');
          const noteChars  = document.getElementById('cdd-note-chars');
          const noteSave   = document.getElementById('cdd-note-save');
+
+         // NOT: innerHTML string'i içinde style="display:none" YAZILAMAZ —
+         // sayfanın CSP'si (index.html <meta http-equiv="Content-Security-
+         // Policy"> style-src'de 'unsafe-inline' YOK) HTML style özniteliğini
+         // sessizce YOK SAYIYOR (el.style boş kalıyor, computed style hâlâ
+         // calendar-day-drawer.css'teki .cdd-sum-note-area{display:flex}
+         // kuralından geliyor) — bu yüzden not alanı her zaman açık
+         // görünüyordu (canlı testte doğrulandı, 2026-08-06). CSSOM üzerinden
+         // (.style.display=) JS ile ayarlamak CSP'den etkilenmiyor, o yüzden
+         // kapalı başlangıç durumunu burada JS ile veriyoruz.
+         if (noteArea) noteArea.style.display = 'none';
 
          if (noteToggle) noteToggle.addEventListener('click', () => {
              const open = noteArea.style.display === 'none';

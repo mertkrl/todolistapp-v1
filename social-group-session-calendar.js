@@ -9,6 +9,9 @@
 // social.js ise window.__getGscSessionsCacheRef / window.gscRenderCalendar
 // köprülerini (bu dosyanın en altında tanımlı) kullanmaya devam ediyor.
 
+import { GSC_DAYS_TR, gscGetWeekDates, gscDateKey, gscIsToday, gscAddMinutes, gscMinutesBetween } from './social-group-session-calendar-date-utils.js';
+import { GROUP_THEME_COLORS, _hexToRgb, _applyGroupTheme, _openGroupThemePicker } from './social-group-session-calendar-theme.js';
+
     // ══════════════════════════════════════════════════════════
     //  GRUP ODAK SEANSİ TAKVİMİ
     // ══════════════════════════════════════════════════════════
@@ -23,50 +26,6 @@
     let gscSelectedDay = null; // seçili günün date-key'i (alt detay paneli için)
     let gscCanManageSessions = false; // grup yetki sistemine bağlı: seans ekleme/düzenleme iznin var mı
     let gscPresenceHandler = null; // "kim şu an odaklanıyor" göstergesini canlı tutan presence dinleyicisi
-
-    const GSC_DAYS_TR = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
-
-    function gscGetWeekDates(offset) {
-        const now = new Date();
-        const day = now.getDay(); // 0=Sun
-        const mondayDiff = (day === 0 ? -6 : 1 - day);
-        const monday = new Date(now);
-        monday.setDate(now.getDate() + mondayDiff + offset * 7);
-        monday.setHours(0, 0, 0, 0);
-        return Array.from({ length: 7 }, (_, i) => {
-            const d = new Date(monday);
-            d.setDate(monday.getDate() + i);
-            return d;
-        });
-    }
-
-    function gscDateKey(date) {
-        // ÖNEMLİ: toISOString() UTC'ye çevirir — UTC+3 gibi dilimlerde gece saatlerinde
-        // tarih bir gün kayabilirdi (örn. 23:30 yerel saat → ertesi gün UTC). Yerel
-        // tarih bileşenlerini kullanmak bu kaymayı önler.
-        const y = date.getFullYear();
-        const m = String(date.getMonth() + 1).padStart(2, '0');
-        const d = String(date.getDate()).padStart(2, '0');
-        return `${y}-${m}-${d}`;
-    }
-
-    function gscIsToday(date) {
-        return gscDateKey(date) === gscDateKey(new Date());
-    }
-
-    // "HH:MM" + dakika → "HH:MM" (gün içinde sarmalanır, sadece varsayılan bitiş saati önerisi için)
-    function gscAddMinutes(timeStr, mins) {
-        const [h, m] = (timeStr || '00:00').split(':').map(Number);
-        const total = (h * 60 + m + mins + 1440) % 1440;
-        return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
-    }
-
-    // İki "HH:MM" arasındaki farkı dakika olarak döner (bitiş başlangıçtan önceyse negatif/0)
-    function gscMinutesBetween(startStr, endStr) {
-        const [sh, sm] = (startStr || '00:00').split(':').map(Number);
-        const [eh, em] = (endStr || '00:00').split(':').map(Number);
-        return (eh * 60 + em) - (sh * 60 + sm);
-    }
 
     // Verilen tarih + saat aralığı, o güne ait mevcut seanslardan biriyle çakışıyor mu?
     // excludeKey: düzenleme akışında kendisini hariç tutmak için.
@@ -461,74 +420,6 @@
             }
         }
         return earned;
-    }
-
-    // ── GRUP TEMASI ──────────────────────────────────────────
-    const GROUP_THEME_COLORS = [
-        { label: 'Mor (varsayılan)', hex: '6c5ce7' },
-        { label: 'Mavi',   hex: '0984e3' },
-        { label: 'Deniz',  hex: '00b894' },
-        { label: 'Sarı',   hex: 'D4900E' },
-        { label: 'Kırmızı', hex: 'e17055' },
-        { label: 'Pembe',  hex: 'fd79a8' },
-        { label: 'Gri',    hex: '636e72' },
-        { label: 'Buz',    hex: '74b9ff' }
-    ];
-
-    function _groupThemeKey(supaId) { return `focusai_group_theme_${supaId}`; }
-
-    function _applyGroupTheme(supaId) {
-        const saved = supaId ? localStorage.getItem(_groupThemeKey(supaId)) : null;
-        const hex = saved || '6c5ce7';
-        let styleEl = document.getElementById('group-theme-style');
-        if (!styleEl) { styleEl = document.createElement('style'); styleEl.id = 'group-theme-style'; document.head.appendChild(styleEl); }
-        styleEl.textContent = `
-            #active-group-panel .group-detail-tab-btn.active { background: #${hex}; border-color: #${hex}; }
-            #active-group-panel .group-announcement-banner { border-left-color: #${hex}; }
-            #active-group-panel .gsc-day-col.selected { background: rgba(${_hexToRgb(hex)}, 0.14); border-color: rgba(${_hexToRgb(hex)}, 0.45); }
-        `;
-    }
-
-    function _hexToRgb(hex) {
-        const r = parseInt(hex.slice(0,2),16), g = parseInt(hex.slice(2,4),16), b = parseInt(hex.slice(4,6),16);
-        return `${r},${g},${b}`;
-    }
-
-    function _openGroupThemePicker(supaId, anchorEl) {
-        document.querySelector('.grp-theme-picker')?.remove();
-        const current = localStorage.getItem(_groupThemeKey(supaId)) || '6c5ce7';
-        const picker = document.createElement('div');
-        picker.className = 'grp-theme-picker';
-        picker.innerHTML = `
-            <div class="u-font-size-11px_font-weight-600_color-var-text-muted_margin">Grup Teması</div>
-            <div class="u-display-flex_flex-wrap-wrap_gap-8px_margin-bottom-10px">
-                ${GROUP_THEME_COLORS.map(c => `
-                    <button class="grp-theme-swatch${c.hex === current ? ' active' : ''}" data-hex="${c.hex}"
-                        title="${c.label}"></button>`).join('')}
-            </div>
-            <button id="grp-theme-reset" class="u-font-size-11px_color-var-text-muted_background-none_border">Varsayılana sıfırla</button>
-        `;
-        const rect = anchorEl.getBoundingClientRect();
-        picker.style.position = 'fixed';
-        picker.style.top = `${rect.bottom+6}px`;
-        picker.style.right = `${window.innerWidth-rect.right}px`;
-        picker.style.zIndex = '20000';
-        document.body.appendChild(picker);
-        picker.querySelectorAll('.grp-theme-swatch').forEach(btn => {
-            btn.style.background = '#' + btn.dataset.hex;
-            btn.onclick = () => {
-                localStorage.setItem(_groupThemeKey(supaId), btn.dataset.hex);
-                _applyGroupTheme(supaId);
-                picker.remove();
-            };
-        });
-        picker.querySelector('#grp-theme-reset').onclick = () => {
-            localStorage.removeItem(_groupThemeKey(supaId));
-            _applyGroupTheme(supaId);
-            picker.remove();
-        };
-        const close = (e) => { if (!picker.contains(e.target) && e.target !== anchorEl) { picker.remove(); document.removeEventListener('click', close, true); } };
-        setTimeout(() => document.addEventListener('click', close, true), 50);
     }
 
     function gscRenderActivityFeed() {

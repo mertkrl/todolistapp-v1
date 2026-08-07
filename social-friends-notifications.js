@@ -29,13 +29,33 @@ import { openSavedGroupPreview } from './social-group-discover.js';
 import { getCurrentUser } from './state/current-user-store.js';
 import { getMyServerXP } from './state/my-server-xp-store.js';
 import { getMyLeagueState } from './state/my-league-state-store.js';
+import { buildNotificationItemHtml } from './social-friends-notifications-item-html.js';
+import { renderMostImprovedBadge, computeRankDeltas, renderLeaderboard } from './social-friends-notifications-leaderboard-render.js';
+import { _wireNotificationsPanelEvents } from './social-friends-notifications-panel-events.js';
+import { TEACHER_NOTIF_ACCENT, _handleNewNotif } from './social-friends-notifications-dispatch.js';
+export { TEACHER_NOTIF_ACCENT };
 
     // Arkadaş listesi her sekme için bellekte tutulur — localStorage paylaşım çakışmasını
     // önler. Eskiden social.js'te tanımlıydı (Faz 5 çıkarmasında bu dosyaya taşındı,
     // ancak kendi bildirimi unutulmuştu — bare ReferenceError'a yol açıyordu).
     let _friendsCache = null;  // null = henüz yüklenmedi, [] = yüklendi ama boş
+    // GERÇEK BUG DÜZELTMESİ (2026-08-06): _friendsCache ile AYNI hikaye —
+    // social.js'te kendi ayrı bir kopyası var ama BU dosyada (markFriendSince/
+    // ensureFriendsSinceForAll/_startFriendsListenerSupabase) hiç
+    // tanımlanmamıştı, bare atama strict-mode ES modülünde ReferenceError
+    // fırlatıp _startFriendsListenerSupabase'in arkadaş listesi senkronunu
+    // (ve onu çağıran startAllSocialListeners zincirini) kesiyordu (canlı
+    // testte doğrulandı).
+    let _friendsSinceCache = null;
     // bindFriendsChangedListener()'ın birden fazla kez dinleyici bağlamasını önler.
     let _friendsChangedBound = false;
+    // Liderlik tablosu için son çekilen kullanıcı anlık görüntüsü (username -> veri).
+    // Bu dosya ES modülüne dönüştüğünde (her zaman strict mode) bare `_lastUsersSnapshot =`
+    // ataması ReferenceError fırlatıp _refreshLeaderboardFromSupabase'i ve dolayısıyla
+    // tüm Sıralama/Seri render zincirini kesiyordu — modül-seviyesinde tanımlandı.
+    // NOT: social-home-summary.js'in kendi ayrı closure-local kopyası var (bilinçli,
+    // önceden de senkron değildi — bkz. o dosyadaki not), buna dokunulmadı.
+    let _lastUsersSnapshot = {};
 
     export function getFriends() {
         // Bellek içi önbellek varsa onu kullan — localStorage'ı tarayıcı sekmeleri paylaştığından
@@ -258,6 +278,11 @@ import { getMyLeagueState } from './state/my-league-state-store.js';
         if (_friendsSinceCache[username]) return;
         _friendsSinceCache[username] = Date.now();
     }
+    // GERÇEK BUG DÜZELTMESİ (2026-08-06): markFriendSince window.* üzerinden
+    // çağrılıyordu (bu dosyada 2, social-friends-notifications-panel-events.js'te
+    // 2 yerde) ama hiçbir zaman window'a atanmamıştı — "window.markFriendSince
+    // is not a function" hatasına yol açıyordu (canlı testte doğrulandı).
+    window.markFriendSince = markFriendSince;
 
     // ensureFriendsSinceForAll yazma işlemi devam ederken aynı kullanıcı için tekrar
     // yazmayı engeller — friendsSince dinleyicisi henüz sonuçla dönmeden ikinci bir
@@ -338,7 +363,7 @@ import { getMyLeagueState } from './state/my-league-state-store.js';
                             _supaId: row.id
                         };
                     });
-                    window.renderNotificationsPanel();
+                    renderNotificationsPanel();
                 });
 
             if (_friendReqSupaChannel) { window.FocusSupabase.removeChannel(_friendReqSupaChannel); _friendReqSupaChannel = null; }
@@ -354,7 +379,7 @@ import { getMyLeagueState } from './state/my-league-state-store.js';
                         timestamp: new Date(row.created_at).getTime(),
                         _supaId: row.id
                     };
-                    window.renderNotificationsPanel();
+                    renderNotificationsPanel();
                     playNotificationSound('alert');
                     maybeShowDesktopNotification('Yeni Arkadaşlık İsteği', `${p.display_name || p.username} sana arkadaşlık isteği gönderdi.`);
                     showGenericNotifToast({
@@ -367,7 +392,7 @@ import { getMyLeagueState } from './state/my-league-state-store.js';
                 .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'friendships', filter: `addressee_id=eq.${getCurrentUser().id}` }, ({ old: row }) => {
                     // İstek iptal edildi
                     const entry = Object.entries(_pendingFriendRequests).find(([, v]) => v._supaId === row.id);
-                    if (entry) { delete _pendingFriendRequests[entry[0]]; window.renderNotificationsPanel(); }
+                    if (entry) { delete _pendingFriendRequests[entry[0]]; renderNotificationsPanel(); }
                 })
                 .subscribe();
         }
@@ -388,317 +413,16 @@ import { getMyLeagueState } from './state/my-league-state-store.js';
         if (error) { console.warn('[Bildirim] yükleme hatası', error.message); return; }
         _notificationsSupabase = {};
         (data || []).forEach(row => { _notificationsSupabase[row.id] = _normalizeNotifRow(row); });
-        window.renderNotificationsPanel();
+        renderNotificationsPanel();
     }
 
     function _normalizeNotifRow(row) {
         return { type: row.type, timestamp: new Date(row.created_at).getTime(), ...row.payload };
     }
 
-    // "Öğretmenden" bildirim ailesi — öğretmen/kurumdan öğrenciye giden tüm bildirimler
-    // (ödev, ders planı, hatırlatma, sınıf daveti, haftalık özet) tek bir tutarlı renk diliyle
-    // ayırt edilsin diye ortak vurgu rengi. İkonlar bildirim amacına göre farklı kalır.
-    const TEACHER_NOTIF_ACCENT = '#a29bfe';
-
-    // Ders planı bildirimlerine (öğrenciye giden atama, öğretmene giden kabul/revize/red)
-    // tıklayınca genel "Planlama" sekmesi yerine doğrudan ilgili grubun Sınıf Paneli >
-    // Ders Planı sekmesi açılır — kod (groupCode) yoksa (eski/geçiş dönemi bildirimleri
-    // için) yine de Planlama'ya düşülür.
-    function _goToLessonPlanTab(groupCode) {
-        if (groupCode && typeof window.dcOpenAssignmentTab === 'function') {
-            if (typeof window.switchTab === 'function') window.switchTab('arkadaslar');
-            window.dcOpenAssignmentTab(groupCode, 'planlar');
-        } else if (typeof window.switchTab === 'function') {
-            window.switchTab('planlama');
-        }
-    }
-
-    // Öğretmen tarafında Sınıf Paneli > Ders Planı sekmesi zaten açıksa (aynı sekme
-    // görünürken karşı taraf kabul/revize/red yapınca), sayfa yenilemeden anında
-    // güncellensin diye — bu bildirimler zaten realtime geldiği için ek bir
-    // realtime aboneliğine gerek kalmadan "bildirim = tazele sinyali" olarak kullanılır.
-    function _refreshOpenLessonPlanTrackers() {
-        document.querySelectorAll('#cp-lpa-tracker-body[data-lpa-group-id]').forEach(el => {
-            const groupId = el.dataset.lpaGroupId;
-            if (groupId && typeof window.renderGroupLessonPlanStatus === 'function') {
-                window.renderGroupLessonPlanStatus(groupId, el);
-            }
-        });
-    }
-
-    function _handleNewNotif(info) {
-        window.renderNotificationsPanel();
-        // 'reaction' tipi bildirimler artık üretilmiyor (sadeleştirme kararı) —
-        // eski satırlar panelde görünmeye devam eder ama toast/ses tetiklemez.
-        if (info.type === 'group_announcement') {
-            playNotificationSound('alert');
-            showGenericNotifToast({
-                icon: 'fa-bullhorn', accent: '#74b9ff',
-                title: `📣 ${_escapeHtml(info.groupName || 'Grup')} duyurusu`,
-                body: `${_escapeHtml(info.text || '')} — ${_escapeHtml(info.fromName || '')}`,
-                onClick: () => { if (info.groupCode && typeof window.dcOpenGroupPanel === 'function') window.dcOpenGroupPanel(info.groupCode); }
-            });
-        } else if (info.type === 'group_slot_open') {
-            playNotificationSound('alert');
-            showGenericNotifToast({
-                icon: 'fa-star', accent: '#2ed573', title: 'Grupta Yer Açıldı!',
-                body: `<b>${_escapeHtml(info.groupName || '')}</b> grubunda yer açıldı.`,
-                onClick: window.openNotificationsPanel
-            });
-        } else if (info.type === 'focus_reminder') {
-            playNotificationSound('alert');
-            showGenericNotifToast({
-                icon: 'fa-bell', accent: TEACHER_NOTIF_ACCENT, title: 'Öğretmenden Hatırlatma',
-                body: `<b>${_escapeHtml(info.fromName || '')}</b> sana <b>${_escapeHtml(info.groupName || '')}</b> için bir hatırlatma gönderdi.`,
-                onClick: window.openNotificationsPanel
-            });
-        } else if (info.type === 'assignment_reminder') {
-            playNotificationSound('alert');
-            showGenericNotifToast({
-                icon: 'fa-clipboard-list', accent: TEACHER_NOTIF_ACCENT, title: 'Öğretmenden: Ödev Hatırlatması',
-                body: `<b>${_escapeHtml(info.assignmentTitle || '')}</b> ödevini (${_escapeHtml(info.groupName || '')}) henüz teslim etmedin.`,
-                onClick: window.openNotificationsPanel
-            });
-        } else if (info.type === 'assignment_new') {
-            playNotificationSound('alert');
-            showGenericNotifToast({
-                icon: 'fa-clipboard-list', accent: TEACHER_NOTIF_ACCENT, title: 'Öğretmenden: Yeni Ödev',
-                body: `<b>${_escapeHtml(info.fromName || '')}</b> <b>${_escapeHtml(info.groupName || '')}</b>'e yeni bir ödev ekledi: ${_escapeHtml(info.assignmentTitle || '')}`,
-                onClick: () => { if (info.groupCode && typeof window.dcOpenAssignmentTab === 'function') window.dcOpenAssignmentTab(info.groupCode); }
-            });
-            if (typeof _refreshMyAssignmentsBadge === 'function') _refreshMyAssignmentsBadge();
-        } else if (info.type === 'classroom_weekly_digest') {
-            playNotificationSound('alert');
-            showGenericNotifToast({
-                icon: 'fa-chart-line', accent: TEACHER_NOTIF_ACCENT, title: 'Öğretmenden: Haftalık Sınıf Özeti',
-                body: `<b>${_escapeHtml(info.groupName || '')}</b>: bu hafta ${info.inactiveCount} kişi hiç odaklanmadı.`,
-                onClick: window.openNotificationsPanel
-            });
-        } else if (info.type === 'institution_invite') {
-            playNotificationSound('alert');
-            showGenericNotifToast({
-                icon: 'fa-building-columns', accent: TEACHER_NOTIF_ACCENT, title: 'Öğretmenden: Sınıf Daveti',
-                body: `<b>${_escapeHtml(info.fromName || '')}</b> seni <b>${_escapeHtml(info.groupName || '')}</b> sınıfına davet etti.`,
-                onClick: window.openNotificationsPanel
-            });
-        } else if (info.type === 'mention') {
-            playNotificationSound('alert');
-            const isDm = !!info.conversationId;
-            showGenericNotifToast({
-                icon: 'fa-at', accent: '#74b9ff', title: 'Bahsedildin',
-                body: `<b>${_escapeHtml(info.fromName || '')}</b> seni ${isDm ? 'bir mesajda' : 'bir grup sohbetinde'} etiketledi.`,
-                onClick: window.openNotificationsPanel
-            });
-        } else if (info.type === 'buddy_habit_deleted') {
-            playNotificationSound('alert');
-            _handleBuddyHabitDeletedNotification(info);
-        } else if (info.type === 'buddy_session_ended') {
-            playNotificationSound('message');
-            _handleBuddySessionEndedNotification(info);
-        } else if (info.type === 'collab_plan_invite') {
-            playNotificationSound('alert');
-            _handleCollabPlanInvite(info);
-        } else if (info.type === 'lesson_plan_reminder') {
-            playNotificationSound('alert');
-            showGenericNotifToast({
-                icon: 'fa-book-open', accent: TEACHER_NOTIF_ACCENT, title: 'Öğretmenden: Ders Planı Hatırlatması',
-                body: `<b>${_escapeHtml(info.fromName || '')}</b>, <b>${_escapeHtml(info.goalTitle || '')}</b> ders planını henüz tamamlamadığını hatırlatıyor.`,
-                onClick: () => { if (typeof window.switchTab === 'function') window.switchTab('planlama'); }
-            });
-        } else if (info.type === 'lesson_plan_new') {
-            playNotificationSound('alert');
-            showGenericNotifToast({
-                icon: 'fa-graduation-cap', accent: TEACHER_NOTIF_ACCENT, title: 'Bekleyen planlama isteğiniz var',
-                body: info.resent
-                    ? `<b>${_escapeHtml(info.fromName || '')}</b> <b>${_escapeHtml(info.goalTitle || '')}</b> planını düzenleyip tekrar gönderdi.`
-                    : `<b>${_escapeHtml(info.fromName || '')}</b> sana <b>${_escapeHtml(info.goalTitle || '')}</b> adlı bir ders planı atadı.`,
-                onClick: () => _goToLessonPlanTab(info.groupCode)
-            });
-        } else if (info.type === 'lesson_plan_accepted') {
-            playNotificationSound('message');
-            _refreshOpenLessonPlanTrackers();
-            showGenericNotifToast({
-                icon: 'fa-circle-check', accent: '#2ed573', title: 'Ders Planı Kabul Edildi',
-                body: `<b>${_escapeHtml(info.fromName || '')}</b> gönderdiğin ders planını kabul etti.`,
-                onClick: () => _goToLessonPlanTab(info.groupCode)
-            });
-        } else if (info.type === 'lesson_plan_revision_requested') {
-            playNotificationSound('alert');
-            _refreshOpenLessonPlanTrackers();
-            showGenericNotifToast({
-                icon: 'fa-pen-to-square', accent: '#feca57', title: 'Ders Planında Revize İstendi',
-                body: `<b>${_escapeHtml(info.fromName || '')}</b>: “${_escapeHtml(info.note || '')}”`,
-                onClick: () => _goToLessonPlanTab(info.groupCode)
-            });
-        } else if (info.type === 'lesson_plan_rejected') {
-            playNotificationSound('alert');
-            _refreshOpenLessonPlanTrackers();
-            showGenericNotifToast({
-                icon: 'fa-circle-xmark', accent: '#ff6b6b', title: 'Ders Planı Reddedildi',
-                body: `<b>${_escapeHtml(info.fromName || '')}</b> planı reddetti.${info.note ? ` Sebep: “${_escapeHtml(info.note)}”` : ''} Plan 7 gün içinde tekrar düzenlenip gönderilebilir.`,
-                onClick: () => _goToLessonPlanTab(info.groupCode)
-            });
-        } else if (info.type === 'collab_goal_deleted') {
-            playNotificationSound('alert');
-            _handleCollabGoalDeleted(info);
-        } else if (info.type === 'kudos') {
-            playNotificationSound('alert');
-            showGenericNotifToast({
-                icon: 'fa-hands-clapping', accent: '#feca57', title: 'Alkış Aldın! 👏',
-                body: `<b>${_escapeHtml(info.fromName || '')}</b> odaklanmana alkış gönderdi.`,
-                onClick: window.openNotificationsPanel
-            });
-        } else if (info.type === 'group_goal_reached') {
-            playNotificationSound('alert');
-            if (typeof window.fireConfetti === 'function') window.fireConfetti();
-            showGenericNotifToast({
-                icon: 'fa-trophy', accent: '#feca57', title: 'Haftalık Hedef Tamamlandı! 🎉',
-                body: `<b>${_escapeHtml(info.groupName || '')}</b> grubu bu haftaki ${info.weeklyGoal ? formatFocusMinutes(info.weeklyGoal) : ''} hedefine ulaştı.`,
-                onClick: window.openNotificationsPanel
-            });
-        }
-    }
-
-    function _handleCollabPlanInvite(info) {
-        const esc = window.escapeHtml;
-        document.getElementById('collab-plan-invite-overlay')?.remove();
-
-        const fromName   = info.fromName  || info.fromUsername || 'Biri';
-        const goalTitle  = info.goalTitle || 'bir plan';
-        const inviteCode = info.inviteCode;
-        const goalId     = info.goalId;
-
-        const overlay = document.createElement('div');
-        overlay.id        = 'collab-plan-invite-overlay';
-        overlay.className = 'modal-overlay';
-        overlay.style.zIndex = '100080';
-        overlay.innerHTML = `
-            <div class="cpi-card">
-                <div class="cpi-avatar-row">
-                    <div class="cpi-from-avatar">${esc(fromName.slice(0,2).toUpperCase())}</div>
-                </div>
-                <p class="cpi-from-name">${esc(fromName)}</p>
-                <p class="cpi-label">seni bir plana davet etti</p>
-                <p class="cpi-goal-title">"${esc(goalTitle)}"</p>
-                <div class="cpi-actions">
-                    <button id="cpi-reject-btn" class="cpi-btn-reject">Reddet</button>
-                    <button id="cpi-accept-btn" class="cpi-btn-accept">
-                        <i class="ti ti-check"></i> Kabul Et
-                    </button>
-                </div>
-                <div id="cpi-status" class="cpi-status-msg"></div>
-            </div>`;
-        document.body.appendChild(overlay);
-
-        overlay.querySelector('#cpi-reject-btn').addEventListener('click', () => {
-            overlay.remove();
-            if (goalId && window.FocusSupabase && getCurrentUser()?.id) {
-                window.FocusSupabase.from('lesson_plan_assignments')
-                    .update({ status: 'rejected', responded_at: new Date().toISOString() })
-                    .eq('goal_id', goalId).eq('student_id', getCurrentUser().id).then(() => {});
-            }
-        });
-
-        overlay.querySelector('#cpi-accept-btn').addEventListener('click', async () => {
-            const acceptBtn = overlay.querySelector('#cpi-accept-btn');
-            const statusEl  = overlay.querySelector('#cpi-status');
-            acceptBtn.disabled = true;
-            acceptBtn.innerHTML = '<span class="cpi-spinner"></span>';
-
-            try {
-                const result = await window.PlanningCollab?.joinByCode?.(inviteCode);
-                if (!result) {
-                    statusEl.textContent = 'Geçersiz davet kodu.';
-                    acceptBtn.disabled = false;
-                    acceptBtn.innerHTML = '<i class="ti ti-check"></i> Kabul Et';
-                    return;
-                }
-
-                // Hedefi local'e ekle
-                await window._applyInviteJoin?.(result);
-
-                const targetGoalIdForStatus = result.goalId || goalId;
-                if (targetGoalIdForStatus && window.FocusSupabase && getCurrentUser()?.id) {
-                    window.FocusSupabase.from('lesson_plan_assignments')
-                        .update({ status: 'accepted', responded_at: new Date().toISOString() })
-                        .eq('goal_id', targetGoalIdForStatus).eq('student_id', getCurrentUser().id).then(() => {});
-                }
-
-                // Planlama sekmesine geç ve plana doğrudan gir — ders planı ataması bir
-                // ödev gibidir, öğretmenin "planlamayı başlat" tuşuna basmasını beklemeye gerek yok
-                // (o mekanizma canlı/senkron ortak planlama oturumları için var, ders planı ataması için değil).
-                if (typeof window.switchTab === 'function') window.switchTab('planlama');
-
-                const targetGoalId = result.goalId || goalId;
-                await window.PlanningCollab?.joinRoom?.(result.roomId, targetGoalId, 'editor');
-                window.PlanningCollab?.setHandlers?.({
-                    onStartPlanning: () => {},
-                    onMilestoneChange: () => {},
-                    onProgressChange:  () => {},
-                });
-
-                overlay.remove();
-                if (typeof window.openPlanView === 'function') {
-                    window.openPlanView(targetGoalId);
-                }
-
-            } catch(e) {
-                statusEl.textContent = 'Bir hata oluştu, tekrar dene.';
-                acceptBtn.disabled = false;
-                acceptBtn.innerHTML = '<i class="ti ti-check"></i> Kabul Et';
-            }
-        });
-    }
-
-    function _handleCollabGoalDeleted(info) {
-        const esc = window.escapeHtml;
-        document.getElementById('collab-goal-deleted-overlay')?.remove();
-
-        const fromName  = info.fromName || info.fromUsername || 'Biri';
-        const goalTitle = info.goalTitle || 'bir plan';
-        const goalId    = info.goalId;
-
-        const overlay = document.createElement('div');
-        overlay.id        = 'collab-goal-deleted-overlay';
-        overlay.className = 'modal-overlay';
-        overlay.style.zIndex = '100085';
-        overlay.innerHTML = `
-            <div class="modal-content glass-panel u-text-align-center-2" >
-                <div class="modal-icon-wrapper warning">
-                    <i class="fa-solid fa-triangle-exclamation"></i>
-                </div>
-                <h2 class="u-margin-bottom-10px_color-hfff">Ortak Çalışma Sona Erdi</h2>
-                <p class="u-color-var-text-muted_font-size-14px_line-height-1p6_margin">
-                    <strong class="u-color-rgba255255255p85">${esc(fromName)}</strong>,
-                    <em>"${esc(goalTitle)}"</em> planındaki ortak çalışmayı sonlandırdı.
-                </p>
-                <p class="u-color-var-text-muted_font-size-13px_line-height-1p5_margin-2">
-                    Planı bireysel olarak sürdürebilir ya da hesabınızdan kalıcı olarak kaldırabilirsiniz.
-                </p>
-                <div class="u-display-grid_grid-template-columns-1fr1fr1fr_gap-8px_margi">
-                    <button id="cgd-later-btn"  class="cdm-btn cdm-btn--ghost">Sonra Karar Ver</button>
-                    <button id="cgd-delete-btn" class="cdm-btn cdm-btn--danger">Kalıcı Olarak Sil</button>
-                    <button id="cgd-solo-btn"   class="cdm-btn cdm-btn--purple">Bireysel Sürdür</button>
-                </div>
-            </div>`;
-        document.body.appendChild(overlay);
-
-        overlay.querySelector('#cgd-later-btn').addEventListener('click', () => overlay.remove());
-
-        overlay.querySelector('#cgd-solo-btn').addEventListener('click', async () => {
-            overlay.remove();
-            if (typeof window._convertGoalToSoloById === 'function') {
-                await window._convertGoalToSoloById(goalId);
-            }
-        });
-
-        overlay.querySelector('#cgd-delete-btn').addEventListener('click', async () => {
-            overlay.remove();
-            if (typeof window._deleteGoalSilently === 'function') {
-                window._deleteGoalSilently(goalId);
-            }
-        });
-    }
+    // TEACHER_NOTIF_ACCENT/_handleNewNotif/_handleCollabPlanInvite/_handleCollabGoalDeleted/
+    // _goToLessonPlanTab/_refreshOpenLessonPlanTrackers: social-friends-notifications-dispatch.js'e
+    // çıkarıldı (Faz H devamı, 2. tur), aşağıda import ediliyor.
 
     function _subscribeNotifChannel() {
         if (!window.FocusSupabase || !getCurrentUser()?.id) return;
@@ -713,7 +437,7 @@ import { getMyLeagueState } from './state/my-league-state-store.js';
             })
             .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'notifications', filter: `user_id=eq.${getCurrentUser().id}` }, payload => {
                 delete _notificationsSupabase[payload.old.id];
-                window.renderNotificationsPanel();
+                renderNotificationsPanel();
             })
             .subscribe((status, err) => {
                 if (status === 'SUBSCRIBED') {
@@ -794,452 +518,8 @@ import { getMyLeagueState } from './state/my-league-state-store.js';
         root.querySelectorAll('[data-dyn-bordercolor]').forEach(el => { el.style.borderColor = el.getAttribute('data-dyn-bordercolor'); });
     }
 
-    // renderNotificationsPanel'in tek bir bildirim öğesini HTML'e çeviren dispatch'i —
-    // saf fonksiyon, sadece item (kind/info/key) alır. window.timeAgo/avatarImgHtml/
-    // _escapeHtml/TEACHER_NOTIF_ACCENT global referanslar.
-    function buildFriendRequestNotifHtml(item) {
-                const fromUser = item.fromUser;
-                const info = item.info;
-                return `
-                <div class="glass-element si-row-sb">
-                    <div class="si-row-g10-min0">
-                        ${window.avatarImgHtml({ displayName: info.fromName, avatarColor: info.fromColor, username: fromUser }, 38)}
-                        <div class="si-min0">
-                            <div class="u-font-weight-600_color-hfff_font-size-14px_overflow-hidden_">${_escapeHtml(info.fromName || '')}</div>
-                            <div class="si-muted-sm">@${_escapeHtml(fromUser)} · arkadaşlık isteği gönderdi</div>
-                        </div>
-                    </div>
-                    <div class="u-display-flex_gap-6px_flex-shrink-0">
-                        <button class="control-btn primary fr-accept-btn u-font-size-12px_padding-7px12px_background-h2ed573" data-from="${_escapeHtml(fromUser)}" data-name="${_escapeHtml(info.fromName || '')}" ><i class="fa-solid fa-check"></i></button>
-                        <button class="control-btn secondary fr-decline-btn u-font-size-12px_padding-7px12px_color-hff4757_border-color-" data-from="${_escapeHtml(fromUser)}" ><i class="fa-solid fa-xmark"></i></button>
-                    </div>
-                </div>`;
-    }
-
-    function buildDmRequestNotifHtml(item) {
-                const fromUser = item.fromUser;
-                const info = item.info;
-                return `
-                <div class="glass-element u-display-flex_flex-direction-column_gap-10px_padding-12px14" >
-                    <div class="si-row-g10-min0">
-                        ${window.avatarImgHtml({ displayName: info.fromName, avatarColor: info.fromColor, customAvatar: info.fromCustomAvatar, username: fromUser }, 38)}
-                        <div class="si-min0">
-                            <div class="u-font-weight-600_color-hfff_font-size-14px_overflow-hidden_">${_escapeHtml(info.fromName || '')}</div>
-                            <div class="si-muted-sm">@${_escapeHtml(fromUser)} · sana mesaj gönderdi</div>
-                            ${info.lastText ? `<div class="u-font-size-12px_color-var-text-muted_margin-top-2px_overflo">"${_escapeHtml(info.lastText)}"</div>` : ''}
-                        </div>
-                    </div>
-                    <div class="u-display-flex_gap-6px">
-                        <button class="control-btn primary dm-req-add-btn u-flex-1_font-size-12px_padding-8px10px_background-h2ed573" data-from="${_escapeHtml(fromUser)}" data-name="${_escapeHtml(info.fromName || '')}" ><i class="fa-solid fa-user-plus"></i> Kişilere Ekle</button>
-                        <button class="control-btn secondary dm-req-continue-btn u-flex-1_font-size-12px_padding-8px10px" data-from="${_escapeHtml(fromUser)}" data-name="${_escapeHtml(info.fromName || '')}" data-room-name="${_escapeHtml(info.fromName || fromUser)}" ><i class="fa-regular fa-comment-dots"></i> Konuşmaya Devam Et</button>
-                    </div>
-                </div>`;
-    }
-
-    function buildMentionNotifHtml(item) {
-                const info = item.info;
-                const isDm = !!info.conversationId;
-                return `
-                <div class="glass-element dc-mention-notif u-display-flex_align-items-center_justify-content-space-betw-6" data-dm="${isDm ? '1' : ''}" data-from="${_escapeHtml(info.fromUser || '')}" data-from-name="${_escapeHtml(info.fromName || '')}" data-group="${_escapeHtml(info.groupCode || '')}" data-scope-type="${_escapeHtml(info.scopeType || '')}" data-scope-id="${_escapeHtml(info.scopeId || '')}" data-room="${_escapeHtml(info.roomId || '')}" data-channel="${_escapeHtml(info.channelId || '')}" data-room-name="${_escapeHtml(info.roomName || info.roomId || '')}" data-id="${item.key}" >
-                    <div class="si-row-g10-min0">
-                        ${window.avatarImgHtml({ displayName: info.fromName, avatarColor: info.fromColor, username: info.fromUser }, 38)}
-                        <div class="si-min0">
-                            <div class="si-title">
-                                <span class="u-font-weight-600">${_escapeHtml(info.fromName || '')}</span>
-                                ${isDm
-                                    ? `<span class="si-muted"> bir mesajda seni etiketledi</span>`
-                                    : `<span class="si-muted"> seni etiketledi: </span><span class="si-muted">#${_escapeHtml(info.roomName || info.roomId || '')}</span>`}
-                            </div>
-                            <div class="u-font-size-11px_color-var-text-muted_margin-top-2px_overflo">${window.timeAgo(info.timestamp)}${info.text ? ' · "' + _escapeHtml(info.text) + '"' : ''}</div>
-                        </div>
-                    </div>
-                    <button class="control-btn secondary notif-dismiss-btn" data-id="${item.key}" title="Bildirimi kaldır" class="si-action-btn" aria-label="Bildirimi kaldır"><i class="fa-solid fa-xmark"></i></button>
-                </div>`;
-    }
-
-    function buildRoleChangeNotifHtml(item) {
-                const info = item.info;
-                const isPromote = info.direction === 'promote';
-                const accent = isPromote ? '#ffd166' : '#ff7675';
-                const icon = isPromote ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down';
-                const verb = isPromote ? 'terfi ettirildi' : 'rolün değiştirildi';
-                return `
-                <div class="glass-element u-display-flex_align-items-center_justify-content-space-betw-7" data-dyn-bdc="${accent}">
-                    <div class="si-row-g10-min0">
-                        <div data-dyn-bg="${accent}22" class="u-width-38px_height-38px_border-radius-50pct_display-flex_al">
-                            <i class="fa-solid ${icon} u-font-size-16px" data-dyn-color="${accent}"></i>
-                        </div>
-                        <div class="si-min0">
-                            <div class="si-title">
-                                <span class="si-muted">Yeni rolün: </span>
-                                <span data-dyn-color="${accent}" class="u-font-weight-600">${_escapeHtml(info.roleLabel || '')}</span>
-                                <span class="si-muted"> — ${verb}</span>
-                            </div>
-                            <div class="si-meta">${window.timeAgo(info.timestamp)}${info.fromName ? ' · ' + _escapeHtml(info.fromName) + ' tarafından' : ''}</div>
-                        </div>
-                    </div>
-                    <button class="control-btn secondary notif-dismiss-btn" data-id="${item.key}" title="Bildirimi kaldır" class="si-action-btn" aria-label="Bildirimi kaldır"><i class="fa-solid fa-xmark"></i></button>
-                </div>`;
-    }
-
-    function buildGroupSlotOpenNotifHtml(item) {
-                const info = item.info;
-                return `
-                <div class="glass-element discover-saved-slot-notif u-display-flex_align-items-center_justify-content-space-betw-2" data-group="${_escapeHtml(info.groupCode || '')}" >
-                    <div class="si-row-g10-min0">
-                        <div class="u-width-38px_height-38px_border-radius-50pct_background-h2ed">
-                            <i class="fa-solid fa-star u-color-h2ed573_font-size-16px" ></i>
-                        </div>
-                        <div class="si-min0">
-                            <div class="si-title">
-                                <span class="u-font-weight-600">${_escapeHtml(info.groupName || '')}</span>
-                                <span class="si-muted"> grubunda yer açıldı!</span>
-                            </div>
-                            <div class="si-meta">${window.timeAgo(info.timestamp)} · Kaydettiğin bir grup</div>
-                        </div>
-                    </div>
-                    <button class="control-btn secondary notif-dismiss-btn" data-id="${item.key}" title="Bildirimi kaldır" class="si-action-btn" aria-label="Bildirimi kaldır"><i class="fa-solid fa-xmark"></i></button>
-                </div>`;
-    }
-
-    function buildGroupInviteNotifHtml(item) {
-                const info = item.info;
-                return `
-                <div class="glass-element u-display-flex_flex-direction-column_gap-10px_padding-12px14" >
-                    <div class="si-row-g10-min0">
-                        ${window.avatarImgHtml({ displayName: info.fromName, avatarColor: info.fromColor, customAvatar: info.fromCustomAvatar, username: info.fromUser }, 38)}
-                        <div class="si-min0">
-                            <div class="si-title">
-                                <span class="u-font-weight-600">${_escapeHtml(info.fromName || info.fromUser || '')}</span>
-                                <span class="si-muted"> seni </span>
-                                <span class="u-font-weight-600">${_escapeHtml(info.groupName || '')}</span>
-                                <span class="si-muted"> grubuna davet etti</span>
-                            </div>
-                            <div class="si-meta">${window.timeAgo(info.timestamp)}</div>
-                        </div>
-                    </div>
-                    <div class="u-display-flex_gap-6px">
-                        <button class="control-btn primary group-invite-accept-btn u-flex-1_font-size-12px_padding-8px10px_background-h2ed573" data-id="${item.key}" data-code="${_escapeHtml(info.groupCode || '')}" ><i class="fa-solid fa-check"></i> Katıl</button>
-                        <button class="control-btn secondary group-invite-decline-btn u-flex-1_font-size-12px_padding-8px10px_color-hff4757_border" data-id="${item.key}" ><i class="fa-solid fa-xmark"></i> Reddet</button>
-                    </div>
-                </div>`;
-    }
-
-    function buildInstitutionInviteNotifHtml(item) {
-                const info = item.info;
-                return `
-                <div class="glass-element u-display-flex_flex-direction-column_gap-10px_padding-12px14-2" data-dyn-bdc="${TEACHER_NOTIF_ACCENT}">
-                    <div class="si-row-g10-min0">
-                        <div data-dyn-bg="${TEACHER_NOTIF_ACCENT}26" class="u-width-38px_height-38px_border-radius-50pct_display-flex_al">
-                            <i class="fa-solid fa-building-columns u-font-size-16px" data-dyn-color="${TEACHER_NOTIF_ACCENT}"></i>
-                        </div>
-                        <div class="si-min0">
-                            <div class="si-title">
-                                <span class="u-font-weight-600">${_escapeHtml(info.fromName || '')}</span>
-                                <span class="si-muted"> seni </span>
-                                <span class="u-font-weight-600">${_escapeHtml(info.groupName || '')}</span>
-                                <span class="si-muted"> sınıfına davet etti</span>
-                            </div>
-                            <div class="si-meta">${window.timeAgo(info.timestamp)}</div>
-                        </div>
-                    </div>
-                    <div class="u-display-flex_gap-6px">
-                        <button class="control-btn primary institution-invite-accept-btn u-flex-1_font-size-12px_padding-8px10px_background-h2ed573" data-id="${item.key}" data-invite-id="${info.inviteId || ''}" ><i class="fa-solid fa-check"></i> Kabul Et</button>
-                        <button class="control-btn secondary institution-invite-decline-btn u-flex-1_font-size-12px_padding-8px10px_color-hff4757_border" data-id="${item.key}" data-invite-id="${info.inviteId || ''}" ><i class="fa-solid fa-xmark"></i> Reddet</button>
-                    </div>
-                </div>`;
-    }
-
-    function buildClassroomWeeklyDigestNotifHtml(item) {
-                const info = item.info;
-                return `
-                <div class="glass-element discover-saved-slot-notif u-display-flex_align-items-center_justify-content-space-betw-3" data-group="${info.groupCode || ''}" data-dyn-bdc="${TEACHER_NOTIF_ACCENT}">
-                    <div class="si-row-g10-min0">
-                        <div data-dyn-bg="${TEACHER_NOTIF_ACCENT}26" class="u-width-38px_height-38px_border-radius-50pct_display-flex_al">
-                            <i class="fa-solid fa-chart-line u-font-size-16px" data-dyn-color="${TEACHER_NOTIF_ACCENT}"></i>
-                        </div>
-                        <div class="si-min0">
-                            <div class="si-title">
-                                <span class="u-font-weight-600">${_escapeHtml(info.groupName || '')}</span>
-                                <span class="si-muted">: bu hafta ${info.inactiveCount} kişi hiç odaklanmadı</span>
-                            </div>
-                            <div class="si-meta">${window.timeAgo(info.timestamp)} · haftalık özet</div>
-                        </div>
-                    </div>
-                    <button class="control-btn secondary notif-dismiss-btn" data-id="${item.key}" title="Bildirimi kaldır" class="si-action-btn" aria-label="Bildirimi kaldır"><i class="fa-solid fa-xmark"></i></button>
-                </div>`;
-    }
-
-    function buildFocusReminderNotifHtml(item) {
-                const info = item.info;
-                return `
-                <div class="glass-element discover-saved-slot-notif u-display-flex_align-items-center_justify-content-space-betw-3" data-group="${info.groupCode || ''}" data-dyn-bdc="${TEACHER_NOTIF_ACCENT}">
-                    <div class="si-row-g10-min0">
-                        <div data-dyn-bg="${TEACHER_NOTIF_ACCENT}26" class="u-width-38px_height-38px_border-radius-50pct_display-flex_al">
-                            <i class="fa-solid fa-bell u-font-size-16px" data-dyn-color="${TEACHER_NOTIF_ACCENT}"></i>
-                        </div>
-                        <div class="si-min0">
-                            <div class="si-title">
-                                <span class="u-font-weight-600">${_escapeHtml(info.fromName || '')}</span>
-                                <span class="si-muted"> sana </span>
-                                <span class="u-font-weight-600">${_escapeHtml(info.groupName || '')}</span>
-                                <span class="si-muted"> için bir hatırlatma gönderdi</span>
-                            </div>
-                            <div class="si-meta">${window.timeAgo(info.timestamp)}</div>
-                        </div>
-                    </div>
-                    <button class="control-btn secondary notif-dismiss-btn" data-id="${item.key}" title="Bildirimi kaldır" class="si-action-btn" aria-label="Bildirimi kaldır"><i class="fa-solid fa-xmark"></i></button>
-                </div>`;
-    }
-
-    function buildAssignmentReminderNotifHtml(item) {
-                const info = item.info;
-                return `
-                <div class="glass-element discover-saved-slot-notif u-display-flex_align-items-center_justify-content-space-betw-3" data-group="${info.groupCode || ''}" data-assignment-jump="1" data-dyn-bdc="${TEACHER_NOTIF_ACCENT}">
-                    <div class="si-row-g10-min0">
-                        <div data-dyn-bg="${TEACHER_NOTIF_ACCENT}26" class="u-width-38px_height-38px_border-radius-50pct_display-flex_al">
-                            <i class="fa-solid fa-clipboard-list u-font-size-16px" data-dyn-color="${TEACHER_NOTIF_ACCENT}"></i>
-                        </div>
-                        <div class="si-min0">
-                            <div class="si-title">
-                                <span class="u-font-weight-600">${_escapeHtml(info.assignmentTitle || '')}</span>
-                                <span class="si-muted"> ödevini henüz teslim etmedin</span>
-                            </div>
-                            <div class="si-meta">${_escapeHtml(info.groupName || '')} · ${window.timeAgo(info.timestamp)}</div>
-                        </div>
-                    </div>
-                    <button class="control-btn secondary notif-dismiss-btn" data-id="${item.key}" title="Bildirimi kaldır" class="si-action-btn" aria-label="Bildirimi kaldır"><i class="fa-solid fa-xmark"></i></button>
-                </div>`;
-    }
-
-    function buildAssignmentNewNotifHtml(item) {
-                const info = item.info;
-                return `
-                <div class="glass-element discover-saved-slot-notif u-display-flex_align-items-center_justify-content-space-betw-3" data-group="${info.groupCode || ''}" data-assignment-jump="1" data-dyn-bdc="${TEACHER_NOTIF_ACCENT}">
-                    <div class="si-row-g10-min0">
-                        <div data-dyn-bg="${TEACHER_NOTIF_ACCENT}26" class="u-width-38px_height-38px_border-radius-50pct_display-flex_al">
-                            <i class="fa-solid fa-clipboard-list u-font-size-16px" data-dyn-color="${TEACHER_NOTIF_ACCENT}"></i>
-                        </div>
-                        <div class="si-min0">
-                            <div class="si-title">
-                                <span class="u-font-weight-600">${_escapeHtml(info.fromName || '')}</span>
-                                <span class="si-muted"> yeni bir ödev ekledi: </span>
-                                <span class="u-font-weight-600">${_escapeHtml(info.assignmentTitle || '')}</span>
-                            </div>
-                            <div class="si-meta">${_escapeHtml(info.groupName || '')} · ${window.timeAgo(info.timestamp)}</div>
-                        </div>
-                    </div>
-                    <button class="control-btn secondary notif-dismiss-btn" data-id="${item.key}" title="Bildirimi kaldır" class="si-action-btn" aria-label="Bildirimi kaldır"><i class="fa-solid fa-xmark"></i></button>
-                </div>`;
-    }
-
-    function buildCollabPlanInviteNotifHtml(item) {
-                const info = item.info;
-                return `
-                <div class="glass-element cp-plan-invite-notif u-display-flex_align-items-center_justify-content-space-betw-3" data-id="${item.key}" data-dyn-bdc="${TEACHER_NOTIF_ACCENT}">
-                    <div class="si-row-g10-min0">
-                        <div data-dyn-bg="${TEACHER_NOTIF_ACCENT}26" class="u-width-38px_height-38px_border-radius-50pct_display-flex_al">
-                            <i class="fa-solid fa-book-open u-font-size-16px" data-dyn-color="${TEACHER_NOTIF_ACCENT}"></i>
-                        </div>
-                        <div class="si-min0">
-                            <div class="si-title">
-                                <span class="u-font-weight-600">${_escapeHtml(info.fromName || '')}</span>
-                                <span class="si-muted"> sana bir ders planı atadı: </span>
-                                <span class="u-font-weight-600">${_escapeHtml(info.goalTitle || '')}</span>
-                            </div>
-                            <div class="si-meta">${window.timeAgo(info.timestamp)}</div>
-                        </div>
-                    </div>
-                    <button class="control-btn secondary notif-dismiss-btn" data-id="${item.key}" title="Bildirimi kaldır" class="si-action-btn" aria-label="Bildirimi kaldır"><i class="fa-solid fa-xmark"></i></button>
-                </div>`;
-    }
-
-    function buildLessonPlanReminderNotifHtml(item) {
-                const info = item.info;
-                return `
-                <div class="glass-element discover-saved-slot-notif u-display-flex_align-items-center_justify-content-space-betw-3" data-lesson-plan-jump="1" data-dyn-bdc="${TEACHER_NOTIF_ACCENT}">
-                    <div class="si-row-g10-min0">
-                        <div data-dyn-bg="${TEACHER_NOTIF_ACCENT}26" class="u-width-38px_height-38px_border-radius-50pct_display-flex_al">
-                            <i class="fa-solid fa-bell u-font-size-16px" data-dyn-color="${TEACHER_NOTIF_ACCENT}"></i>
-                        </div>
-                        <div class="si-min0">
-                            <div class="si-title">
-                                <span class="u-font-weight-600">${_escapeHtml(info.fromName || '')}</span>
-                                <span class="si-muted"> </span>
-                                <span class="u-font-weight-600">${_escapeHtml(info.goalTitle || '')}</span>
-                                <span class="si-muted"> ders planını hatırlatıyor</span>
-                            </div>
-                            <div class="si-meta">${window.timeAgo(info.timestamp)}</div>
-                        </div>
-                    </div>
-                    <button class="control-btn secondary notif-dismiss-btn" data-id="${item.key}" title="Bildirimi kaldır" class="si-action-btn" aria-label="Bildirimi kaldır"><i class="fa-solid fa-xmark"></i></button>
-                </div>`;
-    }
-
-    function buildLessonPlanNewNotifHtml(item) {
-                const info = item.info;
-                return `
-                <div class="glass-element discover-saved-slot-notif u-display-flex_align-items-center_justify-content-space-betw-3" data-lesson-plan-jump="1" data-dyn-bdc="${TEACHER_NOTIF_ACCENT}">
-                    <div class="si-row-g10-min0">
-                        <div data-dyn-bg="${TEACHER_NOTIF_ACCENT}26" class="u-width-38px_height-38px_border-radius-50pct_display-flex_al">
-                            <i class="fa-solid fa-graduation-cap u-font-size-16px" data-dyn-color="${TEACHER_NOTIF_ACCENT}"></i>
-                        </div>
-                        <div class="si-min0">
-                            <div class="si-title">
-                                ${info.resent
-                                    ? `<span class="u-font-weight-600">${_escapeHtml(info.fromName || '')}</span><span class="si-muted"> planını düzenleyip tekrar gönderdi: </span><span class="u-font-weight-600">${_escapeHtml(info.goalTitle || '')}</span>`
-                                    : `<span class="u-font-weight-600">${_escapeHtml(info.fromName || '')}</span><span class="si-muted"> sana bir ders planı atadı: </span><span class="u-font-weight-600">${_escapeHtml(info.goalTitle || '')}</span>`}
-                            </div>
-                            <div class="si-meta">Bekleyen planlama isteğiniz var · ${window.timeAgo(info.timestamp)}</div>
-                        </div>
-                    </div>
-                    <button class="control-btn secondary notif-dismiss-btn" data-id="${item.key}" title="Bildirimi kaldır" class="si-action-btn" aria-label="Bildirimi kaldır"><i class="fa-solid fa-xmark"></i></button>
-                </div>`;
-    }
-
-    function buildLessonPlanAcceptedNotifHtml(item) {
-                const info = item.info;
-                return `
-                <div class="glass-element discover-saved-slot-notif u-display-flex_align-items-center_justify-content-space-betw-2" data-lesson-plan-jump="1" >
-                    <div class="si-row-g10-min0">
-                        <div class="u-width-38px_height-38px_border-radius-50pct_background-h2ed-2">
-                            <i class="fa-solid fa-circle-check u-color-h2ed573_font-size-16px" ></i>
-                        </div>
-                        <div class="si-min0">
-                            <div class="si-title"><span class="u-font-weight-600">${_escapeHtml(info.fromName || '')}</span><span class="si-muted"> gönderdiğin ders planını kabul etti.</span></div>
-                            <div class="si-meta">${window.timeAgo(info.timestamp)}</div>
-                        </div>
-                    </div>
-                    <button class="control-btn secondary notif-dismiss-btn" data-id="${item.key}" title="Bildirimi kaldır" class="si-action-btn" aria-label="Bildirimi kaldır"><i class="fa-solid fa-xmark"></i></button>
-                </div>`;
-    }
-
-    function buildLessonPlanRevisionRequestedNotifHtml(item) {
-                const info = item.info;
-                return `
-                <div class="glass-element discover-saved-slot-notif u-display-flex_align-items-center_justify-content-space-betw-8" data-lesson-plan-jump="1" >
-                    <div class="si-row-g10-min0">
-                        <div class="u-width-38px_height-38px_border-radius-50pct_background-hfec">
-                            <i class="fa-solid fa-pen-to-square u-color-hfeca57_font-size-16px" ></i>
-                        </div>
-                        <div class="si-min0">
-                            <div class="si-title"><span class="u-font-weight-600">${_escapeHtml(info.fromName || '')}</span><span class="si-muted"> ders planında revize istedi: </span>"${_escapeHtml(info.note || '')}"</div>
-                            <div class="si-meta">${window.timeAgo(info.timestamp)}</div>
-                        </div>
-                    </div>
-                    <button class="control-btn secondary notif-dismiss-btn" data-id="${item.key}" title="Bildirimi kaldır" class="si-action-btn" aria-label="Bildirimi kaldır"><i class="fa-solid fa-xmark"></i></button>
-                </div>`;
-    }
-
-    function buildLessonPlanRejectedNotifHtml(item) {
-                const info = item.info;
-                return `
-                <div class="glass-element discover-saved-slot-notif u-display-flex_align-items-center_justify-content-space-betw-9" data-lesson-plan-jump="1" >
-                    <div class="si-row-g10-min0">
-                        <div class="u-width-38px_height-38px_border-radius-50pct_background-hff6">
-                            <i class="fa-solid fa-circle-xmark u-color-hff6b6b_font-size-16px" ></i>
-                        </div>
-                        <div class="si-min0">
-                            <div class="si-title"><span class="u-font-weight-600">${_escapeHtml(info.fromName || '')}</span><span class="si-muted"> planı reddetti${info.note ? ': "' + _escapeHtml(info.note) + '"' : '.'}</span></div>
-                            <div class="si-meta">7 gün içinde düzenleyip tekrar gönderebilirsin · ${window.timeAgo(info.timestamp)}</div>
-                        </div>
-                    </div>
-                    <button class="control-btn secondary notif-dismiss-btn" data-id="${item.key}" title="Bildirimi kaldır" class="si-action-btn" aria-label="Bildirimi kaldır"><i class="fa-solid fa-xmark"></i></button>
-                </div>`;
-    }
-
-    function buildKudosNotifHtml(item) {
-                const info = item.info;
-                return `
-                <div class="glass-element si-row-sb">
-                    <div class="si-row-g10-min0">
-                        ${window.avatarImgHtml({ displayName: info.fromName, avatarColor: info.fromColor, username: info.fromUser }, 38)}
-                        <div class="si-min0">
-                            <div class="si-title">
-                                <span class="u-font-weight-600">${_escapeHtml(info.fromName || '')}</span>
-                                <span class="si-muted"> sana </span>
-                                <span class="u-font-size-16px">👏</span>
-                                <span class="si-muted"> alkış gönderdi</span>
-                            </div>
-                            <div class="si-meta">${window.timeAgo(info.timestamp)}</div>
-                        </div>
-                    </div>
-                    <button class="control-btn secondary notif-dismiss-btn" data-id="${item.key}" title="Bildirimi kaldır" class="si-action-btn" aria-label="Bildirimi kaldır"><i class="fa-solid fa-xmark"></i></button>
-                </div>`;
-    }
-
-    function buildGroupGoalReachedNotifHtml(item) {
-                const info = item.info;
-                return `
-                <div class="glass-element si-row-sb">
-                    <div class="si-row-g10-min0">
-                        <div class="u-width-38px_height-38px_border-radius-50pct_background-rgba-2">
-                            <i class="fa-solid fa-trophy u-color-hfeca57_font-size-16px" ></i>
-                        </div>
-                        <div class="si-min0">
-                            <div class="si-title">
-                                <span class="u-font-weight-600">${_escapeHtml(info.groupName || '')}</span>
-                                <span class="si-muted"> haftalık hedefi tamamladı 🎉</span>
-                            </div>
-                            <div class="si-meta">${window.timeAgo(info.timestamp)}${info.totalMinutes ? ` · ${window.formatFocusMinutes(info.totalMinutes)}/${window.formatFocusMinutes(info.weeklyGoal)}` : ''}</div>
-                        </div>
-                    </div>
-                    <button class="control-btn secondary notif-dismiss-btn" data-id="${item.key}" title="Bildirimi kaldır" class="si-action-btn" aria-label="Bildirimi kaldır"><i class="fa-solid fa-xmark"></i></button>
-                </div>`;
-    }
-
-    function buildReactionNotifHtml(item) {
-
-            // Tepki bildirimi
-            const info = item.info;
-            return `
-                <div class="glass-element si-row-sb">
-                    <div class="si-row-g10-min0">
-                        ${window.avatarImgHtml({ displayName: info.fromName, avatarColor: info.fromColor, username: info.fromUser }, 38)}
-                        <div class="si-min0">
-                            <div class="si-title">
-                                <span class="u-font-weight-600">${_escapeHtml(info.fromName || '')}</span>
-                                <span class="si-muted"> aktivitene </span>
-                                <span class="u-font-size-16px">${_escapeHtml(info.emoji || '')}</span>
-                                <span class="si-muted"> tepkisi verdi</span>
-                            </div>
-                            <div class="si-meta">${window.timeAgo(info.timestamp)}${info.activityText ? ' · "' + _escapeHtml(info.activityText) + '"' : ''}</div>
-                        </div>
-                    </div>
-                    <button class="control-btn secondary notif-dismiss-btn" data-id="${item.key}" title="Bildirimi kaldır" class="si-action-btn" aria-label="Bildirimi kaldır"><i class="fa-solid fa-xmark"></i></button>
-                </div>`;
-    }
-
-    const NOTIF_TYPE_BUILDERS = {
-        mention: buildMentionNotifHtml,
-        role_change: buildRoleChangeNotifHtml,
-        group_slot_open: buildGroupSlotOpenNotifHtml,
-        group_invite: buildGroupInviteNotifHtml,
-        institution_invite: buildInstitutionInviteNotifHtml,
-        classroom_weekly_digest: buildClassroomWeeklyDigestNotifHtml,
-        focus_reminder: buildFocusReminderNotifHtml,
-        assignment_reminder: buildAssignmentReminderNotifHtml,
-        assignment_new: buildAssignmentNewNotifHtml,
-        collab_plan_invite: buildCollabPlanInviteNotifHtml,
-        lesson_plan_reminder: buildLessonPlanReminderNotifHtml,
-        lesson_plan_new: buildLessonPlanNewNotifHtml,
-        lesson_plan_accepted: buildLessonPlanAcceptedNotifHtml,
-        lesson_plan_revision_requested: buildLessonPlanRevisionRequestedNotifHtml,
-        lesson_plan_rejected: buildLessonPlanRejectedNotifHtml,
-        kudos: buildKudosNotifHtml,
-        group_goal_reached: buildGroupGoalReachedNotifHtml,
-    };
-
-    // Bildirim tipine göre doğru HTML üretici fonksiyona yönlendirir. 'request'/'dmRequest'
-    // kind'a göre, geri kalanı item.info.type'a göre dispatch edilir (bkz. NOTIF_TYPE_BUILDERS).
-    function buildNotificationItemHtml(item) {
-        if (item.kind === 'request') return buildFriendRequestNotifHtml(item);
-        if (item.kind === 'dmRequest') return buildDmRequestNotifHtml(item);
-        const builder = NOTIF_TYPE_BUILDERS[item.info.type];
-        if (builder) return builder(item);
-        return buildReactionNotifHtml(item);
-    }
-
+    // Bildirim öğesi HTML üreticileri: social-friends-notifications-item-html.js'e
+    // çıkarıldı (Faz H/O devamı) — buildNotificationItemHtml aşağıda import ediliyor.
 
     // renderNotificationsPanel'den ayrılan: bildirim listesindeki tüm buton/tıklama olaylarını bağlar.
     // Faz S devamı, dev fonksiyon refactoru.
@@ -1247,273 +527,8 @@ import { getMyLeagueState } from './state/my-league-state-store.js';
     // wiring bloğu module-seviyeye taşındı — her biri kendi CSS seçicisiyle sınırlı,
     // aralarında paylaşılan mutable state yok (sadece 'cp-plan-invite-notif' bloğu
     // `items`'a ihtiyaç duyuyor). Davranış birebir aynı.
-    function _ctWireFrAccept(listEl) {
-    listEl.querySelectorAll('.fr-accept-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const fromUser = btn.dataset.from;
-            const fromName = btn.dataset.name;
-
-            const friends = getFriends();
-            if (!friends.includes(fromUser)) {
-                friends.push(fromUser);
-                saveFriends(friends);
-            }
-            window.markFriendSince(fromUser);
-            // Akış içerik kararı (2026-07-05): kaldırıldı.
-            populateHabitBuddySelect();
-
-            const supaId = window.__getPendingFriendRequestsRef()[fromUser]?._supaId;
-            if (supaId && window.FocusSupabase) {
-                // Supabase yolu: friendship'i accepted yap
-                window.FocusSupabase.from('friendships')
-                    .update({ status: 'accepted', accepted_at: new Date().toISOString() })
-                    .eq('id', supaId)
-                    .then(({ error }) => { if (error) console.error('[FocusAI] arkadaşlık kabul hatası', error); });
-                delete window.__getPendingFriendRequestsRef()[fromUser];
-                renderNotificationsPanel();
-            }
-
-            if (typeof window.showPremiumModal === 'function') {
-                window.showPremiumModal({ title: 'Yeni Arkadaş! 🎉', message: `${fromName} ile artık arkadaşsınız.`, type: 'success' });
-            }
-        });
-    });
-    }
-    function _ctWireFrDecline(listEl) {
-
-    listEl.querySelectorAll('.fr-decline-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const fromUser = btn.dataset.from;
-            const supaId = window.__getPendingFriendRequestsRef()[fromUser]?._supaId;
-            if (supaId && window.FocusSupabase) {
-                window.FocusSupabase.from('friendships').delete().eq('id', supaId)
-                    .then(() => {});
-                delete window.__getPendingFriendRequestsRef()[fromUser];
-                renderNotificationsPanel();
-            }
-        });
-    });
-    }
-    function _ctWireNotifDismiss(listEl) {
-
-    listEl.querySelectorAll('.notif-dismiss-btn').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            const id = btn.dataset.id;
-            if (window.FocusSupabase && getCurrentUser()?.id && window.__getNotificationsSupabaseRef()[id]) {
-                // Optimistik silme: önce cache'den kaldır
-                const backup = window.__getNotificationsSupabaseRef()[id];
-                delete window.__getNotificationsSupabaseRef()[id];
-                renderNotificationsPanel();
-                // DB'den sil; başarısız olursa cache'e geri ekle
-                const { error } = await window.FocusSupabase.from('notifications').delete().eq('id', id).eq('user_id', getCurrentUser().id);
-                if (error) {
-                    console.warn('[Bildirim] Silme hatası:', error.message);
-                    window.__getNotificationsSupabaseRef()[id] = backup;
-                    renderNotificationsPanel();
-                }
-            }
-        });
-    });
-    }
-    function _ctWireGroupInviteAccept(listEl) {
-
-    listEl.querySelectorAll('.group-invite-accept-btn').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            btn.disabled = true;
-            const code = btn.dataset.code;
-            const notifId = btn.dataset.id;
-            if (!code || typeof window.joinGroupWithCode !== 'function') { btn.disabled = false; return; }
-            try {
-                await window.joinGroupWithCode(code);
-                // Katılım başarılı (ya da onay bekliyor) — davet bildirimi artık gereksiz
-                if (getCurrentUser()?.id && window.__getNotificationsSupabaseRef()[notifId]) {
-                    delete window.__getNotificationsSupabaseRef()[notifId];
-                    if (window.FocusSupabase) {
-                        await window.FocusSupabase.from('notifications').delete().eq('id', notifId).eq('user_id', getCurrentUser().id);
-                    }
-                }
-                renderNotificationsPanel();
-            } catch (e) {
-                // Grup artık mevcut değilse (silinmiş/kod geçersiz) bildirim asla kabul edilemeyecektir — temizle
-                const msg = e?.message || '';
-                if (msg.includes('bulunamadı') && getCurrentUser()?.id && window.__getNotificationsSupabaseRef()[notifId]) {
-                    delete window.__getNotificationsSupabaseRef()[notifId];
-                    if (window.FocusSupabase) {
-                        await window.FocusSupabase.from('notifications').delete().eq('id', notifId).eq('user_id', getCurrentUser().id);
-                    }
-                    window.dcShowToast('Bu grup artık mevcut değil, davet kaldırıldı.');
-                    renderNotificationsPanel();
-                } else {
-                    window.dcShowToast(msg || 'Gruba katılırken hata oluştu.');
-                    btn.disabled = false;
-                }
-            }
-        });
-    });
-    }
-    function _ctWireGroupInviteDecline(listEl) {
-
-    listEl.querySelectorAll('.group-invite-decline-btn').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            btn.disabled = true;
-            const notifId = btn.dataset.id;
-            if (getCurrentUser()?.id && window.__getNotificationsSupabaseRef()[notifId]) {
-                delete window.__getNotificationsSupabaseRef()[notifId];
-                renderNotificationsPanel();
-                if (window.FocusSupabase) {
-                    const { error } = await window.FocusSupabase.from('notifications').delete().eq('id', notifId).eq('user_id', getCurrentUser().id);
-                    if (error) console.warn('[Bildirim] Grup daveti reddedilirken silme hatası:', error.message);
-                }
-            }
-        });
-    });
-    }
-    function _ctWireInstitutionInviteAccept(listEl) {
-
-    listEl.querySelectorAll('.institution-invite-accept-btn').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            btn.disabled = true;
-            const notifId = btn.dataset.id;
-            const inviteId = btn.dataset.inviteId;
-            if (!inviteId || !window.FocusSupabase) { btn.disabled = false; return; }
-            const { error } = await window.FocusSupabase.rpc('accept_institution_invite', { p_invite_id: inviteId });
-            if (error) {
-                window.dcShowToast('Davet kabul edilemedi: ' + error.message, 'error');
-                btn.disabled = false;
-                return;
-            }
-            if (getCurrentUser()?.id && window.__getNotificationsSupabaseRef()[notifId]) {
-                delete window.__getNotificationsSupabaseRef()[notifId];
-                await window.FocusSupabase.from('notifications').delete().eq('id', notifId).eq('user_id', getCurrentUser().id);
-            }
-            window.dcShowToast('Sınıfa katıldın! 🎉', 'success');
-            renderNotificationsPanel();
-            if (typeof window.loadMyGroups === 'function') window.loadMyGroups();
-            if (typeof window.loadUserGroupsForDc === 'function') window.loadUserGroupsForDc();
-        });
-    });
-    }
-    function _ctWireInstitutionInviteDecline(listEl) {
-
-    listEl.querySelectorAll('.institution-invite-decline-btn').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            btn.disabled = true;
-            const notifId = btn.dataset.id;
-            const inviteId = btn.dataset.inviteId;
-            if (inviteId && window.FocusSupabase) {
-                await window.FocusSupabase.from('institution_invites').update({ status: 'rejected', responded_at: new Date().toISOString() }).eq('id', inviteId);
-            }
-            if (getCurrentUser()?.id && window.__getNotificationsSupabaseRef()[notifId]) {
-                delete window.__getNotificationsSupabaseRef()[notifId];
-                await window.FocusSupabase.from('notifications').delete().eq('id', notifId).eq('user_id', getCurrentUser().id);
-            }
-            renderNotificationsPanel();
-        });
-    });
-    }
-    function _ctWireDmReqAdd(listEl) {
-
-    listEl.querySelectorAll('.dm-req-add-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const fromUser = btn.dataset.from;
-            const fromName = btn.dataset.name;
-
-            const friends = getFriends();
-            if (!friends.includes(fromUser)) {
-                friends.push(fromUser);
-                saveFriends(friends);
-            }
-            window.markFriendSince(fromUser);
-            // Akış içerik kararı (2026-07-05): kaldırıldı.
-            populateHabitBuddySelect();
-            window._syncFriendAcceptToSupabase(fromUser);
-            if (window.FocusSupabase && getCurrentUser().id && __getPendingDmRequestsSupabaseRef()[fromUser]) {
-                window.FocusSupabase.from('conversations').update({ status: 'accepted' })
-                    .eq('id', __getPendingDmRequestsSupabaseRef()[fromUser].conversationId);
-            }
-
-            if (typeof window.showPremiumModal === 'function') {
-                window.showPremiumModal({ title: 'Yeni Arkadaş! 🎉', message: `${fromName} ile artık arkadaşsınız.`, type: 'success' });
-            }
-            if (typeof window.openDcDmRoom === 'function') window.openDcDmRoom(fromUser, fromName);
-        });
-    });
-    }
-    function _ctWireDmReqContinue(listEl) {
-
-    listEl.querySelectorAll('.dm-req-continue-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const fromUser = btn.dataset.from;
-            const fromName = btn.dataset.name;
-            if (window.FocusSupabase && getCurrentUser().id && __getPendingDmRequestsSupabaseRef()[fromUser]) {
-                window.FocusSupabase.from('conversations').update({ status: 'accepted' })
-                    .eq('id', __getPendingDmRequestsSupabaseRef()[fromUser].conversationId);
-            }
-            if (typeof window.openDcDmRoom === 'function') window.openDcDmRoom(fromUser, fromName);
-        });
-    });
-    }
-    function _ctWireDiscoverSavedSlotNotif(listEl) {
-
-    listEl.querySelectorAll('.discover-saved-slot-notif').forEach(el => {
-        el.addEventListener('click', (e) => {
-            if (e.target.closest('.notif-dismiss-btn')) return;
-            if (el.dataset.lessonPlanJump === '1') {
-                if (typeof window.switchTab === 'function') window.switchTab('planlama');
-                return;
-            }
-            const groupCode = el.dataset.group;
-            if (el.dataset.assignmentJump === '1' && groupCode && typeof window.dcOpenAssignmentTab === 'function') {
-                window.dcOpenAssignmentTab(groupCode);
-                return;
-            }
-            if (groupCode && typeof openSavedGroupPreview === 'function') {
-                openSavedGroupPreview(groupCode);
-            }
-        });
-    });
-    }
-    function _ctWireCpPlanInviteNotif(listEl, items) {
-
-    listEl.querySelectorAll('.cp-plan-invite-notif').forEach(el => {
-        el.addEventListener('click', (e) => {
-            if (e.target.closest('.notif-dismiss-btn')) return;
-            const item = items.find(it => it.key === el.dataset.id);
-            if (item) window._handleCollabPlanInvite(item.info);
-        });
-    });
-    }
-    function _ctWireDcMentionNotif(listEl) {
-
-    listEl.querySelectorAll('.dc-mention-notif').forEach(el => {
-        el.addEventListener('click', (e) => {
-            if (e.target.closest('.notif-dismiss-btn')) return;
-            const { dm, from, fromName, group, scopeType, scopeId, room, channel, roomName } = el.dataset;
-            if (dm === '1') {
-                if (from && typeof window.openDcDmRoom === 'function') window.openDcDmRoom(from, fromName || from);
-            } else if (group && scopeType && scopeId && typeof window.openGroupMentionNotif === 'function') {
-                window.openGroupMentionNotif(group, scopeType, scopeId, roomName);
-            } else if (group && room && typeof window.openDcChatRoom === 'function') {
-                window.openDcChatRoom(group, roomName || room, room, channel || null);
-            }
-        });
-    });
-    }
-    function _wireNotificationsPanelEvents(listEl, items) {
-        _ctWireFrAccept(listEl);
-        _ctWireFrDecline(listEl);
-        _ctWireNotifDismiss(listEl);
-        _ctWireGroupInviteAccept(listEl);
-        _ctWireGroupInviteDecline(listEl);
-        _ctWireInstitutionInviteAccept(listEl);
-        _ctWireInstitutionInviteDecline(listEl);
-        _ctWireDmReqAdd(listEl);
-        _ctWireDmReqContinue(listEl);
-        _ctWireDiscoverSavedSlotNotif(listEl);
-        _ctWireCpPlanInviteNotif(listEl, items);
-        _ctWireDcMentionNotif(listEl);
-    }
+    // _wireNotificationsPanelEvents ve 12 alt-wiring fonksiyonu
+    // social-friends-notifications-panel-events.js'e çıkarıldı (Faz H devamı, 2. tur).
 
     export function renderNotificationsPanel() {
         const listEl = document.getElementById('friend-requests-list');
@@ -1576,6 +591,41 @@ export function __getPendingDmRequestsSupabaseRef() { return _pendingDmRequestsS
 export function __getProfileIdByUsernameRef() { return _profileIdByUsername; }
 export function __getDmRequestsInitialLoadDoneSupabaseRef() { return _dmRequestsInitialLoadDoneSupabase; }
 export function __setDmRequestsInitialLoadDoneSupabaseRef(v) { _dmRequestsInitialLoadDoneSupabase = v; }
+// GERÇEK BUG DÜZELTMESİ (2026-08-06): listenForFriendAcceptances()
+// window.__getFriendAcceptSupaChannelRef/__setFriendAcceptSupaChannelRef'i
+// çağırıyordu ama bu köprüler hiç TANIMLANMAMIŞTI — her çağrıda
+// "TypeError: ... is not a function" fırlatıp loadCommunityProfile'ın
+// (social-auth-bootstrap.js) try/catch'ini tetikliyor, bu da BAŞARIYLA
+// yüklenmiş profili "başarısız" sayıp "Topluluk Özellikleri için Oturum
+// Gerekiyor" banner'ını gereksiz yere geri gösteriyordu (canlı testte
+// doğrulandı). Diğer köprülerle aynı desende eksik tanım eklendi.
+export function __getFriendAcceptSupaChannelRef() { return _friendAcceptSupaChannel; }
+export function __setFriendAcceptSupaChannelRef(v) { _friendAcceptSupaChannel = v; }
+window.__getFriendAcceptSupaChannelRef = __getFriendAcceptSupaChannelRef;
+window.__setFriendAcceptSupaChannelRef = __setFriendAcceptSupaChannelRef;
+
+// GERÇEK BUG DÜZELTMESİ (2026-08-06): _friendAcceptSupaChannel ile AYNI
+// hikaye — renderNotificationsPanel() ve social-friends-notifications-
+// panel-events.js window.__getPendingFriendRequestsRef()'i çağırıyordu ama
+// hiç tanımlanmamıştı. Bu, "Bildirimler" (zil) butonuna her tıklandığında
+// renderNotificationsPanel()'in daha classList.remove('hidden') satırına
+// ulaşmadan çökmesine yol açıyordu — buton görünürde hiçbir şey yapmıyor
+// gibi görünüyordu (canlı testte doğrulandı: gerçek bir arkadaşlık isteği
+// veritabanında dururken bildirim paneli hiç açılmıyordu).
+export function __getPendingFriendRequestsRef() { return _pendingFriendRequests; }
+window.__getPendingFriendRequestsRef = __getPendingFriendRequestsRef;
+
+// GERÇEK BUG DÜZELTMESİ (2026-08-06): renderNotificationsPanel()'in
+// kullandığı diğer üç köprü de (yukarıdakiyle aynı sebep/aynı canlı test
+// zincirinde) hiç tanımlanmamıştı — her biri "Bildirimler" panelini bir
+// adım daha ileri götürüp yine window.__get*Ref is not a function ile
+// çöküyordu (art arda üç ayrı hata, tek tek canlı testte yakalandı).
+export function __getNotificationsSupabaseRef() { return _notificationsSupabase; }
+export function __getReactionNotificationsRef() { return _reactionNotifications; }
+export function __getPendingDmRequestsRef() { return _pendingDmRequests; }
+window.__getNotificationsSupabaseRef = __getNotificationsSupabaseRef;
+window.__getReactionNotificationsRef = __getReactionNotificationsRef;
+window.__getPendingDmRequestsRef = __getPendingDmRequestsRef;
 
 // ── Arkadaşlık yönetimi (Faz 5, üçüncü artırım — social.js:2247-2519'dan taşındı) ──
     // İsteği biz gönderdiğimizde, karşı taraf kabul edince burası tetiklenir
@@ -1994,47 +1044,6 @@ export function __setDmRequestsInitialLoadDoneSupabaseRef(v) { _dmRequestsInitia
     }
     window.renderLeaderboardFromCache = renderLeaderboardFromCache;
 
-    // "Bu Haftanın En Çok Gelişeni" — mutlak XP değil, geçen haftaya göre artışı
-    // ödüllendirir (pozitif rekabet: zaten üstte olan sürekli kazanmasın, herkesin
-    // şansı olsun). Grup tarafındaki "Yükselen Yıldız" rozetiyle aynı mantık (bkz.
-    // gscSessionsCache yakınındaki addBadge çağrıları), burada arkadaş listesine uyarlandı.
-    function renderMostImprovedBadge(visibleUsers) {
-        const el = document.getElementById('leaderboard-improved-badge');
-        if (!el) return;
-        const candidates = visibleUsers
-            .filter(u => typeof u.prevWeeklyXp === 'number' && u.weeklyXp > 0)
-            .map(u => ({ ...u, _delta: u.weeklyXp - u.prevWeeklyXp }))
-            .filter(u => u._delta > 0)
-            .sort((a, b) => b._delta - a._delta);
-
-        if (candidates.length < 1 || visibleUsers.length < 2) {
-            el.classList.add('hidden');
-            el.innerHTML = '';
-            return;
-        }
-        const best = candidates[0];
-        const name = best.isMe ? 'Sen' : _escapeHtml(best.displayName || best.username);
-        el.classList.remove('hidden');
-        el.innerHTML = `<span class="lb-improved-icon">🚀</span> Bu haftanın en çok gelişeni: <span class="lb-improved-name">${name}</span> — geçen haftaya göre +${best._delta} XP`;
-    }
-
-    // Sıra değişim oku (B2): bir önceki render'a göre kimin yükselip kimin
-    // düştüğünü tespit eder. İlk render'da (önceki harita boşsa) ok gösterilmez.
-    const _lastRankByScope = { friends: {}, league: {} };
-    function computeRankDeltas(scope, sortedUsers) {
-        const prev = _lastRankByScope[scope];
-        const hadPrev = Object.keys(prev).length > 0;
-        const next = {};
-        const withDelta = sortedUsers.map((u, i) => {
-            const prevRank = prev[u.username];
-            const delta = (hadPrev && prevRank !== undefined) ? (prevRank - i) : 0;
-            next[u.username] = i;
-            return { ...u, _rankDelta: delta };
-        });
-        _lastRankByScope[scope] = next;
-        return withDelta;
-    }
-
     // ─── GÜNLÜK MİNİ REKABET → social-daily-race.js dosyasına taşındı ──────
 
     // Arkadaş listesi (ekleme/çıkarma) değişince liderlik tablosunu ve arkadaş listesini
@@ -2050,52 +1059,6 @@ export function __setDmRequestsInitialLoadDoneSupabaseRef(v) { _dmRequestsInitia
             // "Kişiler" listesini de anında güncelle
             if (typeof window.syncDcContactList === 'function') window.syncDcContactList();
         });
-    }
-
-    // Canlı Sıralama — podyum/madalya yok; her satırda lidere göre XP dolum çubuğu,
-    // kendi satırında bir öndekiyle arasındaki fark rozeti (pozitif rekabet vurgusu).
-    function renderLeaderboard(users, container) {
-        if (!users.length) {
-            container.innerHTML = `
-                <li class="u-text-align-center_color-var-text-muted_padding-30px20px_fo">
-                    <i class="fa-solid fa-users u-font-size-24px_margin-bottom-10px_display-block_color-rgba" ></i>
-                    Arkadaş ekle ve sıralamada yarış!
-                </li>`;
-            return;
-        }
-        const topXp = Math.max(users[0]?.weeklyXp || 0, 1);
-        container.innerHTML = users.map((u, i) => {
-            const wxp = u.weeklyXp || 0;
-            const pct = Math.max(2, Math.round((wxp / topXp) * 100));
-            const ahead = i > 0 ? users[i - 1] : null;
-            const gap = ahead ? Math.max(0, (ahead.weeklyXp || 0) - wxp) : 0;
-            const gapChip = u.isMe && ahead
-                ? `<span class="lb-gap-chip"><i class="fa-solid fa-bolt"></i> ${gap} XP kaldı</span>`
-                : (u.isMe ? '<span class="lb-gap-chip lb-gap-chip--leader"><i class="fa-solid fa-crown"></i> Lidersin</span>' : '');
-            const L = leagueOf(u.league);
-            const leagueBadge = `<span class="lb-league-badge" data-dyn-color="${L.color}" data-dyn-bordercolor="${L.color}44" data-dyn-bg="${L.color}1a" title="${L.name} Ligi"><i class="fa-solid ${L.icon}"></i> ${L.name}</span>`;
-
-            const zoneClass = u._zone === 'promo' ? ' lb-row--promo' : (u._zone === 'demo' ? ' lb-row--demo' : '');
-            const rankDeltaChip = u._rankDelta > 0
-                ? `<span class="lb-rank-delta lb-rank-delta--up"><i class="fa-solid fa-caret-up"></i></span>`
-                : (u._rankDelta < 0 ? `<span class="lb-rank-delta lb-rank-delta--down"><i class="fa-solid fa-caret-down"></i></span>` : '');
-            return `
-                <li class="lb-row${u.isMe ? ' lb-row--me' : ''}${zoneClass}" data-dyn-delay="${Math.min(i, 15) * 35}ms">
-                    <span class="lb-rank">${i + 1}</span>
-                    ${avatarImgHtml(u, 32, 'flex-shrink:0;')}
-                    <div class="lb-main">
-                        <div class="lb-name-line">
-                            ${rankDeltaChip}
-                            <span class="lb-name">${_escapeHtml(u.displayName || u.username)}${u.isMe ? '<span class="lb-me-tag"> (Sen)</span>' : ''}</span>
-                            ${leagueBadge}
-                            ${gapChip}
-                            <span class="lb-xp" title="Bu haftaki XP — toplam ${u.xp || 0} XP">${wxp} XP</span>
-                        </div>
-                        <div class="lb-bar"><div class="lb-bar-fill${u.isMe ? ' lb-bar-fill--me' : ''}" data-dyn-w="${pct}%"></div></div>
-                    </div>
-                </li>`;
-        }).join('');
-        _applyDynStyles(container);
     }
 
 

@@ -320,6 +320,19 @@
 .pg-empty-state h3 { font-size: 17px; font-weight: 700; color: var(--t1, #F2F2F2); margin-bottom: 8px; }
 .pg-empty-state p { font-size: 13px; max-width: 320px; line-height: 1.6; }
 
+/* Filtre/Arşiv/Başardıklarım sonucu boş kaldığında kart ızgarasının içine
+   yazılan boş-durum kartı (_pgEmptyCardHtml, planning-misc-widgets.js) —
+   Ana Hedefler'deki (buildEmptyArchiveStateHtml/buildEmptyExpiredStateHtml)
+   ile AYNI glass-element kart bileşenini kullanır; bu sarmalayıcı sadece
+   grid içinde tam genişliğe yayıp dikey olarak ortalamak için var. */
+.pg-empty-card-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 320px;
+    padding: 20px;
+}
+
 /* ── Toast ── */
 .pg-toast {
     position: fixed;

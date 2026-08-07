@@ -4,64 +4,9 @@
    Activity Log · Contribution Chart · @mention
    ════════════════════════════════════════════════════════════ */
 import { dcShowConfirm } from './social-dc-confirm-toasts.js';
+import { esc, shortId, genId, timeAgo, parseMentions, toast, getAuthUser, getUserDisplayName, stringToColor, lsGet, lsSet } from './collab-utils.js';
 (function () {
     'use strict';
-
-    // ── Helpers ──────────────────────────────────────────────────
-    // Tek kaynak: script.js'teki window.escapeHtml. collab.js önce bu dosya
-    // yüklendikten sonra çalıştığı için normalde her zaman mevcuttur; olası bir
-    // yükleme sırası değişikliğine karşı aynı mantığı yerel fallback olarak tutuyoruz.
-    function esc(s) {
-        if (typeof window.escapeHtml === 'function') return window.escapeHtml(s);
-        return String(s)
-            .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-            .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-    }
-    function shortId(len = 8) {
-        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-        let id = '';
-        for (let i = 0; i < len; i++) id += chars[Math.floor(Math.random() * chars.length)];
-        return id;
-    }
-    function genId() { return 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2,6); }
-    function timeAgo(ts) {
-        const diff = (Date.now() - new Date(ts).getTime()) / 1000;
-        if (diff < 60)  return 'az önce';
-        if (diff < 3600) return Math.floor(diff/60) + 'dk önce';
-        if (diff < 86400) return Math.floor(diff/3600) + 'sa önce';
-        return Math.floor(diff/86400) + 'g önce';
-    }
-    function parseMentions(text) {
-        return text.replace(/@(\w+)/g, '<span class="pg-mention">@$1</span>');
-    }
-    function toast(msg, color) {
-        let el = document.getElementById('pg-toast');
-        if (!el) { el = document.createElement('div'); el.id = 'pg-toast'; el.className = 'pg-toast'; document.body.appendChild(el); }
-        el.textContent = msg;
-        el.style.borderColor = color || '';
-        el.classList.add('show');
-        clearTimeout(el._t);
-        el._t = setTimeout(() => { el.classList.remove('show'); el.style.borderColor=''; }, 3000);
-    }
-
-    // ── Auth helper ───────────────────────────────────────────────
-    async function getAuthUser() {
-        try { if (!window.FocusSupabase) return null; const { data } = await window.FocusSupabase.auth.getUser(); return data?.user||null; }
-        catch (_) { return null; }
-    }
-    function getUserDisplayName(u) {
-        if (!u) return 'Anonim';
-        return u.user_metadata?.display_name || u.user_metadata?.username || u.email?.split('@')[0] || 'Kullanıcı';
-    }
-    function stringToColor(s) {
-        const c = ['#7c6eff','#ef476f','#06d6a0','#ffd166','#ff9f43','#a78bfa','#60a5fa','#f97316'];
-        let h = 0; for (let i=0;i<s.length;i++) h=s.charCodeAt(i)+((h<<5)-h);
-        return c[Math.abs(h)%c.length];
-    }
-
-    // ── Local Storage helpers ─────────────────────────────────────
-    function lsGet(key, def) { try { return JSON.parse(localStorage.getItem(key) ?? 'null', window._safeJsonReviver) ?? def; } catch(_){ return def; } }
-    function lsSet(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
 
     // ════════════════════════════════════════════════════════════
     // PlanningCollab — Ana Nesne

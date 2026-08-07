@@ -30,13 +30,11 @@ import { getCwInviteMsgId, setCwInviteRef } from './state/cw-invite-ref-store.js
 import { getCwRoomOriginGroupScope, setCwRoomOriginGroupScope } from './state/cw-room-origin-store.js';
 import { getCwRoomLinkedHabit } from './state/cw-room-linked-habit-store.js';
 import { getCwRoomIsHost } from './state/cw-room-host-store.js';
-import { getCwSettingsOpenToAll, setCwSettingsOpenToAll } from './state/cw-settings-open-to-all-store.js';
 import { getSharedFocusBindingsReady, setSharedFocusBindingsReady } from './state/shared-focus-bindings-ready-store.js';
 import {
     getCurrentRoomId, setCurrentRoomId, getCwRoomIsSupabase, getCwRoomSupaChannel,
-    setCwRoomSupaChannel, getCwRoomAllowRequests, setCwRoomAllowRequests
+    setCwRoomSupaChannel
 } from './state/cw-current-room-store.js';
-import { getSharedFocusMyTaskId, getSharedFocusMyTaskText } from './state/shared-focus-my-task-store.js';
 import { getSharedFocusSoloMode, setSharedFocusSoloMode } from './state/shared-focus-solo-mode-store.js';
 import { getSharedFocusBreakMinutes, setSharedFocusBreakMinutes } from './state/shared-focus-break-minutes-store.js';
 import { getSharedFocusPhaseInitialized, setSharedFocusPhaseInitialized } from './state/shared-focus-phase-initialized-store.js';
@@ -46,6 +44,10 @@ import { getSharedFocusDisplaySyncInterval, setSharedFocusDisplaySyncInterval } 
 import { getSharedFocusInFocusMode, setSharedFocusInFocusMode } from './state/shared-focus-in-focus-mode-store.js';
 import { getGfMode, setGfMode } from './state/gf-mode-store.js';
 import { getGfLeaveBtnAC, setGfLeaveBtnAC } from './state/gf-leave-btn-ac-store.js';
+export { buildSoloFocusRoomLike } from './social-shared-focus-overlay-solo-room.js';
+import { buildSoloFocusRoomLike } from './social-shared-focus-overlay-solo-room.js';
+export { _cwApplyRoleBasedUI } from './social-shared-focus-overlay-role-ui.js';
+import { _cwApplyRoleBasedUI } from './social-shared-focus-overlay-role-ui.js';
 
 // ──────────────────────────────────────────────────────
 // ORTAK OVERLAY — AÇMA / KAPAMA (her iki akış için TEK nokta)
@@ -128,23 +130,7 @@ export function closeGroupFocusOverlay() {
 }
 window.closeGroupFocusOverlay = closeGroupFocusOverlay;
 
-// Bireysel (oda dışı) odaklanma seansı için "Birlikte Çalışalım" arayüzüyle birebir aynı
-// görünümdeki tam ekranı besleyecek sahte bir "oda" nesnesi üretir — partner alanları boş kalır,
-// bu sayede renderSharedFocusParticipants/applySharedFocusPhase/renderSharedFocusTaskStatus
-// hiçbir özel dallanmaya gerek kalmadan aynı şekilde çalışır.
-export function buildSoloFocusRoomLike() {
-    return {
-        hostName: getCurrentUser()?.displayName || 'Sen',
-        guestName: null,
-        hostTask: getSharedFocusMyTaskId() ? { id: getSharedFocusMyTaskId(), text: getSharedFocusMyTaskText() } : null,
-        guestTask: null,
-        startedAt: getSharedFocusSession() ? getSharedFocusSession().startedAt : null,
-        paused: getSharedFocusSession() ? !!getSharedFocusSession().paused : false,
-        pausedAt: getSharedFocusSession() ? getSharedFocusSession().pausedAt : null,
-        focusMinutes: getSharedFocusSession() ? getSharedFocusSession().focusMinutes : (Math.round(getScwTimeLeft() / 60) || 25),
-        breakMinutes: getSharedFocusSession() ? getSharedFocusSession().breakMinutes : (getSharedFocusBreakMinutes() || SHARED_FOCUS_DEFAULT_BREAK_MINUTES)
-    };
-}
+// buildSoloFocusRoomLike → social-shared-focus-overlay-solo-room.js
 window.buildSoloFocusRoomLike = buildSoloFocusRoomLike;
 
 export function openSharedFocusOverlay(linkedHabit, partnerName, solo) {
@@ -625,30 +611,5 @@ function gfEnsureDurationSettingsBindings() {
     });
 }
 
-export function _cwApplyRoleBasedUI(isOwner, settingsOpenToAll, allowRequests) {
-    setCwSettingsOpenToAll(!!settingsOpenToAll);
-    setCwRoomAllowRequests(allowRequests !== false);
-    const canSettings = isOwner || getCwSettingsOpenToAll();
-    document.getElementById('gf-settings-btn')?.classList.toggle('hidden', !canSettings);
-    document.getElementById('gf-end-session-btn')?.classList.toggle('hidden', !isOwner);
-    document.getElementById('gf-setting-open-settings-row')?.classList.toggle('hidden', !isOwner);
-    document.getElementById('gf-setting-allow-requests-row')?.classList.toggle('hidden', !isOwner);
-    const toggle = document.getElementById('gf-setting-open-settings');
-    if (toggle && document.activeElement !== toggle) toggle.checked = getCwSettingsOpenToAll();
-    const reqToggle = document.getElementById('gf-setting-allow-requests');
-    if (reqToggle && document.activeElement !== reqToggle) reqToggle.checked = getCwRoomAllowRequests();
-
-    // İstek izni kapalıysa ve kontrol yetkim yoksa Start/Pause/Skip'i hiç
-    // görmeyeyim (elimden bir şey gelmediği için buton anlamsız kalırdı).
-    if (!isOwner && !getCwSettingsOpenToAll()) {
-        const showControls = getCwRoomAllowRequests();
-        document.getElementById('gf-start-btn')?.classList.toggle('cw-controls-hidden', !showControls);
-        document.getElementById('gf-pause-btn')?.classList.toggle('cw-controls-hidden', !showControls);
-        document.getElementById('gf-skip-btn')?.classList.toggle('cw-controls-hidden', !showControls);
-    } else {
-        document.getElementById('gf-start-btn')?.classList.remove('cw-controls-hidden');
-        document.getElementById('gf-pause-btn')?.classList.remove('cw-controls-hidden');
-        document.getElementById('gf-skip-btn')?.classList.remove('cw-controls-hidden');
-    }
-}
+// _cwApplyRoleBasedUI → social-shared-focus-overlay-role-ui.js
 window._cwApplyRoleBasedUI = _cwApplyRoleBasedUI;

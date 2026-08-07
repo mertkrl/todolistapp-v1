@@ -1319,8 +1319,12 @@ document.addEventListener('DOMContentLoaded', () => {
      btnOpenGoalModal._mainListenerAdded = true;
      btnOpenGoalModal.addEventListener('click', openGoalModal);
  }
- if(closeGoalModalBtn) closeGoalModalBtn.addEventListener('click', closeGoalModal);
- if(cancelGoalBtn) cancelGoalBtn.addEventListener('click', closeGoalModal);
+ // İptal/kapat: kaydedilmeden vazgeçildi — Zihin Çöplüğü'nden gelinmiş olabilecek
+ // bekleyen dönüşüm id'sini temizle (bkz. script-goal-modal.js/script-convert-modal.js),
+ // aksi halde daha sonra alakasız bir hedef kaydedilince o eski fikir yanlışlıkla silinebilirdi.
+ const _clearPendingDumpConversion = () => { window.__pendingDumpConversionId = null; };
+ if(closeGoalModalBtn) closeGoalModalBtn.addEventListener('click', () => { closeGoalModal(); _clearPendingDumpConversion(); });
+ if(cancelGoalBtn) cancelGoalBtn.addEventListener('click', () => { closeGoalModal(); _clearPendingDumpConversion(); });
 
 // Zafer Modalı butonları, window._saveGoalImpl, window.deleteGoal,
 // generateAIAnalysis, hedef sekme/sıralama, window.renderGoals ->

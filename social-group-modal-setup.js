@@ -60,8 +60,12 @@ export function setupGroupModalControls() {
         const isInstitutional = classroomTypeSelect.value !== 'general';
 
         if (groupNameLabel) groupNameLabel.textContent = isInstitutional ? 'Kurum / Okul Adı' : 'Grup Adı';
-        if (groupNameInput) groupNameInput.style.display = isInstitutional ? 'none' : '';
-        if (groupInstitutionInput) groupInstitutionInput.style.display = isInstitutional ? '' : 'none';
+        // groupInstitutionInput'un temel CSS sınıfı display:none uyguluyor (varsayılan
+        // olarak gizli) — style.display='' bu durumda inline stili sadece TEMİZLER, sınıf
+        // kuralına geri düşer ve alan hiçbir zaman görünmez olur. 'block' ile açıkça ezmek
+        // gerekiyor (önceden bu alan öğretmen için hiç görünmüyordu, kurum adı yazılamıyordu).
+        if (groupNameInput) groupNameInput.style.display = isInstitutional ? 'none' : 'block';
+        if (groupInstitutionInput) groupInstitutionInput.style.display = isInstitutional ? 'block' : 'none';
 
         const publicBtn = privacyToggle?.querySelector('.group-privacy-opt[data-value="public"]');
         if (publicBtn) publicBtn.disabled = isInstitutional;

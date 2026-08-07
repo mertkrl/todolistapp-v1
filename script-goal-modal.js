@@ -5,16 +5,15 @@
 // arşivleme), FocusAI metin analizi (generateAIAnalysis), sekme/sıralama ve
 // ana render fonksiyonu (renderGoals).
 //
-// openGoalModal/closeGoalModal BİLİNÇLİ OLARAK script.js'te bırakıldı:
-// index.html'in inline-goal-modal-globals.js'i (KLASİK script, type="module"
-// DEĞİL) bu isimlerle bir "her zaman çalışan" fallback tanımlıyor — script.js
-// kendi zengin openGoalModal'ını (MAX_ACTIVE_GOALS kontrolü vb.) BİLEREK
-// window'a export ETMİYOR, çünkü öyle yapılırsa modül-scope'lu bare
-// referanslar (HTML onclick="..." gibi GERÇEK global scope'tan çağrılanlar
-// değil) davranışı sessizce değişirdi. Bu dosya da aynı prensibi korur:
-// closeGoalModal() bare çağrıları burada YAPILMADI/değiştirilmedi — window
-// fallthrough ile inline-goal-modal-globals.js'in fonksiyonuna çözümlenir,
-// ki o da aynı DOM işlemini (modal'ı gizle) yapar, davranış farkı yok.
+// openGoalModal/closeGoalModal BİLİNÇLİ OLARAK script.js'te bırakıldı — ama
+// GERÇEK BUG BULUNDU (2026-08-06): bare closeGoalModal() çağrısının window
+// fallthrough ile inline-goal-modal-globals.js'in fonksiyonuna çözüleceği
+// varsayımı artık YANLIŞ. planning-goal-crud.js (Planlama'nın KENDİ hedef
+// modalı, #pg-goal-modal) `window.closeGoalModal = closeGoalModal;` ile AYNI
+// global ismi ele geçiriyor ve #goal-modal yerine #pg-goal-modal'ı gizliyor —
+// yani "Yeni Hedef" modalı "Oluştur"a basınca hiç kapanmıyordu. Bu yüzden
+// _saveGoalImpl artık kendi modalını DOĞRUDAN DOM'dan kapatıyor, isim
+// çakışmasına bağımlı kalmıyor.
 //
 // Dış bağımlılıklar (script.js'te kalıyor, window.* köprüsüyle açıldı):
 // - goals → getGoalsRef()/__setGoalsRef() (deleteGoal içinde
@@ -32,17 +31,20 @@
 // sorgulanıyor/tanımlanıyor (basit document.getElementById/sabit değer —
 // çapraz dosya bağımlılığından daha basit).
 
-import { getGoalsRef, setGoalsRef, getHabitsRef, getTasksRef, openGoalDetails, saveTasks, saveHabits } from './script.js';
+import { getGoalsRef, setGoalsRef, getHabitsRef, getTasksRef, openGoalDetails, saveTasks, saveHabits, getMindDumpsRef, setMindDumpsRef } from './script.js';
 import { showPremiumModal } from './script-premium-modal.js';
 import { populateParentHabitSelects } from './script-populate-parent-selects.js';
 import { generateId } from './storage-manager.js';
 import { toInputDate, formatDateToString } from './script-date-time-utils.js';
+import { generateAIAnalysis } from './script-goal-modal-analysis.js';
+import { buildArchivedGoalCardEl, buildActiveGoalCardEl } from './script-goal-modal-cards.js';
+import { buildEmptyCompletedStateHtml, buildEmptyExpiredStateHtml, _prepareSortedGoals } from './script-goal-modal-list-utils.js';
+import { saveMindDumps, renderMindDumps } from './script-mind-dump.js';
 
 const MAX_ACTIVE_GOALS = 5;
 const goalModal = document.getElementById('goal-modal');
 const goalsContainer = document.getElementById('goals-container');
 const btnOpenGoalModal = document.getElementById('btn-open-goal-modal');
-const monthNamesShort = ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"];
 
 window.editGoalInfo = function() {
     const goalId = document.getElementById('detail-active-goal-id').value;
@@ -52,7 +54,38 @@ window.editGoalInfo = function() {
     document.getElementById('edit-goal-id').value = goal.id;
     document.getElementById('goal-title-input').value = goal.title;
     document.getElementById('goal-desc-input').value = goal.desc || '';
-    document.getElementById('goal-deadline-input').value = goal.deadline || '';
+    // GERÇEK BUG DÜZELTMESİ (2026-08-06): #goal-deadline-input flatpickr'a
+    // bağlı (native değil) — ham .value = "..." ataması flatpickr'ın kendi
+    // görünür proxy input'unu ve internal selectedDates'ini GÜNCELLEMİYOR,
+    // sadece arkadaki gizli input'u değiştiriyor. Sonuç: "Düzenle" tıklanınca
+    // kullanıcı hep bugünün tarihini görüyordu (flatpickr'ın son bildiği
+    // tarih), gerçek bitiş tarihini değil — ve fark etmeden "Oluştur"a
+    // basarsa hedefin bitiş tarihi sessizce BUGÜNE değişiyordu. Diğer
+    // flatpickr alanlarında (script-habit-modal-dates.js, script-convert-
+    // modal.js) zaten kullanılan window._setFlatpickrDate ile düzeltildi.
+    const deadlineInput = document.getElementById('goal-deadline-input');
+    if (goal.deadline) {
+        const [dy, dm, dd] = goal.deadline.split('-').map(Number);
+        // deadline hem "YYYY-MM-DD" hem eski "DD-MM-YYYY" olarak kaydedilmiş
+        // olabilir (bkz. script-goal-details-panel.js'teki aynı format
+        // toleransı) — hangi parça 4 haneli yıl ise ona göre ayrıştır.
+        const date = String(dy).length === 4 ? new Date(dy, dm - 1, dd) : new Date(dd, dm - 1, dy);
+        window._setFlatpickrDate(deadlineInput, date);
+    } else {
+        window._setFlatpickrDate(deadlineInput, new Date());
+    }
+
+    // GERÇEK BUG DÜZELTMESİ (2026-08-06): modal başlığı/kaydet butonu hep
+    // sabit "Yeni Hedef"/"Oluştur" gösteriyordu — kullanıcı mevcut bir
+    // hedefi düzenlediğini fark etmiyordu (yeni hedef oluşturuyor izlenimi
+    // veriyordu, işlevsel olarak _saveGoalImpl edit-goal-id'ye bakıp doğru
+    // güncelliyordu ama arayüz yanıltıcıydı). openGoalModal() (script-goal-
+    // modal-open-close.js) yeni hedef akışında bunu tekrar varsayılana
+    // döndürüyor.
+    const modalTitleEl = document.getElementById('goal-modal-title');
+    if (modalTitleEl) modalTitleEl.textContent = 'Hedefi Düzenle';
+    const saveBtnEl = document.getElementById('save-goal-btn');
+    if (saveBtnEl) saveBtnEl.innerHTML = '<i class="fa-solid fa-check"></i> Kaydet';
 
     document.getElementById('goal-details-modal').classList.add('hidden');
     goalModal.classList.remove('hidden');
@@ -153,6 +186,26 @@ window._saveGoalImpl = function() {
                window.FocusAISocial.postActivity(`"${title}" adında yeni bir ana hedef belirledi 🎯`);
            }
             showPremiumModal({ title: 'Vizyon Belirlendi!', message: 'Harika bir hedef! Şimdi görev ve alışkanlıklarını bu hedefe bağlayabilirsin.', type: 'success' });
+
+            // Zihin Çöplüğü'nden "Detaylı Hedef Formunu Aç" ile gelindiyse ve
+            // hedef GERÇEKTEN kaydedildiyse, kaynak fikri şimdi sil (bkz.
+            // script-convert-modal.js — önceden form açılır açılmaz siliniyordu,
+            // kullanıcı iptal ederse fikir kayboluyordu).
+            if (window.__pendingDumpConversionId) {
+                const pendingId = window.__pendingDumpConversionId;
+                window.__pendingDumpConversionId = null;
+                setMindDumpsRef(getMindDumpsRef().filter(d => String(d.id) !== String(pendingId)));
+                saveMindDumps();
+                renderMindDumps();
+
+                // GERÇEK BUG DÜZELTMESİ: script-convert-modal.js'teki görev/alışkanlık
+                // dönüşüm yolu "mind_dump_conversions" günlüğüne yazıyordu (İstatistikler'deki
+                // "Fikir Dönüşüm Oranı" bunu okuyor), ama bu ana-hedef yolu hiç yazmıyordu —
+                // Ana Hedef'e dönüştürülen fikirler istatistikte sessizce sayılmıyordu.
+                const conversionLog = FocusStorage.get('mind_dump_conversions', []);
+                conversionLog.push({ id: pendingId, date: formatDateToString(new Date()) });
+                FocusStorage.set('mind_dump_conversions', conversionLog);
+            }
         }
         Store.goals.set(getGoalsRef());
         populateParentHabitSelects();
@@ -167,8 +220,8 @@ window._saveGoalImpl = function() {
             document.getElementById('goal-deadline-input').value = toInputDate(formatDateToString(new Date()));
         }
 
-        closeGoalModal();
-        
+        document.getElementById('goal-modal')?.classList.add('hidden');
+
         // Eğer detay paneli arka planda o hedefe aitse ekranı canlandır
         if (idToEdit) {
             openGoalDetails(idToEdit);
@@ -211,21 +264,7 @@ window.deleteGoal = function(id) {
     });
 }
 
-function generateAIAnalysis(goal, progress, totalTasks, completedTasks) {
-    if (totalTasks === 0) {
-        return `<i class="fa-solid fa-wand-magic-sparkles u-color-hfeca57-2" ></i> <strong>FocusAI Analizi:</strong> "${escapeHtml(goal.title)}" hedefine ulaşmak için henüz aksiyon planı yapmadın. Hemen yeni bir görev oluştur ve bu hedefe bağla. Unutma, planlanmamış bir hedef sadece bir dilektir!`;
-    }
-    if (progress === 0) {
-        return `<i class="fa-solid fa-wand-magic-sparkles u-color-hfeca57-2" ></i> <strong>FocusAI Analizi:</strong> Adımlarını belirlemişsin ama henüz ilk harekete geçmemişsin. Başlamak bitirmenin yarısıdır. Nedenin: "${goal.desc ? escapeHtml(goal.desc) : 'Kendin için daha iyi bir gelecek.'}" Bunu hatırla ve bugün başla!`;
-    }
-    if (progress < 50) {
-        return `<i class="fa-solid fa-wand-magic-sparkles u-color-h2ed573-2" ></i> <strong>FocusAI Analizi:</strong> İlerleme kaydediyorsun! Toplam ${totalTasks} adımın ${completedTasks} tanesini tamamladın. Sadece ivmeni kaybetme, damlaya damlaya göl olur.`;
-    }
-    if (progress < 100) {
-        return `<i class="fa-solid fa-wand-magic-sparkles u-color-hff9f43-2" ></i> <strong>FocusAI Analizi:</strong> İnanılmaz gidiyorsun! %${progress} oranında tamamladın. "${escapeHtml(goal.title)}" vizyonun artık bir hayal değil, gerçeğe dönüşmek üzere. Odaklan ve bitir!`;
-    }
-    return `<i class="fa-solid fa-trophy u-color-hfeca57-2" ></i> <strong>FocusAI Analizi:</strong> TEBRİKLER! Bu vizyonu %100 tamamladın. Kendine verdiğin sözü tuttun. Şimdi bu başarıyı kutla ve kendine daha büyük zirveler belirle!`;
-}
+// generateAIAnalysis → script-goal-modal-analysis.js
 window.generateAIAnalysis = generateAIAnalysis;
 
 // ============ HEDEF SEKMELERİ VE SIRALAMA MANTIĞI ============
@@ -248,320 +287,8 @@ if (goalSortSelect) {
     });
 }
 
-// renderGoals'ın "Zaferler/Süresi Dolanlar" arşiv kartını üretir — goal zaten
-// _progress/_totalSteps gibi işlenmiş alanlarla geliyor (bkz. processedGoals).
-function buildArchivedGoalCardEl(goal) {
-    const isWon = goal.status === 'completed';
-    const startDate = new Date(goal.createdAt || Date.now());
-    const endDate = new Date(goal.completedAt || Date.now());
-    const diffMs = endDate - startDate;
-    const diffDaysTotal = Math.max(0, Math.round(diffMs / (1000 * 60 * 60 * 24)));
-    const durationText = diffDaysTotal === 0 ? 'Aynı gün' : diffDaysTotal === 1 ? '1 gün' : `${diffDaysTotal} gün`;
-    const emoji = isWon ? '🏆' : '⏰';
-    const cardBorder = isWon ? 'rgba(254,202,87,0.35)' : 'rgba(255,71,87,0.25)';
-    const cardBg = isWon ? 'linear-gradient(135deg, rgba(254,202,87,0.07), rgba(0,0,0,0.25))' : 'linear-gradient(135deg, rgba(255,71,87,0.06), rgba(0,0,0,0.25))';
-    const accentColor = isWon ? '#feca57' : '#ff4757';
-    const accentBg = isWon ? 'rgba(254,202,87,0.12)' : 'rgba(255,71,87,0.12)';
-    const statusLabel = isWon ? 'Başarıldı!' : 'Süre Doldu';
-    const statusIcon = isWon ? 'fa-trophy' : 'fa-hourglass-end';
-    const linkedTaskCount = getTasksRef().filter(t => t.parentGoal === goal.id).length;
-    const completedTaskCount = getTasksRef().filter(t => t.parentGoal === goal.id && t.completed).length;
-    const categoryLabel = goal.category ? goal.category.charAt(0).toUpperCase() + goal.category.slice(1).replace(/-/g, ' ') : '';
-
-    const div = document.createElement('div');
-    div.className = 'glass-element';
-    div.dataset.id = goal.id;
-    div.style.border = `1px solid ${cardBorder}`;
-    div.style.background = cardBg;
-    div.style.borderRadius = '16px';
-    div.style.padding = '22px 24px';
-    div.style.position = 'relative';
-    div.style.overflow = 'hidden';
-    div.style.cursor = 'default';
-    div.innerHTML = `
-        <div class="u-position-absolute_top-0_right-0_font-size-90px_opacity-0p0">${emoji}</div>
-        <div class="u-display-flex_align-items-flex-start_gap-16px_position-rela">
-            <div class="agc-emoji u-font-size-36px_line-height-1_flex-shrink-0" >${emoji}</div>
-            <div class="u-flex-1_min-width-0-2">
-                <div class="u-display-flex_align-items-center_gap-8px_flex-wrap-wrap_mar">
-                    <span class="agc-status-badge u-padding-3px10px_border-radius-20px_font-size-11px_font-wei" >
-                        <i class="fa-solid ${statusIcon} u-margin-right-4px" ></i>${statusLabel}
-                    </span>
-                    ${categoryLabel ? `<span class="u-background-rgba108922310p12_color-ha29bfe_padding-3px10px_">${categoryLabel}</span>` : ''}
-                </div>
-                <div class="u-font-size-17px_font-weight-700_color-hfff_margin-bottom-4p">${escapeHtml(goal.title)}</div>
-                ${goal.desc ? `<div class="u-font-size-12px_color-var-text-muted_font-style-italic_marg">"${escapeHtml(goal.desc)}"</div>` : ''}
-                <div class="u-display-flex_flex-wrap-wrap_gap-10px_margin-top-12px">
-                    <div class="u-display-flex_align-items-center_gap-6px_font-size-12px_col-2">
-                        <i class="fa-regular fa-calendar agc-accent-icon"></i>
-                        ${endDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
-                    </div>
-                    <div class="u-display-flex_align-items-center_gap-6px_font-size-12px_col-2">
-                        <i class="fa-regular fa-clock agc-accent-icon"></i>
-                        ${durationText} sürdü
-                    </div>
-                    ${linkedTaskCount > 0 ? `<div class="u-display-flex_align-items-center_gap-6px_font-size-12px_col-2">
-                        <i class="fa-solid fa-list-check agc-accent-icon"></i>
-                        ${completedTaskCount}/${linkedTaskCount} görev
-                    </div>` : ''}
-                    <div class="agc-progress-badge u-display-flex_align-items-center_gap-6px_font-size-12px_fon" >
-                        <i class="fa-solid fa-chart-simple"></i> %${goal._progress}
-                    </div>
-                </div>
-            </div>
-            <div class="u-display-flex_flex-direction-column_gap-8px_flex-shrink-0">
-                ${!isWon ? `<button class="control-btn u-white-space-nowrap_font-size-12px_font-weight-700_padding-" data-action="extend-goal-deadline" data-id="${goal.id}" title="Süreyi Uzat" >
-                    <i class="fa-solid fa-calendar-plus"></i> Süreyi Uzat
-                </button>` : ''}
-                <button class="icon-btn delete-icon-btn goal-archive-del-btn u-opacity-0p4_transition-0p3s_align-self-flex-end_width-30px" data-action="delete-goal" data-id="${goal.id}" title="Sil"  aria-label="Sil">
-                    <i class="fa-solid fa-trash u-font-size-12px" ></i>
-                </button>
-            </div>
-        </div>
-    `;
-    div.querySelectorAll('.agc-accent-icon').forEach(el => { el.style.color = accentColor; });
-    const _agcEmoji = div.querySelector('.agc-emoji');
-    if (_agcEmoji) _agcEmoji.style.filter = `drop-shadow(0 2px 8px ${accentColor}66)`;
-    const _agcStatusBadge = div.querySelector('.agc-status-badge');
-    if (_agcStatusBadge) {
-        _agcStatusBadge.style.background = accentBg;
-        _agcStatusBadge.style.color = accentColor;
-        _agcStatusBadge.style.border = `1px solid ${accentColor}44`;
-    }
-    const _agcProgressBadge = div.querySelector('.agc-progress-badge');
-    if (_agcProgressBadge) {
-        _agcProgressBadge.style.color = accentColor;
-        _agcProgressBadge.style.background = accentBg;
-        _agcProgressBadge.style.border = `1px solid ${accentColor}33`;
-    }
-    return div;
-}
-
-// renderGoals'ın aktif hedef kartını üretir — goal işlenmiş alanlarla
-// (_progress/_linkedTasks vb.) geliyor.
-function buildActiveGoalCardEl(goal) {
-        let aiText = generateAIAnalysis(goal, goal._progress, goal._totalSteps, goal._completedSteps);
-
-        const [y, m, d] = goal.deadline.split('-');
-        const deadlineDisplay = `${d} ${monthNamesShort[parseInt(m)-1]} ${y}`;
-
-        // --- 3. MADDE: Akıllı Tarih Hesaplaması (Urgency) ---
-       const deadlineDate = new Date(y, m - 1, d);
-       deadlineDate.setHours(23, 59, 59, 999);
-       const today = new Date();
-       const diffTime = deadlineDate - today;
-       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        let urgencyClass = 'urgency-safe';
-        let urgencyIcon = 'fa-regular fa-calendar-check';
-        let urgencyText = deadlineDisplay;
-        
-        // --- YENİ DURUM VE RENK MOTORU BAŞLANGICI ---
-        if (goal.status === 'completed' || goal._progress === 100) {
-            // Hedef erken veya zamanında tamamlandıysa yeşil buton
-            urgencyClass = 'urgency-safe'; 
-            urgencyIcon = 'fa-solid fa-circle-check';
-            urgencyText = 'Tamamlandı';
-        } else if (diffDays < 0 || goal.status === 'expired') {
-            // Süresi bittiyse ve tamamlanmadıysa kırmızı buton
-            urgencyClass = 'urgency-danger';
-            urgencyIcon = 'fa-solid fa-circle-xmark';
-            urgencyText = 'Tamamlanamadı';
-        } else if (diffDays == 0) {
-            urgencyClass = 'urgency-danger';
-            urgencyIcon = 'fa-solid fa-fire-flame-curved';
-            urgencyText = 'Bugün Son Gün!';
-        } else if (diffDays <= 3) {
-            urgencyClass = 'urgency-danger';
-            urgencyIcon = 'fa-solid fa-fire-flame-curved';
-            urgencyText = `${diffDays} Gün Kaldı!`;
-        } else if (diffDays <= 7) {
-            urgencyClass = 'urgency-warning';
-            urgencyIcon = 'fa-solid fa-hourglass-half';
-            urgencyText = `${diffDays} Gün Kaldı`;
-        } else {
-            urgencyClass = 'urgency-safe';
-            urgencyIcon = 'fa-regular fa-calendar-check';
-            urgencyText = `${diffDays} Gün Kaldı`;
-        }
-        // --- YENİ DURUM VE RENK MOTORU BİTİŞİ ---
-
-        // --- 5. MADDE: Kart İçi İlerleme Çubuğu Vurgusu ---
-        let progressColor = 'linear-gradient(90deg, #0984e3, #74b9ff)'; // %0-30 arası (Mavi)
-        
-        if (goal._progress === 100) {
-            progressColor = 'linear-gradient(90deg, #feca57, #ff9f43)'; // %100 Altın Sarısı
-        } else if (goal._progress >= 70) {
-            progressColor = 'linear-gradient(90deg, #2ed573, #7bed9f)'; // %70-99 arası (Yeşil)
-        } else if (goal._progress >= 30) {
-            progressColor = 'linear-gradient(90deg, #6c5ce7, #a29bfe)'; // %30-69 arası (Mor)
-        }
-        // --------------------------------------------------
-
-        const div = document.createElement('div');
-        div.className = 'goal-card glass-element';
-        div.dataset.id = goal.id;
-        const isUrgent = diffDays >= 0 && diffDays <= 3;
-        const urgencyStyle = isUrgent ? 'background: rgba(255, 71, 87, 0.15); color: #ff4757; border-color: rgba(255, 71, 87, 0.4); box-shadow: 0 0 15px rgba(255,71,87,0.2);' : '';
-
-       // YENİ: Tarih rozeti oluşturucu
-       let dateInfoHTML = '';
-       // İlerleme %100 olsa bile sadece süre dolup otomatik arşiv motoru statüyü değiştirdiğinde bu alan tetiklenir
-       if (goal.status === 'completed' || goal.status === 'expired') {
-           const startD = new Date(goal.createdAt || Date.now());
-           const endD = new Date(goal.completedAt || Date.now());
-           const badgeColor = goal.status === 'completed' ? '#2ed573' : '#ff4757';
-           const badgeBg = goal.status === 'completed' ? 'rgba(46, 213, 115, 0.1)' : 'rgba(255, 71, 87, 0.1)';
-           const badgeBorder = goal.status === 'completed' ? 'rgba(46, 213, 115, 0.2)' : 'rgba(255, 71, 87, 0.2)';
-           const badgeIcon = goal.status === 'completed' ? 'fa-calendar-check' : 'fa-calendar-times';
-           const badgeText = goal.status === 'completed' ? 'Tamamlanma' : 'Süre Dolumu';
-
-           dateInfoHTML = `<div class="gc-date-info-badge u-margin-top-10px_display-inline-flex_align-items-center_gap" data-badge-color="${badgeColor}" data-badge-bg="${badgeBg}" data-badge-border="${badgeBorder}"><i class="fa-regular ${badgeIcon}"></i> Başlangıç: ${startD.toLocaleDateString('tr-TR')} &nbsp;|&nbsp; ${badgeText}: ${endD.toLocaleDateString('tr-TR')}</div>`;
-       }
-
-       // Başlangıç ve bitiş tarihlerini oluştur
-       const gcStartDate = goal.createdAt ? new Date(goal.createdAt) : null;
-       const gcStartDisplay = gcStartDate ? `${String(gcStartDate.getDate()).padStart(2,'0')} ${monthNamesShort[gcStartDate.getMonth()]} ${gcStartDate.getFullYear()}` : '—';
-       const gcEndDisplay = deadlineDisplay || '—';
-
-       div.innerHTML = `
-       <div class="gc-top">
-           <div class="gc-left">
-               <div class="gc-title">${escapeHtml(goal.title)}</div>
-               <div class="gc-meta-row">
-                   <span class="gc-meta-item"><i class="fa-regular fa-calendar-plus"></i> ${gcStartDisplay} <i class="fa-solid fa-arrow-right gc-meta-arrow"></i> ${gcEndDisplay}</span>
-                   ${goal.reward && goal.reward.trim() !== '' ? `<span class="gc-meta-item gc-meta-reward"><i class="fa-solid fa-gift"></i> ${escapeHtml(goal.reward)}</span>` : ''}
-               </div>
-           </div>
-           <div class="gc-right">
-               <span class="gc-badge ${urgencyClass}">${urgencyText}</span>
-               <button class="gc-del-btn" data-action="delete-goal" data-id="${goal.id}" title="Sil" aria-label="Sil"><i class="fa-solid fa-trash"></i></button>
-           </div>
-       </div>
-
-       ${(goal._milestoneTotal > 0 || goal._linkedTasks.length > 0 || goal._linkedHabits.length > 0) ? `
-       <div class="gc-link-row">
-           ${goal._milestoneTotal > 0 ? `<span class="gc-stat-chip"><i class="fa-solid fa-flag-checkered"></i> ${goal._milestoneDone}/${goal._milestoneTotal} dönüm noktası</span>` : ''}
-           ${goal._linkedTasks.length > 0 ? `<span class="gc-stat-chip"><i class="fa-solid fa-list-check"></i> ${goal._linkedTasks.filter(t => t.completed).length}/${goal._linkedTasks.length} görev</span>` : ''}
-           ${goal._linkedHabits.slice(0, 3).map(h => `<span class="gc-habit-chip">${h.icon && !h.icon.startsWith('fa-') ? escapeHtml(h.icon) : '<i class="fa-solid fa-repeat"></i>'} ${escapeHtml(h.name)}</span>`).join('')}
-           ${goal._linkedHabits.length > 3 ? `<span class="gc-habit-chip gc-habit-more">+${goal._linkedHabits.length - 3} alışkanlık</span>` : ''}
-       </div>` : ''}
-
-       <div class="gc-progress-area">
-           <div class="gc-progress-track">
-               <div class="gc-progress-fill"></div>
-           </div>
-           <div class="gc-progress-meta">
-               <span>${goal._completedSteps}/${goal._totalSteps} adım</span>
-               <span class="gc-pct">%${goal._progress}</span>
-           </div>
-       </div>
-
-       <div class="gc-actions">
-           ${goal.status !== 'completed' ? `<button class="gc-complete-btn" data-action="quick-complete-goal" data-id="${goal.id}"><i class="fa-solid fa-check"></i> Tamamla</button>` : '<span></span>'}
-           <button class="gc-detail-btn" data-action="open-goal-details" data-id="${goal.id}">Detaylar <i class="fa-solid fa-arrow-right"></i></button>
-       </div>
-       `;
-    const _gcFill = div.querySelector('.gc-progress-fill');
-    if (_gcFill) { _gcFill.style.width = goal._progress + '%'; _gcFill.style.background = progressColor; }
-    return div;
-}
-
-// "Başarılarım/Süresi Dolanlar" sekmesinde hiç arşivlenmiş hedef yokken gösterilen
-// boş durum — en yakın tamamlanmaya yaklaşan aktif hedefi de vurgular. Parametre
-// gerekmiyor, getGoalsRef()/getTasksRef() üzerinden kendi verisini okuyor.
-function buildEmptyArchiveStateHtml() {
-    const activeGoals = getGoalsRef().filter(g => g.status !== 'completed' && g.status !== 'expired');
-    let nearestGoalHTML = '';
-    if (activeGoals.length > 0) {
-        const bestGoal = activeGoals.reduce((prev, curr) => {
-            const prevLinked = getTasksRef().filter(t => t.parentGoal === prev.id);
-            const currLinked = getTasksRef().filter(t => t.parentGoal === curr.id);
-            const prevPct = prevLinked.length === 0 ? 0 : Math.round((prevLinked.filter(t => t.completed).length / prevLinked.length) * 100);
-            const currPct = currLinked.length === 0 ? 0 : Math.round((currLinked.filter(t => t.completed).length / currLinked.length) * 100);
-            return currPct > prevPct ? curr : prev;
-        });
-        const linkedTasks = getTasksRef().filter(t => t.parentGoal === bestGoal.id);
-        const pct = linkedTasks.length === 0 ? 0 : Math.round((linkedTasks.filter(t => t.completed).length / linkedTasks.length) * 100);
-        nearestGoalHTML = `
-        <div class="u-margin-top-24px_padding-16px20px_background-rgba108922310p">
-            <div class="u-font-size-11px_font-weight-700_letter-spacing-1px_color-ha">En Yakın Başarı Adayı</div>
-            <div class="u-font-size-15px_font-weight-600_color-hfff_margin-bottom-10">${escapeHtml(bestGoal.title)}</div>
-            <div class="u-background-rgba2552552550p07_border-radius-8px_height-8px_">
-                <div class="gc-empty-nearest-fill u-height-100pct_background-linear-gradient90degh6c5ce7ha29bf" data-pct="${pct}"></div>
-            </div>
-            <div class="u-color-var-text-muted_font-size-12px">%${pct} tamamlandı — devam et!</div>
-        </div>`;
-    }
-    return `
-    <div class="glass-element u-text-align-center_padding-50px28px40px_border-1pxdashedrgb" >
-        <div class="u-font-size-64px_margin-bottom-12px_line-height-1_filter-dro">🏆</div>
-        <h3 class="u-color-hfff_font-size-20px_font-weight-700_margin-bottom-8p">Henüz Bir Başarın Yok</h3>
-        <p class="u-color-var-text-muted_font-size-14px_max-width-340px_margin">
-            Tamamladığın hedefler burada arşivlenir. Bir hedefi %100 bitirdiğinde otomatik olarak buraya taşınır.
-        </p>
-        ${nearestGoalHTML}
-       <button data-action="click-active-goal-tab" class="primary-btn u-margin-24pxauto0_justify-content-center_background-rgba254" >
-            <i class="fa-solid fa-mountain-sun"></i> Aktif Hedeflerime Git
-        </button>
-    </div>`;
-}
-
-// Hedefleri render etmeden önce ilerleme yüzdelerini hesaplayıp sıralanmış bir
-// dizi döner — saf veri işleme, DOM'a dokunmaz. Faz S devamı, dev fonksiyon
-// refactoru: renderGoals'tan çıkarıldı.
-function _prepareSortedGoals(sortType) {
-let processedGoals = getGoalsRef().map(goal => {
-    let linkedTasks = getTasksRef().filter(t => t.parentGoal === goal.id);
-    let linkedHabits = getHabitsRef().filter(h => h.parentGoals && h.parentGoals.includes(goal.id));
-    
-    let totalSteps = linkedTasks.length;
-    let completedSteps = linkedTasks.filter(t => t.completed).length;
-
-    linkedHabits.forEach(h => {
-        totalSteps += (h.targetDays || 21);
-        completedSteps += Object.keys(h.history).length;
-    });
-
-    // Milestone katkısı
-    if (goal.milestones && goal.milestones.length > 0) {
-        totalSteps += goal.milestones.length;
-        completedSteps += goal.milestones.filter(m => m.completed).length;
-    }
-
-    let progress = totalSteps === 0 ? 0 : Math.round((completedSteps / totalSteps) * 100);
-    if (progress > 100) progress = 100;
-
-    const milestoneTotal = goal.milestones ? goal.milestones.length : 0;
-    const milestoneDone  = goal.milestones ? goal.milestones.filter(m => m.completed).length : 0;
-
-    // Hesaplanan verileri (progress, adımlar) geçici objeye kaydediyoruz
-    return {
-        ...goal,
-        _progress: progress,
-        _totalSteps: totalSteps,
-        _completedSteps: completedSteps,
-        _linkedTasks: linkedTasks,
-        _linkedHabits: linkedHabits,
-        _milestoneTotal: milestoneTotal,
-        _milestoneDone: milestoneDone,
-    };
-});
-
-// --- SIRALAMA (SORT) İŞLEMİ ---
-processedGoals.sort((a, b) => {
-    if (sortType === 'deadline') {
-        return new Date(a.deadline) - new Date(b.deadline); // Yakın tarih önce
-    } else if (sortType === 'progress-high') {
-        return b._progress - a._progress; // Yüksek yüzde önce
-    } else if (sortType === 'progress-low') {
-        return a._progress - b._progress; // Düşük yüzde önce
-    } else {
-        return (b.createdAt || 0) - (a.createdAt || 0); // En yeni eklenen önce
-    }
-});
-
-    return processedGoals;
-}
+// buildArchivedGoalCardEl/buildActiveGoalCardEl → script-goal-modal-cards.js
+// buildEmptyCompletedStateHtml/_prepareSortedGoals → script-goal-modal-list-utils.js
 
 export function renderGoals() {
     if(!goalsContainer) return;
@@ -615,13 +342,23 @@ export function renderGoals() {
     }
 
     if(getGoalsRef().length === 0) {
-        goalsContainer.innerHTML = `
-        <div class="glass-element u-text-align-center_padding-50px20px_border-1pxdashedrgba108" >
-            <i class="fa-solid fa-mountain u-font-size-48px_color-rgba108922310p5_margin-bottom-15px" ></i>
-            <h3 class="u-color-hfff_margin-bottom-10px-2">Henüz Bir Hedefin Yok</h3>
-            <p class="u-color-var-text-muted_font-size-14px_font-style-italic_marg">"Büyük yolculuklar tek bir adımla başlar..." <br><span class="u-font-size-12px_opacity-0p7_color-var-primary-color_font-we"><i class="fa-solid fa-wand-magic-sparkles"></i> FocusAI</span></p>
-            <button data-action="open-goal-modal" class="primary-btn u-margin-0auto_justify-content-center" ><i class="fa-solid fa-plus"></i> İlk Hedefini Belirle</button>
-        </div>`;
+        // Hiç hedef yokken: Başarılarım sekmesi kendi kısa/motive edici mesajını
+        // gösterir; Aktif Hedefler VE Süresi Dolanlar (hiç hedef yoksa gösterecek
+        // özel bir şeyi olmadığı için) aynı genel "Henüz Bir Hedefin Yok" mesajını
+        // paylaşır — kullanıcı isteği (2026-08-06).
+        if (currentGoalFilter === 'completed') {
+            goalsContainer.innerHTML = buildEmptyCompletedStateHtml();
+        } else if (currentGoalFilter === 'expired') {
+            goalsContainer.innerHTML = buildEmptyExpiredStateHtml();
+        } else {
+            goalsContainer.innerHTML = `
+            <div class="glass-element u-text-align-center_padding-50px20px_border-1pxdashedrgba108" >
+                <i class="fa-solid fa-mountain u-font-size-48px_color-rgba108922310p5_margin-bottom-15px" ></i>
+                <h3 class="u-color-hfff_margin-bottom-10px-2">Henüz Bir Hedefin Yok</h3>
+                <p class="u-color-var-text-muted_font-size-14px_font-style-italic_marg">"Büyük yolculuklar tek bir adımla başlar..." <br><span class="u-font-size-12px_opacity-0p7_color-var-primary-color_font-we"><i class="fa-solid fa-wand-magic-sparkles"></i> FocusAI</span></p>
+                <button data-action="open-goal-modal" class="primary-btn u-margin-0auto_justify-content-center" ><i class="fa-solid fa-plus"></i> İlk Hedefini Belirle</button>
+            </div>`;
+        }
         return;
     };
 
@@ -648,6 +385,15 @@ export function renderGoals() {
     });
 
     if (displayedCount === 0) {
+        // Başarılarım/Süresi Dolanlar boşken, elimizde en az bir AKTİF hedef
+        // varsa "ilk hedefini belirle"/"iyi haber" kartı yerine o aktif
+        // hedef(ler)i motive edici bir başlıkla göster — kullanıcı isteği
+        // (2026-08-06): "mevcut ana hedef gözüksün, başarmaya şu kadar kaldı
+        // tarzında motivasyon versin". Aktif Hedefler'deki AYNI kartı
+        // (buildActiveGoalCardEl — ilerleme çubuğu + FocusAI motivasyon
+        // metni + süre rozeti zaten içeriyor) yeniden kullanıyoruz.
+        const activeGoalsForMotivation = processedGoals.filter(g => g.status !== 'completed' && g.status !== 'expired');
+
         if (currentGoalFilter === 'active') {
             goalsContainer.innerHTML = `
             <div class="u-text-align-center_padding-48px20px_border-1pxdashedrgba255">
@@ -655,10 +401,26 @@ export function renderGoals() {
                 <p class="u-color-var-text-muted_font-size-14px_margin-bottom-18px">Henüz aktif hedefin yok.<br>Yeni bir hedef belirleyerek başla.</p>
                 <button data-action="open-goal-modal" class="primary-btn u-margin-0auto_justify-content-center-2" ><i class="fa-solid fa-plus"></i> Hedef Belirle</button>
             </div>`;
+        } else if (currentGoalFilter === 'expired') {
+            if (activeGoalsForMotivation.length > 0) {
+                const heading = document.createElement('div');
+                heading.className = 'gc-motivation-heading';
+                heading.innerHTML = '<i class="fa-solid fa-hourglass-half"></i> Süresi dolan hedefin yok — aktif hedeflerinin süresi şöyle:';
+                goalsContainer.appendChild(heading);
+                activeGoalsForMotivation.forEach(goal => goalsContainer.appendChild(buildActiveGoalCardEl(goal)));
+            } else {
+                goalsContainer.innerHTML = buildEmptyExpiredStateHtml();
+            }
         } else {
-            goalsContainer.innerHTML = buildEmptyArchiveStateHtml();
-            const _nearestFill = goalsContainer.querySelector('.gc-empty-nearest-fill');
-            if (_nearestFill) _nearestFill.style.width = _nearestFill.dataset.pct + '%';
+            if (activeGoalsForMotivation.length > 0) {
+                const heading = document.createElement('div');
+                heading.className = 'gc-motivation-heading';
+                heading.innerHTML = '<i class="fa-solid fa-fire"></i> Henüz arşivlenen bir başarın yok — ama şuna bu kadar yaklaştın:';
+                goalsContainer.appendChild(heading);
+                activeGoalsForMotivation.forEach(goal => goalsContainer.appendChild(buildActiveGoalCardEl(goal)));
+            } else {
+                goalsContainer.innerHTML = buildEmptyCompletedStateHtml();
+            }
         }
     }
 }

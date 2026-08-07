@@ -1,0 +1,107 @@
+/* Uygulama genelinde tam ekran giriş kapısı — #app-login-gate.
+   Sayfa yüklenir yüklenmez görünür (FOUC'u önlemek için varsayılan olarak
+   açık), gerçek oturum doğrulanınca app-login-gate.js tarafından gizlenir. */
+#app-login-gate {
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: radial-gradient(circle at 50% 20%, rgba(108, 99, 255, 0.16), transparent 55%),
+                var(--bg-color, #14141c);
+}
+
+#app-login-gate.hidden {
+    display: none;
+}
+
+body.app-gate-locked {
+    overflow: hidden;
+}
+
+.app-login-gate-card {
+    width: 100%;
+    max-width: 400px;
+    padding: 36px 32px;
+    text-align: center;
+    animation: app-gate-in 0.35s ease;
+}
+
+@keyframes app-gate-in {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.app-login-gate-icon {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: var(--primary-color, #6c63ff);
+    background: rgba(108, 99, 255, 0.14);
+}
+
+.app-login-gate-card h2 {
+    margin: 0 0 8px;
+    font-size: 21px;
+}
+
+.app-login-gate-sub {
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.6;
+    margin: 0 0 22px;
+}
+
+.app-login-gate-email-line {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 0 0 14px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.04);
+    font-size: 13px;
+}
+
+.app-login-gate-email-line span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text-color);
+}
+
+.app-login-gate-email-line a {
+    flex-shrink: 0;
+    font-size: 12px;
+    color: var(--primary-color, #6c63ff);
+}
+
+.app-login-gate-forgot {
+    margin: 8px 0 0;
+    text-align: right;
+}
+
+.app-login-gate-forgot a {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.app-login-gate-status {
+    margin: 8px 0 0;
+    font-size: 13px;
+    min-height: 18px;
+    color: var(--text-muted);
+}
+
+.app-login-gate-submit {
+    width: 100%;
+    margin-top: 10px;
+}

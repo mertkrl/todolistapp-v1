@@ -30,6 +30,11 @@
 
 import { getMindDumpsRef, showPremiumModal, renderCalMindDump } from './script.js';
 import { generateId } from './storage-manager.js';
+import { dumpRelativeTime } from './script-mind-dump-time-utils.js';
+import {
+    DUMP_CUSTOM_TAG_COLORS, DUMP_CUSTOM_TAG_MAX, DUMP_PRESET_TAGS,
+    getDumpCustomTags, saveDumpCustomTags, getDumpTagMeta
+} from './script-mind-dump-tag-meta.js';
 
 // Zihin çöplüğü, işlenmeyi bekleyen fikirlerin BİRİKMEMESİ için sert bir üst
 // sınıra sahip — sınırsız birikim, işleme motivasyonunu öldürüp gerçek bir
@@ -43,66 +48,8 @@ const MAX_MIND_DUMPS = 30;
  }
  window.saveMindDumps = saveMindDumps;
 
- // Göreli zaman (yaş göstergesi)
- function dumpRelativeTime(timestamp) {
-     const diff = Date.now() - timestamp;
-     const mins = Math.floor(diff / 60000);
-     if (mins < 1) return 'Az önce';
-     if (mins < 60) return `${mins} dakika önce`;
-     const hours = Math.floor(mins / 60);
-     if (hours < 24) return `${hours} saat önce`;
-     const days = Math.floor(hours / 24);
-     if (days === 1) return 'Dün';
-     if (days < 7) return `${days} gün önce`;
-     const weeks = Math.floor(days / 7);
-     if (weeks === 1) return '1 hafta önce';
-     if (weeks < 5) return `${weeks} hafta önce`;
-     const months = Math.floor(days / 30);
-     return `${months} ay önce`;
- }
-
- // Etiket renk/metin tablosu
- // Sabit etiket renk paleti (özel etiketler de bu renklerden döngüsel olarak alır)
- const DUMP_CUSTOM_TAG_COLORS = [
-     { color: '#00cec9', bg: 'rgba(0,206,201,0.12)',   border: 'rgba(0,206,201,0.25)'   },
-     { color: '#fd79a8', bg: 'rgba(253,121,168,0.12)', border: 'rgba(253,121,168,0.25)' },
-     { color: '#55efc4', bg: 'rgba(85,239,196,0.12)',  border: 'rgba(85,239,196,0.25)'  },
-     { color: '#ffeaa7', bg: 'rgba(255,234,167,0.12)', border: 'rgba(255,234,167,0.25)' },
-     { color: '#b2bec3', bg: 'rgba(178,190,195,0.12)', border: 'rgba(178,190,195,0.25)' },
- ];
- const DUMP_CUSTOM_TAG_MAX = 5;
-
- const DUMP_PRESET_TAGS = {
-     'ana-hedef':  { label: '🎯 Ana Hedef',  color: '#a29bfe', bg: 'rgba(162,155,254,0.12)', border: 'rgba(162,155,254,0.25)' },
-     'aliskanlik': { label: '🔥 Alışkanlık', color: '#fd79a8', bg: 'rgba(253,121,168,0.12)', border: 'rgba(253,121,168,0.25)' },
-     'fikir':      { label: '💡 Fikir',       color: '#fdcb6e', bg: 'rgba(253,203,110,0.12)', border: 'rgba(253,203,110,0.25)' },
-     'diger':      { label: '📦 Diğer',       color: 'rgba(255,255,255,0.45)', bg: 'rgba(255,255,255,0.05)', border: 'rgba(255,255,255,0.1)' },
-     // Geriye dönük uyum (eski kayıtlar)
-     'endise':       { label: '😟 Endişe',      color: '#e17055', bg: 'rgba(225,112,85,0.12)',  border: 'rgba(225,112,85,0.25)'  },
-     'hatirlatici':  { label: '📌 Hatırlatıcı', color: '#a29bfe', bg: 'rgba(162,155,254,0.12)', border: 'rgba(162,155,254,0.25)' },
-     'soru':         { label: '❓ Soru',         color: '#74b9ff', bg: 'rgba(116,185,255,0.12)', border: 'rgba(116,185,255,0.25)' },
- };
-
- function getDumpCustomTags() {
-     return FocusStorage.get('dump_custom_tags', []);
- }
- function saveDumpCustomTags(tags) {
-     FocusStorage.set('dump_custom_tags', tags);
- }
-
- // Tüm tag meta (preset + özel) birleştirir
- function getDumpTagMeta() {
-     const custom = getDumpCustomTags();
-     const meta = { ...DUMP_PRESET_TAGS };
-     custom.forEach((t, i) => {
-         const c = DUMP_CUSTOM_TAG_COLORS[i % DUMP_CUSTOM_TAG_COLORS.length];
-         meta[t.id] = { label: t.label, ...c };
-     });
-     return meta;
- }
-
- // Geriye dönük uyum için dumpTagMeta alias
- const dumpTagMeta = new Proxy({}, { get(_, k) { return getDumpTagMeta()[k]; } });
+ // Göreli zaman (yaş göstergesi) → script-mind-dump-time-utils.js
+ // Etiket renk/metin tablosu ve özel etiket okuma/yazma → script-mind-dump-tag-meta.js
 
  let dumpSearchQuery = '';
  let dumpActiveTag = 'all';
@@ -226,8 +173,14 @@ const MAX_MIND_DUMPS = 30;
      if (banner) {
          if (getMindDumpsRef().length >= CLEANUP_THRESHOLD && daysSinceDismiss > 7) {
              if (bannerText) bannerText.textContent = `Zihin çöplüğünde ${getMindDumpsRef().length} bekleyen öğe var — işleme vakti! 🧹`;
+             // GERÇEK BUG DÜZELTMESİ: banner varsayılan olarak HTML'de "hidden" class'ıyla
+             // başlıyor (`.hidden { display:none !important; }`, bkz. sohbet-3sutun-mimari.css)
+             // — sadece style.display='flex' ayarlamak bu !important kuralını asla ezemiyordu,
+             // bu yüzden temizleme hatırlatıcısı koşul karşılansa bile HİÇBİR ZAMAN görünmüyordu.
+             banner.classList.remove('hidden');
              banner.style.display = 'flex';
          } else {
+             banner.classList.add('hidden');
              banner.style.display = 'none';
          }
      }
@@ -474,6 +427,13 @@ const MAX_MIND_DUMPS = 30;
      renderMindDumps();
      if (typeof renderCalMindDump === 'function') renderCalMindDump();
      dumpInlineTextarea.value = '';
+     // .value='' bir 'input' olayı tetiklemiyor, bu yüzden karakter sayacı
+     // gönderiden sonra eski değerde (ör. "25 / 140") takılı kalıyordu.
+     const dumpCharCounterEl = document.getElementById('dump-char-counter');
+     if (dumpCharCounterEl) {
+         dumpCharCounterEl.textContent = '0 / 140';
+         dumpCharCounterEl.classList.remove('warn', 'limit');
+     }
      dumpInlineTextarea.focus();
  }
 

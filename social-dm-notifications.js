@@ -9,10 +9,12 @@ import {
 } from './social-chat-list-actions.js';
 import { getCurrentUser } from './state/current-user-store.js';
 import { getActiveChatTarget, setActiveChatTarget } from './state/active-chat-target-store.js';
-import { ensureHushedNotifQueue } from './state/hushed-notif-queue-store.js';
 import { setLastAvatarClick } from './state/last-avatar-click-store.js';
 import { getDcState } from './state/dc-state-store.js';
 import { getDcEnteredRoomKey } from './state/dc-entered-room-key-store.js';
+import { showGenericNotifToast } from './social-dm-notifications-toasts.js';
+export { showGenericNotifToast };
+import { showRecentConvoContextMenu } from './social-dm-notifications-context-menu.js';
 // social-dm-notifications.js
 // social.js'ten çıkarıldı (Faz E, 2026-07-23): DM/grup sohbet mesajı geldiğinde
 // toast/ses tetikleyici mantığı + "TEK KAYNAK" okunmamış mesaj rozet motoru
@@ -986,48 +988,9 @@ import { getDcEnteredRoomKey } from './state/dc-entered-room-key-store.js';
     }
     window.renderRecentConversations = renderRecentConversations;
 
-    // Bir "Son Mesajlaşmalar" satırına sağ tıklayınca açılan Sabitle/Sessize Al menüsü
-    function showRecentConvoContextMenu(e, username, displayName, key, type) {
-        document.querySelectorAll('.dc-convo-context-menu').forEach(el => el.remove());
-
-        const isGroup = type === 'group';
-        const pinned = !isGroup && isChatPinned(username);
-        const muted  = !isGroup && isChatMuted(username);
-
-        const menu = document.createElement('div');
-        menu.className = 'dc-convo-context-menu';
-        menu.style.left = e.clientX + 'px';
-        menu.style.top  = e.clientY + 'px';
-        menu.innerHTML = `
-            ${isGroup ? '' : `
-            <button data-action="pin"><i class="fa-solid fa-thumbtack"></i> ${pinned ? 'Sabitlemeyi Kaldır' : 'Sohbeti Sabitle'}</button>
-            <button data-action="mute"><i class="fa-solid ${muted ? 'fa-bell' : 'fa-bell-slash'}"></i> ${muted ? 'Bildirimleri Aç' : 'Bildirimleri Sessize Al'}</button>
-            `}
-            <button data-action="remove"><i class="fa-solid fa-xmark"></i> Kaldır</button>
-        `;
-        document.body.appendChild(menu);
-
-        menu.querySelector('[data-action="pin"]')?.addEventListener('click', () => {
-            toggleChatPinned(username);
-            menu.remove();
-        });
-        menu.querySelector('[data-action="mute"]')?.addEventListener('click', () => {
-            toggleChatMuted(username);
-            menu.remove();
-        });
-        menu.querySelector('[data-action="remove"]')?.addEventListener('click', () => {
-            removeRecentConvo(key);
-            menu.remove();
-        });
-
-        const closeMenu = (ev) => {
-            if (!menu.contains(ev.target)) {
-                menu.remove();
-                document.removeEventListener('click', closeMenu);
-            }
-        };
-        setTimeout(() => document.addEventListener('click', closeMenu), 0);
-    }
+    // showRecentConvoContextMenu → social-dm-notifications-context-menu.js dosyasına
+    // çıkarıldı (Faz W, 2026-08-03): sadece zaten import edilmiş social-chat-list-actions.js
+    // yardımcılarına ve DOM'a bağlıydı, bu dosyanın paylaşılan state'ine dokunmuyordu.
 
     // Listeyi yeniden oluşturmadan, tek bir "Son Mesajlaşmalar" satırının
     // okunmamış rozetini günceller (avatarların yeniden yüklenip titremesini önler)
@@ -1052,100 +1015,9 @@ import { getDcEnteredRoomKey } from './state/dc-entered-room-key-store.js';
         }
     }
 
-    // Sağ üst köşede kısa süreliğine beliren, otomatik kaybolan bildirim çubuğu
-    // showSocialToast kaldırıldı (teknik borç temizliği): tek çağıranı olan
-    // tepki bildirimi 2026-07-02 sadeleştirmesinde kaldırılmıştı.
-    function showRoleChangeToast({ direction, roleLabel }) {
-        let stack = document.getElementById('social-toast-stack');
-        if (!stack) {
-            stack = document.createElement('div');
-            stack.id = 'social-toast-stack';
-            stack.className = 'social-toast-stack';
-            document.body.appendChild(stack);
-        }
-
-        const isPromote = direction === 'promote';
-        const accent = isPromote ? '#ffd166' : '#ff7675';
-        const icon = isPromote ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down';
-        const title = isPromote ? 'Terfi ettirildin!' : 'Rolün değişti';
-
-        const toast = document.createElement('div');
-        toast.className = 'social-toast';
-        toast.style.borderLeft = `3px solid ${accent}`;
-        toast.innerHTML = `
-            <span class="st-emoji u-display-inline-flex_align-items-center_justify-content-cen" >
-                <i class="fa-solid ${icon} u-font-size-15px" ></i>
-            </span>
-            <div class="st-text">
-                <div><b>${window._escapeHtml(title)}</b></div>
-                <div class="st-sub">Yeni rolün: <span class="st-role-label u-font-weight-600" >${window._escapeHtml(roleLabel || '')}</span></div>
-            </div>`;
-        toast.querySelector('.st-emoji').style.background = `${accent}22`;
-        toast.querySelector('.st-emoji i').style.color = accent;
-        toast.querySelector('.st-role-label').style.color = accent;
-        stack.appendChild(toast);
-        requestAnimationFrame(() => toast.classList.add('is-visible'));
-
-        const remove = () => {
-            toast.classList.add('is-leaving');
-            toast.classList.remove('is-visible');
-            setTimeout(() => toast.remove(), 260);
-        };
-        const timer = setTimeout(remove, 4500);
-        toast.addEventListener('click', () => { clearTimeout(timer); remove(); });
-    }
-
-    // Arkadaşlık isteği, mesaj isteği, grup daveti, kaydedilen grupta yer açılması
-    // gibi şimdiye kadar sessizce sadece bildirim panelinde biriken bildirimler için
-    // sağ üstte kısa süreli, tıklanabilir bir uyarı gösterir. Sohbet mesajı toast'ından
-    // (avatar + balon görünümü) farklı olarak ikon rozeti + renkli kenarlık kullanır.
-    export function showGenericNotifToast({ icon, accent, title, body, onClick }) {
-        // Odak kalkanı: kullanıcı odaktayken sosyal toast'lar ekrana çıkmaz,
-        // kuyruğa alınır ve seans bitince tek özetle gösterilir (dcSetHushMode).
-        if (window._focusHushActive) {
-            const queue = ensureHushedNotifQueue();
-            queue.push(title || '');
-            if (queue.length > 50) queue.shift();
-            return;
-        }
-        let stack = document.getElementById('social-toast-stack');
-        if (!stack) {
-            stack = document.createElement('div');
-            stack.id = 'social-toast-stack';
-            stack.className = 'social-toast-stack';
-            document.body.appendChild(stack);
-        }
-
-        const color = accent || '#6c5ce7';
-        const toast = document.createElement('div');
-        toast.className = 'social-toast generic-notif-toast';
-        toast.style.borderLeft = `3px solid ${color}`;
-        if (onClick) toast.style.cursor = 'pointer';
-        toast.innerHTML = `
-            <span class="st-emoji u-display-inline-flex_align-items-center_justify-content-cen-2" >
-                <i class="fa-solid ${icon || 'fa-bell'} u-font-size-15px" ></i>
-            </span>
-            <div class="st-text">
-                <div><b>${window._escapeHtml(title)}</b></div>
-                ${body ? `<div class="st-sub">${body}</div>` : ''}
-            </div>`;
-        toast.querySelector('.st-emoji').style.background = `${color}22`;
-        toast.querySelector('.st-emoji i').style.color = color;
-        stack.appendChild(toast);
-        requestAnimationFrame(() => toast.classList.add('is-visible'));
-
-        const remove = () => {
-            toast.classList.add('is-leaving');
-            toast.classList.remove('is-visible');
-            setTimeout(() => toast.remove(), 260);
-        };
-        const timer = setTimeout(remove, 5000);
-        toast.addEventListener('click', () => {
-            clearTimeout(timer);
-            remove();
-            if (typeof onClick === 'function') onClick();
-        });
-    }
+    // showRoleChangeToast/showGenericNotifToast → social-dm-notifications-toasts.js
+    // dosyasına çıkarıldı (Faz W, 2026-08-03): ikisi de sadece DOM + window._escapeHtml/
+    // ensureHushedNotifQueue'ya bağlıydı, bu dosyanın paylaşılan state'ine (_recentConvos vb.) dokunmuyordu.
     window.showGenericNotifToast = showGenericNotifToast; // social-gamification.js gibi ayrı script scope'larından erişim için
 
 // Diğer social-*.js modüllerinin import edebilmesi için ince sarmalayıcı export'lar.

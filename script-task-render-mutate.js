@@ -12,12 +12,13 @@
 // script-habit-render-mutate.js'in window.renderHabitRows köprüsünü
 // kullanır — script.js önce yüklenir, bu dosya sonra.
 // ============================================================
+import { buildTaskListItem } from './script-task-render-mutate-item-builder.js';
+import { renderHighlightGoalRow, renderTodayAssignmentRows } from './script-task-render-mutate-today-rows.js';
+
 (function () {
 'use strict';
 
 const taskList = document.getElementById('task-list');
-const taskCategoryLabels = { 'kisisel': 'Kişisel', 'is': 'İş', 'egitim': 'Eğitim', 'saglik': 'Sağlık' };
-let draggedItemIndex = null;
 
 function saveTasks() {
     const tasks = window.__getTasksRef();
@@ -208,96 +209,6 @@ window.deleteGlobalTask = function(id, date) {
     });
 };
 
-// renderTasks'in "Bugün" görev listesindeki tek satırlık widget'ları — her biri
-// saf DOM üretimi, dışarıdan sadece todayStr/veri alır, taskList'e kendi ekler.
-function renderHighlightGoalRow(todayStr) {
-    const goals = window.__getGoalsRef();
-    let highlightHistory = FocusStorage.get('highlight_history', {});
-    const todayHighlight = highlightHistory[todayStr];
-    if (!todayHighlight) return;
-
-    let parentBadgeHTML = '';
-    if (todayHighlight.parentGoal) {
-        const pg = goals.find(g => String(g.id) === String(todayHighlight.parentGoal));
-        if (pg) {
-            parentBadgeHTML = `<span class="task-category-tag u-background-rgba108922310p1_color-var-primary-color_border-" ><i class="fa-solid fa-bullseye"></i> ${escapeHtml(pg.title)}</span>`;
-        }
-    }
-
-    const hlLi = document.createElement('li');
-    hlLi.className = `task-item highlight-task ${todayHighlight.completed ? 'completed' : ''}`;
-
-    hlLi.innerHTML = `
-        <div class="tl-time-col">
-            <i class="fa-solid fa-star u-color-hff9f43_font-size-13px" title="Günün En Önemli 1 Şeyi"></i>
-        </div>
-        <div class="tl-rail">
-            <span class="tl-rail-line"></span>
-            <span class="tl-rail-dot u-border-color-hff9f43" ></span>
-            <span class="tl-rail-line"></span>
-        </div>
-        <div class="tl-card">
-            <div class="tl-card-inner u-border-color-rgba255159670p25_background-rgba255159670p04" >
-                <div class="task-checkbox" data-action="toggle-highlight-task" data-date="${todayStr}"></div>
-                <div class="task-left">
-                    <span class="task-text" data-action="toggle-highlight-task" data-date="${todayStr}">${escapeHtml(todayHighlight.text)}</span>
-                    <div class="task-meta">
-                        <span class="task-category-tag u-background-rgba255159670p15_color-hff9f43_border-1pxsolidr" ><i class="fa-solid fa-star u-margin-right-4px" ></i>GÜNÜN HEDEFİ</span>
-                        ${parentBadgeHTML}
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-    taskList.appendChild(hlLi);
-}
-
-// classroom_assignments (social.js, window.FocusAssignments) sistemin geri kalanıyla
-// burada senkronlanır: normal görevlerden ayırt edilsin diye kendi ikonu/rengi var ve
-// tıklanınca ilgili grubun Ödevler sekmesine götürür (checkbox ile tamamlanmaz).
-function renderTodayAssignmentRows(todayStr) {
-    const todayAssignments = (window.FocusAssignments?.items || []).filter(a => {
-        if (a.done || !a.due_date) return false;
-        return window.formatDateToString(new Date(a.due_date)) === todayStr;
-    });
-    todayAssignments.forEach(a => {
-        const overdue = new Date(a.due_date) < new Date();
-        const asgColor = overdue ? '#ff6b6b' : '#a29bfe';
-        const li = document.createElement('li');
-        li.className = 'task-item';
-        li.style.borderLeftColor = asgColor;
-        li.style.background = `linear-gradient(90deg, ${overdue ? 'rgba(255, 107, 107, 0.05)' : 'rgba(162, 155, 254, 0.05)'} 0%, transparent 100%)`;
-        li.style.cursor = 'pointer';
-        li.innerHTML = `
-            <div class="task-left">
-                <i class="fa-solid fa-clipboard-list asg-icon u-margin-right-5px-2" title="Sınıf Ödevi"></i>
-                <div class="task-checkbox asg-checkbox u-cursor-pointer" ></div>
-                <span class="task-text">${escapeHtml(a.title)}</span>
-                <div class="u-flex-basis-100pct_height-0"></div>
-                <div class="task-meta">
-                    <span class="task-category-tag asg-tag">${overdue ? 'ÖDEV · SÜRESİ GEÇTİ' : 'ÖDEV'}</span>
-                    ${a.groupName ? `<span class="task-category-tag u-background-rgba108922310p1_color-var-primary-color_border-" >${escapeHtml(a.groupName)}</span>` : ''}
-                </div>
-            </div>
-        `;
-        const _asgIcon = li.querySelector('.asg-icon');
-        if (_asgIcon) _asgIcon.style.color = asgColor;
-        const _asgCheckbox = li.querySelector('.asg-checkbox');
-        if (_asgCheckbox) _asgCheckbox.style.borderColor = asgColor;
-        const _asgTag = li.querySelector('.asg-tag');
-        if (_asgTag) {
-            _asgTag.style.background = overdue ? 'rgba(255, 107, 107, 0.15)' : 'rgba(162, 155, 254, 0.15)';
-            _asgTag.style.color = asgColor;
-            _asgTag.style.border = overdue ? '1px solid rgba(255, 107, 107, 0.3)' : '1px solid rgba(162, 155, 254, 0.3)';
-        }
-        li.addEventListener('click', () => {
-            if (typeof window.switchTab === 'function') window.switchTab('arkadaslar');
-            if (typeof window.dcOpenAssignmentTab === 'function') window.dcOpenAssignmentTab(a.groupCode);
-        });
-        taskList.appendChild(li);
-    });
-}
-
 function renderTasks() {
     const tasks = window.__getTasksRef();
     const habits = window.__getHabitsRef();
@@ -404,142 +315,5 @@ function renderTasks() {
 }
 window.renderTasks = renderTasks; // script-milestone-goal-actions.js gibi ayrı modüllerden erişim için
 window.renderTasksGlobal = function() { if (typeof renderTasks === 'function') renderTasks(); };
-
-// Görev satırının sürükle-bırak (yeniden sıralama) olaylarını bağlar.
-function _wireTaskItemDragDrop(li, task, index, todayTasks, todayStr) {
-    li.addEventListener('dragstart', function(e) {
-        draggedItemIndex = index;
-        setTimeout(() => this.classList.add('dragging'), 0);
-        if (e.dataTransfer) {
-            e.dataTransfer.effectAllowed = "move";
-            e.dataTransfer.setData('taskId', task.id); // ← EKSİK OLAN BU SATIRDI
-        }
-    });
-
-    li.addEventListener('dragend', function() {
-        this.classList.remove('dragging');
-    });
-    li.addEventListener('dragover', function(e) {
-        e.preventDefault();
-        if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
-    });
-    li.addEventListener('dragenter', function(e) {
-        e.preventDefault();
-        if(index !== draggedItemIndex) this.classList.add('drag-over');
-    });
-    li.addEventListener('dragleave', function() {
-        this.classList.remove('drag-over');
-    });
-    li.addEventListener('drop', function(e) {
-        e.preventDefault();
-        this.classList.remove('drag-over');
-
-        // Eğer farklı bir sıraya bırakıldıysa yerlerini değiştir ve KAYDET
-        if (draggedItemIndex !== null && draggedItemIndex !== index) {
-            const draggedTask = todayTasks[draggedItemIndex];
-            todayTasks.splice(draggedItemIndex, 1);
-            todayTasks.splice(index, 0, draggedTask);
-
-            // Ana görev listesini bu yeni sıralamaya göre güncelle
-            let tasks = window.__getTasksRef();
-            const otherTasks = tasks.filter(t => t.date !== todayStr);
-            tasks = [...otherTasks, ...todayTasks];
-            window.__setTasksRef(tasks);
-
-            saveTasks(); // Değişikliği hafızaya kazı
-        }
-        draggedItemIndex = null;
-        renderTasks();
-    });
-}
-
-function buildTaskListItem(task, index, todayTasks, todayStr) {
-        const habits = window.__getHabitsRef();
-        const goals = window.__getGoalsRef();
-        const li = document.createElement('li');
-        const isHabitTask = !!task.parentHabit;
-       li.className = `task-item ${task.completed ? 'completed' : ''} ${task.isMilestone ? 'milestone-task' : isHabitTask ? 'habit-task' : `priority-${task.priority || 'medium'}`}`;
-        li.draggable = true;
-
-        const cat = task.category || 'kisisel';
-        const catDisplay = taskCategoryLabels[cat] || 'Kişisel';
-        const tStart = (task.timeStart || "09:00").substring(0, 5);
-        const tEnd = (task.timeEnd || "10:00").substring(0, 5);
-
-        let parentBadgeHTML = '';
-        if (task.parentHabit) {
-            const ph = habits.find(h => String(h.id) === String(task.parentHabit));
-            if (ph) {
-                parentBadgeHTML = `<span class="parent-habit-badge"><i class="fa-solid fa-bullseye"></i> ${escapeHtml(ph.name)}</span>`;
-            }
-        }
-
-        let milestoneBadgeHTML = '';
-        if (task.isMilestone) {
-            milestoneBadgeHTML = `<span class="parent-habit-badge u-color-h74b9ff_border-color-rgba91322270p4_background-rgba9" ><i class="fa-solid fa-flag-checkered u-margin-right-4px" ></i>Dönüm Noktası</span>`;
-        }
-
-        let goalOptionsHTML = '<option value="">🎯 Hedefsiz</option>';
-        goals.forEach(g => {
-            const isSelected = task.parentGoal === g.id ? 'selected' : '';
-            goalOptionsHTML += `<option value="${g.id}" ${isSelected}>${escapeHtml(g.title)}</option>`;
-        });
-
-        // --- Hiyerarşik Yol Haritası (Breadcrumb) Rozeti ---
-        const breadcrumbHTML = window.__buildTaskBreadcrumbHtml(task);
-        // ----------------------------------------------
-
-                         const prioColorMap = { high: '#d98a6a', medium: '#d9b16a', low: '#8d887c' };
-        const dotColor = task.isMilestone ? '#74b9ff' : isHabitTask ? '#c88ce6' : (prioColorMap[task.priority || 'medium'] || '#d9b16a');
-
-        li.innerHTML = `
-            <div class="tl-time-col">
-                <span class="tl-time-start">${tStart}</span>
-                <span class="tl-time-end">${tEnd}</span>
-            </div>
-            <div class="tl-rail">
-                <span class="tl-rail-line"></span>
-                <span class="tl-rail-dot"></span>
-                <span class="tl-rail-line"></span>
-            </div>
-            <div class="tl-card">
-                <div class="tl-card-inner">
-                    <div class="task-checkbox" data-action="toggle-task" data-id="${task.id}"></div>
-                    <div class="task-left">
-                        <span class="task-text" data-action="toggle-task" data-id="${task.id}">${escapeHtml(task.text)}</span>
-                        <div class="task-meta">
-                            ${isHabitTask
-                                ? `<span class="task-category-tag tag-habit"><i class="fa-solid fa-leaf u-margin-right-4px" ></i>Alışkanlık</span>`
-                                : `<span class="task-category-tag tag-${cat}">${catDisplay}</span>`}
-                            <span class="u-width-3px_height-3px_border-radius-50pct_background-rgba25"></span>
-                            <span class="u-display-inline-flex_align-items-center_gap-5px_font-size-1"><span class="tl-prio-dot u-width-6px_height-6px_border-radius-50pct_flex-shrink-0_dis" ></span>${task.priority === 'high' ? 'Yüksek' : task.priority === 'low' ? 'Düşük' : 'Orta'}</span>
-                            <span class="u-width-3px_height-3px_border-radius-50pct_background-rgba25"></span>
-                            <span class="u-font-variant-numeric-tabular-nums_font-size-11p5px_color-v">${tStart}–${tEnd}</span>
-                            ${task.recurring ? `<span class="task-time-badge u-color-ha29bfe_border-color-rgba1621552540p3_margin-left-2p" ><i class="fa-solid fa-rotate"></i> ${{daily:'Her Gün', weekdays:'Hafta İçi', weekly:'Her Hafta', monthly:'Her Ay'}[task.recurring]}</span>` : ''}
-                        </div>
-                        ${breadcrumbHTML}
-                    </div>
-                    <div class="task-item-right">
-                        <select class="mini-goal-select" data-action="change-task-goal" data-id="${task.id}">
-                            ${goalOptionsHTML}
-                        </select>
-                        <div class="task-actions">
-                            ${!task.completed ? `<button class="edit-btn" data-action="edit-task" data-id="${task.id}" title="Görevi Düzenle" aria-label="Görevi Düzenle"><i class="fa-solid fa-pen"></i></button>` : ''}
-                            ${!task.completed ? `<button class="focus-btn" data-action="focus-task" data-id="${task.id}" title="Bu Göreve Odaklan" aria-label="Bu Göreve Odaklan"><i class="fa-solid fa-crosshairs"></i></button>` : ''}
-                            <button class="delete-btn" data-action="delete-task" data-id="${task.id}" data-date="${task.date}"><i class="fa-solid fa-trash-can"></i></button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-        const _tlRailDot = li.querySelector('.tl-rail-dot');
-        if (_tlRailDot) _tlRailDot.style.borderColor = dotColor;
-        const _tlPrioDot = li.querySelector('.tl-prio-dot');
-        if (_tlPrioDot) _tlPrioDot.style.background = dotColor;
-
-        _wireTaskItemDragDrop(li, task, index, todayTasks, todayStr);
-
-        return li;
-}
 
 })();

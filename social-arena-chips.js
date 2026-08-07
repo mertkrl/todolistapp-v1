@@ -84,11 +84,15 @@ export function renderArenaGroupChips(groups) {
         menu.className = 'arena-add-menu';
         menu.style.top = (r.bottom + 6) + 'px';
         menu.style.left = Math.max(8, Math.min(r.left, window.innerWidth - 232)) + 'px';
+        // "Kurumum" yalnızca öğretmen rolündeki hesaplarda görünür — sahip olduğu
+        // kurumlar/sınıf grupları + öğrenci atama paneli (social-institution-my-groups-institution-modal.js).
+        const isTeacher = getUser()?.institutionRole === 'teacher';
         menu.innerHTML = `
             <button type="button" class="aam-item" data-aam="friend"><i class="fa-solid fa-user-plus"></i> Kişi Ekle</button>
             <button type="button" class="aam-item" data-aam="join"><i class="fa-solid fa-key"></i> Kodla Gruba Katıl</button>
             <button type="button" class="aam-item" data-aam="create"><i class="fa-solid fa-plus"></i> Grup Kur</button>
-            <button type="button" class="aam-item" data-aam="discover"><i class="fa-solid fa-earth-americas"></i> Grupları Keşfet</button>`;
+            <button type="button" class="aam-item" data-aam="discover"><i class="fa-solid fa-earth-americas"></i> Grupları Keşfet</button>
+            ${isTeacher ? '<button type="button" class="aam-item" data-aam="institution"><i class="fa-solid fa-building-columns"></i> Kurumum</button>' : ''}`;
         document.body.appendChild(menu);
 
         const onDoc = (e) => {
@@ -101,7 +105,7 @@ export function renderArenaGroupChips(groups) {
         const needProfile = () => {
             if (getUser()) return false;
             close();
-            document.getElementById('social-setup-modal')?.classList.remove('hidden');
+            window.dcShowToast('Giriş yapmalısınız.');
             return true;
         };
 
@@ -119,12 +123,40 @@ export function renderArenaGroupChips(groups) {
             } else if (act === 'create') {
                 if (needProfile()) return;
                 close();
-                document.getElementById('premium-create-group-modal')?.classList.remove('hidden');
+                if (window.openPremiumGroupCreateModal) {
+                    window.openPremiumGroupCreateModal();
+                } else {
+                    // window.openPremiumGroupCreateModal henüz tanımlanmamışsa (modül yükleme
+                    // sırası garantisi yok) kendi başına aynı gating'i uygula — premium OLMAYAN
+                    // ve kurumsal rolü (öğretmen/öğrenci) olmayan kullanıcı sınıf/iş yeri kurum
+                    // türünü seçemesin (social.js'teki mantıkla aynı).
+                    const classroomTypeSelectEl = document.getElementById("premium-group-classroom-type");
+                    if (classroomTypeSelectEl) {
+                        const isPremium = getUser()?.plan === 'premium';
+                        const isInstitutional = ['student', 'teacher'].includes(getUser()?.institutionRole);
+                        const canUseInstitutionalTypes = isPremium || isInstitutional;
+                        classroomTypeSelectEl.querySelectorAll('option').forEach(opt => {
+                            opt.hidden = !canUseInstitutionalTypes && opt.value !== 'general';
+                        });
+                        classroomTypeSelectEl.value = 'general';
+                        classroomTypeSelectEl.dispatchEvent(new Event('change'));
+                    }
+                    document.getElementById('premium-create-group-modal')?.classList.remove('hidden');
+                }
             } else if (act === 'discover') {
                 close();
                 const dBtn = document.getElementById('group-discover-modal-btn');
                 if (dBtn) dBtn.click();
                 else document.getElementById('group-discover-modal')?.classList.remove('hidden');
+            } else if (act === 'institution') {
+                close();
+                const iBtn = document.getElementById('my-institution-modal-btn');
+                if (iBtn) {
+                    iBtn.click();
+                } else {
+                    document.getElementById('my-institution-modal')?.classList.remove('hidden');
+                    if (typeof window.renderMyInstitutionModal === 'function') window.renderMyInstitutionModal();
+                }
             } else if (act === 'join') {
                 if (needProfile()) return;
                 // Menü içinde mini form: kod gir → katıl

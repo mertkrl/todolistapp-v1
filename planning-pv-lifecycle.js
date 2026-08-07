@@ -93,7 +93,15 @@ function init() {
     // 4.2 — Realtime subscription
     setTimeout(_subscribeRealtime, 1200);
     // 4.3 — Bildirim izni + deadline taraması
-    setTimeout(window._requestNotificationPermission, 3000);
+    // NOT: doğrudan window._requestNotificationPermission referansı verilmez —
+    // bu fonksiyon planning-misc-widgets.js'te tanımlanıyor ve modül yükleme
+    // sırasında bu dosyadan (planning-pv-lifecycle.js) SONRA yükleniyor. init()
+    // bu noktada çalıştığında window._requestNotificationPermission henüz
+    // undefined olduğu için setTimeout onu string'e çevirip eval etmeye
+    // çalışıyordu — CSP 'unsafe-eval' bunu engelliyordu. Çağrıyı gerçek ateşleme
+    // anına (3sn sonra, o zamana kadar kesin yüklenmiş olur) erteleyen bir ok
+    // fonksiyonuyla sarmalamak bunu çözer.
+    setTimeout(() => window._requestNotificationPermission?.(), 3000);
     setTimeout(_checkDeadlineNotifications, 4000);
     setInterval(_checkDeadlineNotifications, 3600000); // Saatte bir kontrol
 

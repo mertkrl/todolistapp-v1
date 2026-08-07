@@ -1,4 +1,6 @@
 import { setupGroupRecentConversationsSupabase } from './social-dm-notifications.js';
+import { GROUP_CATEGORY_LABELS } from './social-group-discover-category-labels.js';
+import { _buildSnapshotLike } from './social-group-discover-snapshot-adapter.js';
 // social-group-discover.js
 // social.js'ten çıkarıldı (Faz 5/6): Global Açık Grupları Keşfetme Motoru
 // (Discover Groups) — kategori/filtre/sıralama, kaydedilen gruplar, herkese
@@ -17,13 +19,7 @@ import { setupGroupRecentConversationsSupabase } from './social-dm-notifications
 
 
         // 5. GLOBAL AÇIK GRUPLARI KEŞFETME MOTORU (TAM REAL-TIME)
-        const GROUP_CATEGORY_LABELS = {
-            "spor": "🏅 Spor",
-            "egitim": "📚 Eğitim",
-            "is": "💼 İş",
-            "yazilim": "💻 Yazılım",
-            "kisisel-gelisim": "🌱 Kişisel Gelişim"
-        };
+        // GROUP_CATEGORY_LABELS -> social-group-discover-category-labels.js dosyasına taşındı.
         let activeDiscoverCategory = "all";
         // Keşfet ana listesi için sıralama ve filtre durumu
         let discoverSortMode = "default"; // default | members-desc | members-asc | active-desc
@@ -69,10 +65,6 @@ export function computeActiveNowCount(groupData) {
             toggleSaveGroupSupabase(groupCode);
         }
 
-        function checkSavedGroupSlotNotifications() {
-            checkSavedGroupSlotNotificationsSupabase();
-        }
-
         function computeUserInterestCategories(callback) {
             callback();
         }
@@ -81,21 +73,7 @@ export function computeActiveNowCount(groupData) {
         // SUPABASE: KEŞFET + KAYDEDİLENLER (M2b-2 Bölüm 2)
         // ──────────────────────────────────────────────────────
 
-        // Supabase'den çekilen { [code]: groupData } map'ini eski Firebase
-        // snapshot arayüzüne (.forEach, .child(code).exists()/.val()) uyarlar —
-        // renderDiscoverGroups/renderSavedGroupsSection/checkSavedGroupSlotNotifications/
-        // openSavedGroupPreview değişmeden çalışır.
-        function _buildSnapshotLike(groupsMap) {
-            return {
-                forEach(cb) {
-                    Object.entries(groupsMap).forEach(([key, val]) => cb({ key, val: () => val }));
-                },
-                child(code) {
-                    const exists = Object.prototype.hasOwnProperty.call(groupsMap, code);
-                    return { exists: () => exists, val: () => (exists ? groupsMap[code] : null) };
-                }
-            };
-        }
+        // _buildSnapshotLike -> social-group-discover-snapshot-adapter.js dosyasına taşındı.
 
         // privacy='public' olan tüm Supabase gruplarını + üyelerini çeker ve
         // _normalizeSupabaseGroup ile eski groupData şekline çevirir.

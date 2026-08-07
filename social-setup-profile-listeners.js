@@ -1,6 +1,5 @@
 import { getCurrentUser } from './state/current-user-store.js';
 import { avatarUploadEnabled } from './social-chat-gate.js';
-import { openAuthModal } from './auth-ui.js';
 import { updateProfileHeader } from './social-profile-header.js';
 import { openSetupModalAsEdit, resetSetupModalToRegister } from './social-setup-modal-edit.js';
 import { ensureCommunityAccess, openCommunitySetupModal, startAllSocialListeners, saveUser, registerUser, syncXP } from './social.js';
@@ -193,9 +192,4 @@ export function _setupProfileModalListeners() {
         btn.innerHTML = '<i class="fa-solid fa-rocket"></i> Topluluğa Katıl';
     }
 });
-
-    // "Oturum yok" banner'ındaki "Giriş Yap" butonu — hesap/giriş modalını açar
-    document.getElementById('social-not-configured-login-btn')?.addEventListener('click', () => {
-        openAuthModal();
-    });
 }

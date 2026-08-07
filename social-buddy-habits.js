@@ -2,6 +2,8 @@ import { _resolveProfileByUsername } from './social-dc-profile-resolve.js';
 import { getFriends } from './social-friends-notifications.js';
 
 import { getCurrentUser } from './state/current-user-store.js';
+import { buddyDayKey, buddyPairId } from './social-buddy-habits-pure-utils.js';
+import './social-buddy-habits-notifications.js';
 // ============================================================
 // FOCUSAI SOCIAL-BUDDY-HABITS.JS
 // social.js'ten çıkarılmış "Ortak Alışkanlık Zincirleri" (buddy habits)
@@ -22,15 +24,7 @@ import { getCurrentUser } from './state/current-user-store.js';
 (function () {
 'use strict';
 
-// habits.history ile aynı formatta gün anahtarı üretir (DD-MM-YYYY)
-function buddyDayKey(date) {
-    const d = date || new Date();
-    return `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
-}
-
-function buddyPairId(userA, userB) {
-    return [userA, userB].sort().join('__');
-}
+// buddyDayKey/buddyPairId social-buddy-habits-pure-utils.js'e çıkarıldı.
 window.buddyPairId = buddyPairId;
 
 // Arkadaş listesini "habit-buddy" seçim kutusuna doldurur (gerçek görünen adlarla).
@@ -169,97 +163,10 @@ function _showBuddyHabitInviteModal(inv) {
     }, { signal: _bhSig });
 }
 
-// Partner'a alışkanlık silindi bildirimi gönder
-async function _sendBuddyHabitDeletedNotification(habitId, buddyUsername, habitName) {
-    const currentUser = getCurrentUser();
-    if (!window.FocusSupabase || !currentUser?.id || !buddyUsername) {
-        console.warn('[BuddyHabit] ön koşul hatası:', { supabase: !!window.FocusSupabase, userId: currentUser?.id, buddy: buddyUsername });
-        return;
-    }
-    // Partner id'sini çöz
-    let partnerId = null;
-    try {
-        const cached = await window._resolveProfileByUsername?.(buddyUsername);
-        partnerId = cached?.id || null;
-        if (!partnerId) {
-            const { data: p, error: pe } = await window.FocusSupabase.from('profiles').select('id').eq('username', buddyUsername).maybeSingle();
-            if (pe) console.warn('[BuddyHabit] profiles sorgu hatası:', pe.message);
-            partnerId = p?.id || null;
-        }
-    } catch (e) { console.warn('[BuddyHabit] profil çözme hatası:', e.message); }
-    if (!partnerId) {
-        console.warn('[BuddyHabit] partner profili bulunamadı, username:', buddyUsername);
-        return;
-    }
-    const resolvedName = habitName || '';
-    const { error } = await window.FocusSupabase.from('notifications').insert({
-        user_id: partnerId, type: 'buddy_habit_deleted',
-        payload: { fromUsername: currentUser.username, fromName: currentUser.displayName || currentUser.username, habitId, habitName: resolvedName }
-    });
-    if (error) console.warn('[BuddyHabit] bildirim insert hatası:', error.message);
-}
-window._sendBuddyHabitDeletedNotification = _sendBuddyHabitDeletedNotification;
-
-// Ortak alışkanlık silindi bildirimini işle — partnere modal göster
-function _handleBuddyHabitDeletedNotification(info) {
-    document.getElementById('gf-buddy-habit-deleted-overlay')?.remove();
-    const habitName = info.habitName || 'bir ortak alışkanlık';
-    const fromName = info.fromName || info.fromUsername || 'Partner';
-    const overlay = document.createElement('div');
-    overlay.id = 'gf-buddy-habit-deleted-overlay';
-    overlay.className = 'modal-overlay';
-    overlay.style.zIndex = '100060';
-    overlay.innerHTML = `
-        <div class="modal-content glass-panel u-max-width-370px_text-align-center_padding-28px24px" >
-            <div class="u-font-size-32px_margin-bottom-12px">🍃</div>
-            <h3 class="u-margin-008px_font-size-16px_color-hfff">${window._escapeHtml(fromName)} ayrıldı</h3>
-            <p class="u-color-var-text-muted_font-size-13px_margin-0022px">
-                <b class="u-color-hfff">"${window._escapeHtml(habitName)}"</b> alışkanlığını ortak olarak sildi.<br>Bu alışkanlığa tek başına devam etmek ister misin?
-            </p>
-            <div class="u-display-flex_flex-direction-column_gap-10px-2">
-                <button id="gf-bh-solo-btn" class="control-btn primary u-width-100pct_padding-12px" >
-                    <i class="fa-solid fa-person-running"></i> Evet, Solo Devam Et
-                </button>
-                <button id="gf-bh-delete-btn" class="control-btn u-width-100pct_padding-12px_background-rgba25571870p1_color-" >
-                    <i class="fa-solid fa-trash"></i> Hayır, Alışkanlığı Sil
-                </button>
-            </div>
-        </div>`;
-    document.body.appendChild(overlay);
-
-    document.getElementById('gf-bh-solo-btn').addEventListener('click', () => {
-        overlay.remove();
-        // Alışkanlığı solo'ya çevir (buddy/pairId'yi kaldır)
-        if (info.habitId && typeof window.convertBuddyHabitToSolo === 'function') {
-            window.convertBuddyHabitToSolo(info.habitId);
-        }
-    });
-    document.getElementById('gf-bh-delete-btn').addEventListener('click', () => {
-        overlay.remove();
-        if (info.habitId && typeof window.deleteHabitById === 'function') {
-            window.deleteHabitById(info.habitId);
-        }
-    });
-}
-window._handleBuddyHabitDeletedNotification = _handleBuddyHabitDeletedNotification;
-
-// Oturum bitti bildirimini işle — toast göster
-function _handleBuddySessionEndedNotification(info) {
-    const fromName = info.fromName || info.fromUsername || 'Partner';
-    const habitName = info.habitName || 'ortak alışkanlık';
-    const completed = info.completed;
-    if (typeof window.showGenericNotifToast === 'function') {
-        window.showGenericNotifToast({
-            icon: completed ? 'fa-check-double' : 'fa-hourglass-end',
-            accent: completed ? '#2ed573' : '#fdcb6e',
-            title: completed ? 'Oturum Bitti — Tamamlandı! 🎉' : 'Oturum Sonlandı',
-            body: completed
-                ? `<b>${window._escapeHtml(fromName)}</b>, "${window._escapeHtml(habitName)}" alışkanlığını bugün tamamladığını bildirdi.`
-                : `<b>${window._escapeHtml(fromName)}</b> odak oturumunu sonlandırdı.`
-        });
-    }
-}
-window._handleBuddySessionEndedNotification = _handleBuddySessionEndedNotification;
+// _sendBuddyHabitDeletedNotification/_handleBuddyHabitDeletedNotification/
+// _handleBuddySessionEndedNotification social-buddy-habits-notifications.js'e
+// çıkarıldı (window.* köprüsüyle bu dosyanın dışından tüketiliyorlar, o dosya
+// window bridge'lerini kendi kuruyor — bkz. dosya başındaki import).
 
 let _buddyInviteSupaChannel = null;
 

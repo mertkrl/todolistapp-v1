@@ -4,6 +4,7 @@ import { setupGroupRecentConversationsSupabase } from './social-dm-notifications
 import { showGroupWelcomeModal } from './social-group-discover.js';
 import { getCurrentUser } from './state/current-user-store.js';
 import { generateGroupCode } from './social-misc-pure-utils.js';
+import { formatCooldownRemaining } from './social-groups-pure-utils.js';
 // ─── GERÇEK ZAMANLI GRUPLAR (GROUPS SYSTEM) ────────────────────────
 // social.js dosyasından çıkarıldı (Faz 6): limit/cooldown hesaplama,
 // grup oluşturma ve koda göre gruba katılma mantığı.
@@ -119,16 +120,6 @@ import { generateGroupCode } from './social-misc-pure-utils.js';
         if (!stored) return Promise.resolve(0);
         const remaining = GROUP_LIMITS.CREATE_COOLDOWN_MS - (Date.now() - stored);
         return Promise.resolve(remaining > 0 ? remaining : 0);
-    }
-
-    // Kalan bekleme süresini (ms) kullanıcıya gösterilecek okunabilir bir metne çevirir
-    function formatCooldownRemaining(ms) {
-        const totalMinutes = Math.ceil(ms / 60000);
-        const hours = Math.floor(totalMinutes / 60);
-        const minutes = totalMinutes % 60;
-        if (hours > 0 && minutes > 0) return `${hours} saat ${minutes} dakika`;
-        if (hours > 0) return `${hours} saat`;
-        return `${minutes} dakika`;
     }
 
     // Bir grubun üye limitine ulaşıp ulaşmadığını kontrol eder

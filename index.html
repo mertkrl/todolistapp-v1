@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' cdn.jsdelivr.net; style-src 'self' fonts.googleapis.com cdnjs.cloudflare.com cdn.jsdelivr.net; font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com cdn.jsdelivr.net data:; img-src 'self' data: blob: qyzfkiideqovqiarabds.supabase.co ui-avatars.com; media-src 'self' blob:; connect-src 'self' qyzfkiideqovqiarabds.supabase.co wss://qyzfkiideqovqiarabds.supabase.co; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'; worker-src 'self'; manifest-src 'self'; upgrade-insecure-requests">
+    <!-- frame-ancestors buradan (meta) kaldırıldı: tarayıcılar meta-etiketli CSP'de bu
+         direktifi yok sayıp konsola uyarı basıyor (spec gereği sadece HTTP başlığından
+         geçerli). Gerçek koruma dist/_headers'taki HTTP Content-Security-Policy
+         başlığından geliyor (deploy'da o kazanır) — orada frame-ancestors 'none' hâlâ var. -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' cdn.jsdelivr.net; style-src 'self' fonts.googleapis.com cdnjs.cloudflare.com cdn.jsdelivr.net; font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com cdn.jsdelivr.net data:; img-src 'self' data: blob: qyzfkiideqovqiarabds.supabase.co ui-avatars.com; media-src 'self' blob:; connect-src 'self' qyzfkiideqovqiarabds.supabase.co wss://qyzfkiideqovqiarabds.supabase.co cdn.jsdelivr.net; base-uri 'self'; object-src 'none'; form-action 'self'; worker-src 'self'; manifest-src 'self'; upgrade-insecure-requests">
     <meta name="referrer" content="strict-origin-when-cross-origin">
     <title>Premium To-Do & Productivity</title>
     <meta name="description" content="FocusAI — görev, alışkanlık, zamanlayıcı ve odaklanma takibini bir arada sunan üretkenlik uygulaması.">
@@ -116,6 +120,7 @@
     <link rel="stylesheet" href="task-card-themes-scrollbar.css">
     <link rel="stylesheet" href="core-modal-system.css">
     <link rel="stylesheet" href="core-modal-system-bridge-v2.css">
+    <link rel="stylesheet" href="add-friend-modal.css">
     <link rel="stylesheet" href="premium-ambient-misc-widgets.css">
     <link rel="stylesheet" href="faz7-social-dock-cleanup.css">
     <link rel="stylesheet" href="goal-section-header-minimal.css">
@@ -141,6 +146,7 @@
     <link rel="stylesheet" href="planning-collab-live-features.css">
     <link rel="stylesheet" href="sohbet-sol-panel-final.css">
     <link rel="stylesheet" href="faz3-render-bridge-override.css">
+    <link rel="stylesheet" href="app-login-gate.css">
     <!-- ══ GLOBAL HATA GÜVENLİK AĞI ══
          script.js/social.js/planning.js/collab.js içindeki çok sayıda await
          çağrısı try/catch olmadan bırakılmış (bkz. denetim raporu). Her birini
@@ -200,7 +206,74 @@
     <link rel="stylesheet" href="a11y-focus-visible.css">
 
 </head>
-<body>
+<body class="app-gate-locked">
+
+    <!-- Uygulama genelinde giriş kapısı — sayfa yüklenince önce bu görünür,
+         uygulamanın geri kalanı (Bugün, Hedefler, Sosyal vb.) arkasında hazırlanır
+         ama oturum doğrulanana kadar erişilmez. Giriş/oturum mantığı
+         app-login-gate.js'te; window.FocusAuth supabase-client.js'te tanımlı. -->
+    <div id="app-login-gate" class="app-login-gate">
+        <div class="app-login-gate-card glass-panel">
+            <div class="app-login-gate-icon"><i class="fa-solid fa-bolt"></i></div>
+            <h2>FocusAI'a Hoş Geldin</h2>
+            <p class="app-login-gate-sub">
+                Görevlerine, hedeflerine ve topluluk özelliklerine erişmek için
+                giriş yap ya da yeni bir hesap oluştur.
+            </p>
+
+            <!-- Adım 1: sadece e-posta -->
+            <div id="app-gate-step-email">
+                <input type="email" id="app-gate-email" class="premium-input" placeholder="ornek@eposta.com" autocomplete="email">
+                <p id="app-gate-email-status" class="app-login-gate-status"></p>
+                <button type="button" id="app-gate-email-next-btn" class="primary-btn app-login-gate-submit">
+                    <i class="fa-solid fa-arrow-right"></i> İleri
+                </button>
+            </div>
+
+            <!-- Adım 2: giriş (e-posta zaten girilmiş, kayıtlı hesap varsayımıyla şifre istenir) -->
+            <div id="app-gate-step-login" class="hidden">
+                <p class="app-login-gate-email-line">
+                    <span id="app-gate-login-email-label"></span>
+                    <a href="#" id="app-gate-login-change-email">değiştir</a>
+                </p>
+                <input type="password" id="app-gate-password" class="premium-input" placeholder="Şifre" autocomplete="current-password">
+                <p class="app-login-gate-forgot">
+                    <a href="#" id="app-gate-forgot-link">Şifremi unuttum</a>
+                </p>
+                <p id="app-gate-status" class="app-login-gate-status"></p>
+                <button type="button" id="app-gate-send-btn" class="primary-btn app-login-gate-submit">
+                    <i class="fa-solid fa-arrow-right"></i> Giriş Yap
+                </button>
+                <button type="button" id="app-gate-goto-signup-btn" class="control-btn secondary app-login-gate-submit hidden">
+                    <i class="fa-solid fa-user-plus"></i> Hesap Oluştur
+                </button>
+            </div>
+
+            <!-- Adım 3: kayıt (e-posta zaten girilmiş — sadece kullanıcı adı + şifre istenir) -->
+            <div id="app-gate-step-signup" class="hidden">
+                <p class="app-login-gate-email-line">
+                    <span id="app-gate-signup-email-label"></span>
+                    <a href="#" id="app-gate-signup-change-email">değiştir</a>
+                </p>
+                <input type="text" id="app-gate-username" class="premium-input u-text-transform-lowercase" placeholder="Kullanıcı adı" maxlength="30" autocomplete="username">
+                <input type="password" id="app-gate-signup-password" class="premium-input u-margin-top-10px" placeholder="Şifre (en az 8 karakter, 1 rakam)" autocomplete="new-password">
+                <p id="app-gate-signup-status" class="app-login-gate-status"></p>
+                <button type="button" id="app-gate-signup-send-btn" class="primary-btn app-login-gate-submit">
+                    <i class="fa-solid fa-user-plus"></i> Hesap Oluştur
+                </button>
+            </div>
+
+            <!-- Şifre sıfırlama -->
+            <div id="app-gate-section-reset" class="hidden">
+                <p class="app-login-gate-sub">E-postana bir sıfırlama bağlantısı gönderelim.</p>
+                <input type="email" id="app-gate-reset-email" class="premium-input" placeholder="ornek@eposta.com" autocomplete="email">
+                <p id="app-gate-reset-status" class="app-login-gate-status"></p>
+                <button type="button" id="app-gate-reset-send-btn" class="primary-btn app-login-gate-submit"><i class="fa-solid fa-paper-plane"></i> Bağlantı Gönder</button>
+                <button type="button" id="app-gate-reset-back-btn" class="control-btn secondary app-login-gate-submit">Geri Dön</button>
+            </div>
+        </div>
+    </div>
+    <script src="inline-gate-prehide.js"></script>
 
     <div id="tour-overlay" class="tour-overlay"></div>
     <div id="tour-tooltip" class="tour-tooltip">
@@ -449,11 +522,11 @@
                             <svg width="30" height="30" viewBox="0 0 30 30"><circle cx="15" cy="15" r="12" fill="none" stroke="#d9b16a" stroke-width="1.6"></circle><circle cx="15" cy="15" r="6" fill="none" stroke="#d9b16a" stroke-width="1.6"></circle><circle cx="15" cy="15" r="1.6" fill="#d9b16a"></circle></svg>
                         </div>
                         <div class="td-goal-body">
-                            <div class="td-goal-label">Günün ana hedefi</div>
+                            <div class="td-goal-label">GÜNÜN HEDEFİ</div>
 
                             <!-- Aşama 1: Hedef belirleme -->
                             <div class="td-goal-setup" id="highlight-setup-state">
-                                <input type="text" id="highlight-input" class="td-goal-input" placeholder="Bugünün hedefini yaz...">
+                                <input type="text" id="highlight-input" class="td-goal-input" placeholder="Bugünün hedefini yaz..." autocapitalize="off" autocorrect="off">
                                 <div class="td-goal-setup-right">
                                     <select id="highlight-parent-goal" class="td-goal-select">
                                         <option value="" selected>🎯 Hedef (opsiyonel)</option>
@@ -882,7 +955,7 @@
                                     <span><i class="fa-solid fa-brain"></i> Zihin Çöplüğü</span>
                                     <button id="close-cal-mind-dump" class="icon-btn" aria-label="Kapat"><i class="fa-solid fa-xmark"></i></button>
                                 </div>
-                                <p class="cal-dump-hint">Görevleri günlerin üzerine sürükle veya "Planla" ile ekle.</p>
+                                <p class="cal-dump-hint">Sürükle veya "Planla" ile ekle</p>
                                 <ul id="cal-mind-dump-list" class="cal-dump-list"></ul>
                             </div>
                         </div>
@@ -1380,6 +1453,11 @@
                                 <button id="group-discover-modal-btn" class="primary-btn groups-hub-discover-btn">
                                     <i class="fa-solid fa-earth-americas"></i> Keşfet
                                 </button>
+                                <!-- Kurumum: sadece öğretmen rolündeki hesaplarda "+ Ekle" menüsünden
+                                     programatik tetiklenir (social-arena-chips.js), bu blok görünmez. -->
+                                <button id="my-institution-modal-btn" class="primary-btn groups-hub-discover-btn hidden">
+                                    <i class="fa-solid fa-building-columns"></i> Kurumum
+                                </button>
                             </div>
 
                             <!-- Gruplarım -->
@@ -1634,17 +1712,18 @@
                         <button id="social-change-profile-btn" title="Profili Düzenle" aria-label="Profili Düzenle"><i class="fa-solid fa-pen"></i></button>
                     </div>
 
-                    <!-- Oturum yok uyarısı -->
+                    <!-- Oturum yok uyarısı — normal akışta artık görünmemeli, çünkü
+                         uygulamaya girmek zaten #app-login-gate'ten (app-login-gate.js)
+                         geçmeyi gerektiriyor. Yalnızca gerçek bir zamanlama/oturum
+                         senkronizasyon aksaklığı olursa gösterilir; eski "Hesap /
+                         Senkronizasyon" modalını açan buton kasıtlı olarak kaldırıldı
+                         (giriş artık tek yer: app gate). -->
                     <div id="social-not-configured" class="glass-element hidden u-padding-30px_margin-bottom-20px_text-align-center_border-1" >
                         <i class="fa-solid fa-user-lock u-font-size-32px_color-hff9f43_margin-bottom-15px_display-bl" ></i>
-                        <h3 class="u-margin-bottom-10px_color-hfff">Topluluk Özellikleri için Giriş Yap</h3>
+                        <h3 class="u-margin-bottom-10px_color-hfff">Topluluk Özellikleri için Oturum Gerekiyor</h3>
                         <p class="u-color-var-text-muted_font-size-13px_line-height-1p7_margin">
-                            Arkadaşlarını görmek, liderlik tablosuna katılmak ve aktivite akışını
-                            kullanmak için e-posta ile giriş yapman gerekiyor.
+                            Bir senkronizasyon aksaklığı oluştu. Sayfayı yenilemeyi dene.
                         </p>
-                        <button id="social-not-configured-login-btn" class="primary-btn">
-                            <i class="fa-solid fa-right-to-bracket"></i> Giriş Yap
-                        </button>
                     </div>
                     <div class="bireysel-bento-grid">
                         <!-- Kişiler kartı kaldırıldı: çevrimiçi arkadaşlar sol kenardaki "Çevrimiçi" listesinde; ⚡ odak daveti oradaki kartlara taşındı -->
@@ -1776,6 +1855,18 @@
                         </button>
                         <!-- Planla -->
                         <div class="pg-toolbar-right">
+                            <!-- GERÇEK BUG DÜZELTMESİ (2026-08-07): collab.js'teki
+                                 "Odaya Katıl" (davet kodu girme) modalını açan
+                                 #pg-join-invite-btn HTML'de HİÇ YOKTU — bir
+                                 arkadaşından ortak planlama davet kodu alan
+                                 kullanıcının bunu girebileceği hiçbir arayüz
+                                 elemanı yoktu, özellik tamamen erişilemezdi
+                                 (canlı testte doğrulandı: kod üretiliyor ama
+                                 girecek yer bulunamıyordu). -->
+                            <button type="button" id="pg-join-invite-btn" class="pg-filter-toggle-btn" title="Bir davet kodu ile ortak plana katıl">
+                                <i class="ti ti-door-enter"></i>
+                                <span>Kodla Katıl</span>
+                            </button>
                             <button id="pg-new-goal-btn" class="pg-planla-btn">
                                 <i class="ti ti-plus"></i> Planla
                             </button>
@@ -2567,22 +2658,16 @@
 
         <!-- ARKADAŞ EKLE MODALI -->
         <div id="add-friend-modal" class="modal-overlay hidden u-z-index-10050" >
-            <div class="modal-content glass-panel u-max-width-400px" >
-                <header class="modal-header">
-                    <h2><i class="fa-solid fa-user-plus u-color-h2ed573" ></i> Kişi Ekle</h2>
-                    <button id="close-add-friend-modal" class="icon-btn" aria-label="Kapat"><i class="fa-solid fa-xmark"></i></button>
-                </header>
-                <div class="modal-body u-padding-top-5px" >
-                    <p class="u-color-var-text-muted_font-size-13px_margin-bottom-15px">Kişinin @kullanıcı adını yaz ve ara.</p>
-                    <div class="u-display-flex_gap-10px">
-                        <div class="u-display-flex_align-items-center_flex-1_background-rgba2552">
-                            <span class="u-color-var-text-muted_font-size-16px-2">@</span>
-                            <input type="text" id="add-friend-input" class="premium-input u-border-none_background-transparent_flex-1_padding-10px8px" placeholder="kullanici_adi" >
-                        </div>
-                        <button id="add-friend-search-btn" class="primary-btn" aria-label="Ara"><i class="fa-solid fa-magnifying-glass"></i></button>
-                    </div>
-                    <div id="add-friend-result" class="u-margin-top-15px_min-height-20px"></div>
+            <div class="modal-content glass-panel af-modal-content" >
+                <button id="close-add-friend-modal" class="icon-btn af-modal-close" aria-label="Kapat"><i class="fa-solid fa-xmark"></i></button>
+                <div class="modal-icon-wrapper info af-modal-icon"><i class="fa-solid fa-user-plus"></i></div>
+                <h2 class="af-modal-title">Kişi Ekle</h2>
+                <p class="af-modal-subtitle">Kişinin kullanıcı adını yaz ve ara</p>
+                <div class="af-search-row">
+                    <input type="text" id="add-friend-input" class="af-search-input" placeholder="kullanici_adi" autocomplete="off">
+                    <button id="add-friend-search-btn" class="af-search-btn" aria-label="Ara"><i class="fa-solid fa-magnifying-glass"></i></button>
                 </div>
+                <div id="add-friend-result" class="af-result"></div>
             </div>
         </div>
 
@@ -3327,7 +3412,7 @@
     <div id="goal-modal" class="modal-overlay hidden u-z-index-10020" >
         <div class="modal-content glass-panel u-max-width-460px-2" >
             <header class="modal-header">
-                <h2>Yeni Hedef</h2>
+                <h2 id="goal-modal-title">Yeni Hedef</h2>
                 <button id="close-goal-modal-btn" class="icon-btn" aria-label="Kapat"><i class="fa-solid fa-xmark"></i></button>
             </header>
             <div class="modal-body">
@@ -3403,6 +3488,17 @@
                     <div class="gd-prog-track">
                         <div id="detail-goal-progress-fill" class="gd-prog-fill u-width-0pct_background-linear-gradient90deghD4900Ehf0b429" ></div>
                     </div>
+                    <!-- GERÇEK BUG DÜZELTMESİ (2026-08-06): bu eleman hiç
+                         yoktu — _gdUpdateStatsAndCelebration (script-goal-
+                         details-sections.js) her hedef güncellemesinde
+                         (detay açma, dönüm noktası kaydetme, alışkanlık
+                         işaretleme...) buraya innerHTML yazmaya çalışıp null
+                         referans hatasıyla çöküyordu; bu da fonksiyonun GERİ
+                         KALANINI (konfeti/%100 kutlama, Tamamla butonu
+                         görünürlüğü) sessizce iptal ediyordu. generateAIAnalysis
+                         (script-goal-modal-analysis.js) zaten tam işlevsel,
+                         sadece hedefi yoktu. -->
+                    <div id="detail-goal-ai-text" class="gd-ai-analysis"></div>
                 </div>
 
                 <!-- İstatistikler -->
@@ -3538,6 +3634,14 @@
                 <div class="hm-field">
                     <label class="hm-label" for="event-parent-goal"><i class="fa-solid fa-mountain-sun"></i> Ana Hedef <span class="hm-optional">(opsiyonel)</span></label>
                     <select id="event-parent-goal" class="premium-input hm-select"></select>
+                </div>
+                <!-- Alışkanlık — GERÇEK BUG DÜZELTMESİ (2026-08-06): script-event-modal.js
+                     ve script-populate-parent-selects.js zaten #event-parent-habit'i
+                     bekliyor/dolduruyordu ama bu alan index.html'de hiç yoktu, bu yüzden
+                     bu modaldan oluşturulan hiçbir görev bir alışkanlığa bağlanamıyordu. -->
+                <div class="hm-field">
+                    <label class="hm-label" for="event-parent-habit"><i class="fa-solid fa-leaf"></i> Alışkanlık <span class="hm-optional">(opsiyonel)</span></label>
+                    <select id="event-parent-habit" class="premium-input hm-select"></select>
                 </div>
             </div>
             <div class="modal-footer">
@@ -3836,18 +3940,18 @@
 
                 <div class="form-group u-margin-top-15px-2" >
                     <label class="form-label" id="dump-type-selector-label">Bu fikir neye dönüşsün?</label>
-                    <div id="dump-type-selector" class="u-display-flex_gap-10px_margin-bottom-20px" role="radiogroup" aria-labelledby="dump-type-selector-label">
+                    <div id="dump-type-selector" class="dump-type-selector" role="radiogroup" aria-labelledby="dump-type-selector-label">
                         <label class="u-flex-1_text-align-center_cursor-pointer">
                             <input type="radio" name="dump_type" value="task" checked class="hidden">
-                            <div class="dump-type-btn active u-padding-10px_background-rgba212144140p2_border-1pxsolidvar" >📌 Görev</div>
+                            <div class="dump-type-btn active">📌 Görev</div>
                         </label>
                         <label class="u-flex-1_text-align-center_cursor-pointer">
                             <input type="radio" name="dump_type" value="habit" class="hidden">
-                            <div class="dump-type-btn u-padding-10px_background-var-glass-bg_border-1pxsolidvar-gl" >🔄 Alışkanlık</div>
+                            <div class="dump-type-btn">🔄 Alışkanlık</div>
                         </label>
                         <label class="u-flex-1_text-align-center_cursor-pointer">
                             <input type="radio" name="dump_type" value="goal" class="hidden">
-                            <div class="dump-type-btn u-padding-10px_background-var-glass-bg_border-1pxsolidvar-gl" >🎯 Ana Hedef</div>
+                            <div class="dump-type-btn">🎯 Ana Hedef</div>
                         </label>
                     </div>
                 </div>
@@ -3870,13 +3974,13 @@
                     <div class="form-row">
                         <div class="form-col">
                             <label class="form-label" for="convert-dump-parent-goal">Ana Hedef (Opsiyonel)</label>
-                            <select id="convert-dump-parent-goal" class="modern-select premium-input w-full">
+                            <select id="convert-dump-parent-goal" class="dump-minimal-select w-full">
                                 <option value="" selected>🎯 Ana Hedef Seç</option>
                             </select>
                         </div>
                         <div class="form-col">
                             <label class="form-label" for="convert-dump-priority">Öncelik</label>
-                            <select id="convert-dump-priority" class="modern-select premium-input w-full">
+                            <select id="convert-dump-priority" class="dump-minimal-select w-full">
                                 <option value="low">🟢 Düşük</option>
                                 <option value="medium" selected>🟡 Orta</option>
                                 <option value="high">🔴 Yüksek</option>
@@ -3885,7 +3989,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="convert-dump-task-recurring">Tekrar (Sıklık)</label>
-                        <select id="convert-dump-task-recurring" class="modern-select premium-input w-full">
+                        <select id="convert-dump-task-recurring" class="dump-minimal-select w-full">
                             <option value="" selected>Tekrar Yok</option>
                             <option value="daily">Her Gün</option>
                             <option value="weekdays">Hafta İçi</option>
@@ -3895,7 +3999,18 @@
                     </div>
                 </div>
         
-                <div id="dump-habit-fields" class="hidden">
+                <!-- NOT: "hidden" class'ı YOK — o class'ın display:none'ı
+                     !important olduğundan, script-convert-modal.js'in tip
+                     radyoları değişince yaptığı .style.display='block' JS
+                     ataması onu asla ezemiyordu (habit alanları hiç
+                     görünmüyordu — kullanıcı raporu, 2026-08-06). Başlangıç
+                     kapalı durumu, modal her açıldığında "Görev" radyosuna
+                     senkron .click() atan openConvertModal() tarafından JS
+                     ile veriliyor (bkz. aşağıda), o yüzden burada ayrıca
+                     style="display:none" yazmaya da gerek yok — zaten CSP
+                     (style-src'de 'unsafe-inline' yok) böyle bir HTML
+                     attribute'unu sessizce yok sayardı. -->
+                <div id="dump-habit-fields">
                     <div class="form-row">
                         <div class="form-col">
                             <label class="form-label" for="convert-dump-habit-category">Kategori</label>
@@ -3904,7 +4019,12 @@
                         </div>
                         <div class="form-col">
                             <label class="form-label" for="convert-dump-habit-duration">Hedeflenen Süre (Gün)</label>
-                            <input type="number" id="convert-dump-habit-duration" class="modern-input premium-input w-full" value="21" min="1">
+                            <div class="hm-stepper">
+                                <button type="button" id="convert-dump-habit-duration-minus" class="hm-step-btn" aria-label="Azalt"><i class="fa-solid fa-minus"></i></button>
+                                <input type="text" inputmode="numeric" pattern="[0-9]*" id="convert-dump-habit-duration" min="1" max="365" value="21" class="hm-step-input no-spinners">
+                                <button type="button" id="convert-dump-habit-duration-plus" class="hm-step-btn" aria-label="Artır"><i class="fa-solid fa-plus"></i></button>
+                                <span class="hm-step-label">gün</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -3915,8 +4035,8 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button id="cancel-convert-dump-btn" class="control-btn secondary btn-md">İptal</button>
-                <button id="save-convert-dump-btn" class="control-btn primary u-padding-10px22px_font-size-14px_background-h2ed573" >
+                <button id="cancel-convert-dump-btn" class="control-btn secondary dump-modal-btn-sm">İptal</button>
+                <button id="save-convert-dump-btn" class="control-btn primary dump-modal-btn-sm" >
                     <i class="fa-solid fa-check"></i> Planla & Taşı
                 </button>
             </div>
@@ -4180,6 +4300,21 @@
             <button id="save-premium-group-btn" class="primary-btn u-background-linear-gradient135deghD4900EhD4900E_border-none" >
                 <i class="fa-solid fa-rocket"></i> Grubu Canlıya Al
             </button>
+        </div>
+    </div>
+</div>
+
+<!-- KURUMUM MODALI (öğretmenin sahip olduğu kurumlar + sınıf grupları + öğrenci ataması) -->
+<div id="my-institution-modal" class="modal-overlay hidden u-z-index-10060-2" >
+    <div class="modal-content glass-panel u-max-width-560px_max-height-80vh_display-flex_flex-directio" >
+        <header class="modal-header u-display-flex_justify-content-space-between_align-items-cen-4" >
+            <h2 class="u-font-size-18px_color-hfff_margin-0_display-flex_align-item">
+                <i class="fa-solid fa-building-columns u-color-hD4900E-2" ></i> Kurumum
+            </h2>
+            <button id="close-my-institution-modal" class="icon-btn u-color-var-text-muted_cursor-pointer"  aria-label="Kapat"><i class="fa-solid fa-xmark"></i></button>
+        </header>
+        <div class="modal-body u-overflow-y-auto_flex-1_min-height-0" >
+            <div id="my-institution-list" class="u-display-flex_flex-direction-column_gap-15px"></div>
         </div>
     </div>
 </div>
@@ -5157,11 +5292,29 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.5/dist/umd/supabase.js" integrity="sha384-fTq5g8tD1IgcQKSKKNu5HdZncuhKN6e5MmGdzPNCK4jk3lh0tfnPZAtrUvyvgt4i" crossorigin="anonymous"></script>
     <script type="module" src="supabase-client.js"></script>
     <script type="module" src="auth-ui.js"></script>
+    <script type="module" src="app-login-gate.js"></script>
     <!-- script.js yüklenir yüklenmez (üst düzeyde, senkron) getWeekNumber()
          çağırıyor (currentWeekStr hesaplaması) — bu yüzden script.js'ten
          ÖNCE gelmeli. -->
     <script type="module" src="script-date-time-utils.js"></script>
     <script type="module" src="script.js"></script>
+    <script type="module" src="script-habit-render-mutate.js"></script>
+    <script type="module" src="script-task-render-mutate.js"></script>
+    <script type="module" src="script-calendar-view-switch.js"></script>
+    <script type="module" src="script-calendar-sync-bridge.js"></script>
+    <script type="module" src="script-calendar-fullscreen.js"></script>
+    <script type="module" src="script-data-sync-refresh.js"></script>
+    <script type="module" src="script-day-drawer-render.js"></script>
+    <script type="module" src="script-day-drawer-core.js"></script>
+    <script type="module" src="script-task-breadcrumb.js"></script>
+    <script type="module" src="script-goal-delete-prompt.js"></script>
+    <script type="module" src="script-habit-modal-dates.js"></script>
+    <script type="module" src="script-journal-modal.js"></script>
+    <script type="module" src="script-move-task-to-date.js"></script>
+    <script type="module" src="script-premium-alert-toast.js"></script>
+    <script type="module" src="script-profile-dropdown.js"></script>
+    <script type="module" src="script-schedule-conflict-utils.js"></script>
+    <script type="module" src="script-book-detail-modal.js"></script>
     <script type="module" src="script-reflection-date-utils.js"></script>
     <script type="module" src="script-challenge-days.js"></script>
     <script type="module" src="script-habit-goal-synergy.js"></script>
@@ -5186,6 +5339,7 @@
     <script type="module" src="script-calendar-hover-popup.js"></script>
     <script type="module" src="script-day-summary-card.js"></script>
     <script type="module" src="script-milestone-auto-splitter.js"></script>
+    <script type="module" src="script-goal-details-sections.js"></script>
     <script type="module" src="script-goal-archiver.js"></script>
     <script type="module" src="script-goal-deadline-extend.js"></script>
     <script type="module" src="script-task-end-question.js"></script>
@@ -5514,6 +5668,7 @@
                         <div class="zkmm-stat-row"><span class="zkmm-stat-label">En Verimli Gün</span><span id="zkmm-bestday-val" class="zkmm-stat-val">—</span></div>
                     </div>
                     <div id="zkmm-empty" class="zkm-empty hidden">
+                        <div class="zkm-empty-icon">✒️</div>
                         <div class="zkm-empty-title">Bu ay henüz yazılmadı.</div>
                         <div class="zkm-empty-sub">İlk sayfayı sen aç.</div>
                     </div>

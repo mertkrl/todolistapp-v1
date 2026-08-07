@@ -1,4 +1,6 @@
 import { getWeekStart, snap15 } from './script-calendar-date-utils.js';
+import { createCalDragGhost } from './script-calendar-week-day-view-drag-ghost.js';
+import { premiumMoveTask } from './script-calendar-week-day-view-move-task.js';
 // script-calendar-week-day-view.js
 // script.js'ten çıkarıldı (Faz 6): Haftalık Görünüm + Günlük Görünüm + ikisi
 // arasında paylaşılan yardımcılar (saat popover'ı, sürükleme "hayalet"
@@ -333,6 +335,7 @@ import { getWeekStart, snap15 } from './script-calendar-date-utils.js';
              const cat   = document.getElementById('iqa-category').value;
              addGlobalTask(text, prio, cat, _iqaDs, start, end, '', '');
              closeCalInlineAdd();
+             const currentCalView = window.__getCurrentCalView();
              if (currentCalView === 'weekly') window.renderWeeklyView();
              else if (currentCalView === 'daily') window.renderDailyView();
              window.renderCalendar();
@@ -432,22 +435,8 @@ import { getWeekStart, snap15 } from './script-calendar-date-utils.js';
          openCalInlineAdd(ds, h, cell, event);
      };
  
-     // — Premium Drag Ghost Oluşturucu —
-     window.createCalDragGhost = (text, timeStart, timeEnd, priority) => createCalDragGhost(text, timeStart, timeEnd, priority); // Faz 6: script-calendar-week-day-view.js için
-    function createCalDragGhost(text, timeStart, timeEnd, priority) {
-         const ghost = document.createElement('div');
-         ghost.className = `cal-drag-ghost ghost-${priority || 'medium'}`;
-         const timeStr = timeStart ? `⏱ ${timeStart}${timeEnd ? ' → ' + timeEnd : ''}` : '';
-         ghost.innerHTML = `
-             <div class="ghost-bar"></div>
-             <div class="ghost-time">${timeStr}</div>
-             <div class="ghost-title">${escapeHtml(text)}</div>
-             <i class="fa-solid fa-grip-dots-vertical ghost-icon"></i>`;
-         document.body.appendChild(ghost);
-         setTimeout(() => ghost.remove(), 0);
-         return ghost;
-     }
- 
+     // createCalDragGhost -> script-calendar-week-day-view-drag-ghost.js dosyasına taşındı.
+
      // ── Drag-and-Drop: global durum & yardımcılar ──
      let _calDragId = null;
 
@@ -722,40 +711,4 @@ import { getWeekStart, snap15 } from './script-calendar-date-utils.js';
          }
      };
  
-     // Görevi yeni tarih+saate taşı
-     function premiumMoveTask(id, oldDate, newDate, newHour, snapMins) {
-         const task = window.__getTasksRef().find(t => String(t.id) === String(id));
-         if (!task) return;
-         const oldDateStr = oldDate || task.date;
-         snapMins = snapMins || 0;
-
-         // Aynı konuma bırakıldıysa işlem yapma
-         const oldStartM = window.timeToMins(task.timeStart || '12:00');
-         if (oldDateStr === newDate && Math.floor(oldStartM / 60) === newHour && (oldStartM % 60) === snapMins) return;
-
-         const newStartTotal = newHour * 60 + snapMins;
-         const newStart = `${String(newHour).padStart(2,'0')}:${String(snapMins).padStart(2,'0')}`;
-         const oldEndM = window.timeToMins(task.timeEnd || '13:00');
-         const durMins = Math.max(30, oldEndM - oldStartM);
-         const newEndTotal = Math.min(23 * 60 + 59, newStartTotal + durMins);
-         const newEnd = `${String(Math.floor(newEndTotal / 60)).padStart(2,'0')}:${String(newEndTotal % 60).padStart(2,'0')}`;
-
-         task.date = newDate;
-         task.timeStart = newStart;
-         task.timeEnd = newEnd;
-
-         if (window.__getCalendarEventsRef()[oldDateStr]) {
-             window.__getCalendarEventsRef()[oldDateStr] = window.__getCalendarEventsRef()[oldDateStr].filter(e => String(e.id) !== String(id));
-             if (!window.__getCalendarEventsRef()[oldDateStr].length) delete window.__getCalendarEventsRef()[oldDateStr];
-         }
-         if (!window.__getCalendarEventsRef()[newDate]) window.__getCalendarEventsRef()[newDate] = [];
-         window.__getCalendarEventsRef()[newDate] = window.__getCalendarEventsRef()[newDate].filter(e => String(e.id) !== String(id));
-         window.__getCalendarEventsRef()[newDate].push({ id: task.id, text: task.text, timeStart: newStart, timeEnd: newEnd, priority: task.priority, parentHabit: task.parentHabit || '' });
-
-         saveTasks();
-         window.renderCalendar();
-         if (currentCalView === 'weekly') window.renderWeeklyView();
-         else if (currentCalView === 'daily') window.renderDailyView();
-
-         showPremiumModal({ title: 'Plan Taşındı 🗓️', message: `"${escapeHtml(task.text)}" → ${newDate} ${newStart} – ${newEnd}`, type: 'success' });
-     }
+     // premiumMoveTask -> script-calendar-week-day-view-move-task.js dosyasına taşındı.

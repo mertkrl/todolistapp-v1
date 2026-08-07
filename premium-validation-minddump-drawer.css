@@ -19,37 +19,46 @@
     40%, 64% { transform: translate3d(6px, 0, 0); }
 }
 
-/* Premium Fikir Planlama Paneli Düzenlemeleri */
-#cal-mind-dump-drawer {
-    background: rgba(15, 12, 41, 0.92) !important; /* Derin gece mavisi tonu ile kesin okunurluk */
-    backdrop-filter: blur(20px) !important; /* Arkayı yumuşakça bulandırır */
-    -webkit-backdrop-filter: blur(20px) !important;
-    border: 1px solid rgba(212, 144, 14, 0.4) !important; /* FocusAI moru belirgin sınır */
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7) !important; /* Paneli öne çıkaran derin gölge */
-}
-
-/* Zihin çöplüğü havuzundaki liste elemanları (Kartlar) */
+/* Zihin çöplüğü havuzundaki liste elemanları (Kartlar) — sade/minimalist.
+   Renkler tema değişkenleriyle (--s2/--b1/--a/--t1) uyumlu, gölge/blur/hover-
+   kaldırma animasyonu yok (bkz. calendar-tab-bridge-override.css'teki drawer
+   temel stiliyle çakışmasın diye tek kaynak burada tutuluyor). */
 #cal-mind-dump-list li {
-    background: rgba(255, 255, 255, 0.06) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    border-radius: 10px !important;
-    padding: 10px 14px !important;
-    color: #ffffff !important; /* Metinler artık tamamen beyaz ve net */
+    background: var(--s3) !important;
+    border: 1px solid var(--b1) !important;
+    border-radius: 8px !important;
+    padding: 9px 12px !important;
+    color: var(--t1) !important;
     font-size: 13px !important;
     font-weight: 500 !important;
     display: flex !important;
     justify-content: space-between !important;
     align-items: center !important;
     cursor: grab !important;
-    transition: all 0.2s ease-in-out !important;
+    transition: background 0.15s ease, border-color 0.15s ease !important;
 }
 
-/* Kartların üzerine gelindiğinde (Hover durumu) */
+/* Kartların üzerine gelindiğinde (Hover durumu) — sadece renk değişir, animasyon yok */
 #cal-mind-dump-list li:hover {
-    background: rgba(212, 144, 14, 0.15) !important;
-    border-color: rgba(212,144,14,0.6) !important;
-    transform: translateY(-2px) !important;
-    box-shadow: 0 5px 15px rgba(212, 144, 14, 0.2) !important;
+    background: rgba(212, 144, 14, 0.1) !important;
+    border-color: rgba(212,144,14,0.4) !important;
+}
+
+/* Boş havuz durumu — ortalanmış, sade metin */
+#cal-mind-dump-list li.cal-dump-empty-state {
+    justify-content: center !important;
+    gap: 6px !important;
+    text-align: center !important;
+    color: var(--t3, rgba(255,255,255,0.4)) !important;
+    font-size: 12px !important;
+    font-weight: 400 !important;
+    background: transparent !important;
+    border-style: dashed !important;
+    cursor: default !important;
+}
+#cal-mind-dump-list li.cal-dump-empty-state:hover {
+    background: transparent !important;
+    border-color: var(--b1) !important;
 }
 
 /* Özel kaydırma çubuğu (Scrollbar) düzenlemesi */

@@ -179,12 +179,12 @@ import { getPvSelectedDate, setPvSelectedDate } from './state/pv-selected-date-s
     // Salt-okunur köprü — planning-quick-create.js gibi ayrılan modüllerin
     // goals dizisini (referans olarak — unshift/find gibi mutasyon
     // metodları çalışır) taşımadan kullanabilmesi için.
-    window._pgGetGoals = () => goals;
+    window._pgGetGoals = () => getPgGoalsArr();
     // goals dizisi yeni bir referansla DEĞİŞTİRİLDİĞİNDE (filter/reassign,
     // splice/unshift referansı korur ve zaten _pgGetGoals ile çalışır) bunu
     // geri yazmak için — planning-lesson-plan-invites.js gibi ayrılmış
     // modüllerin `goals = goals.filter(...)` desenini kullanabilmesi için.
-    window._pgSetGoals = (arr) => { goals = arr; };
+    window._pgSetGoals = (arr) => { setPgGoalsArr(arr); };
 
     // _setSyncBadge → planning-goal-sync-cleanup.js'e taşındı (Faz O).
 
@@ -400,7 +400,7 @@ import { getPvSelectedDate, setPvSelectedDate } from './state/pv-selected-date-s
     // renderTodaySprintWidget → planning-goal-collab-bridge.js'e taşındı
     // (Faz devamı).
 
-    window.renderPlanningRef   = ()=>{ render(); };
+    window.renderPlanningRef   = ()=>{ window.render(); };
     // addPlanningDependency/removePlanningDependency/getPlanningDependencies/
     // isPlanningGoalBlocked artık planning-dependency-graph.js'te tanımlanıyor.
     // window.initPlanningModule köprüsü artık planning-pv-lifecycle.js'de kuruluyor.

@@ -63,6 +63,10 @@
 }
 .cal-dump-drawer.hidden { display: none; }
 .cal-dump-drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
     font-size: 0.78rem;
     font-weight: 600;
     color: var(--text-muted, rgba(255,255,255,0.5));
@@ -70,8 +74,9 @@
     letter-spacing: 0.05em;
 }
 .cal-dump-hint {
-    font-size: 0.75rem;
-    color: var(--text-muted, rgba(255,255,255,0.4));
+    font-size: 0.7rem;
+    color: var(--text-muted, rgba(255,255,255,0.35));
+    margin: -2px 0 2px;
 }
 .cal-dump-list {
     display: flex;

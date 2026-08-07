@@ -19,75 +19,10 @@ import { isBlocked } from './planning-dependency-graph.js';
 //  - renderStatsCard, _goalComplete, _sparkle: burada tanımlı, planning.js'in
 //    geri kalanı tarafından window.* ile çağrılıyor (dışa açıldı).
 import { esc, getPgLoadedAtRef, getPgRenderCountRef, incPgRenderCountRef, openDetailPanel, toggleArchive, deleteGoalWithUndo, getPgGoals, getPgActiveFilters, toast } from './planning.js';
+import { MILESTONE_TEMPLATES, SUBTASK_SUGGESTIONS } from './planning-misc-widgets-templates.js';
 
     // ── Sabitler ──────────────────────────────
-    // ── Milestone Şablonları (kategori bazlı) ─
-    const MILESTONE_TEMPLATES = {
-        egitim: [
-            { title: 'A1 Başlangıç',      icon: '📖', weeks: 8 },
-            { title: 'A2 Temel Seviye',   icon: '📚', weeks: 8 },
-            { title: 'B1 Orta Seviye',    icon: '🎯', weeks: 12 },
-            { title: 'B2 İleri Seviye',   icon: '🚀', weeks: 16 },
-            { title: 'Kurs Tamamla',       icon: '🎓', weeks: 10 },
-            { title: 'Sertifika Sınavı',  icon: '📜', weeks: 4 },
-            { title: 'Proje Yap',          icon: '🛠️', weeks: 8 },
-            { title: 'Mentor Bul',         icon: '🤝', weeks: 2 },
-        ],
-        saglik: [
-            { title: 'Doktor Muayenesi',      icon: '🏥', weeks: 1 },
-            { title: 'Beslenme Planı Hazırla', icon: '🥗', weeks: 2 },
-            { title: 'İlk 5K Koş',            icon: '🏃', weeks: 8 },
-            { title: '10K Hedefine Ulaş',      icon: '🏅', weeks: 16 },
-            { title: 'Hedef Kiloya Ulaş',      icon: '⚖️', weeks: 20 },
-            { title: 'Yoga Rutini Kur',        icon: '🧘', weeks: 4 },
-            { title: 'Uyku Düzeni Oluştur',   icon: '😴', weeks: 3 },
-            { title: 'Spor Alışkanlığı Edin',  icon: '💪', weeks: 12 },
-        ],
-        kariyer: [
-            { title: 'CV Güncelle',        icon: '📄', weeks: 1 },
-            { title: 'Profesyonel Ağ Kur', icon: '🤝', weeks: 8 },
-            { title: 'Yeni Beceri Öğren',  icon: '💡', weeks: 12 },
-            { title: 'Portföy Hazırla',    icon: '🗂️', weeks: 6 },
-            { title: 'İş Başvuruları',     icon: '📮', weeks: 8 },
-            { title: 'Mülakat Hazırlığı',  icon: '💼', weeks: 4 },
-            { title: 'Terfi Hedefle',      icon: '📈', weeks: 24 },
-            { title: 'Freelance Başla',    icon: '🖥️', weeks: 12 },
-        ],
-        finans: [
-            { title: 'Bütçe Planı Yap',    icon: '📊', weeks: 1 },
-            { title: 'Acil Fon Oluştur',   icon: '🏦', weeks: 24 },
-            { title: 'Borç Öde',           icon: '💳', weeks: 16 },
-            { title: 'İlk Yatırım Yap',    icon: '📈', weeks: 12 },
-            { title: '%10 Tasarruf Hedefi', icon: '💰', weeks: 8 },
-            { title: 'Ek Gelir Kaynağı',   icon: '💹', weeks: 20 },
-        ],
-        kisisel: [
-            { title: 'Yeni Hobi Başlat',     icon: '🎨', weeks: 4 },
-            { title: 'Meditasyon Alışkanlığı',icon: '🧘', weeks: 4 },
-            { title: 'Seyahat Planla',       icon: '✈️', weeks: 12 },
-            { title: '12 Kitap Oku',         icon: '📚', weeks: 52 },
-            { title: 'Sosyal Çevre Genişlet',icon: '👥', weeks: 8 },
-            { title: 'Dijital Detoks',       icon: '📵', weeks: 2 },
-        ],
-        diger: [
-            { title: 'Araştırma Yap',  icon: '🔍', weeks: 2 },
-            { title: 'Plan Oluştur',   icon: '📋', weeks: 1 },
-            { title: 'Kaynak Topla',   icon: '📦', weeks: 3 },
-            { title: 'Uygula',         icon: '⚡', weeks: 8 },
-            { title: 'Değerlendir',    icon: '📊', weeks: 2 },
-            { title: 'Sonuçlandır',    icon: '🏁', weeks: 2 },
-        ],
-    };
-
-    const SUBTASK_SUGGESTIONS = {
-        egitim: ['Ders programı oluştur', 'Kaynak listesi hazırla', 'Çalışma ortamı düzenle', 'İlerlemeyi takip et', 'Pratik yap'],
-        saglik: ['Doktora danış', 'Beslenme günlüğü tut', 'Egzersiz programı oluştur', 'Haftalık ölçüm al'],
-        kariyer: ['Araştırma yap', 'Mentor bul', 'Network oluştur', 'Günlük hedef belirle', 'Geri bildirim al'],
-        finans: ['Mevcut durumu analiz et', 'Bütçe oluştur', 'Tasarruf hesabı aç', 'Harcamaları takip et'],
-        kisisel: ['Motivasyon kaynağı bul', 'Haftalık plan yap', 'İlerleme günlüğü tut', 'Destek al'],
-        diger:   ['Araştırma yap', 'Plan oluştur', 'Adım adım ilerle', 'Değerlendir'],
-    };
-
+    // MILESTONE_TEMPLATES / SUBTASK_SUGGESTIONS → planning-misc-widgets-templates.js dosyasına taşındı.
     // CATEGORIES → planning-utils.js dosyasına taşındı.
     const STATUS_META = {
         active:    { label: 'Aktif',        color: '#4ade80' },
@@ -238,14 +173,38 @@ import { esc, getPgLoadedAtRef, getPgRenderCountRef, incPgRenderCountRef, openDe
         }
 
         if (list.length===0) {
-            grid.innerHTML = isArchiveMode
-                ? `${archiveBanner}<div class="pg-ms-empty u-padding-40px" ><i class="ti ti-archive"></i><br>Henüz arşivlenen hedef yok.</div>`
-                : isCompletedMode
-                    ? `${archiveBanner}<div class="pg-ms-empty u-padding-40px" ><i class="ti ti-trophy"></i><br>Henüz tamamlanan hedef yok.</div>`
-                    : '';
-            if (empty) empty.style.display = list.length===0 && isAllMode ? 'flex' : 'none';
+            if (isArchiveMode) {
+                grid.innerHTML = archiveBanner + _pgEmptyCardHtml('🗄️', 'Henüz Arşivlenen Hedef Yok', 'Tamamladığın veya bıraktığın hedefleri arşivleyerek listeni sade tutabilirsin.');
+            } else if (isCompletedMode) {
+                grid.innerHTML = archiveBanner + _pgEmptyCardHtml('🏆', 'Henüz Tamamlanan Hedef Yok', 'Bir hedefi %100 bitirdiğinde otomatik olarak burada listelenir.');
+            } else if (isAllMode) {
+                grid.innerHTML = '';
+            } else {
+                // Akıllı/kategori filtresi (Gecikmiş, Bu Hafta, kategori...) sonucu boş —
+                // önceden burası sessizce boş bırakılıyordu, kullanıcı hiçbir geri bildirim
+                // görmüyordu. Seçili filtrelere göre uygun bir karşılama mesajı gösteriyoruz,
+                // Arşiv/Başardıklarım'la aynı görsel dilde (_pgEmptyCardHtml).
+                const isOverdueOnly = getPgActiveFilters().size === 1 && getPgActiveFilters().has('__overdue__');
+                const isThisWeekOnly = getPgActiveFilters().size === 1 && getPgActiveFilters().has('__thisweek__');
+                const activeLabels = [...document.querySelectorAll('.pg-filter-btn.active')]
+                    .map(b => b.dataset.label).filter(Boolean);
+                if (isOverdueOnly) {
+                    grid.innerHTML = _pgEmptyCardHtml('🎉', 'Gecikmiş Hedefin Yok', 'Harika gidiyorsun — süresi geçmiş hiçbir hedefin yok, her şey zamanında ilerliyor.');
+                } else if (isThisWeekOnly) {
+                    grid.innerHTML = _pgEmptyCardHtml('🗓️', 'Bu Hafta Teslim Yok', 'Bu hafta son tarihi gelen bir hedefin bulunmuyor. Rahatsın, biraz nefes alabilirsin.');
+                } else {
+                    grid.innerHTML = _pgEmptyCardHtml('🔍', 'Bu Filtreye Uyan Hedef Yok',
+                        activeLabels.length ? esc(activeLabels.join(', ')) + ' filtresine uyan bir hedef bulunamadı.' : 'Seçili filtreye uyan bir hedef bulunamadı.');
+                }
+            }
+            _bindCardEvents(grid); // boş-durum kartındaki "Tümünü Gör" butonu için de gerekli
+            if (empty) {
+                const showEmpty = list.length===0 && isAllMode;
+                empty.classList.toggle('hidden', !showEmpty);
+                empty.style.display = showEmpty ? 'flex' : 'none';
+            }
         } else {
-            if (empty) empty.style.display='none';
+            if (empty) { empty.classList.add('hidden'); empty.style.display='none'; }
             grid.innerHTML = archiveBanner + list.map(cardHTML).join('');
             grid.querySelectorAll('.pg-card').forEach((cardEl, cIdx) => _applyCardColors(cardEl, list[cIdx]));
             _bindCardEvents(grid);
@@ -262,6 +221,24 @@ import { esc, getPgLoadedAtRef, getPgRenderCountRef, incPgRenderCountRef, openDe
     }
     window.render = render;
 
+    // Boş-durum kartı (Arşiv/Başardıklarım/Gecikmiş/Bu Hafta/filtre) — Ana
+    // Hedefler'deki (script-goal-modal-list-utils.js buildEmptyCompletedStateHtml)
+    // ile aynı görsel dil: glass-element kart, büyük emoji, başlık, açıklama,
+    // "Tümünü Gör" CTA'sı (filtreleri sıfırlar). .u-grid-column-1-1 kartı grid
+    // içinde tam genişliğe yayar, .pg-empty-card-wrap ise dikey olarak ortalar.
+    function _pgEmptyCardHtml(icon, title, sub) {
+        return `<div class="u-grid-column-1-1 pg-empty-card-wrap">
+            <div class="glass-element u-text-align-center_padding-50px28px40px_border-1pxdashedrgb" >
+                <div class="u-font-size-64px_margin-bottom-12px_line-height-1_filter-dro">${icon}</div>
+                <h3 class="u-color-hfff_font-size-20px_font-weight-700_margin-bottom-8p">${title}</h3>
+                <p class="u-color-var-text-muted_font-size-14px_max-width-340px_margin">${sub}</p>
+                <button type="button" class="primary-btn u-margin-24pxauto0_justify-content-center_background-rgba254 pg-empty-reset-filter-btn">
+                    <i class="fa-solid fa-list"></i> Tümünü Gör
+                </button>
+            </div>
+        </div>`;
+    }
+
     function _bindCardEvents(grid) {
         // Event delegation — tüm kart butonları tek listener ile
         if (grid._pgBound) return; // Sadece bir kez bağla
@@ -272,11 +249,13 @@ import { esc, getPgLoadedAtRef, getPgRenderCountRef, incPgRenderCountRef, openDe
             const edit    = e.target.closest('.pg-edit-btn');
             const archive = e.target.closest('.pg-archive-btn');
             const del     = e.target.closest('.pg-delete-btn');
+            const resetFilter = e.target.closest('.pg-empty-reset-filter-btn');
             if (plan)    { e.stopPropagation(); openPlanView(plan.dataset.id); }
             if (open)    { e.stopPropagation(); openDetailPanel(open.dataset.id); }
             if (edit)    { e.stopPropagation(); openGoalModal(edit.dataset.id); }
             if (archive) { e.stopPropagation(); toggleArchive(archive.dataset.id); }
             if (del)     { e.stopPropagation(); deleteGoalWithUndo(del.dataset.id); }
+            if (resetFilter) { e.stopPropagation(); document.querySelector('.pg-filter-btn[data-cat="all"]')?.click(); }
         });
     }
 

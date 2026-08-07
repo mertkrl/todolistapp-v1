@@ -48,6 +48,7 @@
             () => import('./social-conn-status.js'),
             () => import('./social-dc-confirm-toasts.js'),
             () => import('./social-dc-msg-selection.js'),
+            () => import('./social-dc-message-mutate.js'),
             // Faz H (2026-07-27): social-friend-search.js / social-settings-modal.js
             // gerçek import kullanabilsin diye ürettikleri fonksiyonların hepsi
             // (avatarImgHtml, getFriends/searchUser/sendFriendRequest/removeFriend,

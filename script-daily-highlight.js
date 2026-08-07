@@ -11,10 +11,15 @@ export function loadDailyHighlight() {
     let todayHighlight = highlightHistory[todayStr];
     const goalCard = document.getElementById('td-goal-wrap');
 
+    // NOT: .hidden class'ı global olarak `display: none !important` (bkz.
+    // sohbet-3sutun-mimari.css) — bu yüzden görünürlük her zaman classList
+    // ile de değiştirilmeli, sadece style.display yetmiyor (JS'in inline
+    // style'ı !important karşısında kaybediyordu, "Belirle"ye basınca hedef
+    // metni hiç görünmüyordu — kullanıcı bulgusu, 2026-08-06).
     if (!todayHighlight) {
-        if(highlightSetupState) highlightSetupState.style.display = 'flex';
-        if(highlightActiveState) highlightActiveState.style.display = 'none';
-        if(highlightCompletedState) highlightCompletedState.style.display = 'none';
+        if(highlightSetupState) { highlightSetupState.style.display = 'flex'; highlightSetupState.classList.remove('hidden'); }
+        if(highlightActiveState) { highlightActiveState.style.display = 'none'; highlightActiveState.classList.add('hidden'); }
+        if(highlightCompletedState) { highlightCompletedState.style.display = 'none'; highlightCompletedState.classList.add('hidden'); }
         if(highlightInput) highlightInput.value = '';
         if(highlightParentSelect) highlightParentSelect.value = '';
         if(goalCard) goalCard.classList.remove('is-goal-complete');
@@ -25,14 +30,14 @@ export function loadDailyHighlight() {
         if(completedDisplay) completedDisplay.textContent = todayHighlight.text;
 
         if (todayHighlight.completed) {
-            if(highlightSetupState) highlightSetupState.style.display = 'none';
-            if(highlightActiveState) highlightActiveState.style.display = 'none';
-            if(highlightCompletedState) highlightCompletedState.style.display = 'flex';
+            if(highlightSetupState) { highlightSetupState.style.display = 'none'; highlightSetupState.classList.add('hidden'); }
+            if(highlightActiveState) { highlightActiveState.style.display = 'none'; highlightActiveState.classList.add('hidden'); }
+            if(highlightCompletedState) { highlightCompletedState.style.display = 'flex'; highlightCompletedState.classList.remove('hidden'); }
             if(goalCard) goalCard.classList.add('is-goal-complete');
         } else {
-            if(highlightSetupState) highlightSetupState.style.display = 'none';
-            if(highlightActiveState) highlightActiveState.style.display = 'flex';
-            if(highlightCompletedState) highlightCompletedState.style.display = 'none';
+            if(highlightSetupState) { highlightSetupState.style.display = 'none'; highlightSetupState.classList.add('hidden'); }
+            if(highlightActiveState) { highlightActiveState.style.display = 'flex'; highlightActiveState.classList.remove('hidden'); }
+            if(highlightCompletedState) { highlightCompletedState.style.display = 'none'; highlightCompletedState.classList.add('hidden'); }
             if(goalCard) goalCard.classList.remove('is-goal-complete');
         }
     }

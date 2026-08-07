@@ -44,8 +44,8 @@ function renderCalMindDump() {
     const mindDumpItems = getMindDumpsRef() || FocusStorage.get('mind_dumps', []);
 
     if (!mindDumpItems || mindDumpItems.length === 0) {
-        calMindDumpList.innerHTML = `<li class="u-background-transparentimportant_border-1pxdashedrgba255255">
-            <i class="fa-solid fa-tray-empty u-margin-right-6px" ></i> Havuz şu an boş.
+        calMindDumpList.innerHTML = `<li class="cal-dump-empty-state">
+            <i class="fa-solid fa-brain"></i> Zihnin şu an boş
         </li>`;
         return;
     }

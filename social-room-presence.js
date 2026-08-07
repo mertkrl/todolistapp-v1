@@ -40,6 +40,7 @@ import { getUser } from './social-misc-pure-utils.js';
 //   kullanıldığı doğrulandı, köprü GEREKMEDİ — tanımları da buraya taşındı
     let activePresenceRef = null; // Aktif oda presence dinleyicisi
     let _dcActiveRoomPresenceChannel = null; // Şu an girilmiş Supabase odasının presence kanalı
+    window.__getDcActiveRoomPresenceChannel = () => _dcActiveRoomPresenceChannel; // social-server-tree.js'in presence-strip senk. için okuduğu köprü
 
     // ─── ÜYELERİ YÜKLE ──────────────────────────────────
     let _dcMemberNames    = [];     // En son bilinen üye listesi (Supabase üye listesi için)

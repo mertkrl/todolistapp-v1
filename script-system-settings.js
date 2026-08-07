@@ -136,13 +136,22 @@ document.addEventListener('DOMContentLoaded', () => {
     // ── Çıkış Yap ───────────────────────────────────────────
     document.getElementById('profile-dropdown-signout')?.addEventListener('click', async () => {
         closeDropdown();
+        // GERÇEK BUG DÜZELTMESİ (2026-08-06): test hesabının (devTestLogin,
+        // bkz. app-login-gate.js/social-auth-bootstrap.js) gerçek bir
+        // Supabase oturumu YOK — FocusAuth.signOut() bu durumda hiçbir
+        // 'SIGNED_OUT' etkisi doğurmuyor (çıkacak gerçek oturum zaten yok),
+        // bu yüzden bu buton test hesabında TIKLANINCA HİÇBİR ŞEY OLMUYORDU.
+        // Ayrıca gerçek hesaplarda bile 'focusai_social_user'/'focusai_friends'
+        // localStorage'ı temizlenmiyordu (bkz. social-dc-profile-menu.js'teki
+        // aynı buton için zaten var olan doğru davranış). İkisini de burada
+        // hizaladık ve sayfayı yeniliyoruz ki kapı garanti görünsün.
+        localStorage.removeItem('focusai_dev_test_email');
+        localStorage.removeItem('focusai_social_user');
+        localStorage.removeItem('focusai_friends');
         if (window.FocusAuth && typeof window.FocusAuth.signOut === 'function') {
             await window.FocusAuth.signOut();
-        } else {
-            const authBtn = document.getElementById('focusai-sync-open-btn');
-            if (authBtn) authBtn.click();
-            else showPremiumModal({ title: 'Çıkış', message: 'Oturum kapatılamadı. Sayfayı yenileyin.', type: 'warning' });
         }
+        location.reload();
     });
 
     // Ghost mode ayarını timer'a bildir

@@ -6,7 +6,7 @@
 // __getGoalsRef/__getHabitsRef ile FocusStorage/escapeHtml'i kullanır
 // (script-day-drawer-render.js ile aynı köprü deseni).
 // ============================================================
-import { getGoalsRef, getHabitsRef } from './script.js';
+import { getGoalsRef } from './script.js';
 import { FocusStorage, escapeHtml } from './storage-manager.js';
 
 (function () {
@@ -15,7 +15,6 @@ import { FocusStorage, escapeHtml } from './storage-manager.js';
 function _buildTaskBreadcrumbHtml(task) {
     let breadcrumbParts = [];
     const goals = getGoalsRef();
-    const habits = getHabitsRef();
 
     // 1. Ana Hedef — önce eski goals sistemini, sonra planning_goals modülünü kontrol et
     if (task.parentGoal) {
@@ -43,23 +42,25 @@ function _buildTaskBreadcrumbHtml(task) {
         }
     }
 
-    // 3. Alışkanlık
-    if (task.parentHabit) {
-        const habitInfo = (typeof habits !== 'undefined') ? habits.find(h => String(h.id) === String(task.parentHabit)) : null;
-        if (habitInfo) {
-            // Alışkanlık ismini güvenli şekilde alıyoruz
-            const habitName = habitInfo.title || habitInfo.text || habitInfo.name || "Alışkanlık";
-            breadcrumbParts.push(`<span title="Bağlı Alışkanlık" class="u-display-inline-flex_align-items-center_gap-5px_color-hc88c"><i class="fa-solid fa-leaf"></i> ${escapeHtml(habitName)}</span>`);
-        }
-    }
+    // 3. Alışkanlık — burada ARTIK gösterilmiyor: alışkanlık adı zaten görev
+    // kartındaki kategori etiketinde gösteriliyor (bkz.
+    // script-task-render-mutate-item-builder.js habitTagLabel, 2026-08-06),
+    // burada da tekrar etmek aynı bilgiyi iki kez göstermek olurdu.
 
     if (!breadcrumbParts.length) return '';
     // Aralarına şık bir ok işareti (chevron-right) ekleyerek birleştiriyoruz
     const joinedParts = breadcrumbParts.join('<i class="fa-solid fa-chevron-right u-color-rgba2552552550p2_font-size-10px_margin-04px" ></i>');
-    return `<div class="u-flex-basis-100pct_height-0"></div>
-        <div class="task-breadcrumb-badge u-display-inline-flex_align-items-center_background-rgba0000" >
-            ${joinedParts}
-        </div>`;
+    // GERÇEK BUG DÜZELTMESİ (2026-08-06): önceden zorla yeni bir satıra
+    // (u-flex-basis-100pct_height-0 spacer'ı + kendi margin-top:8px'i olan
+    // ayrı bir blok) itiliyordu — bu da göreve ana hedef bağlanınca kartın
+    // görünür şekilde aşağı doğru büyümesine sebep oluyordu. Artık ayrı bir
+    // satır ZORLAMIYOR — .task-meta'nın İÇİNE, mevcut nokta-ayraçlı çiplerin
+    // yanına, aynı satıra ekleniyor (script-task-render-mutate-item-builder.js
+    // tarafından .task-meta'nın içine yerleştiriliyor). .task-meta zaten
+    // flex-wrap:wrap olduğu için sadece gerçekten sığmadığında satır atlıyor,
+    // çoğu görevde kart boyutu hiç değişmiyor.
+    return `<span class="u-width-3px_height-3px_border-radius-50pct_background-rgba25"></span>
+        <span class="task-breadcrumb-badge-inline">${joinedParts}</span>`;
 }
 
 window.__buildTaskBreadcrumbHtml = _buildTaskBreadcrumbHtml;

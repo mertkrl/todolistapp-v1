@@ -54,7 +54,7 @@ function _cddUpdateProgressRing(dateStr, isFuture, dayEvents, dayHabits, highlig
 
 function _cddHighlightHtml(highlight) {
     if (!highlight) return '';
-    return `<div class="cdd-section-label">✦ Odak Hedefi</div>
+    return `<div class="cdd-section-label">✦ Günün Hedefi</div>
         <div class="cdd-highlight ${highlight.completed ? 'completed' : ''}">
             <i class="fa-solid fa-star"></i>
             <span class="u-flex-1_overflow-hidden_text-overflow-ellipsis_white-space--2">${highlight.text}</span>

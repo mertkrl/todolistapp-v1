@@ -22,12 +22,18 @@
 //
 // Faz G: window.* çağrıları gerçek import'lara çevrildi (script.js/script-date-time-utils.js/
 // script-mind-dump.js hâlâ window.X = fn atamalarını KORUYOR, geriye dönük uyumluluk için).
-// openGoalModal() bare çağrısı BİLİNÇLİ OLARAK dokunulmadı — inline-goal-modal-globals.js'te
-// klasik (non-module) global olarak tanımlı, script.js'in kendi (kullanılmayan) openGoalModal'ı değil.
+//
+// GERÇEK BUG DÜZELTMESİ (2026-08-06): openGoalModal() önceden bare (import
+// edilmemiş) çağrılıyordu, "window fallthrough ile inline-goal-modal-globals.js'e
+// çözülür" varsayımıyla — ama planning-goal-crud.js (Planlama'nın #pg-goal-modal'ı)
+// AYNI global ismi en son ele geçiriyordu, bu yüzden "Detaylı Hedef Formunu Aç"
+// yanlış modalı açıyordu (tarih alanı hep boş geliyordu, İptal/Oluştur butonları
+// da o modalın farklı stiliyle geliyordu). Artık doğrudan import ediliyor.
 
 import { getHabitCategoriesRef, getMindDumpsRef, setMindDumpsRef, checkGoalDateBoundaries, showPremiumModal, hasTimeConflict, addSmartTask, getHabitsRef, saveHabits, renderHabits, renderTasks, getRenderCalendarRef, getRenderEventsRef, getRenderStatisticsRef } from './script.js';
 import { formatDateToString, timeToMins, addOneHour } from './script-date-time-utils.js';
 import { saveMindDumps, renderMindDumps } from './script-mind-dump.js';
+import { openGoalModal } from './script-goal-modal-open-close.js';
 
      const convertModal = document.getElementById('convert-dump-modal');
      const convertIdInput = document.getElementById('convert-dump-id');
@@ -47,7 +53,35 @@ import { saveMindDumps, renderMindDumps } from './script-mind-dump.js';
      
      const convertHabitCat = document.getElementById('convert-dump-habit-category');
      const convertHabitDuration = document.getElementById('convert-dump-habit-duration');
-     
+     const convertHabitDurationMinus = document.getElementById('convert-dump-habit-duration-minus');
+     const convertHabitDurationPlus = document.getElementById('convert-dump-habit-duration-plus');
+
+     // Hedeflenen Süre (Gün) steppera'ı — habit-create-modal'daki
+     // target-minus/target-plus ile aynı premium desen (bkz.
+     // script-habit-modal-dates.js), çıplak type="number" input'un
+     // varsayılan tarayıcı ok-tuşlarının yerine geçiyor (kullanıcı isteğiyle,
+     // 2026-08-06).
+     if (convertHabitDurationMinus) {
+         convertHabitDurationMinus.addEventListener('click', () => {
+             let val = parseInt(convertHabitDuration.value) || 21;
+             if (val > 1) convertHabitDuration.value = val - 1;
+         });
+     }
+     if (convertHabitDurationPlus) {
+         convertHabitDurationPlus.addEventListener('click', () => {
+             let val = parseInt(convertHabitDuration.value) || 21;
+             if (val < 365) convertHabitDuration.value = val + 1;
+         });
+     }
+     if (convertHabitDuration) {
+         convertHabitDuration.addEventListener('change', () => {
+             let val = parseInt(convertHabitDuration.value);
+             if (isNaN(val) || val < 1) val = 1;
+             if (val > 365) val = 365;
+             convertHabitDuration.value = val;
+         });
+     }
+
      const dumpOpenGoalBtn = document.getElementById('dump-open-goal-modal-btn');
      const dumpTypeRadios = document.querySelectorAll('input[name="dump_type"]');
      const dumpTypeBtns = document.querySelectorAll('.dump-type-btn');
@@ -56,58 +90,71 @@ import { saveMindDumps, renderMindDumps } from './script-mind-dump.js';
      const closeConvertBtn = document.getElementById('close-convert-dump-btn');
      const cancelConvertBtn = document.getElementById('cancel-convert-dump-btn');
  
-     // TÜR DEĞİŞİMİ DİNLEYİCİSİ
-     dumpTypeRadios.forEach(radio => {
-         radio.addEventListener('change', (e) => {
-             dumpTypeBtns.forEach(btn => {
-                 btn.classList.remove('active');
-                 btn.style.background = 'var(--glass-bg)';
-                 btn.style.color = 'var(--text-muted)';
-                 btn.style.borderColor = 'var(--glass-border)';
-             });
-             
-             const selectedLabel = e.target.closest('label').querySelector('.dump-type-btn');
-             selectedLabel.classList.add('active');
-             selectedLabel.style.background = 'rgba(108, 92, 231, 0.2)';
-             selectedLabel.style.color = '#fff';
-             selectedLabel.style.borderColor = 'var(--primary-color)';
- 
-             const val = e.target.value;
-             dumpTaskFields.style.display = 'none';
-             dumpHabitFields.style.display = 'none';
-             dumpGoalFields.style.display = 'none';
-             saveConvertBtn.style.display = 'block';
- 
-             if(val === 'task') {
-                 dumpTaskFields.style.display = 'block';
-                 saveConvertBtn.innerHTML = '<i class="fa-solid fa-check"></i> Planla & Taşı';
-             } else if(val === 'habit') {
-                 dumpHabitFields.style.display = 'block';
-                 saveConvertBtn.innerHTML = '<i class="fa-solid fa-leaf"></i> Alışkanlık Yarat';
-                 
-                 // KATEGORİLERİ SENKRONİZE ET (Alışkanlıklar sekmesiyle aynı yapar)
-                 convertHabitCat.innerHTML = '';
-                 getHabitCategoriesRef().forEach(cat => {
-                     const opt = document.createElement('option');
-                     opt.value = cat.id; 
-                     opt.textContent = cat.name;
-                     convertHabitCat.appendChild(opt);
-                 });
-             } else if(val === 'goal') {
-                 dumpGoalFields.style.display = 'block';
-                 saveConvertBtn.style.display = 'none'; // Ana hedefte detaylı form açılır
-             }
+     // TÜR DEĞİŞİMİ: hem radyo 'change' olayından hem de modal her açıldığında
+     // (openConvertModal) doğrudan çağrılabilsin diye adlandırılmış fonksiyon.
+     // GERÇEK BUG DÜZELTMESİ (2026-08-06): openConvertModal önceden
+     // radio.click() ile "Görev"i seçtiriyordu — ama radyo zaten checked ise
+     // (varsayılan durum) .click() 'change' olayını hiç TETİKLEMİYOR, bu
+     // yüzden alan görünürlüğü/aktif buton stili senkronize olmuyordu. Bunun
+     // üstüne dump-habit-fields'in "hidden" class'ı (display:none !important)
+     // JS'in .style.display='block' atamasını da hiçbir zaman ezemiyordu —
+     // sonuç: "Alışkanlık" seçilince kategori/hedeflenen-süre alanları HİÇ
+     // görünmüyordu.
+     function applyDumpTypeUI(radio) {
+         dumpTypeBtns.forEach(btn => {
+             btn.classList.remove('active');
+             btn.style.background = 'var(--glass-bg)';
+             btn.style.color = 'var(--text-muted)';
+             btn.style.borderColor = 'var(--glass-border)';
          });
+
+         const selectedLabel = radio.closest('label').querySelector('.dump-type-btn');
+         selectedLabel.classList.add('active');
+         selectedLabel.style.background = 'rgba(108, 92, 231, 0.2)';
+         selectedLabel.style.color = '#fff';
+         selectedLabel.style.borderColor = 'var(--primary-color)';
+
+         const val = radio.value;
+         dumpTaskFields.style.display = 'none';
+         dumpHabitFields.style.display = 'none';
+         dumpGoalFields.style.display = 'none';
+         saveConvertBtn.style.display = 'block';
+
+         if(val === 'task') {
+             dumpTaskFields.style.display = 'block';
+             saveConvertBtn.innerHTML = '<i class="fa-solid fa-check"></i> Planla & Taşı';
+         } else if(val === 'habit') {
+             dumpHabitFields.style.display = 'flex'; // dikey ortalama için (bkz. mind-dump.css .dump-type-fields)
+             saveConvertBtn.innerHTML = '<i class="fa-solid fa-leaf"></i> Alışkanlık Oluştur';
+
+             // KATEGORİLERİ SENKRONİZE ET (Alışkanlıklar sekmesiyle aynı yapar)
+             convertHabitCat.innerHTML = '';
+             getHabitCategoriesRef().forEach(cat => {
+                 const opt = document.createElement('option');
+                 opt.value = cat.id;
+                 opt.textContent = cat.name;
+                 convertHabitCat.appendChild(opt);
+             });
+         } else if(val === 'goal') {
+             dumpGoalFields.style.display = 'flex'; // dikey ortalama için (bkz. mind-dump.css .dump-type-fields)
+             saveConvertBtn.style.display = 'none'; // Ana hedefte detaylı form açılır
+         }
+     }
+
+     dumpTypeRadios.forEach(radio => {
+         radio.addEventListener('change', (e) => applyDumpTypeUI(e.target));
      });
- 
+
      window.openConvertModal = function(id) {
          const dump = getMindDumpsRef().find(d => String(d.id) === String(id));
          if(!dump) return;
-         
+
          convertIdInput.value = dump.id;
          convertTextInput.value = dump.text;
-         
-         document.querySelector('input[name="dump_type"][value="task"]').click(); // Görevi varsayılan yap
+
+         const taskRadio = document.querySelector('input[name="dump_type"][value="task"]');
+         taskRadio.checked = true;
+         applyDumpTypeUI(taskRadio); // Görevi varsayılan yap — .click() değil, doğrudan çağrı (bkz. yukarıdaki not)
          
          if (convertDateInput._flatpickr) {
             convertDateInput._flatpickr.setDate(new Date(), false);
@@ -141,14 +188,17 @@ import { saveMindDumps, renderMindDumps } from './script-mind-dump.js';
          dumpOpenGoalBtn.addEventListener('click', () => {
              const id = convertIdInput.value;
              const text = convertTextInput.value.trim();
-             
+
              closeConvertModal();
-             openGoalModal(); 
-             document.getElementById('goal-title-input').value = text; 
-             
-             setMindDumpsRef(getMindDumpsRef().filter(d => String(d.id) !== String(id)));
-             saveMindDumps();
-             renderMindDumps();
+             openGoalModal();
+             document.getElementById('goal-title-input').value = text;
+
+             // GERÇEK BUG DÜZELTMESİ (2026-08-06): fikir artık burada HEMEN
+             // silinmiyor — kullanıcı hedef formunu iptal edip kapatırsa fikir
+             // kayboluyordu. Silme artık sadece hedef GERÇEKTEN kaydedilirse
+             // gerçekleşiyor (bkz. script-goal-modal.js _saveGoalImpl —
+             // window.__pendingDumpConversionId'i okuyup orada temizler).
+             window.__pendingDumpConversionId = id;
          });
      }
  

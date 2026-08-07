@@ -132,7 +132,6 @@
 .td-goal-label {
     font-size: 10px !important;
     letter-spacing: .18em !important;
-    text-transform: uppercase !important;
     color: var(--a, #D4900E) !important;
     margin-bottom: 4px !important;
     opacity: .85;
@@ -148,10 +147,17 @@
     gap: 12px !important;
 }
 #bugun .td-goal-input {
-    font-family: 'Newsreader', serif !important;
+    /* Newsreader'a BİLİNÇLİ OLARAK dokunulmuyor: bu webfont'un latin-ext alt
+       kümesi Ü/Ö/Ğ/İ gibi Türkçe büyük harfleri dinamik yazılan metinde
+       (statik/sayfa-yükleme anında mevcut metinden farklı olarak) glyph
+       kaybıyla (aksanı silerek) render ediyor — canlı testte doğrulandı
+       (2026-08-06). Kullanıcı serbest metin yazdığı için burada uygulamanın
+       varsayılan sans-serif fontuna (Inter) düşüyoruz.
+    */
     font-size: 20px !important;
     font-weight: 400 !important;
     letter-spacing: -.01em !important;
+    text-transform: none !important;
     color: var(--t1) !important;
     background: transparent !important;
     border: none !important;
@@ -209,10 +215,12 @@
     flex-wrap: nowrap !important;
 }
 #bugun .td-goal-text {
-    font-family: 'Newsreader', serif !important;
+    /* Newsreader kullanılmıyor: bkz. .td-goal-input'taki not (Türkçe büyük
+       harf glyph kaybı, 2026-08-06). */
     font-size: 20px !important;
     font-weight: 400 !important;
     letter-spacing: -.01em !important;
+    text-transform: none !important;
     color: var(--t1) !important;
     flex: 1 !important;
 }
@@ -727,4 +735,62 @@
 /* Tamamlanan divider timeline görünümü */
 #bugun .task-divider {
     padding: 6px 0 6px 82px !important;
+}
+
+/* Görev satırındaki "Ana Hedef / Alışkanlık" breadcrumb rozeti artık
+   .task-meta satırının İÇİNDE, mevcut çiplerle aynı satırda (ayrı bir satıra
+   zorlanmıyor) — göreve ana hedef bağlanınca kartın aşağı doğru büyümesine
+   sebep olan eski davranış düzeltildi (2026-08-06). */
+#bugun .task-breadcrumb-badge-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11.5px;
+    font-weight: 500;
+}
+
+/* ── Alışkanlık görev kartı — görev kartlarıyla tutarlı, profesyonel görünüm
+   (2026-08-06) ── Önceden #bugun .task-category-tag tüm etiketleri (kategori
+   VE "Alışkanlık" ikisini de) düz gri metne indirgiyordu; alışkanlık kartları
+   normal görevlerden neredeyse ayırt edilemiyordu. Artık kendi rengini
+   (rail-dot'ta zaten kullanılan #c88ce6 moru) koruyor ve tamamlanınca
+   checkbox'ı da aynı tonda oluyor. */
+#bugun .task-category-tag.tag-habit {
+    color: #c88ce6 !important;
+    font-weight: 600 !important;
+}
+#bugun .task-item.habit-task.completed .task-checkbox {
+    background: linear-gradient(180deg, #d9b3ec, #c88ce6) !important;
+}
+
+/* ── Alışkanlık "bugün" satırı (renderHabitRows, script-habit-render-mutate.js)
+   — GERÇEK GÖRSEL BUG DÜZELTMESİ (2026-08-06): önceden .tl-card/.tl-rail
+   iskeleti hiç kullanılmıyordu, kenarlıksız/arka plansız çıplak bir satırdı.
+   Artık normal görev kartlarıyla (Günün Hedefi satırı dahil) AYNI iskelet,
+   sadece mor "alışkanlık" vurgusuyla. ── */
+#bugun .habit-row-icon {
+    color: #c88ce6;
+    font-size: 13px;
+}
+#bugun .habit-row-dot {
+    border-color: #c88ce6 !important;
+}
+#bugun .habit-row-inner {
+    border-color: rgba(200, 140, 230, 0.2) !important;
+    background: rgba(200, 140, 230, 0.04) !important;
+}
+#bugun .task-item.habit-row.completed .habit-row-inner {
+    border-color: rgba(200, 140, 230, 0.1) !important;
+    background: rgba(200, 140, 230, 0.02) !important;
+}
+#bugun .task-item.habit-row .task-checkbox.habit-row-checkbox {
+    /* Diğer checkbox'larla aynı boyut/şekil (#bugun .task-checkbox zaten
+       kapsıyor), sadece tamamlanınca mor gradyan alsın. */
+}
+#bugun .task-item.habit-row.completed .habit-row-checkbox {
+    background: linear-gradient(180deg, #d9b3ec, #c88ce6) !important;
+    border-color: transparent !important;
+}
+#bugun .task-item.habit-row-locked {
+    opacity: 0.7;
 }

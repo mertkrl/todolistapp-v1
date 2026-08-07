@@ -43,6 +43,17 @@ import { getCurrentUser } from './state/current-user-store.js';
              }
          });
      }
+     // GERÇEK BUG DÜZELTMESİ (2026-08-06): bu dosyanın üst yorumu
+     // checkHabitMilestones'un zaten window.X=function deseniyle dışa açık
+     // olduğunu varsayıyordu — YANLIŞTI. Sadece module-scope'lu bir `function`
+     // bildirimiydi, window'a hiç atanmamıştı. script.js'teki alışkanlık
+     // gün-noktası (tracker-dot) click handler'ı `window.checkHabitMilestones(...)`
+     // çağırıyordu (satır ~724/750) — bu TypeError fırlatıyordu ve handler'daki
+     // SONRAKİ satırlar (saveHabits/renderHabits) hiç çalışmıyordu. Sonuç:
+     // habit.history bellekte güncelleniyordu ama hiç kaydedilmiyor/render
+     // edilmiyordu — kullanıcı "güne tıklıyorum ama tamamlanmıyor" olarak
+     // görüyordu (özellikle YENİ oluşturulan bir alışkanlıkta ilk tıklamada).
+     window.checkHabitMilestones = checkHabitMilestones;
 
      window.toggleHabitFromToday = function(habitId, dateStr) {
          const habit = window.__getHabitsRef().find(h => String(h.id) === String(habitId));

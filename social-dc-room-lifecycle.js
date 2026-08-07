@@ -72,7 +72,6 @@ import {
 import { _isRateLimitError } from './social-misc-isolated-utils.js';
 import { _throttleAction } from './social-throttle-and-date-utils.js';
 import { showDcDmLimitNotice } from './social-dm-limit-notice.js';
-import { teardownDcRoomPresenceStripChannels } from './social-room-presence.js';
 import { _isSupabaseGroupAdmin } from './social-dc-group-admin.js';
 
 // ─── ODA/KANAL YAŞAM DÖNGÜSÜNE ÖZGÜ STATE ───────────────────────────────
@@ -839,18 +838,6 @@ export function closeDcChat() {
 }
 
 // ─── DİNLEYİCİLERİ TEMİZLE ──────────────────────────
-// Üye listesi paneli için Supabase realtime kanalını ve presence dinleyicisini kapatır
-window.teardownDcMembersSupabase = teardownDcMembersSupabase; // social-room-presence.js için
-export function teardownDcMembersSupabase() {
-    if (window.__getDcMembersSupabaseChannel()) { window.FocusSupabase.removeChannel(window.__getDcMembersSupabaseChannel()); window.__setDcMembersSupabaseChannel(null); }
-    if (window.__getDcMembersPresenceHandler()) { window.removeEventListener('focusai:presence-changed', window.__getDcMembersPresenceHandler()); window.__setDcMembersPresenceHandler(null); }
-}
-
-window.detachDcListeners = detachDcListeners; // social-dc-init.js gibi ayrı script scope'larından erişim için
-export function detachDcListeners() {
-    teardownDcMembersSupabase();
-    teardownDcRoomPresenceStripChannels();
-    teardownDcTyping();
-    teardownDcReadReceipt();
-    teardownDcGroupReadReceipt();
-}
+// teardownDcMembersSupabase/detachDcListeners artık social-dc-room-lifecycle-teardown.js'de
+// (modül-seviyesi state'e bağımlı değillerdi, bağımsız dosyaya çıkarıldı).
+import './social-dc-room-lifecycle-teardown.js';

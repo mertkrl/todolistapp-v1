@@ -25,3 +25,17 @@ _pendingAsgInnerTab
 _pendingGroupPanelGtab
 renderFloatingChatBadge
 tempEditHabitGoals
+# __pendingDumpConversionId: script-goal-modal-open-close.js'te null'a başlatılıyor,
+# script-convert-modal.js "Ana Hedef" akışında id ile dolduruluyor, script-goal-modal.js
+# ve script.js hedef kaydedilince/temizlenince okuyup null'a döndürüyor — paylaşılan
+# geçici bayrak, gerçek çakışma değil.
+__pendingDumpConversionId
+# buddyPairId: social-buddy-habits.js, social-buddy-habits-pure-utils.js'ten import
+# ettiği AYNI fonksiyonu window'a tekrar atıyor (satır 27 yorumu bunu açıklıyor) —
+# iki farklı implementasyon değil, aynı referansın gereksiz ama zararsız tekrarı.
+buddyPairId
+# closeGoalModal: planning-goal-crud.js (Planlama'nın #pg-goal-modal'ı) ile
+# script-goal-modal.js (Ana Hedefler'in kendi modalı) İKİ AYRI modal için kasıtlı
+# olarak aynı global ismi paylaşıyor — script-goal-modal.js'in kendi başındaki yorum
+# bunu belgeliyor (satır ~12).
+closeGoalModal

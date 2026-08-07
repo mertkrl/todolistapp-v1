@@ -9,6 +9,8 @@
 // ============================================================
 import { FocusStorage } from './storage-manager.js';
 import { switchTab } from './script.js';
+import { tourFlows } from './script-onboarding-tour-flows.js';
+import { markTourFlowCompleted, saveTourProgress, getTourProgress, clearTourProgress } from './script-onboarding-tour-progress-storage.js';
 
 (function () {
 'use strict';
@@ -25,74 +27,6 @@ document.addEventListener('DOMContentLoaded', () => {
      const tourNextBtn = document.getElementById('tour-next-btn');
      const tourSkipBtn = document.getElementById('tour-skip-btn');
  
-     // tourFlows: tek bir genel 'main' turu — uygulamadaki tüm ana bölümleri sırayla
-     // tanıtır. Sadece bilgilendirme amaçlıdır: hiçbir adım kullanıcıdan gerçek bir
-     // butona tıklamasını/form doldurmasını istemez, "İleri" ile serbestçe ilerlenir.
-     const tourFlows = {
-     main: [
-         {
-             tab: 'bugun', target: '#bugun .section-header', plain: true,
-             badge: 'Bugün', icon: '🎯',
-             title: 'Bugünün Görevleri',
-             text: 'Ana ekranın burası — bugün yapman gerekenleri buradan görür, ekler ve takip edersin.'
-         },
-         {
-             tab: 'hedefler', target: '#hedefler .section-header', plain: true,
-             badge: 'Hedefler', icon: '🏔️',
-             title: 'Ana Hedefler',
-             text: 'Günlük görevler küçük adımlardır; <strong>Ana Hedefler</strong> ise onların bağlandığı büyük resimdir.'
-         },
-         {
-             tab: 'zihin-coplugu', target: '#zihin-coplugu .section-header', plain: true,
-             badge: 'Zihin Çöplüğü', icon: '🧠',
-             title: 'Zihin Çöplüğü',
-             text: 'Aklına takılan her şeyi buraya boşalt. İstersen sonra bir göreve ya da hedefe dönüştürürsün.'
-         },
-         {
-             tab: 'aliskanliklar', target: '#aliskanliklar .section-header', plain: true,
-             badge: 'Alışkanlıklar', icon: '🌱',
-             title: 'Alışkanlıklar',
-             text: 'Tek seferlik görevlerden farklı olarak alışkanlıklar tekrarla güçlenir; serilerini burada takip edersin.'
-         },
-         {
-             tab: 'zamanlayici', target: '.timer-container', plain: true,
-             badge: 'Zamanlayıcı', icon: '⏱️',
-             title: 'Odaklanma Zamanlayıcısı',
-             text: 'Pomodoro tekniğiyle kesintisiz odaklanma seansların burada başlar.'
-         },
-         {
-             tab: 'takvim', target: '#takvim .cal-header', plain: true,
-             badge: 'Takvim', icon: '📅',
-             title: 'Takvim',
-             text: 'Görevlerini ve etkinliklerini gün, hafta ya da ay görünümünde buradan planlarsın.'
-         },
-         {
-             tab: 'istatistikler', target: '#istatistikler .section-header', plain: true,
-             badge: 'İstatistikler', icon: '📊',
-             title: 'İlerlemeni İzle',
-             text: 'Her tamamladığın görev, her odak seansı burada birikir. Zamanla ne kadar ilerlediğini burada görebilirsin.'
-         },
-         {
-             tab: 'gunluk', target: '#gunluk .section-header', plain: true,
-             badge: 'Günlük', icon: '📖',
-             title: 'Günlük',
-             text: 'Günün nasıl geçti? Düşüncelerini burada kaydedip zamanla geriye dönüp bakabilirsin.'
-         },
-         {
-             tab: 'arkadaslar', target: '#dc-home-view', plain: true,
-             badge: 'Arena', icon: '🏆',
-             title: 'Pozitif Rekabete Hoş Geldin',
-             text: 'Burası Arena — arkadaşlarınla haftalık ligde yarışabilir, meydan okuma başlatabilir ve sıralamanı takip edebilirsin.'
-         },
-         {
-             tab: 'planlama', target: '#planlama .section-header', plain: true,
-             badge: 'Planlama', icon: '🗺️',
-             title: 'Uzun Vadeli Planlama',
-             text: 'Büyük hedeflerini haftalara ve aylara yayarak buradan planlarsın.'
-         },
-     ]
-     };
-
      let activeFlowId = 'main';
      let tourSteps = tourFlows[activeFlowId];
      let currentTourStep = 0;
@@ -102,48 +36,6 @@ document.addEventListener('DOMContentLoaded', () => {
      // (script.js IIFE sarmalaması) muhtemelen zaten ReferenceError atıyordu.
      // Burada düzgün tanımlanıyor.
      let isTourActive = false;
-
-     function tourStorageKey(flowId) {
-         return flowId === 'main' ? 'tour_completed' : ('tour_completed_' + flowId);
-     }
-     function isTourFlowCompleted(flowId) {
-         const key = tourStorageKey(flowId);
-         if (typeof FocusStorage !== 'undefined') return !!FocusStorage.get(key, false);
-         return localStorage.getItem('focusai_' + key) === 'true';
-     }
-     function markTourFlowCompleted(flowId, value) {
-         const key = tourStorageKey(flowId);
-         if (typeof FocusStorage !== 'undefined') FocusStorage.set(key, value);
-         if (value) localStorage.setItem('focusai_' + key, 'true');
-         else localStorage.removeItem('focusai_' + key);
-     }
-
-     // İlerleme kaydı (Faz 4): kullanıcı turu bitirmeden sekmeyi yenilerse/kapatırsa
-     // (Skip/Escape ile bilinçli çıkış DIŞINDA) bir sonraki açılışta baştan değil,
-     // kaldığı adımdan devam etsin diye adım index'i FocusStorage'a yazılır.
-     function tourProgressKey(flowId) {
-         return flowId === 'main' ? 'tour_progress' : ('tour_progress_' + flowId);
-     }
-     function saveTourProgress(flowId, step) {
-         const key = tourProgressKey(flowId);
-         if (typeof FocusStorage !== 'undefined') FocusStorage.set(key, step);
-         else localStorage.setItem('focusai_' + key, String(step));
-     }
-     function getTourProgress(flowId) {
-         const key = tourProgressKey(flowId);
-         let val = null;
-         if (typeof FocusStorage !== 'undefined') val = FocusStorage.get(key, null);
-         else {
-             const raw = localStorage.getItem('focusai_' + key);
-             val = raw === null ? null : parseInt(raw, 10);
-         }
-         return (typeof val === 'number' && !isNaN(val)) ? val : null;
-     }
-     function clearTourProgress(flowId) {
-         const key = tourProgressKey(flowId);
-         if (typeof FocusStorage !== 'undefined') FocusStorage.set(key, null);
-         localStorage.removeItem('focusai_' + key);
-     }
 
      // Belirtilen flow'u başlatır. resume=true ise (örn. sayfa yeniden açıldığında)
      // daha önce yarıda kalmış bir ilerleme varsa 0. adım yerine oradan devam eder;

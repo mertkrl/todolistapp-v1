@@ -1,0 +1,137 @@
+/* Kişi Ekle modalı — sade/minimalist tasarım, sistemdeki merkezi-ikon-rozet
+   modal desenine (.modal-icon-wrapper, bkz. core-modal-system.css) uyumlu.
+   Önceki sürüm generic .modal-header/.modal-body iskeleti kullanıyordu ve
+   diğer "kurulum/onboarding" tarzı modallerden görsel olarak kopuk duruyordu
+   (kullanıcı geri bildirimi, 2026-08-06). */
+
+.af-modal-content {
+    max-width: 380px;
+    text-align: center;
+    position: relative;
+    padding: 32px 28px 28px;
+}
+
+.af-modal-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    z-index: 2;
+}
+
+.af-modal-icon {
+    margin-bottom: 14px;
+}
+
+.af-modal-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--t1, #fff);
+    margin-bottom: 6px;
+}
+
+.af-modal-subtitle {
+    font-size: 13px;
+    color: var(--text-muted, rgba(255,255,255,.5));
+    margin-bottom: 20px;
+}
+
+/* Tek kutu deseni: input KENDİ arka planını/kenarlığını taşıyor, sarmalayıcı
+   (.af-search-row) sadece input+buton'u yan yana dizen görünmez bir flex
+   konteyner — önceki sürümde HEM sarmalayıcı HEM input kendi kenarlığını
+   çiziyordu (+ a11y :focus-visible güvenlik ağının eklediği 3. bir dış
+   outline), "kutu içinde kutu" görünümüne yol açıyordu (kullanıcı geri
+   bildirimi, 2026-08-06). Ayrıca "@" öneki kaldırıldı. */
+.af-search-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.af-search-input {
+    flex: 1;
+    min-width: 0;
+    background: rgba(255,255,255,.05);
+    border: 1px solid var(--glass-border, rgba(255,255,255,.1));
+    border-radius: 12px;
+    outline: none;
+    color: var(--t1, #fff);
+    font-size: 14px;
+    padding: 12px 14px;
+    transition: border-color .2s ease;
+}
+.af-search-input:focus {
+    border-color: var(--primary-color, #D4900E);
+}
+.af-search-input::placeholder { color: var(--text-muted, rgba(255,255,255,.35)); }
+
+.af-search-btn {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+    border: none;
+    background: var(--primary-color, #D4900E);
+    color: #1a1305;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 13px;
+    transition: opacity .15s ease;
+}
+.af-search-btn:hover { opacity: .85; }
+
+.af-result {
+    margin-top: 16px;
+    min-height: 0;
+    text-align: left;
+}
+.af-result:empty { margin-top: 0; }
+
+.af-result-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background: rgba(255,255,255,.03);
+    border: 1px solid var(--glass-border, rgba(255,255,255,.08));
+    border-radius: 12px;
+    padding: 10px 12px;
+}
+
+.af-result-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.af-result-name {
+    font-weight: 600;
+    color: var(--t1, #fff);
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.af-result-meta {
+    font-size: 12px;
+    color: var(--text-muted, rgba(255,255,255,.45));
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.af-result-meta .af-online { color: #2ed573; }
+
+.af-result-msg {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    padding: 8px 2px;
+}
+.af-result-msg.is-error { color: #ff4757; }
+.af-result-msg.is-warning { color: #ff9f43; }
+.af-result-msg.is-success { color: #2ed573; }
+.af-result-msg.is-loading { color: var(--text-muted, rgba(255,255,255,.5)); }

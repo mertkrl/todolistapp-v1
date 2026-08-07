@@ -698,8 +698,14 @@ document.addEventListener('click', (e) => {
     
     // generateGroupCode → social-misc-pure-utils.js'e taşındı (window köprüsü orada kuruluyor).
 
-    // Dom elementleri yüklendiğinde butonları bağla
-    document.addEventListener("DOMContentLoaded", () => {
+    // Dom elementleri yüklendiğinde butonları bağla — social.js dinamik import() ile
+    // sayfa 'load' olayından SONRA yüklendiği için (inline-module-loader.js), bu noktada
+    // document.readyState zaten 'complete' olur ve DOMContentLoaded olayı çoktan geçmiş
+    // olur. Düz addEventListener kullanılırsa bu callback HİÇBİR ZAMAN çalışmaz (grup
+    // oluşturma kaydet butonu, gizlilik toggle'ı, karakter sayaçları vb. tamamen ölü kalır).
+    // planning.js/collab.js'nin de kullandığı, aşağıdaki initDcArchitecture guard'ıyla
+    // (bkz. bu dosyada ~1432. satır) aynı desen uygulanıyor.
+    const __socialGroupHubInit = () => {
         if (typeof IS_CONFIGURED !== 'undefined' && !IS_CONFIGURED) return;
 
         const groupJoinInput = document.getElementById("group-join-input");
@@ -715,12 +721,12 @@ document.addEventListener('click', (e) => {
         const cancelPBtn = document.getElementById("cancel-premium-group-btn");
         const savePBtn = document.getElementById("save-premium-group-btn");
 
-       // Modal Aç (Çift Açılmayı Önleyen Güvenli Sürüm)
-       groupCreateModalBtn?.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-
+       // Modal Aç (Çift Açılmayı Önleyen Güvenli Sürüm) — hem hub'daki buton hem de
+       // "Ekle" menüsündeki "Grup Kur" (social-arena-chips.js) aynı gating'i uygulasın
+       // diye window köprüsüne çıkarıldı (premium olmayan kullanıcı sınıf/iş yeri grubu
+       // kuramamalı — daha önce sadece bu buton üzerinden zorlanıyordu, diğer giriş
+       // noktası gating'i atlıyordu).
+       window.openPremiumGroupCreateModal = () => {
         // Güncel kullanıcıyı yerel hafızadan tekrar doğrula
         if (!getCurrentUser()) {
             setCurrentUser(getSavedUser());
@@ -730,14 +736,18 @@ document.addEventListener('click', (e) => {
             window.dcShowToast("Grup kurabilmek için önce bir topluluk profili oluşturmalısınız!");
             return;
         }
-        
-        // Kurum türü seçeneklerini plana göre ayarla: premium olmayan kullanıcı
-        // yalnızca "Genel Odak Grubu" görsün (sınıf/iş yeri kurumsal özelliktir).
+
+        // Kurum türü seçeneklerini plana göre ayarla: premium olmayan VE kurumsal
+        // rolü (öğretmen/öğrenci) olmayan kullanıcı yalnızca "Genel Odak Grubu"
+        // görsün (sınıf/iş yeri kurumsal özelliktir). Öğretmen rolündeki hesap
+        // zaten kurumsal katmanda sayılır, ayrıca premium olması gerekmez.
         const classroomTypeSelectEl = document.getElementById("premium-group-classroom-type");
         if (classroomTypeSelectEl) {
             const isPremium = getCurrentUser().plan === 'premium';
+            const isInstitutional = ['student', 'teacher'].includes(getCurrentUser().institutionRole);
+            const canUseInstitutionalTypes = isPremium || isInstitutional;
             classroomTypeSelectEl.querySelectorAll('option').forEach(opt => {
-                opt.hidden = !isPremium && opt.value !== 'general';
+                opt.hidden = !canUseInstitutionalTypes && opt.value !== 'general';
             });
             classroomTypeSelectEl.value = 'general';
             classroomTypeSelectEl.dispatchEvent(new Event('change'));
@@ -745,6 +755,13 @@ document.addEventListener('click', (e) => {
 
         // Modalı sadece görünür yap, içindeki elementlere müdahale etme
         pModal?.classList.remove("hidden");
+       };
+
+       groupCreateModalBtn?.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        window.openPremiumGroupCreateModal();
     });
 
         // Modal Kapat fonksiyonları
@@ -933,11 +950,16 @@ document.addEventListener('click', (e) => {
        // önceki callback'imizi saklayıp onu kaldırıyoruz (bkz. _sidebarMyGroupsCb).
        let _myGroupsListCb = null;
 
+    };
+    if (document.readyState === 'loading') {
+        document.addEventListener("DOMContentLoaded", __socialGroupHubInit);
+    } else {
+        __socialGroupHubInit();
+    }
 
-    });
-
-    // FocusAI Çevrimiçi Bölüm - Alt Sekme Geçiş Entegrasyonu
-document.addEventListener("DOMContentLoaded", () => {
+    // FocusAI Çevrimiçi Bölüm - Alt Sekme Geçiş Entegrasyonu — aynı geç-yükleme
+    // sorunu burada da geçerli, aynı guard uygulanıyor.
+const __socialSubTabSwitchInit = () => {
     const socialTabBtns = document.querySelectorAll(".social-tab-btn");
     const socialContents = document.querySelectorAll(".social-content");
 
@@ -1012,7 +1034,12 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     });
-});
+};
+if (document.readyState === 'loading') {
+    document.addEventListener("DOMContentLoaded", __socialSubTabSwitchInit);
+} else {
+    __socialSubTabSwitchInit();
+}
 
 
 // ==========================================================================

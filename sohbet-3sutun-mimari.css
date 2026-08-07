@@ -873,6 +873,7 @@
     height: 100%;
     overflow: hidden;
 }
+#dc-guild-panel.u-display-none_flex-direction-column_height-100pct { display: none; }
 
 /* DM listesi scroll düzeltme */
 .dc-dm-list {

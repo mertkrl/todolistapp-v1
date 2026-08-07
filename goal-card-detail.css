@@ -221,6 +221,20 @@
     transition: width 0.8s ease;
 }
 
+/* FocusAI Analizi metni (generateAIAnalysis, script-goal-modal-analysis.js) —
+   ilerlemeye göre değişen kısa motivasyon/durum yorumu. */
+.gd-ai-analysis {
+    margin-top: 10px;
+    padding: 10px 12px;
+    background: rgba(212,144,14,0.06);
+    border: 1px solid rgba(212,144,14,0.18);
+    border-radius: 10px;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: rgba(255,255,255,0.75);
+}
+.gd-ai-analysis:empty { display: none; }
+
 /* İstatistik satırı */
 .gd-stats-row {
     display: grid;
@@ -775,3 +789,17 @@
     transform: none !important;
     box-shadow: none !important;
 }
+
+/* Başarılarım/Süresi Dolanlar boşken, mevcut aktif hedefleri motive edici bir
+   başlıkla gösteren bölüm (script-goal-modal.js renderGoals) — 2026-08-06. */
+.gc-motivation-heading {
+    margin-bottom: 16px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: rgba(212,144,14,0.08);
+    border: 1px solid rgba(212,144,14,0.2);
+    color: var(--primary-color, #D4900E);
+    font-size: 13px;
+    font-weight: 600;
+}
+.gc-motivation-heading i { margin-right: 6px; }

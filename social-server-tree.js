@@ -4,11 +4,15 @@ import { teardownDcRoomPresenceStripChannels, renderRoomPresenceStrip, startRoom
 import { getCurrentUser } from './state/current-user-store.js';
 import { getDcState } from './state/dc-state-store.js';
 import { getDcActiveGroupCode, setDcActiveGroupCode } from './state/dc-active-group-code-store.js';
+import { setDcCurrentRoomPresence } from './state/dc-current-room-presence-store.js';
 import { getDcChannelTreeChannel, setDcChannelTreeChannel } from './state/dc-channel-tree-store.js';
 import { getDcEnteredRoomKey, setDcEnteredRoomKey } from './state/dc-entered-room-key-store.js';
 import { getDcEnteredRoomId, setDcEnteredRoomId } from './state/dc-entered-room-id-store.js';
 import { logGroupAuditSupabase, getMemberPermissionsSupabase, openChannelPermOverridePopoverSupabase } from './social-roles.js';
 import { getDB, getUser } from './social-misc-pure-utils.js';
+import { openChannelContextMenu, openInlineRename } from './social-server-tree-context-menu.js';
+
+const openCategories = new Set(); // Açık kalan kanal kategorilerini hatırlar (render'lar arası kalıcı)
 // ─── SUNUCU AĞACI / KANAL NAVİGASYONU ──────────────────────────────
 // social.js dosyasından çıkarıldı (Faz 6): sidebar grup ağacı render,
 // kanal/alt-kanal listesi, kanal context menüsü, inline yeniden adlandırma.
@@ -364,120 +368,6 @@ function renderFlatChannelItem(container, groupCode, roomId, roomName) {
         container.appendChild(item);
     }
 
-    // ─── KANAL ⋮ CONTEXT MENÜSÜ ────────────────────────────
-    function openChannelContextMenu(anchorEl, opts) {
-        document.querySelectorAll('.ch-ctx-menu').forEach(m => m.remove());
-        const esc = _escapeHtml;
-
-        const menu = document.createElement('div');
-        menu.className = 'ch-ctx-menu';
-
-        const items = [];
-        // Sessize Al — her kanal/odada göster
-        if (opts.chatPath !== undefined) {
-            const muted = typeof window.isChatMuted === 'function' && isChatMuted(opts.chatPath);
-            items.push({
-                icon: muted ? 'fa-bell' : 'fa-bell-slash',
-                label: muted ? 'Bildirimleri Aç' : 'Sessize Al',
-                cls: 'item-mute',
-                action: () => {
-                    if (typeof window.toggleChatMuted === 'function') toggleChatMuted(opts.chatPath);
-                    // Kanal satırındaki ikonunu da güncelle
-                    if (opts.muteIconEl) {
-                        const nowMuted = typeof window.isChatMuted === 'function' && isChatMuted(opts.chatPath);
-                        opts.muteIconEl.className = `fa-solid ${nowMuted ? 'fa-bell-slash' : 'fa-bell'}`;
-                    }
-                }
-            });
-        }
-        if (opts.canRename !== false && opts.onRename) {
-            items.push({ icon: 'fa-pen-to-square', label: 'Yeniden Adlandır', cls: 'item-rename', action: opts.onRename });
-        }
-        if (opts.canLock) {
-            items.push({
-                icon: opts.isLocked ? 'fa-lock-open' : 'fa-lock',
-                label: opts.isLocked ? 'Kilidi Aç' : 'Odayı Kilitle',
-                cls: 'item-lock',
-                action: opts.onLock
-            });
-        }
-        if (opts.canAnnouncement) {
-            items.push({
-                icon: opts.isAnnouncement ? 'fa-people-group' : 'fa-bullhorn',
-                label: opts.isAnnouncement ? 'Normal Odaya Dönüştür' : 'Duyuru Kanalı Yap',
-                cls: 'item-announcement',
-                action: opts.onAnnouncement
-            });
-        }
-        if (opts.canPerm) {
-            items.push({ icon: 'fa-sliders', label: 'İzin İstisnaları', cls: 'item-perm', action: opts.onPerm });
-        }
-        if (opts.canDelete) {
-            items.push({ icon: 'fa-trash-can', label: opts.type === 'category' ? 'Kategoriyi Sil' : 'Odayı Sil', cls: 'item-delete', action: opts.onDelete });
-        }
-
-        menu.innerHTML = items.map(it => `
-            <button class="ch-ctx-item ${it.cls}">
-                <span class="ch-ctx-icon"><i class="fa-solid ${it.icon}"></i></span>
-                ${it.label}
-            </button>
-        `).join('');
-
-        document.body.appendChild(menu);
-
-        const rect = anchorEl.getBoundingClientRect();
-        const menuW = 180;
-        let left = rect.right + 6;
-        if (left + menuW > window.innerWidth - 8) left = rect.left - menuW - 6;
-        menu.style.left = Math.max(8, left) + 'px';
-        menu.style.top  = Math.max(8, rect.top) + 'px';
-
-        requestAnimationFrame(() => menu.classList.add('ch-ctx-menu--open'));
-
-        const close = () => {
-            menu.classList.remove('ch-ctx-menu--open');
-            setTimeout(() => menu.remove(), 160);
-        };
-        setTimeout(() => document.addEventListener('click', close, { once: true }), 0);
-
-        items.forEach((it, i) => {
-            menu.querySelectorAll('.ch-ctx-item')[i]?.addEventListener('click', (e) => {
-                e.stopPropagation();
-                close();
-                it.action && it.action();
-            });
-        });
-    }
-
-    // ─── INLINE RENAME (isim üzerinde düzenleme) ──────────
-    function openInlineRename(spanEl, currentName, onSave) {
-        if (!spanEl) return;
-        const originalText = spanEl.textContent;
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.value = currentName;
-        input.className = 'ch-inline-rename-input';
-        spanEl.replaceWith(input);
-        input.focus();
-        input.select();
-
-        const commit = async () => {
-            const newName = input.value.trim();
-            input.replaceWith(spanEl);
-            if (newName && newName !== currentName) {
-                spanEl.textContent = newName;
-                await onSave(newName);
-            } else {
-                spanEl.textContent = originalText;
-            }
-        };
-        input.addEventListener('blur', commit);
-        input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
-            if (e.key === 'Escape') { input.value = currentName; input.blur(); }
-        });
-    }
-
     // ─── SUPABASE KANAL/ALT-KANAL AĞACI (M2b-3 Bölüm 2) ────
     async function loadSupabaseGroupChannels(groupCode, groupData, catContainer) {
         if (!window.FocusSupabase || !groupData?._supaId) return;
@@ -686,11 +576,11 @@ function renderFlatChannelItem(container, groupCode, roomId, roomName) {
                 const roomChannel = window.FocusSupabase.channel(`group-room-${sub.id}`, { config: { presence: { key: getCurrentUser().id } } });
                 roomChannel.on('presence', { event: 'sync' }, () => {
                     renderRoomPresenceStrip(presenceStrip, roomChannel);
-                    if (_dcActiveRoomPresenceChannel === roomChannel) {
+                    if (window.__getDcActiveRoomPresenceChannel() === roomChannel) {
                         const state = roomChannel.presenceState();
-                        _dcCurrentRoomPresence = Object.values(state)
+                        setDcCurrentRoomPresence(Object.values(state)
                             .map(entries => entries && entries[0] && entries[0].username)
-                            .filter(Boolean);
+                            .filter(Boolean));
                     }
                 });
                 roomChannel.subscribe();
@@ -720,11 +610,12 @@ function renderFlatChannelItem(container, groupCode, roomId, roomName) {
                         window.openDcGroupChannelSupabase(groupCode, groupData, { type: 'group_subchannel', id: sub.id, locked: isLocked, isAnnouncement }, roomLabel);
                         window.showRoomLeaveBar(sub.name || '', getDB(), groupCode, 'sub', sub.id);
                         // Sohbet yeniden açıldı — bu odanın presence durumunu (mention için) tazele
-                        if (_dcActiveRoomPresenceChannel) {
-                            const state = _dcActiveRoomPresenceChannel.presenceState();
-                            _dcCurrentRoomPresence = Object.values(state)
+                        const activeRoomPresenceChannel = window.__getDcActiveRoomPresenceChannel();
+                        if (activeRoomPresenceChannel) {
+                            const state = activeRoomPresenceChannel.presenceState();
+                            setDcCurrentRoomPresence(Object.values(state)
                                 .map(entries => entries && entries[0] && entries[0].username)
-                                .filter(Boolean);
+                                .filter(Boolean));
                         }
                     } else if (getDcEnteredRoomId() === sub.id) {
                         window.__setCurrentChannelIsAnnouncement(isAnnouncement);

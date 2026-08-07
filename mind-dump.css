@@ -179,14 +179,15 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-    background: rgba(212,144,14,0.04);
-    border: 1.5px solid rgba(212,144,14,0.18) !important;
+    background: rgba(255,255,255,0.03);
+    border: 1.5px solid var(--glass-border, rgba(255,255,255,0.1)) !important;
     transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
 }
+/* Odaklanınca kullanıcı isteğiyle sarı/amber çerçeve kaldırıldı (2026-08-06)
+   — sadece alan hafifçe belirginleşir, renk vurgusu yok. */
 .dump-inline-area:focus-within {
-    background: rgba(212,144,14,0.07);
-    border-color: rgba(212,144,14,0.42) !important;
-    box-shadow: 0 0 0 3px rgba(212,144,14,0.06);
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.2) !important;
 }
 .dump-inline-top-row {
     display: flex;
@@ -211,8 +212,15 @@
 .dump-inline-textarea::placeholder {
     color: rgba(255,255,255,0.25);
 }
-.dump-inline-area:focus-within .dump-inline-textarea {
-    min-height: 64px;
+/* Odaklanınca kartın büyümesi kaldırıldı (kullanıcı isteğiyle, 2026-08-06):
+   kart sabit boyutta kalmalı. */
+/* a11y-focus-visible.css'teki genel klavye-odak güvenlik ağı (:focus-visible)
+   varsayılan olarak amber bir outline ekliyor — burada kullanıcı isteğiyle
+   kaldırıldı (2026-08-06). WCAG 2.4.7 hâlâ karşılanıyor: odaklanınca
+   .dump-inline-area:focus-within zaten kendi border-color değişimini
+   (yukarıda) görsel gösterge olarak sağlıyor. */
+#dump-inline-textarea:focus-visible {
+    outline: none !important;
 }
 .dump-inline-bottom-row {
     display: flex;
@@ -533,4 +541,83 @@
 }
 .dump-title:hover {
     text-decoration: underline dotted rgba(255,255,255,0.3);
+}
+
+/* ── "Göreve Dönüştür" modalı — minimalist form kontrolleri (2026-08-06) ──
+   Önceden .dump-type-btn tamamen u-* inline utility class'larla stillendiriliyordu
+   (kalın arka plan/border), ve Ana Hedef/Öncelik/Tekrar select'leri hem
+   .modern-select hem .premium-input class'ını birlikte taşıyordu (iki katmanlı,
+   ağır görünüm). İkisi de sadeleştirildi. */
+.dump-type-selector {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+.dump-type-btn {
+    padding: 9px 6px;
+    border-radius: 10px;
+    border: 1px solid var(--glass-border, rgba(255,255,255,0.08));
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 500;
+    text-align: center;
+    transition: background 0.18s, border-color 0.18s, color 0.18s;
+}
+.dump-type-btn.active {
+    background: rgba(212,144,14,0.1);
+    border-color: rgba(212,144,14,0.3);
+    color: var(--primary-color, #D4900E);
+    font-weight: 600;
+}
+
+.dump-minimal-select {
+    width: 100%;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--glass-border, rgba(255,255,255,0.08));
+    border-radius: 8px;
+    padding: 8px 10px;
+    color: var(--text-color);
+    font-size: 13px;
+    font-weight: 500;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.15s;
+}
+.dump-minimal-select:focus {
+    border-color: rgba(212,144,14,0.3);
+}
+.dump-minimal-select option {
+    background: #1a163a;
+    color: #fff;
+}
+
+/* "Göreve Dönüştür" modalı footer butonları (İptal / Planla & Taşı / Alışkanlık
+   Oluştur) — önceden .control-btn'in varsayılan 15px/30px büyük boyutu + ekstra
+   inline padding utility'siyle geliyordu, kullanıcı isteğiyle küçültüldü
+   (2026-08-06). */
+.dump-modal-btn-sm {
+    padding: 8px 16px !important;
+    font-size: 13px !important;
+    border-radius: 8px !important;
+}
+
+/* "Göreve Dönüştür" modalı: Görev/Alışkanlık/Ana Hedef arasında geçiş
+   yapınca modal boyu her seferinde değişiyordu (Görev alanları en uzunu,
+   Ana Hedef en kısası) — kullanıcı gözünün kaymasına ve tip sekmeleri
+   arasında hızlı geçişin rahatsız edici olmasına yol açıyordu (kullanıcı
+   isteğiyle, 2026-08-06). Üç alan grubuna da Görev'in doğal yüksekliğine
+   göre ortak bir min-height veriyoruz; Alışkanlık ve Ana Hedef (daha kısa
+   içerikli) kendi içeriklerini bu sabit alanda dikey ortalıyor (script-
+   convert-modal.js bunlar gösterilirken display:flex atıyor). */
+#dump-task-fields,
+#dump-habit-fields,
+#dump-goal-fields {
+    min-height: 300px;
+    box-sizing: border-box;
+}
+#dump-habit-fields,
+#dump-goal-fields {
+    flex-direction: column;
+    justify-content: center;
 }
