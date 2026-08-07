@@ -88,43 +88,54 @@ export function toggleTask(id) {
         if (getActiveFocusTaskRef() === String(id) && task.completed) window.clearFocusMode();
         window.saveTasks();
 
-        // YENİ: Hedef ilerlemesini anlık güncelle
-        if(task.parentGoal) window.checkGoalSynergy(task.parentGoal);
+        // NOT: Bu blok (hedef/milestone senkronu) hata fırlatırsa, altındaki
+        // renderTasks/renderGoals/renderHabits çağrılarına hiç ulaşılmıyordu —
+        // veri (task.completed, habit.history) doğru yazılmış olsa bile ekran
+        // (örn. "Tamamlanan: X/Y" sayacı, checkbox) güncellenmeden kalıyordu,
+        // sadece başka bir sekmeye geçip geri dönünce düzeliyordu. Bu blok
+        // arayüz güncellemesi için kritik olmadığından try/catch ile izole
+        // edip render çağrılarının her koşulda çalışmasını garantiliyoruz.
+        try {
+            // YENİ: Hedef ilerlemesini anlık güncelle
+            if(task.parentGoal) window.checkGoalSynergy(task.parentGoal);
 
-        // MİLESTONE SENKRON: Görev tamamlanma durumu milestone ile senkron çalışır
-        if (task.parentMilestone && task.parentGoal) {
-            const parentGoal = getGoalsRef().find(g => String(g.id) === String(task.parentGoal));
-            if (parentGoal && parentGoal.milestones) {
-                const ms = parentGoal.milestones.find(m => String(m.id) === String(task.parentMilestone));
-                if (ms) {
-                    const msLinkedTasks = getTasksRef().filter(t => String(t.parentMilestone) === String(ms.id) && String(t.parentGoal) === String(task.parentGoal));
-                    const allDone = msLinkedTasks.length > 0 && msLinkedTasks.every(t => t.completed);
-                    if (allDone && !ms.completed) {
-                        // Tüm görevler tamamlandı → milestone'u tamamla
-                        ms.completed = true;
-                        window.Store.getGoalsRef().set(getGoalsRef()); if(window.FocusSync) window.FocusSync.pushKey('getGoalsRef()', getGoalsRef());
-                        showPremiumModal({
-                            title: 'Dönüm Noktası Aşıldı! 🏁',
-                            message: `"${window.escapeHtml(ms.text)}" dönüm noktasına ulaştın! Tüm bağlı görevleri tamamladın.`,
-                            type: 'success'
-                        });
-                        if (window.FocusAISocial && typeof window.FocusAISocial.postActivity === 'function') {
-                            window.FocusAISocial.postActivity(`"${ms.text}" dönüm noktasına ulaştı 🏁`);
+            // MİLESTONE SENKRON: Görev tamamlanma durumu milestone ile senkron çalışır
+            if (task.parentMilestone && task.parentGoal) {
+                const parentGoal = getGoalsRef().find(g => String(g.id) === String(task.parentGoal));
+                if (parentGoal && parentGoal.milestones) {
+                    const ms = parentGoal.milestones.find(m => String(m.id) === String(task.parentMilestone));
+                    if (ms) {
+                        const msLinkedTasks = getTasksRef().filter(t => String(t.parentMilestone) === String(ms.id) && String(t.parentGoal) === String(task.parentGoal));
+                        const allDone = msLinkedTasks.length > 0 && msLinkedTasks.every(t => t.completed);
+                        if (allDone && !ms.completed) {
+                            // Tüm görevler tamamlandı → milestone'u tamamla
+                            ms.completed = true;
+                            window.Store.getGoalsRef().set(getGoalsRef()); if(window.FocusSync) window.FocusSync.pushKey('getGoalsRef()', getGoalsRef());
+                            showPremiumModal({
+                                title: 'Dönüm Noktası Aşıldı! 🏁',
+                                message: `"${window.escapeHtml(ms.text)}" dönüm noktasına ulaştın! Tüm bağlı görevleri tamamladın.`,
+                                type: 'success'
+                            });
+                            if (window.FocusAISocial && typeof window.FocusAISocial.postActivity === 'function') {
+                                window.FocusAISocial.postActivity(`"${ms.text}" dönüm noktasına ulaştı 🏁`);
+                            }
+                        } else if (!allDone && ms.completed) {
+                            // En az bir görev tamamlanmadı → milestone'u geri al
+                            ms.completed = false;
+                            window.Store.getGoalsRef().set(getGoalsRef()); if(window.FocusSync) window.FocusSync.pushKey('getGoalsRef()', getGoalsRef());
                         }
-                    } else if (!allDone && ms.completed) {
-                        // En az bir görev tamamlanmadı → milestone'u geri al
-                        ms.completed = false;
-                        window.Store.getGoalsRef().set(getGoalsRef()); if(window.FocusSync) window.FocusSync.pushKey('getGoalsRef()', getGoalsRef());
                     }
                 }
             }
-        }
 
-        // F1.1 — Planlama modülü (planning.js) milestone sync
-        if (task.parentMilestone && String(task.parentMilestone).startsWith('ms_') &&
-            task.parentGoal     && String(task.parentGoal).startsWith('pg_') &&
-            typeof window.setPlanningMilestoneDone === 'function') {
-            window.setPlanningMilestoneDone(task.parentGoal, task.parentMilestone, willComplete);
+            // F1.1 — Planlama modülü (planning.js) milestone sync
+            if (task.parentMilestone && String(task.parentMilestone).startsWith('ms_') &&
+                task.parentGoal     && String(task.parentGoal).startsWith('pg_') &&
+                typeof window.setPlanningMilestoneDone === 'function') {
+                window.setPlanningMilestoneDone(task.parentGoal, task.parentMilestone, willComplete);
+            }
+        } catch (e) {
+            console.warn('[toggleTask] Hedef/milestone senkron hatası (arayüz yine de güncellenecek):', e);
         }
 
         window.renderTasks(); // Arayüzü anında günceller (Alışkanlık tiki burada anında görünür)
