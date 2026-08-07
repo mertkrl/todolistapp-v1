@@ -45,7 +45,7 @@ def load_known():
 def main():
     known = load_known()
     by_name = defaultdict(set)
-    for p in sorted(ROOT.glob("*.js")):
+    for p in sorted(list(ROOT.glob("*.js")) + list((ROOT / "js").glob("*.js"))):
         try:
             text = p.read_text(encoding="utf-8")
         except OSError:

@@ -38,7 +38,7 @@ def find_static_module_files():
 
 def find_dynamic_module_files():
     files = set()
-    for js in BASE.glob('*.js'):
+    for js in list(BASE.glob('*.js')) + list((BASE / 'js').glob('*.js')):
         try:
             src = js.read_text(encoding='utf-8')
         except Exception:

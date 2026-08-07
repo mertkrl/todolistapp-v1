@@ -1,4 +1,4 @@
-import { FocusStorage } from '../storage-manager.js';
+import { FocusStorage } from '../js/storage-manager.js';
 
 let habitCategories = FocusStorage.get('habit_categories', [
     { id: 'genel', name: 'Genel' }, { id: 'saglik', name: 'Sağlık' }, { id: 'kisisel-gelisim', name: 'Kişisel Gelişim' }

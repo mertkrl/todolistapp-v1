@@ -41,11 +41,16 @@ EXCLUDE_NAMES = {"sw.js", "vite.config.js"}
 
 def collect_files():
     files = []
-    for pattern in ("*.js", "*.css"):
-        for p in ROOT.glob(pattern):  # non-recursive: sadece kök dizin
-            if p.name in EXCLUDE_NAMES:
-                continue
-            files.append(p.name)
+    # Kök dizindeki "uygulama kabuğu" dosyaları (public/ ile eşlenen inline-*.js'ler)
+    # + js/ klasöründeki ES modülleri + css/ klasöründeki stil dosyaları.
+    for p in ROOT.glob("*.js"):  # non-recursive: sadece kök dizin
+        if p.name in EXCLUDE_NAMES:
+            continue
+        files.append(p.name)
+    for p in (ROOT / "js").glob("*.js"):
+        files.append(f"js/{p.name}")
+    for p in (ROOT / "css").glob("*.css"):
+        files.append(f"css/{p.name}")
     return sorted(files)
 
 

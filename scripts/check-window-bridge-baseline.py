@@ -63,7 +63,10 @@ def write_baseline(counts: dict):
 
 
 def collect_root_js_files():
-    return sorted(p for p in list(ROOT.glob("*.js")) + list((ROOT / "state").glob("*.js")))
+    return sorted(
+        p for p in
+        list(ROOT.glob("*.js")) + list((ROOT / "state").glob("*.js")) + list((ROOT / "js").glob("*.js"))
+    )
 
 
 def main():
