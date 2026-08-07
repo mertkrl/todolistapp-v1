@@ -40,8 +40,12 @@ import { _renderStreakAndAveragesUI } from './script-statistics-streak-averages.
          const highlightHistory = FocusStorage.get('highlight_history', {});
          const filteredTasks = getTasksRef().filter(t => t.completed && inRange(t.date || formatDateToString(now)));
          const filteredHighlights = Object.entries(highlightHistory).filter(([ds, h]) => h.completed && inRange(ds));
-         const completedTaskCount = filteredTasks.length + filteredHighlights.length;
-         const totalTasksCount = getTasksRef().filter(t => inRange(t.date || formatDateToString(now))).length + Object.keys(highlightHistory).filter(ds => inRange(ds)).length;
+         let filteredHabitCheckinDays = 0;
+        getHabitsRef().forEach(h => {
+            filteredHabitCheckinDays += Object.keys(h.history || {}).filter(ds => h.history[ds] && inRange(ds)).length;
+        });
+        const completedTaskCount = filteredTasks.length + filteredHighlights.length + filteredHabitCheckinDays;
+         const totalTasksCount = getTasksRef().filter(t => inRange(t.date || formatDateToString(now))).length + Object.keys(highlightHistory).filter(ds => inRange(ds)).length + filteredHabitCheckinDays;
          const completionRate = totalTasksCount === 0 ? 0 : Math.round((completedTaskCount / totalTasksCount) * 100);
  
          // --- Odaklanma ---

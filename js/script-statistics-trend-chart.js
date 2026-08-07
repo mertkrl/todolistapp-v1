@@ -3,7 +3,7 @@
 // Grafiği bölümü — sadece kendi parametrelerine (filterDays, highlightHistory)
 // ve dışa açık köprülere bağımlı, diğer render yardımcılarıyla paylaşılan
 // mutable state yok.
-import { getTasksRef } from './script.js';
+import { getTasksRef, getHabitsRef } from './script.js';
 import { formatDateToString } from './script-date-time-utils.js';
 
      // renderStatistics'in İlerleme Trend Grafiği bölümü — SVG çizgi grafiği,
@@ -21,6 +21,12 @@ import { formatDateToString } from './script-date-time-utils.js';
             const completedByDate = {};
             getTasksRef().forEach(t => { if (t.completed && t.date) completedByDate[t.date] = (completedByDate[t.date] || 0) + 1; });
             Object.entries(highlightHistory).forEach(([ds, h]) => { if (h.completed) completedByDate[ds] = (completedByDate[ds] || 0) + 1; });
+            // Bugün sayfasındaki alışkanlık satırları gerçek bir task nesnesi
+            // oluşturmaz, tamamlanma sadece habit.history[dateStr]'a yazılır —
+            // onları da eklemezsek trend grafiği Bugün sayfasıyla tutarsız kalır.
+            getHabitsRef().forEach(h => {
+                Object.entries(h.history || {}).forEach(([ds, done]) => { if (done) completedByDate[ds] = (completedByDate[ds] || 0) + 1; });
+            });
             const trendFocusHistory = FocusStorage.get('focus_history', {});
 
             let barData = [];
