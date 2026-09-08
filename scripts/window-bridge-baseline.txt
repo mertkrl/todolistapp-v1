@@ -139,6 +139,7 @@ script-day-drawer-core.js:3
 script-day-drawer-render.js:6
 script-day-summary-card.js:1
 script-edit-task-modal.js:2
+script-evening-reflection-modal.js:1
 script-focus-mode.js:4
 script-goal-deadline-extend.js:3
 script-goal-delete-prompt.js:1
@@ -160,7 +161,7 @@ script-mind-dump.js:9
 script-misc-widgets.js:6
 script-move-task-to-date.js:1
 script-nlp.js:1
-script-onboarding-tour.js:4
+script-onboarding-tour.js:5
 script-populate-parent-selects.js:1
 script-premium-alert-toast.js:1
 script-profile-dropdown.js:1

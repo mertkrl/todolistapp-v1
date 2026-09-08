@@ -31,6 +31,11 @@ export function toggleTask(id) {
             if (window.FocusAISocial && typeof window.FocusAISocial.postActivity === 'function') {
                 window.FocusAISocial.postActivity(`"${task.text}" görevini tamamladı ✅`);
             }
+
+            // İlk görev tamamlamasıyla Gün Sonu Değerlendirmesi devreye girebilir
+            // hale gelir (bkz. script-evening-reflection-modal.js) — akşam
+            // saatindeysek hemen kontrol edip gerekiyorsa istemi göster.
+            if (typeof window.checkEveningReflection === 'function') window.checkEveningReflection();
         }
 
         // 1. KLASİK SİNERJİ: Görev doğrudan bir alışkanlığın alt göreviyse

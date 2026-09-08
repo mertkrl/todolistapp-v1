@@ -483,6 +483,14 @@ import {
                 _toast('Giriş yapıldı!', 'success');
 
                 await window.FocusSync.pullAll();
+                // Hesap yaşı (window.FocusAccountCreatedAt) artık kesin dolu —
+                // sayfa ilk açıldığında bu bilinmediği için yanlış açılmış/
+                // atlanmış olabilecek Gün Sonu Değerlendirmesi kontrolünü tekrarla.
+                if (typeof window.checkEveningReflection === 'function') window.checkEveningReflection();
+                // Aynı şekilde onboarding turu — DOMContentLoaded'daki ilk
+                // deneme hesap/kayıt tamamlanmadan önce çalışıp turu haksız
+                // yere atlamış olabilir, burada kesin bilgiyle tekrar dene.
+                if (typeof window.__focusaiMaybeAutoStartTour === 'function') window.__focusaiMaybeAutoStartTour();
             }
         });
 
@@ -491,6 +499,7 @@ import {
                 await window.FocusAuth.signOut();
             } else {
                 await window.FocusSync.pullAll();
+                if (typeof window.checkEveningReflection === 'function') window.checkEveningReflection();
             }
         }
     }

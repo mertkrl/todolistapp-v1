@@ -363,21 +363,37 @@ document.addEventListener('DOMContentLoaded', () => {
      }
  });
  
- // Uygulama ilk açıldığında turu başlat
- setTimeout(() => {
+ // Turu başlatıp başlatmama kararı — hem sayfa ilk açıldığında hem de (asıl
+ // kritik olan) SIGNED_IN sonrasında window.FocusAccountCreatedAt kesinleşince
+ // TEKRAR çağrılıyor. Tek seferlik bir kontrol yeterli değildi: yeni kayıt
+ // olan bir kullanıcı için bu kod DOMContentLoaded'da (kayıt formu henüz
+ // doldurulmadan, dolayısıyla hesap yaşı/oturum hiç bilinmeden) bir kez
+ // çalışıp karar veriyordu — localStorage'da (tarayıcı kökenine bağlı, hesaba
+ // değil) önceki bir hesaptan kalan "tour_completed: true" ya da tasks/
+ // lastActiveTab verisi varsa turu haksız yere atlıyor ve BİR DAHA hiç
+ // yeniden değerlendirmiyordu.
+ function _maybeAutoStartTour() {
+     if (isTourActive) return;
+
+     const ACCOUNT_JUST_CREATED_MS = 5 * 60 * 1000;
+     const isBrandNewAccount = !!(window.FocusAccountCreatedAt &&
+         (Date.now() - new Date(window.FocusAccountCreatedAt).getTime()) < ACCOUNT_JUST_CREATED_MS);
+
      let isTourCompleted = false;
-     if(typeof FocusStorage !== 'undefined') {
+     if (isBrandNewAccount) {
+         // Hesap gerçekten yeniyse localStorage'daki (başka bir hesaptan
+         // kalmış olabilecek) bayrağı hiç güvenme — her zaman baştan başlat.
+         isTourCompleted = false;
+     } else if (typeof FocusStorage !== 'undefined') {
          isTourCompleted = FocusStorage.get('tour_completed', false);
      } else {
          isTourCompleted = localStorage.getItem('focusai_tour_completed') === 'true';
      }
-     
-     // Kendi kendini onarma: bayrak kayıp/false ama kullanıcı belli ki yeni değil
-     // (daha önce sekme gezmiş ya da verisi var) → turu zorla başlatma; bayrağı
-     // tamir et ve buluta push'la. Tur otomatik başlarken ilk adımı 'bugun'
-     // sekmesine tıkladığı için bu durum "her yenilemede Bugün'e atıyor"
-     // şikayetinin kaynağıydı.
-     if (!isTourCompleted && typeof FocusStorage !== 'undefined') {
+
+     // Kendi kendini onarma: bayrak kayıp/false ama kullanıcı belli ki yeni
+     // değil (daha önce sekme gezmiş ya da verisi var) → turu zorla başlatma;
+     // bayrağı tamir et. Sadece gerçekten yeni OLMAYAN hesaplar için uygulanır.
+     if (!isTourCompleted && !isBrandNewAccount && typeof FocusStorage !== 'undefined') {
          const hasHistory =
              FocusStorage.get('lastActiveTab', null) !== null ||
              (FocusStorage.get('tasks', []) || []).length > 0 ||
@@ -391,7 +407,11 @@ document.addEventListener('DOMContentLoaded', () => {
      if (!isTourCompleted && tourOverlay) {
          _startTourWhenAuthReady();
      }
- }, 1000);
+ }
+ window.__focusaiMaybeAutoStartTour = _maybeAutoStartTour;
+
+ // Uygulama ilk açıldığında dene (zaten oturumu olan/sayfayı yenileyen kullanıcı için)
+ setTimeout(_maybeAutoStartTour, 1000);
 
  // Giriş kapısı (#app-login-gate) ya da Hesap/Senkronizasyon, veri aktarım
  // gibi modallardan biri hâlâ açıkken tur devreye girmesin — aksi halde yeni

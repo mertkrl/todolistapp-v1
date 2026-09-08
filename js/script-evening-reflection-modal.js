@@ -1,14 +1,13 @@
-// Yeni kayıt olan bir kullanıcı kayıt olduğu GÜN "Gün Sonu Değerlendirmesi"
-// istemi almasın — bir sonraki takvim gününden itibaren gelmeye başlamalı.
-// window.FocusAccountCreatedAt supabase-client.js'te oturum kurulduğunda
-// dolduruluyor (auth.users.created_at); Supabase yapılandırılmamışsa veya
-// oturum yoksa bu kontrol atlanır (eski davranış — yerel-only kullanıcı).
-function _isAccountTooNewForReflection() {
-    const createdAt = window.FocusAccountCreatedAt;
-    if (!createdAt) return false;
-    const createdDateStr = window.toInputDate(window.formatDateToString(new Date(createdAt)));
-    const todayDateStr = window.toInputDate(window.getLogicalReflectionDate());
-    return todayDateStr <= createdDateStr;
+// Hesap yaşı/tarih bazlı kontrol tarih/saat dilimi kenar durumlarına ve
+// senkron gecikmelerine karşı kırılgan çıktı — bunun yerine daha basit ve
+// güvenilir bir kural kullanılıyor: kullanıcı en az 1 görevi tamamlayana
+// kadar Gün Sonu Değerlendirmesi hiç aktif olmasın/çıkmasın. Bu hem sayfa
+// yüklenir yüklenmez senkron olarak bilinir (tasks zaten localStorage'da),
+// hem de "henüz hiçbir şey yapmamış yepyeni kullanıcı" senaryosunu tarihe
+// bakmadan doğru şekilde kapsar.
+function _hasCompletedAtLeastOneTask() {
+    const tasks = window.FocusStorage.get('tasks', []) || [];
+    return tasks.some(t => t && t.completed);
 }
 
 // Ayarlar > Sistem Ayarları > Bildirimler'deki "Gün Sonu Değerlendirmesi"
@@ -19,14 +18,19 @@ function _eveningReflectionEnabled() {
 }
 
 export function checkEveningReflection() {
-    if (!window.isReflectionTime()) return;
-    if (!_eveningReflectionEnabled()) return;
-    if (_isAccountTooNewForReflection()) return;
+    if (!window.isReflectionTime() || !_eveningReflectionEnabled() || !_hasCompletedAtLeastOneTask()) {
+        document.getElementById('evening-reflection-modal')?.classList.add('hidden');
+        return;
+    }
     const logDate = window.toInputDate(window.getLogicalReflectionDate());
     const journalEntries = window.FocusStorage.get('focusai_journal_entries', []);
     const todayEntry = journalEntries.find(e => e.date === logDate);
     if (!todayEntry) openReflectionModal();
 }
+// Görev tamamlandığında (script.js'in toggleTask'ı) ya da girişten sonra veri
+// senkronize olduğunda (auth-ui.js) bu kontrolü tekrar çalıştırabilmek için
+// global'e açılıyor.
+window.checkEveningReflection = checkEveningReflection;
 
 export function openReflectionModal() {
     const logDate = window.toInputDate(window.getLogicalReflectionDate());
