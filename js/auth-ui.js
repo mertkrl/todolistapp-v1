@@ -1,11 +1,13 @@
 /**
  * FocusAI hesap / senkronizasyon arayüzü.
  * - Magic link (yeni kullanıcı) + OTP kodu (mevcut kullanıcı) girişi
- * - İlk girişte profil kurulum modalı (kullanıcı adı, isim, avatar rengi)
- * - Veri aktarım sihirbazı
+ * - Veri aktarım sihirbazı (elle, Hesap/Senkronizasyon modalından)
+ *
+ * Not: profil kurulum modalı ("Hesabını Kur") kaldırıldı — kullanıcı adı
+ * artık tek adımda app-login-gate.js'in kayıt formunda toplanıyor.
  */
 import {
-    AVATAR_COLORS, _toast, _avatarColorSwatches,
+    _toast,
     _isStrongPassword, _validateEmail, _summaryRow
 } from './auth-ui-utils.js';
 
@@ -40,9 +42,9 @@ import {
                             </div>
 
                             <div id="focusai-section-form">
-                                <input type="email" id="focusai-auth-email" class="premium-input u-margin-bottom-10px" placeholder="ornek@eposta.com" autocomplete="email" >
-                                <input type="password" id="focusai-auth-password" class="premium-input" placeholder="Şifre" autocomplete="current-password">
-                                <input type="password" id="focusai-auth-password-confirm" class="premium-input hidden u-margin-top-10px" placeholder="Şifreyi tekrar gir" autocomplete="new-password" >
+                                <input type="email" id="focusai-auth-email" class="premium-input u-margin-bottom-10px" placeholder="ornek@eposta.com" autocomplete="email" maxlength="254">
+                                <input type="password" id="focusai-auth-password" class="premium-input" placeholder="Şifre" autocomplete="current-password" maxlength="72">
+                                <input type="password" id="focusai-auth-password-confirm" class="premium-input hidden u-margin-top-10px" placeholder="Şifreyi tekrar gir" autocomplete="new-password" maxlength="72">
                                 <p class="u-margin-top-8px_text-align-right">
                                     <a href="#" id="focusai-auth-forgot-link" class="u-font-size-12px_color-var-text-muted">Şifremi unuttum</a>
                                 </p>
@@ -52,7 +54,7 @@ import {
                             <!-- Şifre sıfırlama -->
                             <div id="focusai-section-reset" class="hidden">
                                 <p class="u-margin-bottom-12px_font-size-13px_color-var-text-muted">E-postana bir sıfırlama bağlantısı gönderelim.</p>
-                                <input type="email" id="focusai-reset-email" class="premium-input" placeholder="ornek@eposta.com" autocomplete="email">
+                                <input type="email" id="focusai-reset-email" class="premium-input" placeholder="ornek@eposta.com" autocomplete="email" maxlength="254">
                                 <p id="focusai-reset-status" class="u-margin-top-10px_font-size-13px_color-var-text-muted"></p>
                                 <button type="button" id="focusai-reset-send-btn" class="primary-btn u-width-100pct_margin-top-10px" ><i class="fa-solid fa-paper-plane"></i> Bağlantı Gönder</button>
                                 <button type="button" id="focusai-reset-back-btn" class="control-btn secondary u-width-100pct_margin-top-8px" >Geri Dön</button>
@@ -69,52 +71,13 @@ import {
                                 </div>
                             </div>
                             <p class="u-font-size-13px_color-var-text-muted">Verilerin bu hesapla otomatik olarak senkronize ediliyor.</p>
+                            <button type="button" id="focusai-open-import-btn" class="control-btn secondary u-width-100pct_margin-top-14px"><i class="fa-solid fa-cloud-arrow-up"></i> Verilerini Buluta Aktar</button>
                         </div>
 
                     </div>
                     <div class="modal-footer">
                         <button id="focusai-auth-signout-btn" class="control-btn secondary hidden"><i class="fa-solid fa-right-from-bracket"></i> Çıkış Yap</button>
                         <button id="focusai-auth-send-btn" class="primary-btn"><i class="fa-solid fa-arrow-right"></i> Giriş Yap</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Profil Kurulum Modalı (ilk giriş) -->
-            <div id="focusai-profile-modal" class="modal-overlay hidden">
-                <div class="modal-content glass-panel u-max-width-440px" >
-                    <div class="modal-icon-wrapper success"><i class="fa-solid fa-user-pen"></i></div>
-                    <div class="modal-header"><h2>Hesabını Kur</h2></div>
-                    <div class="modal-body">
-                        <p class="u-margin-bottom-16px">Merhaba! Profilini oluşturalım. Bu bilgiler arkadaşlarına görünür.</p>
-
-                        <!-- Avatar önizleme -->
-                        <div class="u-display-flex_flex-direction-column_align-items-center_gap-">
-                            <div id="focusai-profile-avatar-preview"
- class="u-width-72px_height-72px_border-radius-50pct_display-flex_al">
-                                ?
-                            </div>
-                            <div class="u-display-flex_gap-8px_flex-wrap-wrap_justify-content-center">
-                                ${_avatarColorSwatches()}
-                            </div>
-                        </div>
-
-                        <div class="u-display-flex_flex-direction-column_gap-10px-2">
-                            <div>
-                                <label class="u-font-size-12px_color-var-text-muted_display-block_margin-b-2">Kullanıcı Adı <span class="u-color-hff4757">*</span></label>
-                                <input type="text" id="focusai-profile-username" class="premium-input u-text-transform-lowercase" placeholder="ornekkullanici" maxlength="30"
- autocomplete="username">
-                                <p id="focusai-username-hint" class="u-font-size-11px_color-var-text-muted_margin-top-4px-2">Harf, rakam ve alt çizgi kullanabilirsin.</p>
-                            </div>
-                            <div>
-                                <label class="u-font-size-12px_color-var-text-muted_display-block_margin-b-2">Görünen İsim <span class="u-color-hff4757">*</span></label>
-                                <input type="text" id="focusai-profile-displayname" class="premium-input" placeholder="Adın Soyadın" maxlength="40" autocomplete="name">
-                            </div>
-                        </div>
-                        <p id="focusai-profile-status" class="u-margin-top-12px_font-size-13px_color-var-text-muted"></p>
-                    </div>
-                    <div class="modal-footer">
-                        <button id="focusai-profile-skip-btn" class="control-btn secondary">Daha Sonra</button>
-                        <button id="focusai-profile-save-btn" class="primary-btn"><i class="fa-solid fa-rocket"></i> Başla!</button>
                     </div>
                 </div>
             </div>
@@ -154,7 +117,6 @@ import {
         document.body.appendChild(wrapper);
 
         _bindAuthModal();
-        _bindProfileModal();
         _bindImportModal();
         _bindRecoveryModal();
     }
@@ -298,6 +260,11 @@ import {
             }
         });
 
+        // Verilerini buluta aktar (yalnızca burada, ayarlar/hesap bölümünden elle açılır)
+        document.getElementById('focusai-open-import-btn').addEventListener('click', () => {
+            _openImportWizard();
+        });
+
         // Çıkış yap
         document.getElementById('focusai-auth-signout-btn').addEventListener('click', async () => {
             await window.FocusAuth.signOut();
@@ -345,102 +312,11 @@ import {
         });
     }
 
-    // ─── Profil modalı bağlantıları ────────────────────────────────────────
-    let _selectedAvatarColor = AVATAR_COLORS[0].color;
-
-    function _bindProfileModal() {
-        const profileModal = document.getElementById('focusai-profile-modal');
-        const preview = document.getElementById('focusai-profile-avatar-preview');
-        const usernameInput = document.getElementById('focusai-profile-username');
-        const displayNameInput = document.getElementById('focusai-profile-displayname');
-
-        // Renk seçimi
-        profileModal.querySelectorAll('.avatar-swatch').forEach(btn => {
-            btn.style.background = btn.dataset.color;
-            btn.style.border = btn.hasAttribute('data-selected') ? '3px solid #fff' : '3px solid transparent';
-            btn.addEventListener('click', () => {
-                profileModal.querySelectorAll('.avatar-swatch').forEach(b => {
-                    b.style.border = '3px solid transparent';
-                    b.style.transform = 'scale(1)';
-                    b.removeAttribute('data-selected');
-                });
-                btn.style.border = '3px solid #fff';
-                btn.style.transform = 'scale(1.15)';
-                btn.setAttribute('data-selected', 'true');
-                _selectedAvatarColor = btn.dataset.color;
-                preview.style.background = _selectedAvatarColor;
-            });
-        });
-
-        // Canlı avatar önizleme
-        displayNameInput.addEventListener('input', () => {
-            const letter = (displayNameInput.value.trim()[0] || '?').toUpperCase();
-            preview.textContent = letter;
-        });
-
-        // Kullanıcı adı küçük harf + sadece geçerli karakter
-        usernameInput.addEventListener('input', () => {
-            usernameInput.value = usernameInput.value.toLowerCase().replace(/[^a-z0-9_]/g, '');
-        });
-
-        // Kaydet
-        document.getElementById('focusai-profile-save-btn').addEventListener('click', async () => {
-            const username = usernameInput.value.trim();
-            const displayName = displayNameInput.value.trim();
-            const status = document.getElementById('focusai-profile-status');
-
-            if (!username || username.length < 3) {
-                status.textContent = 'Kullanıcı adı en az 3 karakter olmalı.';
-                status.style.color = '#ff4757';
-                return;
-            }
-            if (!displayName) {
-                status.textContent = 'Görünen isim boş bırakılamaz.';
-                status.style.color = '#ff4757';
-                return;
-            }
-
-            const btn = document.getElementById('focusai-profile-save-btn');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Kaydediliyor...';
-
-            try {
-                const session = await window.FocusAuth.getSession();
-                await window.FocusAuth.updateProfile(session.user.id, {
-                    username,
-                    display_name: displayName,
-                    avatar_color: _selectedAvatarColor,
-                });
-                profileModal.classList.add('hidden');
-                _toast('Profil oluşturuldu! Hoşgeldin ' + displayName + ' 🎉', 'success');
-                _updateSyncButton();
-                // Veri aktarım sihirbazını aç
-                setTimeout(() => _openImportWizard(), 600);
-            } catch (e) {
-                status.textContent = 'Hata: ' + (e.message || 'Profil kaydedilemedi.');
-                status.style.color = '#ff4757';
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fa-solid fa-rocket"></i> Başla!';
-            }
-        });
-
-        // Daha sonra
-        document.getElementById('focusai-profile-skip-btn').addEventListener('click', () => {
-            profileModal.classList.add('hidden');
-            _openImportWizard();
-        });
-    }
-
     // ─── Veri aktarım modalı ───────────────────────────────────────────────
     function _bindImportModal() {
         const importModal = document.getElementById('focusai-import-modal');
         document.getElementById('focusai-import-skip-btn').addEventListener('click', () => {
             importModal.classList.add('hidden');
-            // "Daha Sonra" bir sonraki kontrolde modalın hemen tekrar açılmasını
-            // engellemek için 24 saatlik bir bekleme damgası bırakır — SIGNED_IN
-            // olayı sekme odak/görünürlük değişiminde de tekrar tetiklenebiliyor.
-            try { localStorage.setItem('focusai_import_wizard_skipped_at', String(Date.now())); } catch (e) {}
         });
         document.getElementById('focusai-import-confirm-btn').addEventListener('click', async () => {
             const btn = document.getElementById('focusai-import-confirm-btn');
@@ -548,39 +424,6 @@ import {
 
     window.FocusAuthUI = { open: _openAuthModal };
 
-    // ─── İlk giriş sonrası profil kurulum kontrolü ─────────────────────────
-    async function _checkAndShowProfileSetup(userId) {
-        if (!window.FocusSupabase) return false;
-        try {
-            const { data } = await window.FocusSupabase
-                .from('profiles')
-                .select('username, display_name, imported_at')
-                .eq('id', userId)
-                .maybeSingle();
-            // Profil kurulmamışsa kurulum modalını göster
-            if (data && !data.username) {
-                const preview = document.getElementById('focusai-profile-avatar-preview');
-                if (preview) preview.textContent = '?';
-                document.getElementById('focusai-profile-modal').classList.remove('hidden');
-                return true;
-            }
-            // Kurulu ama veri aktarımı yapılmamışsa aktarım sihirbazını göster
-            // ("Daha Sonra" ile geçildiyse 24 saat boyunca tekrar açılmasın)
-            if (data && !data.imported_at) {
-                let skippedAt = 0;
-                try { skippedAt = parseInt(localStorage.getItem('focusai_import_wizard_skipped_at') || '0', 10); } catch (e) {}
-                const SKIP_COOLDOWN_MS = 24 * 60 * 60 * 1000;
-                if (!skippedAt || (Date.now() - skippedAt) > SKIP_COOLDOWN_MS) {
-                    _openImportWizard();
-                }
-            }
-            return false;
-        } catch (e) {
-            console.warn('[FocusAuth] profil kontrol hatası:', e.message);
-            return false;
-        }
-    }
-
     async function _init() {
         _injectModals();
 
@@ -609,6 +452,22 @@ import {
             }
 
             if (event === 'SIGNED_IN' && newSession && newSession.user) {
+                // E-postası hâlâ doğrulanmamış bir kullanıcı için Supabase yine de
+                // bir oturum döndürebilir (ör. Dashboard'da "Confirm email"
+                // kapalıysa, ya da doğrulama bağlantısına tıklamadan önce farklı
+                // bir sekmede zaten oturum vardıysa). Bu durumda kullanıcıyı
+                // hemen çıkışa zorluyoruz ki doğrulamadan uygulamaya girilemesin.
+                if (!newSession.user.email_confirmed_at) {
+                    await window.FocusAuth.signOut();
+                    const status = document.getElementById('focusai-auth-status');
+                    if (status) {
+                        status.textContent = 'Devam etmeden önce e-postana gönderdiğimiz bağlantıyla hesabını doğrulaman gerekiyor.';
+                        status.style.color = '#ff4757';
+                    }
+                    _toast('Lütfen önce e-postana gönderilen bağlantıyla hesabını doğrula.', 'warning');
+                    return;
+                }
+
                 const authModal = document.getElementById('focusai-auth-modal');
                 if (authModal) authModal.classList.add('hidden');
 
@@ -624,12 +483,15 @@ import {
                 _toast('Giriş yapıldı!', 'success');
 
                 await window.FocusSync.pullAll();
-                await _checkAndShowProfileSetup(newSession.user.id);
             }
         });
 
         if (session && session.user) {
-            await window.FocusSync.pullAll();
+            if (!session.user.email_confirmed_at) {
+                await window.FocusAuth.signOut();
+            } else {
+                await window.FocusSync.pullAll();
+            }
         }
     }
 

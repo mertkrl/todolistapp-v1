@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function loadSystemSettings() {
         const cfg = FocusStorage.get('system_settings', {
             theme: 'dark', quickadd: true, ghostmode: true,
-            tasksound: true, notif: false, streak: true
+            tasksound: true, notif: false, streak: true, eveningReflection: true
         });
 
         // Hayalet Mod
@@ -77,6 +77,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 cfg.streak = streakToggle.checked;
                 const badge = document.getElementById('streak-badge');
                 if (badge) badge.style.display = streakToggle.checked ? '' : 'none';
+                saveSettings(cfg);
+            };
+        }
+
+        // Gün Sonu Değerlendirmesi bildirimi
+        const eveningReflectionToggle = document.getElementById('ss-toggle-evening-reflection');
+        if (eveningReflectionToggle) {
+            eveningReflectionToggle.checked = cfg.eveningReflection !== false;
+            eveningReflectionToggle.onchange = () => {
+                cfg.eveningReflection = eveningReflectionToggle.checked;
                 saveSettings(cfg);
             };
         }

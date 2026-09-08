@@ -50,12 +50,16 @@ export function _avatarColorSwatches() {
 // kullanıcıların girişini etkilemez, sadece yeni şifre oluştururken
 // uygulanır (mevcut hesaplar 6 karakterle oluşturulmuş olabilir, login
 // akışında bu kontrolü uygulamak onları hesaplarından kilitlerdi).
+export const EMAIL_MAX_LEN = 254;
+export const USERNAME_MAX_LEN = 20;
+export const PASSWORD_MAX_LEN = 72; // Supabase/bcrypt bu uzunluktan sonrasını zaten yok sayıyor
+
 export function _isStrongPassword(password) {
-    return typeof password === 'string' && password.length >= 8 && /\d/.test(password);
+    return typeof password === 'string' && password.length >= 8 && password.length <= PASSWORD_MAX_LEN && /\d/.test(password);
 }
 
 export function _validateEmail(email, statusEl) {
-    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+    if (!email || !/^\S+@\S+\.\S+$/.test(email) || email.length > EMAIL_MAX_LEN) {
         statusEl.textContent = 'Lütfen geçerli bir e-posta adresi gir.';
         statusEl.style.color = '#ff4757';
         return false;

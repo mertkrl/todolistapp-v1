@@ -2,7 +2,7 @@ import { getCurrentUser } from '../state/current-user-store.js';
 import { avatarUploadEnabled } from './social-chat-gate.js';
 import { updateProfileHeader } from './social-profile-header.js';
 import { openSetupModalAsEdit, resetSetupModalToRegister } from './social-setup-modal-edit.js';
-import { ensureCommunityAccess, openCommunitySetupModal, startAllSocialListeners, saveUser, registerUser, syncXP } from './social.js';
+import { ensureCommunityAccess, startAllSocialListeners, saveUser, registerUser, syncXP } from './social.js';
 
 export function _setupProfileModalListeners() {
 
@@ -39,12 +39,6 @@ export function _setupProfileModalListeners() {
                 setTimeout(() => { ensureCommunityAccess(); }, 350);
             }
         });
-    });
-
-    // Topluluk profili henüz tamamlanmamış (oturum var ama username boş) —
-    // initSocial/loadCommunityProfile tarafından tetiklenir.
-    window.addEventListener('focusai:needs-community-profile', (e) => {
-        openCommunitySetupModal((e.detail) || {});
     });
 
     // Profil düzenle butonu — edit modu

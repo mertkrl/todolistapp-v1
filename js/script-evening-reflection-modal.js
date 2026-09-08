@@ -1,5 +1,27 @@
+// Yeni kayıt olan bir kullanıcı kayıt olduğu GÜN "Gün Sonu Değerlendirmesi"
+// istemi almasın — bir sonraki takvim gününden itibaren gelmeye başlamalı.
+// window.FocusAccountCreatedAt supabase-client.js'te oturum kurulduğunda
+// dolduruluyor (auth.users.created_at); Supabase yapılandırılmamışsa veya
+// oturum yoksa bu kontrol atlanır (eski davranış — yerel-only kullanıcı).
+function _isAccountTooNewForReflection() {
+    const createdAt = window.FocusAccountCreatedAt;
+    if (!createdAt) return false;
+    const createdDateStr = window.toInputDate(window.formatDateToString(new Date(createdAt)));
+    const todayDateStr = window.toInputDate(window.getLogicalReflectionDate());
+    return todayDateStr <= createdDateStr;
+}
+
+// Ayarlar > Sistem Ayarları > Bildirimler'deki "Gün Sonu Değerlendirmesi"
+// anahtarı ile kapatılabilir (script-system-settings.js).
+function _eveningReflectionEnabled() {
+    const cfg = window.FocusStorage.get('system_settings', {});
+    return cfg.eveningReflection !== false;
+}
+
 export function checkEveningReflection() {
     if (!window.isReflectionTime()) return;
+    if (!_eveningReflectionEnabled()) return;
+    if (_isAccountTooNewForReflection()) return;
     const logDate = window.toInputDate(window.getLogicalReflectionDate());
     const journalEntries = window.FocusStorage.get('focusai_journal_entries', []);
     const todayEntry = journalEntries.find(e => e.date === logDate);

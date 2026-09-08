@@ -91,30 +91,37 @@ async function loadCommunityProfile(authUser, _isRetry) {
             .maybeSingle();
         if (error) throw error;
 
-        if (!profile || !profile.username) {
-            // GERÇEK BUG DÜZELTMESİ (2026-08-06): app-login-gate.js'in kayıt
-            // akışı (_submitSignupStep) signUp() başarılı dönünce kullanıcı
-            // adını updateProfile() ile YAZIYOR, ama Supabase'in kendi
-            // SIGNED_IN olayı bu yazma tamamlanmadan ÖNCE (aynı mikro-görev
-            // turunda) tetiklenebiliyor — bu da loadCommunityProfile'ın
-            // profili HENÜZ username'siz haldeyken görüp gereksiz yere
-            // "Topluluğa Katıl!" kurulum modalını açmasına yol açıyordu
-            // (canlı testte doğrulandı: profil aslında saniyeler içinde
-            // doğru username ile duruyordu). Bir kez, kısa bir gecikmeyle
-            // tekrar kontrol ederek bu yarış durumunu (race condition)
-            // ortadan kaldırıyoruz — gerçekten kurulum gereken hesaplar için
-            // sadece yarım saniyelik zararsız bir gecikme ekliyor.
+        // Kullanıcı adı artık girişte (app-login-gate.js) tek adımda toplanıyor
+        // — ayrı bir "Topluluğa Katıl!" kurulum modalı kaldırıldı. Profilde
+        // henüz username yoksa iki olasılık var: (1) signUp() sırasında
+        // e-posta onayı bekleniyordu, o yüzden kullanıcı adı doğrudan
+        // profiles'e değil auth kullanıcısının metadata'sına yazılmıştı — bu
+        // ilk gerçek girişte burada profiles'e taşınıyor. (2) profiles satırı
+        // henüz yazılmamış kısa bir yarış durumu — bir kez daha deniyoruz.
+        let effectiveProfile = profile;
+        if (profile && !profile.username) {
+            const pendingUsername = authUser.user_metadata && authUser.user_metadata.username;
+            if (pendingUsername) {
+                try {
+                    await window.FocusAuth.updateProfile(authUser.id, {
+                        username: pendingUsername,
+                        display_name: pendingUsername,
+                    });
+                    effectiveProfile = { ...profile, username: pendingUsername, display_name: pendingUsername };
+                } catch (writeErr) {
+                    console.error('[FocusAI Social] bekleyen kullanıcı adı yazılamadı:', writeErr);
+                }
+            }
+        }
+
+        if (!effectiveProfile || !effectiveProfile.username) {
             if (!_isRetry) {
                 setTimeout(() => loadCommunityProfile(authUser, true), 900);
-                return;
             }
-            window.dispatchEvent(new CustomEvent('focusai:needs-community-profile', {
-                detail: { authUser, profile }
-            }));
             return;
         }
 
-        setCurrentUser(_profileToCurrentUser(profile, authUser));
+        setCurrentUser(_profileToCurrentUser(effectiveProfile, authUser));
         saveUser(getCurrentUser());
         updateProfileHeader();
 

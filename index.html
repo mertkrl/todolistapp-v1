@@ -223,7 +223,7 @@
 
             <!-- Adım 1: sadece e-posta -->
             <div id="app-gate-step-email">
-                <input type="email" id="app-gate-email" class="premium-input" placeholder="ornek@eposta.com" autocomplete="email">
+                <input type="email" id="app-gate-email" class="premium-input" placeholder="ornek@eposta.com" autocomplete="email" maxlength="254">
                 <p id="app-gate-email-status" class="app-login-gate-status"></p>
                 <button type="button" id="app-gate-email-next-btn" class="primary-btn app-login-gate-submit">
                     <i class="fa-solid fa-arrow-right"></i> İleri
@@ -236,7 +236,7 @@
                     <span id="app-gate-login-email-label"></span>
                     <a href="#" id="app-gate-login-change-email">değiştir</a>
                 </p>
-                <input type="password" id="app-gate-password" class="premium-input" placeholder="Şifre" autocomplete="current-password">
+                <input type="password" id="app-gate-password" class="premium-input" placeholder="Şifre" autocomplete="current-password" maxlength="72">
                 <p class="app-login-gate-forgot">
                     <a href="#" id="app-gate-forgot-link">Şifremi unuttum</a>
                 </p>
@@ -255,8 +255,8 @@
                     <span id="app-gate-signup-email-label"></span>
                     <a href="#" id="app-gate-signup-change-email">değiştir</a>
                 </p>
-                <input type="text" id="app-gate-username" class="premium-input u-text-transform-lowercase" placeholder="Kullanıcı adı" maxlength="30" autocomplete="username">
-                <input type="password" id="app-gate-signup-password" class="premium-input u-margin-top-10px" placeholder="Şifre (en az 8 karakter, 1 rakam)" autocomplete="new-password">
+                <input type="text" id="app-gate-username" class="premium-input u-text-transform-lowercase" placeholder="Kullanıcı adı" maxlength="20" autocomplete="username">
+                <input type="password" id="app-gate-signup-password" class="premium-input u-margin-top-10px" placeholder="Şifre (8-72 karakter, en az 1 rakam)" autocomplete="new-password" maxlength="72">
                 <p id="app-gate-signup-status" class="app-login-gate-status"></p>
                 <button type="button" id="app-gate-signup-send-btn" class="primary-btn app-login-gate-submit">
                     <i class="fa-solid fa-user-plus"></i> Hesap Oluştur
@@ -266,7 +266,7 @@
             <!-- Şifre sıfırlama -->
             <div id="app-gate-section-reset" class="hidden">
                 <p class="app-login-gate-sub">E-postana bir sıfırlama bağlantısı gönderelim.</p>
-                <input type="email" id="app-gate-reset-email" class="premium-input" placeholder="ornek@eposta.com" autocomplete="email">
+                <input type="email" id="app-gate-reset-email" class="premium-input" placeholder="ornek@eposta.com" autocomplete="email" maxlength="254">
                 <p id="app-gate-reset-status" class="app-login-gate-status"></p>
                 <button type="button" id="app-gate-reset-send-btn" class="primary-btn app-login-gate-submit"><i class="fa-solid fa-paper-plane"></i> Bağlantı Gönder</button>
                 <button type="button" id="app-gate-reset-back-btn" class="control-btn secondary app-login-gate-submit">Geri Dön</button>
@@ -4735,6 +4735,14 @@
                         <span class="ss-row-desc">Bugün bölümünde seri gün sayısını göster</span>
                     </div>
                     <label class="ss-toggle" for="ss-toggle-streak"><input type="checkbox" id="ss-toggle-streak" checked><span class="ss-slider"></span></label>
+                </div>
+
+                <div class="ss-row">
+                    <div class="ss-row-info">
+                        <span class="ss-row-title">Gün Sonu Değerlendirmesi</span>
+                        <span class="ss-row-desc">Akşamları günü değerlendirme istemi göster</span>
+                    </div>
+                    <label class="ss-toggle" for="ss-toggle-evening-reflection"><input type="checkbox" id="ss-toggle-evening-reflection" checked><span class="ss-slider"></span></label>
                 </div>
 
                 <!-- Veri -->

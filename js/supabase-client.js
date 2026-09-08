@@ -21,6 +21,12 @@ import {
     const SUPABASE_URL = 'https://qyzfkiideqovqiarabds.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_M4Sed5jniCGdzX6GgHvzxw_ZzlcwEpj';
 
+    // E-posta doğrulama / şifre sıfırlama bağlantıları her zaman yayındaki
+    // adrese gitsin diye sabit tutuluyor. window.location.origin kullanılsaydı,
+    // biri localhost'tan (ör. geliştirme sunucusu) kayıt olduğunda mail linki
+    // localhost'a giderdi — o adres kullanıcının tarayıcısında açılamaz.
+    const APP_URL = 'https://mertkrl.github.io/todolistapp-v1/';
+
     const _client = (window.supabase && typeof window.supabase.createClient === 'function' && /^https?:\/\//.test(SUPABASE_URL))
         ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
         : null;
@@ -42,10 +48,24 @@ import {
     // ============================================================
     // Auth
     // ============================================================
+    // Hesabın gerçek kayıt tarihi (Supabase auth.users.created_at). Gün Sonu
+    // Değerlendirmesi gibi "hesap en az 1 gün eski mi" kontrolü gerektiren
+    // yerlerin senkron erişebilmesi için global'e yazılıyor — getSession()
+    // asenkron olduğundan doğrudan orada kullanılamıyor.
+    function _rememberAccountCreatedAt(session) {
+        if (session && session.user && session.user.created_at) {
+            window.FocusAccountCreatedAt = session.user.created_at;
+        }
+    }
+
     if (_client) {
-        _client.auth.getSession().then(({ data }) => { _session = data.session; });
+        _client.auth.getSession().then(({ data }) => {
+            _session = data.session;
+            _rememberAccountCreatedAt(_session);
+        });
         _client.auth.onAuthStateChange((event, session) => {
             _session = session;
+            _rememberAccountCreatedAt(session);
             _authListeners.forEach(cb => {
                 try { cb(event, session); } catch (e) { console.error('[FocusAuth] listener hatası:', e); }
             });
@@ -62,9 +82,15 @@ import {
         // Gerçek kayıt: kullanıcı kendi şifresini belirler. Supabase Dashboard >
         // Authentication > Providers > Email'de "Confirm email" AÇIK olmalı ki
         // hesap sadece o e-postaya erişimi olan kişi tarafından doğrulanabilsin.
-        async signUp(email, password) {
+        // metadata (ör. { username }) e-posta onayı bekleniyorsa (henüz oturum
+        // yok, profiles'e anon olarak yazılamıyor) auth.users.user_metadata'ya
+        // gömülüyor — ilk gerçek girişte social-auth-bootstrap.js buradan okuyup
+        // profiles'e taşıyor.
+        async signUp(email, password, metadata) {
             if (!_client) throw new Error('Supabase yapılandırılmamış.');
-            return _client.auth.signUp({ email, password });
+            const options = { emailRedirectTo: APP_URL };
+            if (metadata) options.data = metadata;
+            return _client.auth.signUp({ email, password, options });
         },
         async signIn(email, password) {
             if (!_client) throw new Error('Supabase yapılandırılmamış.');
@@ -73,7 +99,7 @@ import {
         // Şifremi unuttum: kullanıcının e-postasına sıfırlama bağlantısı gönderir.
         async resetPasswordForEmail(email) {
             if (!_client) throw new Error('Supabase yapılandırılmamış.');
-            return _client.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + window.location.pathname });
+            return _client.auth.resetPasswordForEmail(email, { redirectTo: APP_URL });
         },
         // Sıfırlama bağlantısından dönüldükten sonra (PASSWORD_RECOVERY oturumu) yeni şifreyi kaydeder.
         async updatePassword(newPassword) {

@@ -389,9 +389,50 @@ document.addEventListener('DOMContentLoaded', () => {
      }
 
      if (!isTourCompleted && tourOverlay) {
-         startTourFlow('main', true); // resume: yarıda kalmış bir adım varsa oradan devam et
+         _startTourWhenAuthReady();
      }
  }, 1000);
+
+ // Giriş kapısı (#app-login-gate) ya da Hesap/Senkronizasyon, veri aktarım
+ // gibi modallardan biri hâlâ açıkken tur devreye girmesin — aksi halde yeni
+ // kayıt olan kullanıcı kayıt akışını tamamlamadan turla karşılaşıyordu.
+ function _isSignupFlowModalOpen() {
+     const gate = document.getElementById('app-login-gate');
+     if (gate && !gate.classList.contains('hidden')) return true;
+     return ['focusai-auth-modal', 'focusai-import-modal'].some(id => {
+         const el = document.getElementById(id);
+         return el && !el.classList.contains('hidden');
+     });
+ }
+
+ // İlk adımı, hesabı yeni kuran kullanıcının adıyla kişiselleştirir (ör.
+ // "Merhaba, mert! 👋"). currentUser henüz yüklenmediyse (nadiren, sosyal
+ // profil senkronizasyonu gecikirse) jenerik başlığa sessizce geri döner.
+ function _personalizeFirstStepGreeting() {
+     const step0 = tourFlows.main[0];
+     if (!step0) return;
+     let name = '';
+     try {
+         const cu = window.getCurrentUser && window.getCurrentUser();
+         name = (cu && (cu.displayName || cu.username)) || '';
+     } catch (e) {}
+     if (name) {
+         step0.title = `Merhaba, ${name}! 👋`;
+         step0.text = `FocusAI'a hoş geldin! Sana kısaca etrafı gezdirelim. Burası ana ekranın — bugün yapman gerekenleri buradan görür, ekler ve takip edersin.`;
+     } else {
+         step0.title = 'Bugünün Görevleri';
+         step0.text = 'Ana ekranın burası — bugün yapman gerekenleri buradan görür, ekler ve takip edersin.';
+     }
+ }
+
+ function _startTourWhenAuthReady() {
+     if (_isSignupFlowModalOpen()) {
+         setTimeout(_startTourWhenAuthReady, 400);
+         return;
+     }
+     _personalizeFirstStepGreeting();
+     startTourFlow('main', true); // resume: yarıda kalmış bir adım varsa oradan devam et
+ }
 
 });
 })();

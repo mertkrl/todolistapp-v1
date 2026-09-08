@@ -303,6 +303,6 @@ social.js:21
 state-store.js:1
 stats-active-filter-store.js:1
 storage-manager.js:5
-supabase-client.js:4
+supabase-client.js:5
 tasks-store.js:2
 total-focus-minutes-store.js:1

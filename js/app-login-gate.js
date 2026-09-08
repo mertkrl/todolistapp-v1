@@ -11,7 +11,7 @@
 // hatayla döner, hesap varlığını sızdırmamak için) kullanıcıya kayıt olma
 // seçeneği sunulur (adım "signup") — orada e-posta zaten bilindiği için
 // sadece kullanıcı adı + şifre istenir.
-import { _isStrongPassword, _validateEmail } from './auth-ui-utils.js';
+import { _isStrongPassword, _validateEmail, USERNAME_MAX_LEN, PASSWORD_MAX_LEN } from './auth-ui-utils.js';
 
 let _email = '';
 
@@ -65,6 +65,23 @@ async function _emailIsRegistered(email) {
         return !!data;
     } catch (e) {
         console.warn('[app-login-gate] email_exists RPC kullanılamıyor, giriş adımına devam ediliyor:', e.message);
+        return null;
+    }
+}
+
+// Kullanıcı adının başka biri tarafından alınıp alınmadığını sorar (bkz.
+// supabase/migrations/136_username_exists_rpc.sql). Fonksiyon henüz deploy
+// edilmemişse (hata dönerse) kayda devam edilir — asıl güvence zaten
+// profiles.username üzerindeki unique kısıtı, bu sadece daha iyi bir hata
+// mesajı için erken uyarı.
+async function _usernameIsRegistered(username) {
+    if (!window.FocusSupabase) return null;
+    try {
+        const { data, error } = await window.FocusSupabase.rpc('username_exists', { check_username: username });
+        if (error) throw error;
+        return !!data;
+    } catch (e) {
+        console.warn('[app-login-gate] username_exists RPC kullanılamıyor, kayda devam ediliyor:', e.message);
         return null;
     }
 }
@@ -172,23 +189,34 @@ async function _submitSignupStep() {
     const password = document.getElementById('app-gate-signup-password').value || '';
     const status = document.getElementById('app-gate-signup-status');
 
-    if (!username || username.length < 3 || /[^a-z0-9_]/.test(username)) {
-        status.textContent = 'Kullanıcı adı en az 3 karakter olmalı, sadece harf/rakam/alt çizgi içerebilir.';
+    if (!username || username.length < 3 || username.length > USERNAME_MAX_LEN || /[^a-z0-9_]/.test(username)) {
+        status.textContent = `Kullanıcı adı 3-${USERNAME_MAX_LEN} karakter olmalı, sadece harf/rakam/alt çizgi içerebilir.`;
         status.style.color = '#ff4757';
         return;
     }
     if (!_isStrongPassword(password)) {
-        status.textContent = 'Şifre en az 8 karakter olmalı ve en az bir rakam içermeli.';
+        status.textContent = `Şifre 8-${PASSWORD_MAX_LEN} karakter olmalı ve en az bir rakam içermeli.`;
         status.style.color = '#ff4757';
         return;
     }
 
     const btn = document.getElementById('app-gate-signup-send-btn');
     btn.disabled = true;
+    status.textContent = 'Kullanıcı adı kontrol ediliyor...';
+    status.style.color = 'var(--text-muted)';
+
+    const taken = await _usernameIsRegistered(username);
+    if (taken === true) {
+        status.textContent = 'Bu kullanıcı adı zaten alınmış, başka bir tane dene.';
+        status.style.color = '#ff4757';
+        btn.disabled = false;
+        return;
+    }
+
     status.textContent = 'Hesap oluşturuluyor...';
     status.style.color = 'var(--text-muted)';
     try {
-        const { data, error } = await window.FocusAuth.signUp(_email, password);
+        const { data, error } = await window.FocusAuth.signUp(_email, password, { username });
         if (error) throw error;
         if (data && data.user && data.session) {
             // E-posta onayı gerekmiyor — oturum hemen döndü, kullanıcı adını kaydet.
@@ -199,6 +227,10 @@ async function _submitSignupStep() {
                 });
             } catch (profileErr) {
                 console.error('[app-login-gate] profil kaydı hatası:', profileErr);
+                if (/duplicate key|already exists|unique constraint/i.test(profileErr.message || '')) {
+                    status.textContent = 'Bu kullanıcı adı az önce başka biri tarafından alındı, tekrar dene.';
+                    status.style.color = '#ff4757';
+                }
             }
             // SIGNED_IN eventi tetiklenecek, kapı oradan kapanıp Bugün'e geçilecek
         } else {
@@ -206,7 +238,12 @@ async function _submitSignupStep() {
             status.style.color = '#2ed573';
         }
     } catch (e) {
-        status.textContent = 'Hata: ' + (e.message || 'İşlem başarısız.');
+        // Unique kısıtı (username_exists RPC henüz deploy edilmemişse ya da
+        // yarış durumunda iki kişi aynı anda aynı adı seçtiyse) burada yakalanır.
+        const isDuplicateUsername = /duplicate key|already exists|unique constraint/i.test(e.message || '') && /username/i.test(e.message || '');
+        status.textContent = isDuplicateUsername
+            ? 'Bu kullanıcı adı zaten alınmış, başka bir tane dene.'
+            : 'Hata: ' + (e.message || 'İşlem başarısız.');
         status.style.color = '#ff4757';
     } finally {
         btn.disabled = false;
@@ -303,6 +340,10 @@ async function _initAppLoginGate() {
 
     window.FocusAuth.onAuthChange((event, session) => {
         if (event === 'SIGNED_IN' && session && session.user) {
+            // E-postası doğrulanmamış bir oturum kapıyı açmasın — asıl çıkış
+            // işlemini auth-ui.js yapıyor (SIGNED_OUT tetikler), burada sadece
+            // kapının erken/yanlışlıkla kapanmasını önlüyoruz.
+            if (!session.user.email_confirmed_at) return;
             _hideGate();
             _goToBugunTab();
         } else if (event === 'SIGNED_OUT') {
@@ -312,7 +353,7 @@ async function _initAppLoginGate() {
     });
 
     const session = await window.FocusAuth.getSession();
-    if (session && session.user) {
+    if (session && session.user && session.user.email_confirmed_at) {
         _hideGate();
     } else {
         // index.html'deki senkron ön-gizleme scripti localStorage'da bir
