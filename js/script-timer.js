@@ -868,14 +868,13 @@ import { getTotalFocusMinutes, setTotalFocusMinutes } from '../state/total-focus
 
  // ============ HIZLI "OTOMATİK GEÇİŞ" DÜĞMESİ ============
  // timerSettings.autoStart zaten mevcuttu ama sadece "Profili Düzenle" modalının
- // içine gömülüydü (kullanıcı fark etmiyordu). Zamanlayıcı başlığına, tek
- // tıkla açıp kapatılabilen bir kısayol ekliyoruz — ayar modalıyla senkron kalır.
+ // içine gömülüydü (kullanıcı fark etmiyordu). Döngü sayacının yanına, tek
+ // tıkla açıp kapatılabilen minimalist bir ikon kısayolu ekliyoruz — ayar
+ // modalıyla senkron kalır.
  const autoStartToggleBtn = document.getElementById('auto-start-toggle-btn');
  function updateAutoStartToggleBtn() {
      if (!autoStartToggleBtn) return;
      autoStartToggleBtn.classList.toggle('active', !!timerSettings.autoStart);
-     autoStartToggleBtn.classList.toggle('primary', !!timerSettings.autoStart);
-     autoStartToggleBtn.classList.toggle('secondary', !timerSettings.autoStart);
      autoStartToggleBtn.title = timerSettings.autoStart
          ? 'Açık — mola ve odak turları elle başlatmana gerek kalmadan otomatik geçer'
          : 'Kapalı — her aşamadan sonra Başlat\'a elle basman gerekir';

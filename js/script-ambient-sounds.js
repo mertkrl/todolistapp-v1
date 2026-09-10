@@ -412,7 +412,19 @@ document.addEventListener('DOMContentLoaded', () => {
             if (timerSceneVideo.dataset.current !== type) {
                 timerSceneVideo.dataset.current = type;
                 timerSceneVideo.src = videoSources[type];
-                timerSceneVideo.play().catch(() => {});
+                // .src değişiminin hemen ardından senkron çağrılan .play() bazı
+                // tarayıcılarda "yeni yükleme isteği" tarafından kesintiye uğrayıp
+                // (AbortError) video'yu sessizce duraklatılmış bırakıyordu — ortam
+                // sesi (Web Audio üzerinden, video'dan bağımsız) normal çalmaya
+                // devam ettiği için fark edilmesi zor bir bug'dı (kullanıcı raporu:
+                // "yağmur sesiyle yağmur videosu oynamıyor"). Video gerçekten
+                // oynatılabilir veri biriktirince (loadeddata) tekrar deneyerek bu
+                // yarış durumunu ortadan kaldırıyoruz.
+                timerSceneVideo.play().catch(() => {
+                    timerSceneVideo.addEventListener('loadeddata', () => {
+                        if (timerSceneVideo.dataset.current === type) timerSceneVideo.play().catch(() => {});
+                    }, { once: true });
+                });
             }
             timerSceneVideo.classList.add('active');
             timerSceneSection?.classList.add('has-scene');

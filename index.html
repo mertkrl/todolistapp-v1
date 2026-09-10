@@ -767,9 +767,6 @@
                         <h1>Zamanlayıcı</h1>
                         <p>Odağını kaybetme, zamanını verimli kullan.</p>
                     </div>
-                    <button id="auto-start-toggle-btn" class="control-btn secondary timer-focus-btn" title="Açıksa; mola ve odak turları elle başlatmana gerek kalmadan otomatik geçer">
-                        <i class="fa-solid fa-bolt"></i> Otomatik Geçiş
-                    </button>
                     <button id="focus-mode-btn" class="control-btn secondary timer-focus-btn">
                         <i class="fa-solid fa-expand"></i> Odak Modu
                     </button>
@@ -828,9 +825,14 @@
                         <button id="finish-early-btn" class="hidden timer-finish-btn"><i class="fa-solid fa-hourglass-end"></i> Bitir</button>
                     </div>
 
-                    <!-- Pomodoro sayacı -->
-                    <div id="pomodoro-counter" class="pomodoro-counter">
-                        <i class="fa-solid fa-repeat"></i> Döngü: <span id="loop-count">0</span>/4
+                    <!-- Pomodoro sayacı + otomatik geçiş (minimalist ikon düğmesi) -->
+                    <div class="timer-loop-row">
+                        <div id="pomodoro-counter" class="pomodoro-counter">
+                            <i class="fa-solid fa-repeat"></i> Döngü: <span id="loop-count">0</span>/4
+                        </div>
+                        <button id="auto-start-toggle-btn" class="auto-start-mini-btn" title="Açıksa; mola ve odak turları elle başlatmana gerek kalmadan otomatik geçer">
+                            <i class="fa-solid fa-bolt"></i>
+                        </button>
                     </div>
 
                     <!-- Görev seçici -->
