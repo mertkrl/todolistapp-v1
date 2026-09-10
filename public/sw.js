@@ -1,4 +1,4 @@
-const CACHE = 'focusai-adc66834b5';
+const CACHE = 'focusai-8e42174edd';
 const FILES = [
   './',
   './index.html',
@@ -135,6 +135,7 @@ const FILES = [
   './css/undo-toast-fab-spotlight.css',
   './css/utility-classes.css',
   './css/v2-design-system.css',
+  './css/welcome-fun.css',
   './css/zettelkasten-library.css',
   './inline-a11y-patch.js',
   './inline-button-failsafe.js',
@@ -462,7 +463,8 @@ const FILES = [
   './js/state-store.js',
   './js/storage-manager.js',
   './js/supabase-client-row-converters.js',
-  './js/supabase-client.js'
+  './js/supabase-client.js',
+  './js/welcome-fun.js'
 ];
 
 self.addEventListener('install', e => {
