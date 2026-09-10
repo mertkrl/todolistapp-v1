@@ -1,0 +1,197 @@
+/* Karşılama/giriş kapısının arka planı için eğlenceli, etkileşimli dekor katmanı.
+   Tamamen kozmetik — #app-login-gate görünürken çalışır, giriş/kayıt mantığına dokunmaz.
+   Asıl interaktif "uygulamayı tanı" paneli css/welcome-tour.css'te. */
+
+.welcome-fun-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+/* Fareyi takip eden yumuşak parıltı */
+.welcome-fun-glow {
+    position: absolute;
+    width: 480px;
+    height: 480px;
+    left: 0;
+    top: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(212, 144, 14, 0.16), transparent 70%);
+    transform: translate(-50%, -50%);
+    transition: opacity 0.4s ease;
+    will-change: transform;
+}
+
+/* Yüzen görev balonları */
+.welcome-fun-bubble {
+    position: absolute;
+    bottom: -60px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.055);
+    border: 1px solid var(--b2, rgba(255,255,255,0.11));
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    color: var(--t1, #f2f2f2);
+    font-size: 13px;
+    white-space: nowrap;
+    cursor: pointer;
+    pointer-events: auto;
+    animation: welcome-fun-float linear forwards;
+    animation-duration: var(--wf-dur, 16s);
+    transition: box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.welcome-fun-bubble:hover {
+    background: rgba(212, 144, 14, 0.12);
+    border-color: rgba(212, 144, 14, 0.35);
+    box-shadow: 0 0 0 1px rgba(212, 144, 14, 0.18), 0 6px 18px rgba(0,0,0,0.25);
+}
+
+.welcome-fun-bubble .wf-emoji {
+    font-size: 15px;
+    line-height: 1;
+}
+
+@keyframes welcome-fun-float {
+    0% {
+        transform: translateY(0) translateX(0) rotate(0deg);
+        opacity: 0;
+    }
+    8% { opacity: 1; }
+    92% { opacity: 1; }
+    100% {
+        transform: translateY(-115vh) translateX(var(--wf-drift, 30px)) rotate(var(--wf-rot, 4deg));
+        opacity: 0;
+    }
+}
+
+/* Balon tıklanınca "tamamlandı" durumu */
+.welcome-fun-bubble.is-done {
+    animation-play-state: paused;
+    pointer-events: none;
+    background: rgba(74, 222, 128, 0.14);
+    border-color: rgba(74, 222, 128, 0.4);
+    color: #4ADE80;
+    transform: scale(1.12);
+    transition: transform 0.25s cubic-bezier(.34,1.56,.64,1), background 0.25s ease, border-color 0.25s ease, opacity 0.45s ease 0.35s;
+}
+
+.welcome-fun-bubble.is-done .wf-emoji::before {
+    content: "✓";
+}
+
+.welcome-fun-bubble.is-gone {
+    opacity: 0 !important;
+}
+
+/* Tamamlanınca patlayan mini parçacıklar */
+.welcome-fun-particle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #D4900E;
+    pointer-events: none;
+    animation: welcome-fun-burst 0.6s ease-out forwards;
+}
+
+@keyframes welcome-fun-burst {
+    0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(var(--wf-px, 40px), var(--wf-py, -40px)) scale(0);
+        opacity: 0;
+    }
+}
+
+/* "Bugün X görev hallettin" sayaç rozeti */
+.welcome-fun-counter {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px 8px 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--b2, rgba(255,255,255,0.11));
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: var(--t1, #f2f2f2);
+    font-size: 12.5px;
+    font-weight: 600;
+    max-width: min(84vw, 300px);
+    opacity: 0;
+    transform: translateY(-8px);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+    pointer-events: none;
+}
+
+.welcome-fun-counter.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.welcome-fun-counter .wf-counter-emoji {
+    font-size: 15px;
+}
+
+.welcome-fun-counter .wf-counter-num {
+    color: #4ADE80;
+    font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 480px) {
+    .welcome-fun-counter {
+        top: auto;
+        bottom: 16px;
+        right: 16px;
+        font-size: 11.5px;
+        padding: 7px 12px 7px 9px;
+    }
+}
+
+/* Bolt ikonuna tıklayınca enerji pulse'u */
+.app-login-gate-icon {
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.15s ease;
+}
+
+.app-login-gate-icon:active {
+    transform: scale(0.92);
+}
+
+.app-login-gate-icon.wf-pulse {
+    animation: welcome-fun-icon-pulse 0.55s ease;
+}
+
+@keyframes welcome-fun-icon-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(212, 144, 14, 0.55); }
+    70% { box-shadow: 0 0 0 22px rgba(212, 144, 14, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(212, 144, 14, 0); }
+}
+
+@media (max-width: 560px) {
+    .welcome-fun-bubble { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .welcome-fun-glow,
+    .welcome-fun-bubble,
+    .app-login-gate-icon.wf-pulse {
+        animation: none !important;
+        transition: none !important;
+    }
+    .welcome-fun-layer { display: none; }
+}
