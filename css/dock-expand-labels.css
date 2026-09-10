@@ -1,0 +1,64 @@
+/* Genişleyen Dock (dock hover'ında ikon etiketleri görünsün). Yeni kayıt olan
+   kullanıcı ikonların ne anlama geldiğini bilmiyor; her ikonun üzerine tek tek
+   gelip minik tooltip'i okumasını beklemek yerine, dock'un tamamı hover
+   edildiğinde ikon + isim yan yana görünen "genişleyen sidebar" davranışı
+   isteniyor.
+   NOT: `.tip` etiketini dock kutusunun DIŞINA taşan bir overlay yapmak (yalnızca
+   position:absolute + overflow:visible ile) CSS spesifikasyonu yüzünden
+   çalışmıyor — bir eksende overflow:auto (.dock'un dikey scroll'u) varken diğer
+   eksen 'visible' istense bile tarayıcı onu da 'auto' (kırpan) yapıyor. Bu
+   yüzden gerçekten dock'un kendisini genişletiyoruz; ana içerik alanı flex:1
+   olduğu için genişleme sırasında yumuşakça yeniden akıyor (yaygın/beklenen
+   "hover'da açılan kenar çubuğu" deseni — Discord/Slack benzeri).
+   Dokunmatik/mobil ekranlarda (hover desteklemeyen ya da dock'un alt çubuğa
+   dönüştüğü dar genişlikler) bu davranış devre dışı — orada zaten .tip mobil
+   medya sorgusuyla tamamen gizleniyor. */
+@media (min-width: 641px) and (hover: hover) and (pointer: fine) {
+    #app-dock {
+        width: 64px;
+        transition: width .22s cubic-bezier(.4, 0, .2, 1);
+    }
+    #app-dock:hover {
+        width: 208px;
+    }
+
+    #app-dock .di {
+        width: 100% !important; /* style-final-overrides.css'teki 38px !important'ı geçersiz kılar */
+        justify-content: flex-start;
+        padding-left: 11px;
+        gap: 12px;
+        box-sizing: border-box;
+    }
+
+    #app-dock .dsep {
+        width: 24px;
+        transition: width .22s cubic-bezier(.4, 0, .2, 1);
+    }
+    #app-dock:hover .dsep {
+        width: 178px;
+    }
+
+    /* Etiket normalde gizli (sıfır genişlik) — dock hover'ında genişleyip belirir.
+       position:absolute yerine artık akış içinde (static), dock'un kendi
+       genişlemesiyle birlikte doğal olarak görünür hale geliyor. */
+    #app-dock .di .tip {
+        position: static;
+        background: none;
+        border: none;
+        padding: 0;
+        transform: none;
+        opacity: 0;
+        max-width: 0;
+        overflow: hidden;
+        white-space: nowrap;
+        transition: opacity .15s ease, max-width .22s cubic-bezier(.4, 0, .2, 1);
+    }
+    #app-dock:hover .di .tip {
+        opacity: 1;
+        max-width: 160px;
+    }
+    #app-dock:hover .di.act .tip {
+        color: var(--a);
+        font-weight: 600;
+    }
+}
