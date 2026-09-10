@@ -13,16 +13,18 @@
    Dokunmatik/mobil ekranlarda (hover desteklemeyen ya da dock'un alt çubuğa
    dönüştüğü dar genişlikler) bu davranış devre dışı — orada zaten .tip mobil
    medya sorgusuyla tamamen gizleniyor. */
-@media (min-width: 641px) and (hover: hover) and (pointer: fine) {
+@media (min-width: 769px) and (hover: hover) and (pointer: fine) {
     #app-dock {
         width: 64px;
         transition: width .22s cubic-bezier(.4, 0, .2, 1);
     }
     #app-dock:hover {
-        width: 208px;
+        width: 190px;
     }
 
-    #app-dock .di {
+    /* İstirahat halinde ikonlar eskisi gibi ortalı/kare kalsın — genişleme
+       (width/hizalama) SADECE dock gerçekten hover edilirken uygulanır. */
+    #app-dock:hover .di {
         width: 100% !important; /* style-final-overrides.css'teki 38px !important'ı geçersiz kılar */
         justify-content: flex-start;
         padding-left: 11px;
@@ -35,7 +37,7 @@
         transition: width .22s cubic-bezier(.4, 0, .2, 1);
     }
     #app-dock:hover .dsep {
-        width: 178px;
+        width: 160px;
     }
 
     /* Etiket normalde gizli (sıfır genişlik) — dock hover'ında genişleyip belirir.
