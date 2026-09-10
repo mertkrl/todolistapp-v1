@@ -127,6 +127,13 @@ export function switchTab(targetId) {
     // başlığı gibi) yanlışlıkla soluk kalmaya devam edebiliyordu.
     if (targetId !== 'zamanlayici') {
         document.body.classList.remove('ghost-mode-active');
+        // Odak Modu (focus-mode-active) da Zamanlayıcı dışına özgü — kalırsa
+        // body.focus-mode-active .page-section.active (kapsamsız) kuralı yeni
+        // aktif section'ı (ör. Bugün) merkezi/tam ekran flex düzenine zorlayıp
+        // karmakarışık bir görünüme yol açıyordu (bkz. beklenmedik switchTab
+        // çağrıları — örn. sekme arka plandan öne gelince Supabase'in tekrar
+        // fırlattığı SIGNED_IN olayının Bugün'e zorla atlaması).
+        document.body.classList.remove('focus-mode-active');
     }
 
     navLinks.forEach(nav => {

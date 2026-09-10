@@ -344,8 +344,18 @@ async function _initAppLoginGate() {
             // işlemini auth-ui.js yapıyor (SIGNED_OUT tetikler), burada sadece
             // kapının erken/yanlışlıkla kapanmasını önlüyoruz.
             if (!session.user.email_confirmed_at) return;
+            // Supabase, sekme arka plandan tekrar öne geldiğinde token
+            // yenilemesi için SIGNED_IN olayını TEKRAR fırlatıyor (gerçek bir
+            // yeniden giriş değil). Kapı zaten kapalıysa (kullanıcı çoktan
+            // içerideyse) bunu gerçek bir giriş sanıp Bugün'e zorla atlamak
+            // — kullanıcı o an başka bir sekmede (ör. Zamanlayıcı'nın Odak
+            // Modu'nda) olsa bile — sekmeyi değiştiriyor ve Odak Modu CSS'i
+            // (body.focus-mode-active .page-section.active) artık Bugün
+            // section'ına uygulanıp görünümü karmakarışık ediyordu (kullanıcı
+            // raporu: yan sekmeye geçip geri dönünce ekran bozuluyor).
+            const wasLocked = document.body.classList.contains('app-gate-locked');
             _hideGate();
-            _goToBugunTab();
+            if (wasLocked) _goToBugunTab();
         } else if (event === 'SIGNED_OUT') {
             _showGate();
             _resetToEmailStep();
