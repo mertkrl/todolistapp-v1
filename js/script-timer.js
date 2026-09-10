@@ -866,6 +866,29 @@ import { getTotalFocusMinutes, setTotalFocusMinutes } from '../state/total-focus
      if (activeProfilePillName && p) activeProfilePillName.textContent = p.name;
  }
 
+ // ============ HIZLI "OTOMATİK GEÇİŞ" DÜĞMESİ ============
+ // timerSettings.autoStart zaten mevcuttu ama sadece "Profili Düzenle" modalının
+ // içine gömülüydü (kullanıcı fark etmiyordu). Zamanlayıcı başlığına, tek
+ // tıkla açıp kapatılabilen bir kısayol ekliyoruz — ayar modalıyla senkron kalır.
+ const autoStartToggleBtn = document.getElementById('auto-start-toggle-btn');
+ function updateAutoStartToggleBtn() {
+     if (!autoStartToggleBtn) return;
+     autoStartToggleBtn.classList.toggle('active', !!timerSettings.autoStart);
+     autoStartToggleBtn.classList.toggle('primary', !!timerSettings.autoStart);
+     autoStartToggleBtn.classList.toggle('secondary', !timerSettings.autoStart);
+     autoStartToggleBtn.title = timerSettings.autoStart
+         ? 'Açık — mola ve odak turları elle başlatmana gerek kalmadan otomatik geçer'
+         : 'Kapalı — her aşamadan sonra Başlat\'a elle basman gerekir';
+ }
+ if (autoStartToggleBtn) {
+     autoStartToggleBtn.addEventListener('click', () => {
+         timerSettings.autoStart = !timerSettings.autoStart;
+         FocusStorage.set('timer_settings', timerSettings);
+         updateAutoStartToggleBtn();
+         if (settingAutoStart) settingAutoStart.checked = timerSettings.autoStart;
+     });
+ }
+
  // Zamanlayıcı "taze" (henüz başlamamış / ilerlemesi olmayan) durumdaysa profil
  // çubuğunu, aksi halde (çalışıyor ya da duraklatılmış ilerleme varsa) sadece
  // aktif profilin adını gösteren küçük bir rozeti göster.
@@ -1038,6 +1061,7 @@ import { getTotalFocusMinutes, setTotalFocusMinutes } from '../state/total-focus
 
          timerSettings.autoStart = aVal;
          FocusStorage.set('timer_settings', timerSettings);
+         updateAutoStartToggleBtn();
 
          if (_editingTimerProfileId) {
              const p = timerProfiles.find(x => x.id === _editingTimerProfileId);
@@ -1067,6 +1091,7 @@ import { getTotalFocusMinutes, setTotalFocusMinutes } from '../state/total-focus
  // Sayfa yüklendiğinde aktif profili uygula
  applyActiveProfile();
  updateTimerProfileBarVisibility();
+ updateAutoStartToggleBtn();
 
  // Yarım kalmış bir seans varsa (sayfa yenilendiğinde) kaldığı yerden devam ettir.
  (function _restoreTimerRunState() {
