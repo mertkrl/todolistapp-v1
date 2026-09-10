@@ -11,10 +11,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const DEFAULT_AMBIENT_VOLUME = 0.5;
 
     const audioSources = {
-        'rain': 'audio/rain.wav',
-        'ocean': 'audio/ocean.wav',
-        'forest': 'audio/forest.wav',
-        'fire': 'audio/fire.wav'
+        'rain': 'audio/rain.mp3',
+        'ocean': 'audio/ocean.mp3',
+        'forest': 'audio/forest.mp3',
+        'fire': 'audio/fire.mp3'
     };
     const videoSources = {
         'rain': 'video/rain.mp4',
