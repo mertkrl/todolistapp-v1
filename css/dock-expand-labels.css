@@ -10,39 +10,64 @@
    yüzden gerçekten dock'un kendisini genişletiyoruz; ana içerik alanı flex:1
    olduğu için genişleme sırasında yumuşakça yeniden akıyor (yaygın/beklenen
    "hover'da açılan kenar çubuğu" deseni — Discord/Slack benzeri).
+
+   ÖNEMLİ — İKONLARIN "ZIPLAMASI" SORUNU (kullanıcı geri bildirimi: "animasyon
+   çok kötü, butonlar hareket ediyor"): İlk denemede `.di` istirahatte
+   `justify-content:center` ile 38px kare içinde ortalanıyor, hover'da ise
+   `justify-content:flex-start` + width:100%'e SIÇRIYORDU. `justify-content`
+   CSS'te transition'lanamayan bir özellik olduğu için bu iki durum arasında
+   ikon anında (animasyonsuz) yer değiştiriyor, sadece dock'un kendi width'i
+   yumuşak geçiyordu — sonuç: ikon zıplıyor, sadece arka plan/etiket kayıyormuş
+   gibi kötü bir görünüm.
+   ÇÖZÜM: `.di` HER ZAMAN (istirahat + hover, aynı kural) `justify-content:
+   flex-start` + SABİT bir `padding-left` kullanıyor. Bu padding, ikonun
+   istirahat halindeki eski ortalanmış görünümünü birebir taklit edecek şekilde
+   hesaplandı (38px kutu, ~18px ikon → ~10px sol boşluk). Böylece ikonun sol
+   kenardan mesafesi HİÇBİR ZAMAN değişmiyor — dock/`.di` genişlerken ikon
+   olduğu yerde sabit kalıyor, sadece ondan SONRAKİ boşlukta etiket
+   opacity/max-width ile yumuşakça beliriyor. `.di`'nin kendi width'i de artık
+   (tıpkı dock gibi) transition'lı — bu da align-items:center ile hesaplanan
+   dock içi konumunun her karede yumuşakça enterpole edilmesini sağlıyor.
    Dokunmatik/mobil ekranlarda (hover desteklemeyen ya da dock'un alt çubuğa
-   dönüştüğü dar genişlikler) bu davranış devre dışı — orada zaten .tip mobil
-   medya sorgusuyla tamamen gizleniyor. */
+   dönüştüğü dar genişlikler, bkz. goal-card-detail.css max-width:768px) bu
+   davranış devre dışı — orada zaten .tip mobil medya sorgusuyla tamamen
+   gizleniyor. */
 @media (min-width: 769px) and (hover: hover) and (pointer: fine) {
     #app-dock {
         width: 64px;
-        transition: width .22s cubic-bezier(.4, 0, .2, 1);
+        transition: width .32s cubic-bezier(0.16, 1, 0.3, 1);
     }
     #app-dock:hover {
-        width: 190px;
+        width: 186px;
     }
 
-    /* İstirahat halinde ikonlar eskisi gibi ortalı/kare kalsın — genişleme
-       (width/hizalama) SADECE dock gerçekten hover edilirken uygulanır. */
+    /* İkon HER ZAMAN aynı hizalama kuralıyla, sabit sol boşlukla konumlanır —
+       istirahat/hover arasında justify-content DEĞİŞMİYOR, sadece kutu
+       genişliyor. Bu yüzden ikon asla zıplamıyor/kaymıyor. */
+    #app-dock .di {
+        width: 38px !important;
+        justify-content: flex-start !important;
+        padding-left: 10px !important;
+        gap: 12px !important;
+        box-sizing: border-box !important;
+        transition: width .32s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        overflow: hidden;
+    }
     #app-dock:hover .di {
-        width: 100% !important; /* style-final-overrides.css'teki 38px !important'ı geçersiz kılar */
-        justify-content: flex-start;
-        padding-left: 11px;
-        gap: 12px;
-        box-sizing: border-box;
+        width: 168px !important;
     }
 
     #app-dock .dsep {
         width: 24px;
-        transition: width .22s cubic-bezier(.4, 0, .2, 1);
+        transition: width .32s cubic-bezier(0.16, 1, 0.3, 1);
     }
     #app-dock:hover .dsep {
-        width: 160px;
+        width: 156px;
     }
 
-    /* Etiket normalde gizli (sıfır genişlik) — dock hover'ında genişleyip belirir.
-       position:absolute yerine artık akış içinde (static), dock'un kendi
-       genişlemesiyle birlikte doğal olarak görünür hale geliyor. */
+    /* Etiket normalde gizli (sıfır genişlik) — dock/`.di` genişledikçe, ikon
+       yerinde sabit dururken, ondan sonraki boşlukta yumuşakça belirir.
+       position:absolute yerine artık akış içinde (static). */
     #app-dock .di .tip {
         position: static;
         background: none;
@@ -53,11 +78,11 @@
         max-width: 0;
         overflow: hidden;
         white-space: nowrap;
-        transition: opacity .15s ease, max-width .22s cubic-bezier(.4, 0, .2, 1);
+        transition: opacity .2s ease .05s, max-width .32s cubic-bezier(0.16, 1, 0.3, 1);
     }
     #app-dock:hover .di .tip {
         opacity: 1;
-        max-width: 160px;
+        max-width: 130px;
     }
     #app-dock:hover .di.act .tip {
         color: var(--a);
