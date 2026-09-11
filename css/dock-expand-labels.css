@@ -31,11 +31,19 @@
    Dokunmatik/mobil ekranlarda (hover desteklemeyen ya da dock'un alt çubuğa
    dönüştüğü dar genişlikler, bkz. goal-card-detail.css max-width:768px) bu
    davranış devre dışı — orada zaten .tip mobil medya sorgusuyla tamamen
-   gizleniyor. */
+   gizleniyor.
+
+   GEÇİŞ EĞRİSİ (kullanıcı geri bildirimi: "çok sert geçiş oluyor"): İlk
+   sürümde cubic-bezier(0.16,1,0.3,1) ("ease-out-expo") kullanılıyordu — bu
+   eğri hareketin ~%90'ını süre'nin ilk %30-40'ında bitirip sert bir
+   "fırlama" hissi veriyor. cubic-bezier(0.4,0,0.2,1) (Material Design'ın
+   standart "ease" eğrisi) daha simetrik/yumuşak hızlanıp yavaşlıyor — hem
+   dock genişliği hem .di/.dsep/.tip aynı eğri+süreyle (380ms) hareket
+   ediyor ki hepsi TEK bir akıcı hareket gibi hissettirsin. */
 @media (min-width: 769px) and (hover: hover) and (pointer: fine) {
     #app-dock {
         width: 64px;
-        transition: width .32s cubic-bezier(0.16, 1, 0.3, 1);
+        transition: width .38s cubic-bezier(0.4, 0, 0.2, 1);
     }
     #app-dock:hover {
         width: 186px;
@@ -50,7 +58,7 @@
         padding-left: 10px !important;
         gap: 12px !important;
         box-sizing: border-box !important;
-        transition: width .32s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        transition: width .38s cubic-bezier(0.4, 0, 0.2, 1) !important;
         overflow: hidden;
     }
     #app-dock:hover .di {
@@ -59,7 +67,7 @@
 
     #app-dock .dsep {
         width: 24px;
-        transition: width .32s cubic-bezier(0.16, 1, 0.3, 1);
+        transition: width .38s cubic-bezier(0.4, 0, 0.2, 1);
     }
     #app-dock:hover .dsep {
         width: 156px;
@@ -78,7 +86,7 @@
         max-width: 0;
         overflow: hidden;
         white-space: nowrap;
-        transition: opacity .2s ease .05s, max-width .32s cubic-bezier(0.16, 1, 0.3, 1);
+        transition: opacity .2s ease .05s, max-width .38s cubic-bezier(0.4, 0, 0.2, 1);
     }
     #app-dock:hover .di .tip {
         opacity: 1;

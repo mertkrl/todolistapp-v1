@@ -1,4 +1,4 @@
-const CACHE = 'focusai-8e42174edd';
+const CACHE = 'focusai-e6ead239bd';
 const FILES = [
   './',
   './index.html',
@@ -42,6 +42,7 @@ const FILES = [
   './css/core-modal-system.css',
   './css/core-utilities.css',
   './css/deepwrite-editor.css',
+  './css/dock-expand-labels.css',
   './css/faz2-layout-overrides.css',
   './css/faz3-render-bridge-override.css',
   './css/faz5-istatistik-gunluk-bridge.css',
@@ -504,7 +505,32 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  // .js, .css, .html ve sayfa navigasyonları: stale-while-revalidate.
+  const url = e.request.url;
+
+  // Sayfa NAVİGASYONLARI (ör. hard refresh / sekme yeniden açılışı): AĞ-ÖNCELİKLİ.
+  // Önceden bu da aşağıdaki stale-while-revalidate'e giriyordu — önbellekte
+  // BAYAT bir index.html varsa (ör. #app-login-gate'in erken gizlenmesini
+  // sağlayan inline-gate-prehide.js henüz o sürümde yoksa/farklıysa) o bayat
+  // HTML ANINDA gösteriliyor, taze sürüm arka planda indirilip sadece BİR
+  // SONRAKİ yüklemede görünüyordu — kullanıcı her hard refresh'te giriş
+  // kapısının bir an görünüp tekrar Bugün'e dönmesini (FOUC) rapor etti,
+  // çünkü hep bir önceki (potansiyel eski) HTML'i görüyordu. Navigasyonlar
+  // artık önce ağdan denenir; sadece gerçekten offline'sa (ağ isteği
+  // başarısız olursa) önbelleğe düşülür. .js/.css gibi ağır statik varlıklar
+  // hâlâ hızlı ilk boyama için stale-while-revalidate kullanıyor (aşağıda) —
+  // bu değişiklik SADECE üst düzey HTML sayfasını etkiliyor.
+  if (e.request.mode === 'navigate') {
+    e.respondWith(
+      fetch(e.request).then(res => {
+        if (res && res.ok) caches.open(CACHE).then(c => c.put(e.request, res.clone()));
+        return res;
+      }).catch(() => caches.match(e.request).then(cached => cached || caches.match('./index.html')))
+    );
+    return;
+  }
+
+  // .js, .css, .html (navigasyon dışı — ör. dinamik import edilen modüller):
+  // stale-while-revalidate.
   // Önceki sürüm ("her zaman ağdan bekle") her yüklemede 4.6MB'lık ham JS/CSS'i
   // yeniden indirtiyordu — PWA'nın hız avantajını tamamen sıfırlıyordu. Bu
   // sürüm önbellekte varsa ANINDA onu döndürür (hızlı ilk boyama), AYNI ANDA
@@ -512,8 +538,7 @@ self.addEventListener('fetch', e => {
   // yüklemede yeni sürüm görünür. "Bayat veri asla güncellenmez" bug'ı
   // (2026-07-14) burada oluşmuyor çünkü her istekte arka plan revalidasyonu
   // tetikleniyor, cache asla "sonsuza dek dondurulmuş" olmuyor.
-  const url = e.request.url;
-  if (e.request.mode === 'navigate' || url.endsWith('.js') || url.endsWith('.css') || url.endsWith('.html')) {
+  if (url.endsWith('.js') || url.endsWith('.css') || url.endsWith('.html')) {
     e.respondWith(
       caches.open(CACHE).then(async c => {
         const cached = await c.match(e.request);
