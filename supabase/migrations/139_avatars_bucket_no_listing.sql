@@ -1,0 +1,21 @@
+-- ### 139_avatars_bucket_no_listing.sql
+-- Supabase Security Advisor uyarısı: "Public Bucket Allows Listing" —
+-- avatars_select_public policy'si (bkz. 121_avatar_storage_bucket.sql)
+-- storage.objects üzerinde koşulsuz bir SELECT izni veriyordu; bu hem
+-- tek tek dosya okumaya HEM DE bucket'taki tüm dosyaları LİSTELEMEYE
+-- (ör. storage.from('avatars').list()) izin veriyor — ikincisi, klasör
+-- adlarının kullanıcı UUID'si olması nedeniyle (bkz. aynı migration'daki
+-- avatars_delete_own policy'si: (storage.foldername(name))[1] =
+-- auth.uid()::text) tüm avatar yükleyen kullanıcıların UUID'lerinin
+-- enumerate edilebilmesi anlamına geliyordu.
+--
+-- Uygulama bu policy'ye HİÇ ihtiyaç duymuyor: js/supabase-client.js ve
+-- js/social-setup-profile-listeners.js avatarları SADECE
+-- storage.getPublicUrl() ile oluşturuyor — bu, "avatars" bucket'ı zaten
+-- Public olarak işaretlendiği için RLS'e hiç bakmayan
+-- /storage/v1/object/public/... uç noktasını kullanır. Kod tabanında
+-- storage.from('avatars').list()/.download() gibi bu SELECT policy'ye
+-- bağımlı hiçbir çağrı yok — bu yüzden policy'yi kaldırmak avatar
+-- görüntülemeyi/yüklemeyi ETKİLEMİYOR, sadece gereksiz listeleme
+-- yeteneğini kapatıyor.
+drop policy if exists "avatars_select_public" on storage.objects;
