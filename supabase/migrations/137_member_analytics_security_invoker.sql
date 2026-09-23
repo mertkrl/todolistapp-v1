@@ -1,0 +1,16 @@
+-- ### 137_member_analytics_security_invoker.sql
+-- Supabase Security Advisor uyarısı: "Security Definer View" —
+-- public.v_member_analytics varsayılan olarak SECURITY DEFINER (view'ı
+-- oluşturan rolün yetkileriyle) çalışıyordu. profiles tablosundaki RLS
+-- politikası ("profiles_select_authenticated": auth.uid() is not null)
+-- sadece giriş yapmış kullanıcıların tüm profilleri okumasına izin veriyor,
+-- ama bu view SECURITY DEFINER olduğu için sorguyu atan kişinin RLS
+-- bağlamını atlayıp anonim (giriş yapmamış) isteklerin bile view üzerinden
+-- tüm kullanıcıların username/xp/focus_min/streak/institution_role gibi
+-- alanlarını okuyabilmesine yol açıyordu.
+--
+-- security_invoker = true (Postgres 15+), view'ı artık view'ı SORGULAYAN
+-- kullanıcının kendi yetkileri/RLS bağlamıyla çalıştırır — view'ın mantığı
+-- (hangi kolonlar, hangi tablo) hiç değişmiyor, sadece erişim kontrolü artık
+-- profiles tablosunun RLS politikasına gerçekten tabi oluyor.
+alter view public.v_member_analytics set (security_invoker = true);
